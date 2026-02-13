@@ -1,0 +1,1060 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Amazon Connect - タスク向け AI アシスタンス</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/styles/atom-one-dark.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/highlight.min.js"></script>
+    <style>
+        :root {
+            --squid-ink: #232F3E;
+            --aws-orange: #FF9900;
+            --aws-smile-orange: #FFAD33;
+            --text-primary: #FFFFFF;
+            --text-secondary: #AAAAAA;
+            --light-gray: #D5DBDB;
+            --card-bg: #2D3A4A;
+            --dark-squid: #1A242F;
+            --border-color: #3D4A5A;
+            --aws-teal: #00A1C9;
+            --aws-purple: #8C4FFF;
+            --aws-green: #1D8102;
+            --aws-red: #D13212;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            background-color: var(--squid-ink);
+            color: var(--light-gray);
+            line-height: 1.8;
+            font-size: 16px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+            padding-bottom: 30px;
+            border-bottom: 3px solid var(--aws-orange);
+        }
+
+        .service-badge {
+            display: inline-block;
+            background-color: var(--aws-orange);
+            color: var(--squid-ink);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+        }
+
+        .header-subtitle {
+            color: var(--light-gray);
+            font-size: 15px;
+            margin-bottom: 8px;
+        }
+
+        .release-date {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--aws-orange);
+            margin-bottom: 20px;
+            padding-left: 15px;
+            border-left: 4px solid var(--aws-orange);
+        }
+
+        .overview-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .overview-text {
+            font-size: 16px;
+            line-height: 1.9;
+        }
+
+        .highlight {
+            background-color: rgba(255, 153, 0, 0.2);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+            color: var(--aws-orange);
+        }
+
+        /* Stats grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, var(--card-bg) 0%, var(--dark-squid) 100%);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid rgba(255, 153, 0, 0.2);
+        }
+
+        .stat-icon {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--aws-orange);
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        /* Before/After comparison */
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .comparison-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .comparison-card.before {
+            border-top: 4px solid #E74C3C;
+        }
+
+        .comparison-card.after {
+            border-top: 4px solid #2ECC71;
+        }
+
+        .comparison-label {
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        .comparison-card.before .comparison-label {
+            color: #E74C3C;
+        }
+
+        .comparison-card.after .comparison-label {
+            color: #2ECC71;
+        }
+
+        .comparison-list {
+            list-style: none;
+        }
+
+        .comparison-list li {
+            padding: 8px 0;
+            padding-left: 25px;
+            position: relative;
+            font-size: 14px;
+        }
+
+        .comparison-card.before .comparison-list li::before {
+            content: "\2717";
+            position: absolute;
+            left: 0;
+            color: #E74C3C;
+            font-weight: bold;
+        }
+
+        .comparison-card.after .comparison-list li::before {
+            content: "\2713";
+            position: absolute;
+            left: 0;
+            color: #2ECC71;
+            font-weight: bold;
+        }
+
+        /* Mermaid diagram */
+        .diagram-container {
+            background-color: #FFFFFF;
+            border: 2px solid rgba(255, 153, 0, 0.3);
+            border-radius: 12px;
+            padding: 25px;
+            overflow-x: auto;
+        }
+
+        .mermaid {
+            display: flex;
+            justify-content: center;
+        }
+
+        /* Feature cards */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .feature-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            border-left: 3px solid var(--aws-orange);
+        }
+
+        .feature-icon {
+            font-size: 36px;
+            margin-bottom: 12px;
+        }
+
+        .feature-title {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--aws-orange);
+        }
+
+        .feature-description {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        /* Tech spec table */
+        .spec-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+        }
+
+        .spec-table th {
+            background-color: var(--dark-squid);
+            color: var(--aws-orange);
+            padding: 12px 14px;
+            text-align: left;
+            font-size: 13px;
+            font-weight: 700;
+            border-bottom: 2px solid var(--aws-orange);
+        }
+
+        .spec-table td {
+            padding: 12px 14px;
+            font-size: 14px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--light-gray);
+        }
+
+        .spec-table tr:hover {
+            background-color: rgba(255, 153, 0, 0.05);
+        }
+
+        /* Flow diagram */
+        .flow-diagram {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin: 24px 0;
+        }
+
+        .flow-step {
+            background: var(--dark-squid);
+            border: 2px solid var(--aws-orange);
+            border-radius: 8px;
+            padding: 12px 20px;
+            text-align: center;
+            min-width: 120px;
+            font-size: 14px;
+        }
+
+        .flow-arrow {
+            color: var(--aws-orange);
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        /* Use case cards */
+        .usecase-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 3px solid var(--aws-orange);
+        }
+
+        .usecase-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .usecase-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--aws-orange);
+        }
+
+        .usecase-scenario {
+            font-size: 14px;
+            color: var(--light-gray);
+            margin-bottom: 12px;
+        }
+
+        .usecase-impl {
+            font-size: 14px;
+            color: var(--light-gray);
+            margin-bottom: 12px;
+            padding: 10px;
+            background-color: rgba(0, 161, 201, 0.1);
+            border-radius: 8px;
+        }
+
+        .usecase-impl-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--aws-teal);
+            margin-bottom: 6px;
+        }
+
+        .usecase-impl ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .usecase-impl li {
+            padding: 3px 0;
+            padding-left: 18px;
+            position: relative;
+            font-size: 13px;
+        }
+
+        .usecase-impl li::before {
+            content: "\2192";
+            position: absolute;
+            left: 0;
+            color: var(--aws-teal);
+        }
+
+        .usecase-effect {
+            font-size: 14px;
+            color: #2ECC71;
+            padding: 10px;
+            background-color: rgba(46, 204, 113, 0.1);
+            border-radius: 8px;
+        }
+
+        .usecase-effect::before {
+            content: "\2713 ";
+            font-weight: bold;
+        }
+
+        /* Merit/Demerit */
+        .merit-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .merit-section {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .merit-section h3 {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: var(--aws-orange);
+        }
+
+        .merit-list {
+            list-style: none;
+        }
+
+        .merit-list li {
+            padding: 6px 0;
+            padding-left: 22px;
+            position: relative;
+            font-size: 14px;
+            color: var(--light-gray);
+        }
+
+        .merit-list li::before {
+            content: "\2713";
+            position: absolute;
+            left: 0;
+            color: #2ECC71;
+            font-weight: bold;
+        }
+
+        /* Constraint/Limitation */
+        .constraint-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 3px solid #E74C3C;
+        }
+
+        .constraint-title {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #E74C3C;
+        }
+
+        .constraint-list {
+            list-style: none;
+        }
+
+        .constraint-list li {
+            padding: 6px 0;
+            padding-left: 22px;
+            position: relative;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .constraint-list li::before {
+            content: "\26A0";
+            position: absolute;
+            left: 0;
+            font-size: 12px;
+        }
+
+        /* Pricing card */
+        .pricing-card {
+            background: linear-gradient(135deg, rgba(29, 129, 2, 0.15) 0%, var(--card-bg) 100%);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid rgba(29, 129, 2, 0.3);
+            text-align: center;
+        }
+
+        .pricing-highlight {
+            font-size: 22px;
+            font-weight: 700;
+            color: #2ECC71;
+            margin-bottom: 8px;
+        }
+
+        .pricing-detail {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        /* Region */
+        .region-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .region-tag {
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            padding: 10px 14px;
+            text-align: center;
+            font-size: 13px;
+            border: 1px solid var(--border-color);
+        }
+
+        .region-name {
+            color: var(--text-primary);
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        .region-code {
+            color: var(--text-secondary);
+            font-size: 11px;
+            margin-top: 2px;
+        }
+
+        /* Related services */
+        .related-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+        }
+
+        .related-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+        }
+
+        .related-name {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 6px;
+        }
+
+        .related-desc {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        /* Sub-section title */
+        .sub-section-title {
+            font-size: 17px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 14px;
+            margin-top: 24px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .sub-section-title:first-child {
+            margin-top: 0;
+        }
+
+        /* Footer */
+        footer {
+            margin-top: 50px;
+            padding-top: 30px;
+            border-top: 1px solid var(--border-color);
+            text-align: center;
+        }
+
+        .source-links {
+            list-style: none;
+            margin-bottom: 16px;
+        }
+
+        .source-links li {
+            margin-bottom: 6px;
+        }
+
+        .source-link {
+            color: var(--aws-teal);
+            text-decoration: none;
+            font-size: 14px;
+            word-break: break-all;
+        }
+
+        .source-link:hover {
+            color: var(--aws-smile-orange);
+            text-decoration: underline;
+        }
+
+        .footer-note {
+            color: var(--text-secondary);
+            font-size: 12px;
+            margin-top: 10px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .comparison-grid,
+            .merit-grid {
+                grid-template-columns: 1fr;
+            }
+            .features-grid {
+                grid-template-columns: 1fr !important;
+            }
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr) !important;
+            }
+            .region-grid {
+                grid-template-columns: repeat(2, 1fr) !important;
+            }
+            .related-grid {
+                grid-template-columns: 1fr 1fr !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <span class="service-badge">Amazon Connect</span>
+            <h1>タスク向け AI アシスタンス</h1>
+            <p class="header-subtitle">リアルタイム AI 概要と推奨アクションでエージェントのタスク処理を加速</p>
+            <p class="release-date">2026 年 2 月 13 日</p>
+        </header>
+
+        <!-- Overview -->
+        <section class="section">
+            <h2 class="section-title">概要</h2>
+            <div class="overview-card">
+                <p class="overview-text">
+                    Amazon Connect がタスク向けに<span class="highlight">リアルタイムの AI パワード概要</span>と<span class="highlight">推奨次アクション</span>の提供を開始しました。エージェントはタスクの内容を素早く理解し、より迅速に解決できるようになります。例えば返金リクエストのタスクでは、AI が過去のアクティビティを要約し、次に取るべきステップを提示します。
+                </p>
+            </div>
+
+            <!-- Stats -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">&#129302;</div>
+                    <div class="stat-value">AI</div>
+                    <div class="stat-label">パワード概要生成</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">&#9889;</div>
+                    <div class="stat-value">RT</div>
+                    <div class="stat-label">リアルタイム提供</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">&#128218;</div>
+                    <div class="stat-value">KB</div>
+                    <div class="stat-label">ナレッジベース連携</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">&#127919;</div>
+                    <div class="stat-value">9</div>
+                    <div class="stat-label">利用可能リージョン</div>
+                </div>
+            </div>
+
+            <!-- Before/After -->
+            <div class="comparison-grid">
+                <div class="comparison-card before">
+                    <div class="comparison-label">Before - アップデート前の課題</div>
+                    <ul class="comparison-list">
+                        <li>エージェントはタスクを受け取った際に、関連する過去のやり取りや対応履歴を手動で確認する必要があった</li>
+                        <li>タスクの文脈を把握するまでに時間がかかり、解決までのリードタイムが長くなっていた</li>
+                        <li>次に取るべきアクションの判断にエージェントの経験や知識に依存しており、対応品質にばらつきがあった</li>
+                    </ul>
+                </div>
+                <div class="comparison-card after">
+                    <div class="comparison-label">After - アップデート後の改善</div>
+                    <ul class="comparison-list">
+                        <li>AI がタスクに関連する過去のアクティビティを自動的に要約し、エージェントに提示</li>
+                        <li>推奨される次のアクションが AI により提案され、エージェントの判断をサポート</li>
+                        <li>ナレッジベースとの連携により、組織固有のプロセスに基づいた推奨が可能</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Architecture Diagram -->
+        <section class="section">
+            <h2 class="section-title">アーキテクチャ図</h2>
+            <div class="diagram-container">
+                <pre class="mermaid">
+sequenceDiagram
+    participant T as &#128203; タスク
+    participant F as &#128208; フロー
+    participant A as &#129302; Connect アシスタント
+    participant K as &#128218; ナレッジベース
+    participant AG as &#128084; エージェント
+
+    T->>F: タスク作成
+    F->>A: アシスタントフローブロック
+    A->>K: コンテキスト照会
+    K-->>A: 関連情報
+    A->>A: AI 概要生成
+    A->>A: 推奨アクション生成
+    A-->>F: AI 分析結果
+    F->>AG: タスク割り当て
+    Note over AG: AI 概要と推奨<br/>アクションを確認
+    AG->>AG: 推奨アクションに<br/>基づいて対応
+                </pre>
+            </div>
+            <p style="font-size: 14px; color: var(--text-secondary); margin-top: 12px; text-align: center;">タスクがフロー内の Connect アシスタントブロックを経由することで、AI が概要と推奨アクションを生成し、エージェントに提供される流れ</p>
+        </section>
+
+        <!-- Key Features -->
+        <section class="section">
+            <h2 class="section-title">主要機能</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">&#128196;</div>
+                    <div class="feature-title">AI パワードタスク概要</div>
+                    <div class="feature-description">タスクに関連する過去のアクティビティを自動要約。顧客との以前のやり取り、対応履歴、関連情報を集約し、エージェントがタスクの全体像を即座に把握可能。</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#127919;</div>
+                    <div class="feature-title">推奨次アクション</div>
+                    <div class="feature-description">AI がタスクの内容と文脈に基づいて次に取るべきアクションを提案。組織のプロセスに沿ったステップバイステップの推奨で、対応品質の均一化に貢献。</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#128218;</div>
+                    <div class="feature-title">ナレッジベース連携</div>
+                    <div class="feature-description">Amazon Bedrock ナレッジベースを追加して AI の推奨内容をガイド。社内ポリシー、手順書、FAQ などの情報に基づいた、組織固有の業務フローに最適化された提案を実現。</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Technical Specifications -->
+        <section class="section">
+            <h2 class="section-title">技術仕様</h2>
+
+            <h3 class="sub-section-title">設定要件</h3>
+            <table class="spec-table">
+                <thead>
+                    <tr>
+                        <th>項目</th>
+                        <th>詳細</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong style="color: var(--text-primary);">フローブロック</strong></td>
+                        <td>Connect アシスタントフローブロック</td>
+                    </tr>
+                    <tr>
+                        <td><strong style="color: var(--text-primary);">配置場所</strong></td>
+                        <td>タスク割り当て前のフロー内</td>
+                    </tr>
+                    <tr>
+                        <td><strong style="color: var(--text-primary);">ナレッジベース</strong></td>
+                        <td>Amazon Bedrock ナレッジベース (オプション)</td>
+                    </tr>
+                    <tr>
+                        <td><strong style="color: var(--text-primary);">AI 基盤</strong></td>
+                        <td>Amazon Bedrock 上に構築</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3 class="sub-section-title">タスク AI アシスタンスの動作</h3>
+            <table class="spec-table">
+                <thead>
+                    <tr>
+                        <th>要素</th>
+                        <th>説明</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong style="color: var(--text-primary);">概要生成</strong></td>
+                        <td>タスクに紐づく過去のコンタクト履歴とアクティビティを自動要約</td>
+                    </tr>
+                    <tr>
+                        <td><strong style="color: var(--text-primary);">アクション推奨</strong></td>
+                        <td>タスク内容とナレッジベースに基づく次ステップの提案</td>
+                    </tr>
+                    <tr>
+                        <td><strong style="color: var(--text-primary);">リアルタイム</strong></td>
+                        <td>タスク割り当て時にエージェントのワークスペースに即座に表示</td>
+                    </tr>
+                    <tr>
+                        <td><strong style="color: var(--text-primary);">カスタマイズ</strong></td>
+                        <td>プロンプトとナレッジベースにより推奨内容を調整可能</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- Setup -->
+        <section class="section">
+            <h2 class="section-title">設定方法</h2>
+
+            <h3 class="sub-section-title">前提条件</h3>
+            <div class="overview-card" style="margin-bottom: 16px;">
+                <ul class="merit-list">
+                    <li>Amazon Connect インスタンスが構成済みであること</li>
+                    <li>Amazon Q in Connect が有効化されていること</li>
+                    <li>タスクフローが作成済みであること</li>
+                </ul>
+            </div>
+
+            <h3 class="sub-section-title">ステップ 1: Connect アシスタントフローブロックの追加</h3>
+            <div class="flow-diagram">
+                <div class="flow-step">&#128208; フローデザイナー<br>を開く</div>
+                <span class="flow-arrow">&rarr;</span>
+                <div class="flow-step">&#129302; Amazon Q in Connect<br>ブロックを配置</div>
+                <span class="flow-arrow">&rarr;</span>
+                <div class="flow-step">&#9881;&#65039; タスクチャネル向け<br>AI アシスタンスを有効化</div>
+            </div>
+            <p style="font-size: 13px; color: var(--text-secondary); text-align: center; margin-bottom: 16px;">タスクがエージェントに割り当てられる前の位置に Connect アシスタントフローブロックを追加します。</p>
+
+            <h3 class="sub-section-title">ステップ 2: ナレッジベースの追加 (オプション)</h3>
+            <div class="flow-diagram">
+                <div class="flow-step">&#128736;&#65039; Amazon Q in Connect<br>設定画面を開く</div>
+                <span class="flow-arrow">&rarr;</span>
+                <div class="flow-step">&#128218; ナレッジベースを<br>作成 / 関連付け</div>
+                <span class="flow-arrow">&rarr;</span>
+                <div class="flow-step">&#128196; ポリシー / 手順書 /<br>FAQ を登録</div>
+            </div>
+
+            <h3 class="sub-section-title">ステップ 3: フローの公開とテスト</h3>
+            <div class="flow-diagram">
+                <div class="flow-step">&#128190; フローを保存<br>して公開</div>
+                <span class="flow-arrow">&rarr;</span>
+                <div class="flow-step">&#128203; テストタスクを<br>作成</div>
+                <span class="flow-arrow">&rarr;</span>
+                <div class="flow-step">&#9989; AI 概要と推奨<br>アクションを検証</div>
+            </div>
+        </section>
+
+        <!-- Benefits -->
+        <section class="section">
+            <h2 class="section-title">メリット</h2>
+            <div class="merit-grid">
+                <div class="merit-section">
+                    <h3>&#128188; ビジネス面</h3>
+                    <ul class="merit-list">
+                        <li><strong style="color: var(--text-primary);">解決時間の短縮:</strong> エージェントがタスクの背景情報を即座に把握できるため、調査時間を大幅に削減</li>
+                        <li><strong style="color: var(--text-primary);">対応品質の均一化:</strong> AI による推奨アクションにより、経験の浅いエージェントでも適切な対応が可能</li>
+                        <li><strong style="color: var(--text-primary);">顧客満足度の向上:</strong> 迅速かつ的確なタスク解決により、顧客体験を改善</li>
+                    </ul>
+                </div>
+                <div class="merit-section">
+                    <h3>&#128736;&#65039; 技術面</h3>
+                    <ul class="merit-list">
+                        <li><strong style="color: var(--text-primary);">フローベースの有効化:</strong> 既存のフローに Connect アシスタントブロックを追加するだけで利用開始可能</li>
+                        <li><strong style="color: var(--text-primary);">ナレッジベースによるカスタマイズ:</strong> 組織固有の情報を活用した高精度な推奨</li>
+                        <li><strong style="color: var(--text-primary);">Amazon Bedrock 基盤:</strong> 高品質な生成 AI モデルによる自然な要約と推奨</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Limitations -->
+        <section class="section">
+            <h2 class="section-title">制約事項・注意点</h2>
+            <div class="constraint-card">
+                <div class="constraint-title">制限事項</div>
+                <ul class="constraint-list">
+                    <li>Connect アシスタントフローブロックをフロー内に追加する必要があり、既存フローの変更が必要</li>
+                    <li>AI の推奨精度はナレッジベースの品質と網羅性に依存する</li>
+                    <li>Amazon Q in Connect が利用可能なリージョンに限定される</li>
+                </ul>
+            </div>
+            <div class="constraint-card">
+                <div class="constraint-title">考慮すべき点</div>
+                <ul class="constraint-list">
+                    <li>ナレッジベースの情報が最新かつ正確であることを定期的に確認する必要がある</li>
+                    <li>AI の推奨はあくまで提案であり、最終判断はエージェントが行う必要がある</li>
+                    <li>初期設定とナレッジベースの構築に一定の時間とリソースが必要</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Use Cases -->
+        <section class="section">
+            <h2 class="section-title">ユースケース</h2>
+
+            <div class="usecase-card">
+                <div class="usecase-header">
+                    <span style="font-size: 24px;">&#128176;</span>
+                    <div class="usecase-title">ユースケース 1: 返金リクエストの処理</div>
+                </div>
+                <div class="usecase-scenario">
+                    顧客からの返金リクエストがタスクとしてエージェントに割り当てられる。
+                </div>
+                <div class="usecase-impl">
+                    <div class="usecase-impl-title">AI アシスタンスの動作</div>
+                    <ul>
+                        <li>AI が過去のアクティビティを要約: 「注文 #12345 について、顧客が 2/10 に返品を申請。返品適格性は確認済み、決済方法はクレジットカード。」</li>
+                        <li>推奨次アクション: 「返金処理を開始してください。返金額は $49.99 です。処理後、顧客に確認メールを送信してください。」</li>
+                    </ul>
+                </div>
+                <div class="usecase-effect">
+                    エージェントは背景調査なしに即座に返金処理に着手可能
+                </div>
+            </div>
+
+            <div class="usecase-card">
+                <div class="usecase-header">
+                    <span style="font-size: 24px;">&#128295;</span>
+                    <div class="usecase-title">ユースケース 2: エスカレーションされた技術サポート</div>
+                </div>
+                <div class="usecase-scenario">
+                    一次対応で解決できなかった技術的な問題が、上位チームにタスクとしてエスカレーションされる。
+                </div>
+                <div class="usecase-impl">
+                    <div class="usecase-impl-title">AI アシスタンスの動作</div>
+                    <ul>
+                        <li>AI が過去のやり取りを要約: 「顧客は 3 回のチャットセッションで API 接続エラーを報告。一次対応で認証情報の再設定を試行したが解決せず。」</li>
+                        <li>推奨次アクション: 「API エンドポイントの接続ログを確認し、ファイアウォール設定を検証してください。類似事例ではプロキシ設定の変更で解決しています。」</li>
+                    </ul>
+                </div>
+                <div class="usecase-effect">
+                    エスカレーション先のエージェントが過去の対応を把握した状態で即座に高度な対応を開始可能
+                </div>
+            </div>
+
+            <div class="usecase-card">
+                <div class="usecase-header">
+                    <span style="font-size: 24px;">&#128221;</span>
+                    <div class="usecase-title">ユースケース 3: 契約更新のフォローアップ</div>
+                </div>
+                <div class="usecase-scenario">
+                    契約更新期限が近い顧客へのフォローアップタスクがエージェントに割り当てられる。
+                </div>
+                <div class="usecase-impl">
+                    <div class="usecase-impl-title">AI アシスタンスの動作</div>
+                    <ul>
+                        <li>AI が顧客情報を要約: 「顧客は現在のプランを 2 年間利用。過去 6 か月間にサポートへの問い合わせが 3 件あり、すべて解決済み。」</li>
+                        <li>推奨次アクション: 「更新プランの提案と、プレミアムプランへのアップグレードオプションを提示してください。過去のサポート履歴から、24 時間サポート付きプランが適している可能性があります。」</li>
+                    </ul>
+                </div>
+                <div class="usecase-effect">
+                    顧客の利用状況に基づいた的確な提案により、契約更新率を向上
+                </div>
+            </div>
+        </section>
+
+        <!-- Pricing -->
+        <section class="section">
+            <h2 class="section-title">料金</h2>
+            <div class="pricing-card">
+                <div class="pricing-highlight">Amazon Q in Connect 料金体系に含まれる</div>
+                <div class="pricing-detail">タスク向け AI アシスタンスの料金は Amazon Q in Connect の料金体系に含まれます。詳細は <a href="https://aws.amazon.com/connect/pricing/" target="_blank" style="color: var(--aws-teal); text-decoration: none;">Amazon Connect 料金ページ</a>を参照してください。</div>
+            </div>
+        </section>
+
+        <!-- Region -->
+        <section class="section">
+            <h2 class="section-title">利用可能リージョン</h2>
+            <div class="overview-card" style="text-align: center; margin-bottom: 16px;">
+                <div style="font-size: 28px; margin-bottom: 8px;">&#127758;</div>
+                <p style="font-size: 15px; color: var(--text-primary); font-weight: 600;">Amazon Q in Connect が利用可能なすべてのリージョンで提供</p>
+            </div>
+            <div class="region-grid">
+                <div class="region-tag">
+                    <div class="region-name">US East (N. Virginia)</div>
+                    <div class="region-code">us-east-1</div>
+                </div>
+                <div class="region-tag">
+                    <div class="region-name">US West (Oregon)</div>
+                    <div class="region-code">us-west-2</div>
+                </div>
+                <div class="region-tag">
+                    <div class="region-name">Asia Pacific (Seoul)</div>
+                    <div class="region-code">ap-northeast-2</div>
+                </div>
+                <div class="region-tag">
+                    <div class="region-name">Asia Pacific (Singapore)</div>
+                    <div class="region-code">ap-southeast-1</div>
+                </div>
+                <div class="region-tag">
+                    <div class="region-name">Asia Pacific (Sydney)</div>
+                    <div class="region-code">ap-southeast-2</div>
+                </div>
+                <div class="region-tag">
+                    <div class="region-name">Asia Pacific (Tokyo)</div>
+                    <div class="region-code">ap-northeast-1</div>
+                </div>
+                <div class="region-tag">
+                    <div class="region-name">Canada (Central)</div>
+                    <div class="region-code">ca-central-1</div>
+                </div>
+                <div class="region-tag">
+                    <div class="region-name">Europe (Frankfurt)</div>
+                    <div class="region-code">eu-central-1</div>
+                </div>
+                <div class="region-tag">
+                    <div class="region-name">Europe (London)</div>
+                    <div class="region-code">eu-west-2</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Related Services -->
+        <section class="section">
+            <h2 class="section-title">関連サービス・機能</h2>
+            <div class="related-grid">
+                <div class="related-card">
+                    <div style="font-size: 24px; margin-bottom: 8px;">&#129302;</div>
+                    <div class="related-name">Amazon Q in Connect</div>
+                    <div class="related-desc">タスク AI アシスタンスの基盤となるリアルタイムエージェント支援機能</div>
+                </div>
+                <div class="related-card">
+                    <div style="font-size: 24px; margin-bottom: 8px;">&#9889;</div>
+                    <div class="related-name">Amazon Bedrock</div>
+                    <div class="related-desc">AI モデルの基盤サービス。ナレッジベースの構築にも使用</div>
+                </div>
+                <div class="related-card">
+                    <div style="font-size: 24px; margin-bottom: 8px;">&#128203;</div>
+                    <div class="related-name">Amazon Connect Tasks</div>
+                    <div class="related-desc">タスクの作成、割り当て、追跡を管理する機能</div>
+                </div>
+                <div class="related-card">
+                    <div style="font-size: 24px; margin-bottom: 8px;">&#128200;</div>
+                    <div class="related-name">Contact Lens</div>
+                    <div class="related-desc">会話分析とエージェントパフォーマンス管理</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer>
+            <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 12px;">参考リンク</p>
+            <ul class="source-links">
+                <li><a href="https://aws.amazon.com/about-aws/whats-new/2026/02/amazon-connect-tasks-ai-assistance/" class="source-link" target="_blank">公式発表 (What's New)</a></li>
+                <li><a href="https://docs.aws.amazon.com/connect/latest/adminguide/what-is-amazon-connect.html" class="source-link" target="_blank">Amazon Connect 管理者ガイド</a></li>
+                <li><a href="https://docs.aws.amazon.com/connect/latest/adminguide/amazon-q-connect.html" class="source-link" target="_blank">Amazon Q in Connect ドキュメント</a></li>
+                <li><a href="https://aws.amazon.com/connect/pricing/" class="source-link" target="_blank">Amazon Connect 料金ページ</a></li>
+                <li><a href="https://takech9203.github.io/awsnews-summary/20260213-amazon-connect-tasks-ai-assistance.html" class="source-link" target="_blank">このインフォグラフィックの URL</a></li>
+            </ul>
+            <p class="footer-note">Amazon Connect - タスク向け AI アシスタンス | 2026 年 2 月 13 日</p>
+        </footer>
+    </div>
+
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'base',
+            themeVariables: {
+                primaryColor: '#FF9900',
+                primaryTextColor: '#232F3E',
+                primaryBorderColor: '#FF9900',
+                lineColor: '#FF9900',
+                secondaryColor: '#F5F5F5',
+                tertiaryColor: '#FAFAFA',
+                background: '#FFFFFF',
+                mainBkg: '#FFF3E0',
+                nodeBorder: '#FF9900',
+                clusterBkg: '#FFF8E1',
+                clusterBorder: '#FF9900',
+                edgeLabelBackground: '#FFFFFF',
+                textColor: '#232F3E'
+            }
+        });
+        hljs.highlightAll();
+    </script>
+</body>
+</html>

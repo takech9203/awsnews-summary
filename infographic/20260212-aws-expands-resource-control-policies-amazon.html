@@ -1,0 +1,1096 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AWS Resource Control Policies - Amazon DynamoDB サポート拡大</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/styles/atom-one-dark.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/highlight.min.js"></script>
+    <style>
+        :root {
+            --squid-ink: #232F3E;
+            --aws-orange: #FF9900;
+            --aws-smile-orange: #FFAD33;
+            --text-primary: #FFFFFF;
+            --text-secondary: #AAAAAA;
+            --light-gray: #D5DBDB;
+            --card-bg: #2D3A4A;
+            --dark-squid: #1A242F;
+            --border-color: #3D4A5A;
+            --aws-teal: #00A1C9;
+            --aws-purple: #8C4FFF;
+            --aws-green: #1D8102;
+            --aws-red: #D13212;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            background-color: var(--squid-ink);
+            color: var(--light-gray);
+            line-height: 1.8;
+            font-size: 16px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+            padding-bottom: 30px;
+            border-bottom: 3px solid var(--aws-orange);
+        }
+
+        .service-badge {
+            display: inline-block;
+            background-color: var(--aws-orange);
+            color: var(--squid-ink);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+        }
+
+        .release-date {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--aws-orange);
+            margin-bottom: 20px;
+            padding-left: 15px;
+            border-left: 4px solid var(--aws-orange);
+        }
+
+        .overview-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .overview-text {
+            font-size: 16px;
+            line-height: 1.9;
+        }
+
+        .highlight {
+            background-color: rgba(255, 153, 0, 0.2);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+            color: var(--aws-orange);
+        }
+
+        /* Stats grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, var(--card-bg) 0%, var(--dark-squid) 100%);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid rgba(255, 153, 0, 0.2);
+        }
+
+        .stat-icon {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--aws-orange);
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        /* Before/After comparison */
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .comparison-grid {
+                grid-template-columns: 1fr;
+            }
+            .features-grid {
+                grid-template-columns: 1fr !important;
+            }
+            .related-grid {
+                grid-template-columns: repeat(2, 1fr) !important;
+            }
+            .merit-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .comparison-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .comparison-card.before {
+            border-top: 4px solid #E74C3C;
+        }
+
+        .comparison-card.after {
+            border-top: 4px solid #2ECC71;
+        }
+
+        .comparison-label {
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        .comparison-card.before .comparison-label {
+            color: #E74C3C;
+        }
+
+        .comparison-card.after .comparison-label {
+            color: #2ECC71;
+        }
+
+        .comparison-list {
+            list-style: none;
+        }
+
+        .comparison-list li {
+            padding: 8px 0;
+            padding-left: 25px;
+            position: relative;
+            font-size: 14px;
+        }
+
+        .comparison-card.before .comparison-list li::before {
+            content: "\2717";
+            position: absolute;
+            left: 0;
+            color: #E74C3C;
+            font-weight: bold;
+        }
+
+        .comparison-card.after .comparison-list li::before {
+            content: "\2713";
+            position: absolute;
+            left: 0;
+            color: #2ECC71;
+            font-weight: bold;
+        }
+
+        /* Mermaid diagram */
+        .diagram-container {
+            background-color: #FFFFFF;
+            border: 2px solid rgba(255, 153, 0, 0.3);
+            border-radius: 12px;
+            padding: 25px;
+            overflow-x: auto;
+        }
+
+        .mermaid {
+            display: flex;
+            justify-content: center;
+        }
+
+        .diagram-caption {
+            font-size: 14px;
+            color: var(--text-secondary);
+            text-align: center;
+            margin-top: 12px;
+        }
+
+        /* Feature cards */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .feature-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            border-left: 3px solid var(--aws-orange);
+        }
+
+        .feature-icon {
+            font-size: 36px;
+            margin-bottom: 12px;
+        }
+
+        .feature-title {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--aws-orange);
+        }
+
+        .feature-description {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        /* Technical spec table */
+        .spec-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+        }
+
+        .spec-table th {
+            background-color: var(--dark-squid);
+            color: var(--aws-orange);
+            padding: 10px 14px;
+            text-align: left;
+            font-size: 13px;
+            font-weight: 700;
+            border-bottom: 2px solid var(--aws-orange);
+        }
+
+        .spec-table td {
+            padding: 10px 14px;
+            font-size: 13px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--light-gray);
+        }
+
+        /* Code blocks */
+        .code-block {
+            background: #1a1a2e;
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 16px 0;
+        }
+
+        .code-header {
+            background: #16213e;
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+        }
+
+        .code-lang {
+            color: var(--aws-orange);
+            font-weight: bold;
+        }
+
+        .code-title {
+            color: var(--light-gray);
+        }
+
+        .code-block pre {
+            margin: 0;
+            padding: 0;
+            overflow-x: auto;
+        }
+
+        .code-block code {
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            padding: 16px !important;
+        }
+
+        /* Flow diagram */
+        .flow-diagram {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin: 24px 0;
+        }
+
+        .flow-step {
+            background: var(--dark-squid);
+            border: 2px solid var(--aws-orange);
+            border-radius: 8px;
+            padding: 12px 20px;
+            text-align: center;
+            min-width: 120px;
+            font-size: 14px;
+        }
+
+        .flow-arrow {
+            color: var(--aws-orange);
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        /* Use case cards */
+        .usecase-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 3px solid var(--aws-orange);
+        }
+
+        .usecase-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .usecase-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--aws-orange);
+        }
+
+        .usecase-scenario {
+            font-size: 14px;
+            color: var(--light-gray);
+            margin-bottom: 12px;
+        }
+
+        .usecase-effect {
+            font-size: 14px;
+            color: #2ECC71;
+            padding: 10px;
+            background-color: rgba(46, 204, 113, 0.1);
+            border-radius: 8px;
+        }
+
+        .usecase-effect::before {
+            content: "\2713 ";
+            font-weight: bold;
+        }
+
+        /* Merit/Demerit */
+        .merit-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .merit-section {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .merit-section h3 {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: var(--aws-orange);
+        }
+
+        .merit-list {
+            list-style: none;
+        }
+
+        .merit-list li {
+            padding: 6px 0;
+            padding-left: 22px;
+            position: relative;
+            font-size: 14px;
+            color: var(--light-gray);
+        }
+
+        .merit-list li::before {
+            content: "\2713";
+            position: absolute;
+            left: 0;
+            color: #2ECC71;
+            font-weight: bold;
+        }
+
+        /* Constraint/Limitation */
+        .constraint-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 3px solid #E74C3C;
+        }
+
+        .constraint-title {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #E74C3C;
+        }
+
+        .constraint-list {
+            list-style: none;
+        }
+
+        .constraint-list li {
+            padding: 6px 0;
+            padding-left: 22px;
+            position: relative;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .constraint-list li::before {
+            content: "\26A0";
+            position: absolute;
+            left: 0;
+            font-size: 12px;
+        }
+
+        /* Pricing card */
+        .pricing-card {
+            background: linear-gradient(135deg, rgba(29, 129, 2, 0.15) 0%, var(--card-bg) 100%);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid rgba(29, 129, 2, 0.3);
+            text-align: center;
+        }
+
+        .pricing-highlight {
+            font-size: 22px;
+            font-weight: 700;
+            color: #2ECC71;
+            margin-bottom: 8px;
+        }
+
+        .pricing-detail {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        /* Region */
+        .region-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .region-highlight {
+            font-size: 16px;
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .region-note {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-top: 8px;
+        }
+
+        /* Related services */
+        .related-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 16px;
+        }
+
+        .related-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+        }
+
+        .related-name {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 6px;
+        }
+
+        .related-desc {
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        /* Footer */
+        footer {
+            margin-top: 50px;
+            padding-top: 30px;
+            border-top: 1px solid var(--border-color);
+            text-align: center;
+        }
+
+        .source-links {
+            list-style: none;
+            margin-bottom: 16px;
+        }
+
+        .source-links li {
+            margin-bottom: 6px;
+        }
+
+        .source-link {
+            color: var(--aws-teal);
+            text-decoration: none;
+            font-size: 14px;
+            word-break: break-all;
+        }
+
+        .source-link:hover {
+            color: var(--aws-smile-orange);
+            text-decoration: underline;
+        }
+
+        .footer-note {
+            color: var(--text-secondary);
+            font-size: 12px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <span class="service-badge">AWS Organizations</span>
+            <h1>Resource Control Policies - Amazon DynamoDB サポート拡大</h1>
+            <p style="color: var(--light-gray); font-size: 15px; margin-bottom: 8px;">Resource Control Policies Expand Support for Amazon DynamoDB</p>
+            <p class="release-date">2026 年 2 月 12 日</p>
+        </header>
+
+        <!-- Overview -->
+        <section class="section">
+            <h2 class="section-title">概要</h2>
+            <div class="overview-card">
+                <p class="overview-text">
+                    <span class="highlight">AWS Resource Control Policies (RCP)</span> が、<span class="highlight">Amazon DynamoDB</span> のサポートを追加しました。RCP は AWS Organizations で使用できる組織ポリシーの一種であり、組織内のリソースに対する最大利用可能権限を一元的に制御できます。
+                </p>
+                <p class="overview-text" style="margin-top: 12px;">
+                    この拡張により、RCP を使用して DynamoDB リソースに対する権限を管理できるようになりました。組織外の ID が DynamoDB テーブルにアクセスできないようにするポリシーを作成し、<span class="highlight">データペリメーター</span>を構築して AWS 環境全体でベースラインセキュリティ標準を適用できます。
+                </p>
+            </div>
+
+            <!-- Stats -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">&#128737;&#65039;</div>
+                    <div class="stat-value">RCP</div>
+                    <div class="stat-label">組織レベルの権限制御</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">&#128451;</div>
+                    <div class="stat-value">DynamoDB</div>
+                    <div class="stat-label">新たにサポート追加</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">&#127758;</div>
+                    <div class="stat-value">全リージョン</div>
+                    <div class="stat-label">商用 + GovCloud</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">&#128176;</div>
+                    <div class="stat-value">$0</div>
+                    <div class="stat-label">追加料金なし</div>
+                </div>
+            </div>
+
+            <!-- Before/After -->
+            <div class="comparison-grid">
+                <div class="comparison-card before">
+                    <div class="comparison-label">Before - アップデート前の課題</div>
+                    <ul class="comparison-list">
+                        <li>DynamoDB リソースに対する組織レベルの権限制御を RCP で実施できなかった</li>
+                        <li>DynamoDB に対するデータペリメーターの構築が不完全で、組織外の ID によるアクセスを一元的に制限する手段が限定されていた</li>
+                        <li>各アカウントの IAM ポリシーに依存した個別管理が必要で、組織全体の一貫性を維持するのが困難だった</li>
+                    </ul>
+                </div>
+                <div class="comparison-card after">
+                    <div class="comparison-label">After - アップデート後の改善</div>
+                    <ul class="comparison-list">
+                        <li>RCP を使用して DynamoDB リソースへのアクセスを組織レベルで一元管理できるようになった</li>
+                        <li>組織外の ID による DynamoDB へのアクセスを防止するポリシーを作成し、データペリメーターを強化できるようになった</li>
+                        <li>組織全体でベースラインセキュリティ標準を適用し、コンプライアンス要件を満たしやすくなった</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Architecture Diagram -->
+        <section class="section">
+            <h2 class="section-title">アーキテクチャ図</h2>
+            <div class="diagram-container">
+                <pre class="mermaid">
+flowchart TD
+    subgraph Org["&#127970; AWS Organizations"]
+        subgraph RCPLayer["&#128737;&#65039; Resource Control Policies"]
+            RCP["&#128220; RCP ポリシー&lt;br/&gt;DynamoDB アクセス制御"]
+        end
+
+        subgraph OU["&#128193; 組織単位 OU"]
+            subgraph Account1["&#128273; アカウント A"]
+                DDB1[("&#128203; DynamoDB テーブル")]
+            end
+            subgraph Account2["&#128273; アカウント B"]
+                DDB2[("&#128203; DynamoDB テーブル")]
+            end
+        end
+    end
+
+    subgraph External["&#127760; 外部"]
+        ExtID["&#9888;&#65039; 組織外の ID"]
+    end
+
+    subgraph Internal["&#9989; 組織内"]
+        IntID["&#128100; 組織内の ID"]
+    end
+
+    RCP -->|適用| OU
+    IntID -->|許可| DDB1
+    IntID -->|許可| DDB2
+    ExtID -.->|拒否| DDB1
+    ExtID -.->|拒否| DDB2
+
+    classDef org fill:none,stroke:#CCCCCC,stroke-width:2px,color:#666666
+    classDef rcp fill:#F3E5F5,stroke:#7B61FF,stroke-width:2px,color:#333333
+    classDef account fill:#E8F1FF,stroke:#4A90E2,stroke-width:2px,color:#333333
+    classDef dynamodb fill:#E8EAF6,stroke:#C5CAE9,stroke-width:2px,color:#283593
+    classDef external fill:#FFEBEE,stroke:#F44336,stroke-width:2px,color:#333333
+    classDef internal fill:#E9F7EC,stroke:#66BB6A,stroke-width:2px,color:#333333
+
+    class Org org
+    class RCPLayer,RCP rcp
+    class OU,Account1,Account2 account
+    class DDB1,DDB2 dynamodb
+    class External,ExtID external
+    class Internal,IntID internal
+                </pre>
+            </div>
+            <p class="diagram-caption">AWS Organizations の RCP を使用して DynamoDB リソースへのアクセスを組織レベルで制御する構成。組織外の ID によるアクセスは RCP により拒否され、データペリメーターが構築されます。</p>
+        </section>
+
+        <!-- Key Features -->
+        <section class="section">
+            <h2 class="section-title">主要機能</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">&#128451;</div>
+                    <div class="feature-title">Amazon DynamoDB の RCP サポート</div>
+                    <div class="feature-description">DynamoDB テーブル、インデックス、およびその他の DynamoDB リソースに対する RCP 適用が可能。組織外の ID による DynamoDB リソースへのアクセスを防止し、権限を組織レベルで一元管理。</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#128737;&#65039;</div>
+                    <div class="feature-title">データペリメーターの構築</div>
+                    <div class="feature-description">組織外の ID がリソースにアクセスできないようにするポリシーを作成。AWS 環境全体でベースラインセキュリティ標準を適用し、セキュリティコンプライアンスを強化。</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#127970;</div>
+                    <div class="feature-title">組織レベルの権限制御</div>
+                    <div class="feature-description">組織内のすべてのアカウントに対して一貫した権限ポリシーを適用。組織ルート、組織単位 OU、または個別アカウントに柔軟に適用可能。</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Technical Specifications -->
+        <section class="section">
+            <h2 class="section-title">技術仕様</h2>
+
+            <h3 style="font-size: 16px; color: var(--text-primary); margin-bottom: 12px;">Resource Control Policies の概要</h3>
+            <table class="spec-table">
+                <thead>
+                    <tr>
+                        <th>項目</th>
+                        <th>詳細</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>ポリシータイプ</td>
+                        <td>拒否ベースのポリシー (最大権限を制限)</td>
+                    </tr>
+                    <tr>
+                        <td>適用範囲</td>
+                        <td>組織内のリソースに対する最大利用可能権限を制御</td>
+                    </tr>
+                    <tr>
+                        <td>適用レベル</td>
+                        <td>組織ルート、組織単位 OU、個別アカウント</td>
+                    </tr>
+                    <tr>
+                        <td>対象サービス</td>
+                        <td>Amazon DynamoDB (今回追加) およびその他のサポート済みサービス</td>
+                    </tr>
+                    <tr>
+                        <td>主なユースケース</td>
+                        <td>データペリメーターの構築、ベースラインセキュリティの適用</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3 style="font-size: 16px; color: var(--text-primary); margin-top: 24px; margin-bottom: 12px;">ポリシー例</h3>
+            <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 12px;">組織外の ID が DynamoDB リソースにアクセスできないようにする RCP の例です。</p>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">JSON</span>
+                    <span class="code-title">RCP ポリシー - DynamoDB アクセス制限</span>
+                </div>
+                <pre><code class="language-json">{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Deny",
+      "Principal": "*",
+      "Action": "dynamodb:*",
+      "Resource": "*",
+      "Condition": {
+        "StringNotEquals": {
+          "aws:PrincipalOrgID": "o-xxxxxxxxxx"
+        }
+      }
+    }
+  ]
+}</code></pre>
+            </div>
+        </section>
+
+        <!-- Configuration Steps -->
+        <section class="section">
+            <h2 class="section-title">設定方法</h2>
+
+            <div class="overview-card" style="margin-bottom: 16px;">
+                <h3 style="font-size: 15px; color: var(--aws-orange); margin-bottom: 10px;">前提条件</h3>
+                <ul class="merit-list">
+                    <li>AWS Organizations が有効化されていること</li>
+                    <li>組織の管理アカウントまたは委任管理者アカウントへのアクセス</li>
+                    <li>RCP を有効化するための適切な IAM 権限</li>
+                </ul>
+            </div>
+
+            <div class="flow-diagram">
+                <div class="flow-step">&#128737;&#65039; RCP を<br>有効化</div>
+                <span class="flow-arrow">&rarr;</span>
+                <div class="flow-step">&#128220; ポリシー<br>作成</div>
+                <span class="flow-arrow">&rarr;</span>
+                <div class="flow-step">&#128193; OU/アカウントに<br>適用</div>
+                <span class="flow-arrow">&rarr;</span>
+                <div class="flow-step">&#9989; ポリシー<br>検証</div>
+            </div>
+
+            <h3 style="font-size: 16px; color: var(--text-primary); margin-top: 20px; margin-bottom: 12px;">ステップ 1: Resource Control Policies の有効化</h3>
+            <div class="overview-card">
+                <p style="font-size: 14px;">AWS Organizations コンソールにサインインし、設定から Resource Control Policies を有効化します (まだ有効化されていない場合)。</p>
+            </div>
+
+            <h3 style="font-size: 16px; color: var(--text-primary); margin-top: 20px; margin-bottom: 12px;">ステップ 2: DynamoDB 向け RCP ポリシーの作成</h3>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">JSON</span>
+                    <span class="code-title">DynamoDB 向け RCP ポリシー</span>
+                </div>
+                <pre><code class="language-json">{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Deny",
+      "Principal": "*",
+      "Action": "dynamodb:*",
+      "Resource": "*",
+      "Condition": {
+        "StringNotEquals": {
+          "aws:PrincipalOrgID": "o-xxxxxxxxxx"
+        }
+      }
+    }
+  ]
+}</code></pre>
+            </div>
+            <p style="font-size: 14px; color: var(--text-secondary); margin-top: 8px;"><code style="color: var(--aws-teal);">o-xxxxxxxxxx</code> を実際の組織 ID に置き換えてください。</p>
+
+            <h3 style="font-size: 16px; color: var(--text-primary); margin-top: 20px; margin-bottom: 12px;">ステップ 3: ポリシーの適用</h3>
+            <div class="overview-card">
+                <p style="font-size: 14px;">作成した RCP ポリシーを、組織ルート、OU、または個別アカウントに適用します。</p>
+            </div>
+
+            <h3 style="font-size: 16px; color: var(--text-primary); margin-top: 20px; margin-bottom: 12px;">ステップ 4: ポリシーの検証</h3>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Bash</span>
+                    <span class="code-title">DynamoDB テーブルへのアクセスをテスト</span>
+                </div>
+                <pre><code class="language-bash"># DynamoDB テーブルへのアクセスをテスト
+aws dynamodb list-tables --region us-east-1</code></pre>
+            </div>
+            <p style="font-size: 14px; color: var(--text-secondary); margin-top: 8px;">テストアカウントで、組織外の ID が DynamoDB リソースにアクセスできないことを確認します。組織内の ID からは正常にアクセスできることも検証してください。</p>
+        </section>
+
+        <!-- Benefits -->
+        <section class="section">
+            <h2 class="section-title">メリット</h2>
+            <div class="merit-grid">
+                <div class="merit-section">
+                    <h3>&#128188; ビジネス面</h3>
+                    <ul class="merit-list">
+                        <li><strong style="color: var(--text-primary);">セキュリティコンプライアンスの強化:</strong> DynamoDB に格納された機密データへのアクセスを組織レベルで制御し、コンプライアンス要件を満たす</li>
+                        <li><strong style="color: var(--text-primary);">運用効率の向上:</strong> 複数のアカウントにまたがる DynamoDB の権限管理を一元化し、管理負担を軽減</li>
+                        <li><strong style="color: var(--text-primary);">リスクの削減:</strong> 組織外の ID による DynamoDB データへの不正アクセスを防止し、データ漏洩リスクを低減</li>
+                    </ul>
+                </div>
+                <div class="merit-section">
+                    <h3>&#128736;&#65039; 技術面</h3>
+                    <ul class="merit-list">
+                        <li><strong style="color: var(--text-primary);">一元的な権限管理:</strong> 組織レベルで DynamoDB リソースの権限を制御し、管理を簡素化</li>
+                        <li><strong style="color: var(--text-primary);">データペリメーターの完成度向上:</strong> DynamoDB のサポートにより、より包括的なデータペリメーターを構築可能</li>
+                        <li><strong style="color: var(--text-primary);">柔軟な適用範囲:</strong> 組織ルート、OU、個別アカウントに対して段階的にポリシーを適用可能</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Limitations -->
+        <section class="section">
+            <h2 class="section-title">制約事項・注意点</h2>
+            <div class="constraint-card">
+                <div class="constraint-title">制限事項</div>
+                <ul class="constraint-list">
+                    <li>RCP は拒否ベースのポリシーであり、許可を追加することはできない</li>
+                    <li>RCP は IAM ポリシーや SCP と組み合わせて評価されるため、ポリシーの相互作用を理解する必要がある</li>
+                    <li>過度に制限的な RCP は、正当なアクセスもブロックする可能性がある</li>
+                </ul>
+            </div>
+            <div class="constraint-card">
+                <div class="constraint-title">考慮すべき点</div>
+                <ul class="constraint-list">
+                    <li>RCP を適用する前に、影響を受ける DynamoDB リソースとアクセスパターンを十分に把握する必要がある</li>
+                    <li>テスト環境で RCP を検証してから本番環境に適用することを推奨</li>
+                    <li>DynamoDB Streams やグローバルテーブルなど、クロスアカウントアクセスが必要な機能への影響を考慮する必要がある</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Use Cases -->
+        <section class="section">
+            <h2 class="section-title">ユースケース</h2>
+
+            <div class="usecase-card">
+                <div class="usecase-header">
+                    <span style="font-size: 24px;">&#127970;&#128737;&#65039;</span>
+                    <div class="usecase-title">マルチアカウント環境での DynamoDB データ保護</div>
+                </div>
+                <div class="usecase-scenario">
+                    複数の AWS アカウントで DynamoDB を使用している企業が、組織外の ID によるデータアクセスを防止する。
+                </div>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">JSON</span>
+                        <span class="code-title">実装例</span>
+                    </div>
+                    <pre><code class="language-json">{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Deny",
+      "Principal": "*",
+      "Action": "dynamodb:*",
+      "Resource": "*",
+      "Condition": {
+        "StringNotEquals": {
+          "aws:PrincipalOrgID": "o-xxxxxxxxxx"
+        }
+      }
+    }
+  ]
+}</code></pre>
+                </div>
+                <div class="usecase-effect">
+                    組織外の ID による DynamoDB テーブルへのアクセスを一元的に防止し、全アカウントで一貫したセキュリティ標準を適用
+                </div>
+            </div>
+
+            <div class="usecase-card">
+                <div class="usecase-header">
+                    <span style="font-size: 24px;">&#127974;&#128272;</span>
+                    <div class="usecase-title">規制産業のデータペリメーター構築</div>
+                </div>
+                <div class="usecase-scenario">
+                    金融機関や医療機関が、DynamoDB に格納された顧客データや患者データに対して厳格なアクセス制御を実施する。
+                </div>
+                <div class="usecase-scenario" style="margin-top: 8px;">
+                    <strong style="color: var(--text-primary);">実装方法:</strong>
+                    <ul style="margin-top: 6px; padding-left: 20px; list-style: disc;">
+                        <li>RCP を組織ルートに適用し、すべてのアカウントで DynamoDB へのアクセスを組織内に制限</li>
+                        <li>特定の OU に対して、より厳格な条件 (特定の VPC エンドポイントからのアクセスのみ許可) を追加適用</li>
+                    </ul>
+                </div>
+                <div class="usecase-effect">
+                    組織全体で一貫したデータペリメーターを構築し、規制要件を満たしながら DynamoDB データを保護
+                </div>
+            </div>
+
+            <div class="usecase-card">
+                <div class="usecase-header">
+                    <span style="font-size: 24px;">&#129309;&#128274;</span>
+                    <div class="usecase-title">サードパーティアクセスの制御</div>
+                </div>
+                <div class="usecase-scenario">
+                    外部のサードパーティに DynamoDB リソースへのアクセスを提供する際に、組織のセキュリティポリシーに準拠したアクセス制御を適用する。
+                </div>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">JSON</span>
+                        <span class="code-title">複数組織を許可する RCP</span>
+                    </div>
+                    <pre><code class="language-json">{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Deny",
+      "Principal": "*",
+      "Action": "dynamodb:*",
+      "Resource": "*",
+      "Condition": {
+        "StringNotEquals": {
+          "aws:PrincipalOrgID": ["o-xxxxxxxxxx", "o-yyyyyyyyyy"]
+        }
+      }
+    }
+  ]
+}</code></pre>
+                </div>
+                <div class="usecase-effect">
+                    許可された組織のみが DynamoDB リソースにアクセスできるように制限し、サードパーティアクセスを制御
+                </div>
+            </div>
+        </section>
+
+        <!-- Pricing -->
+        <section class="section">
+            <h2 class="section-title">料金</h2>
+            <div class="pricing-card">
+                <div class="pricing-highlight">追加料金なし</div>
+                <div class="pricing-detail">AWS Resource Control Policies の使用に追加料金は発生しません。AWS Organizations の一部として無料で利用できます。DynamoDB 自体の料金は、通常の <a href="https://aws.amazon.com/dynamodb/pricing/" target="_blank" style="color: var(--aws-teal);">DynamoDB 料金体系</a> に従います。</div>
+            </div>
+        </section>
+
+        <!-- Region -->
+        <section class="section">
+            <h2 class="section-title">利用可能リージョン</h2>
+            <div class="region-card">
+                <div style="font-size: 28px; margin-bottom: 8px;">&#127758;</div>
+                <div class="region-highlight">すべての AWS 商用リージョンおよび AWS GovCloud (US) リージョンで利用可能</div>
+                <div class="region-note">RCP の DynamoDB サポートは、すべての AWS 商用リージョンおよび AWS GovCloud (US) リージョンで利用可能です。</div>
+            </div>
+        </section>
+
+        <!-- Related Services -->
+        <section class="section">
+            <h2 class="section-title">関連サービス・機能</h2>
+            <div class="related-grid">
+                <div class="related-card">
+                    <div style="font-size: 24px; margin-bottom: 8px;">&#127970;</div>
+                    <div class="related-name">AWS Organizations</div>
+                    <div class="related-desc">複数の AWS アカウントを一元管理</div>
+                </div>
+                <div class="related-card">
+                    <div style="font-size: 24px; margin-bottom: 8px;">&#128220;</div>
+                    <div class="related-name">SCP</div>
+                    <div class="related-desc">アカウントの最大権限を制御</div>
+                </div>
+                <div class="related-card">
+                    <div style="font-size: 24px; margin-bottom: 8px;">&#128273;</div>
+                    <div class="related-name">IAM Policies</div>
+                    <div class="related-desc">リソースとプリンシパルの権限制御</div>
+                </div>
+                <div class="related-card">
+                    <div style="font-size: 24px; margin-bottom: 8px;">&#128451;</div>
+                    <div class="related-name">Amazon DynamoDB</div>
+                    <div class="related-desc">フルマネージド NoSQL DB</div>
+                </div>
+                <div class="related-card">
+                    <div style="font-size: 24px; margin-bottom: 8px;">&#128270;</div>
+                    <div class="related-name">AWS CloudTrail</div>
+                    <div class="related-desc">API コールの監査ログ記録</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer>
+            <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 12px;">参考リンク</p>
+            <ul class="source-links">
+                <li><a href="https://aws.amazon.com/about-aws/whats-new/2026/02/aws-expands-resource-control-policies-amazon/" class="source-link" target="_blank">公式発表 - What's New</a></li>
+                <li><a href="https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_rcps.html" class="source-link" target="_blank">Resource Control Policies ドキュメント</a></li>
+                <li><a href="https://aws.amazon.com/identity/data-perimeters-on-aws/" class="source-link" target="_blank">Data Perimeters on AWS</a></li>
+                <li><a href="https://aws.amazon.com/dynamodb/" class="source-link" target="_blank">Amazon DynamoDB</a></li>
+            </ul>
+            <p class="footer-note">AWS Resource Control Policies - Amazon DynamoDB サポート拡大 | 2026 年 2 月 12 日</p>
+        </footer>
+    </div>
+
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'base',
+            themeVariables: {
+                primaryColor: '#FF9900',
+                primaryTextColor: '#232F3E',
+                primaryBorderColor: '#FF9900',
+                lineColor: '#FF9900',
+                secondaryColor: '#F5F5F5',
+                tertiaryColor: '#FAFAFA',
+                background: '#FFFFFF',
+                mainBkg: '#FFF3E0',
+                nodeBorder: '#FF9900',
+                clusterBkg: '#FFF8E1',
+                clusterBorder: '#FF9900',
+                edgeLabelBackground: '#FFFFFF',
+                textColor: '#232F3E'
+            },
+            flowchart: {
+                curve: 'basis',
+                padding: 20
+            }
+        });
+        hljs.highlightAll();
+    </script>
+</body>
+</html>

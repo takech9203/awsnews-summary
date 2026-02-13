@@ -1,0 +1,1148 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Amazon Connect - 分析ダッシュボード向けきめ細かなアクセス制御</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/styles/atom-one-dark.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/highlight.min.js"></script>
+    <style>
+        :root {
+            --squid-ink: #232F3E;
+            --aws-orange: #FF9900;
+            --aws-smile-orange: #FFAD33;
+            --text-primary: #FFFFFF;
+            --text-secondary: #AAAAAA;
+            --light-gray: #D5DBDB;
+            --card-bg: #2D3A4A;
+            --dark-squid: #1A242F;
+            --border-color: #3D4A5A;
+            --aws-teal: #00A1C9;
+            --aws-green: #1D8102;
+            --aws-red: #D13212;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            background-color: var(--squid-ink);
+            color: var(--light-gray);
+            line-height: 1.8;
+            font-size: 16px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+            padding-bottom: 30px;
+            border-bottom: 3px solid var(--aws-orange);
+        }
+
+        .service-badge {
+            display: inline-block;
+            background-color: var(--aws-orange);
+            color: var(--squid-ink);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+        }
+
+        .release-date {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--aws-orange);
+            margin-bottom: 20px;
+            padding-left: 15px;
+            border-left: 4px solid var(--aws-orange);
+        }
+
+        .overview-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .overview-text {
+            font-size: 16px;
+            line-height: 1.9;
+        }
+
+        .highlight {
+            background-color: rgba(255, 153, 0, 0.2);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+            color: var(--aws-orange);
+        }
+
+        /* Before/After comparison */
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .comparison-grid {
+                grid-template-columns: 1fr;
+            }
+            .features-grid {
+                grid-template-columns: 1fr !important;
+            }
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr) !important;
+            }
+            .report-grid {
+                grid-template-columns: 1fr !important;
+            }
+            .related-grid {
+                grid-template-columns: 1fr !important;
+            }
+            .merit-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .comparison-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .comparison-card.before {
+            border-top: 4px solid #E74C3C;
+        }
+
+        .comparison-card.after {
+            border-top: 4px solid #2ECC71;
+        }
+
+        .comparison-label {
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        .comparison-card.before .comparison-label {
+            color: #E74C3C;
+        }
+
+        .comparison-card.after .comparison-label {
+            color: #2ECC71;
+        }
+
+        .comparison-list {
+            list-style: none;
+        }
+
+        .comparison-list li {
+            padding: 8px 0;
+            padding-left: 25px;
+            position: relative;
+            font-size: 14px;
+        }
+
+        .comparison-card.before .comparison-list li::before {
+            content: "\2717";
+            position: absolute;
+            left: 0;
+            color: #E74C3C;
+            font-weight: bold;
+        }
+
+        .comparison-card.after .comparison-list li::before {
+            content: "\2713";
+            position: absolute;
+            left: 0;
+            color: #2ECC71;
+            font-weight: bold;
+        }
+
+        /* Mermaid diagram */
+        .diagram-container {
+            background-color: #FFFFFF;
+            border: 2px solid rgba(255, 153, 0, 0.3);
+            border-radius: 12px;
+            padding: 25px;
+            overflow-x: auto;
+        }
+
+        .mermaid {
+            display: flex;
+            justify-content: center;
+        }
+
+        /* Feature cards */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .feature-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            border-left: 3px solid var(--aws-orange);
+        }
+
+        .feature-icon {
+            font-size: 36px;
+            margin-bottom: 12px;
+        }
+
+        .feature-title {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--aws-orange);
+        }
+
+        .feature-description {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        /* Stats grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, var(--card-bg) 0%, var(--dark-squid) 100%);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid rgba(255, 153, 0, 0.2);
+        }
+
+        .stat-icon {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--aws-orange);
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        /* Report support table */
+        .report-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            margin-top: 16px;
+        }
+
+        .report-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 16px;
+            border: 1px solid var(--border-color);
+        }
+
+        .report-card-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--aws-orange);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .report-card-resources {
+            font-size: 13px;
+            color: var(--light-gray);
+            line-height: 1.7;
+        }
+
+        .report-card-note {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 8px;
+            font-style: italic;
+        }
+
+        /* API table */
+        .api-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+        }
+
+        .api-table th {
+            background-color: var(--dark-squid);
+            color: var(--aws-orange);
+            padding: 10px 14px;
+            text-align: left;
+            font-size: 13px;
+            font-weight: 700;
+            border-bottom: 2px solid var(--aws-orange);
+        }
+
+        .api-table td {
+            padding: 10px 14px;
+            font-size: 13px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--light-gray);
+        }
+
+        /* Unsupported items */
+        .unsupported-list {
+            list-style: none;
+            margin-top: 16px;
+        }
+
+        .unsupported-list li {
+            padding: 8px 0;
+            padding-left: 25px;
+            position: relative;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .unsupported-list li::before {
+            content: "\2717";
+            position: absolute;
+            left: 0;
+            color: #E74C3C;
+            font-weight: bold;
+        }
+
+        /* Permission table */
+        .perm-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+        }
+
+        .perm-table th {
+            background-color: var(--dark-squid);
+            color: var(--aws-orange);
+            padding: 10px 14px;
+            text-align: left;
+            font-size: 13px;
+            font-weight: 700;
+            border-bottom: 2px solid var(--aws-orange);
+        }
+
+        .perm-table td {
+            padding: 10px 14px;
+            font-size: 13px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--light-gray);
+        }
+
+        /* Use case cards */
+        .usecase-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 3px solid var(--aws-orange);
+        }
+
+        .usecase-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .usecase-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--aws-orange);
+        }
+
+        .usecase-scenario {
+            font-size: 14px;
+            color: var(--light-gray);
+            margin-bottom: 12px;
+        }
+
+        .usecase-effect {
+            font-size: 14px;
+            color: #2ECC71;
+            padding: 10px;
+            background-color: rgba(46, 204, 113, 0.1);
+            border-radius: 8px;
+        }
+
+        .usecase-effect::before {
+            content: "\2713 ";
+            font-weight: bold;
+        }
+
+        /* Code blocks */
+        .code-block {
+            background: #1a1a2e;
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 16px 0;
+        }
+
+        .code-header {
+            background: #16213e;
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+        }
+
+        .code-lang {
+            color: var(--aws-orange);
+            font-weight: bold;
+        }
+
+        .code-title {
+            color: var(--light-gray);
+        }
+
+        .code-block pre {
+            margin: 0;
+            padding: 0;
+            overflow-x: auto;
+        }
+
+        .code-block code {
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            padding: 16px !important;
+        }
+
+        /* Flow diagram */
+        .flow-diagram {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin: 24px 0;
+        }
+
+        .flow-step {
+            background: var(--dark-squid);
+            border: 2px solid var(--aws-orange);
+            border-radius: 8px;
+            padding: 12px 20px;
+            text-align: center;
+            min-width: 120px;
+            font-size: 14px;
+        }
+
+        .flow-arrow {
+            color: var(--aws-orange);
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        /* Merit/Demerit */
+        .merit-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .merit-section {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .merit-section h3 {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: var(--aws-orange);
+        }
+
+        .merit-list {
+            list-style: none;
+        }
+
+        .merit-list li {
+            padding: 6px 0;
+            padding-left: 22px;
+            position: relative;
+            font-size: 14px;
+            color: var(--light-gray);
+        }
+
+        .merit-list li::before {
+            content: "\2713";
+            position: absolute;
+            left: 0;
+            color: #2ECC71;
+            font-weight: bold;
+        }
+
+        /* Constraint/Limitation */
+        .constraint-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 3px solid #E74C3C;
+        }
+
+        .constraint-title {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #E74C3C;
+        }
+
+        .constraint-list {
+            list-style: none;
+        }
+
+        .constraint-list li {
+            padding: 6px 0;
+            padding-left: 22px;
+            position: relative;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .constraint-list li::before {
+            content: "\26A0";
+            position: absolute;
+            left: 0;
+            font-size: 12px;
+        }
+
+        /* Pricing card */
+        .pricing-card {
+            background: linear-gradient(135deg, rgba(29, 129, 2, 0.15) 0%, var(--card-bg) 100%);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid rgba(29, 129, 2, 0.3);
+            text-align: center;
+        }
+
+        .pricing-highlight {
+            font-size: 22px;
+            font-weight: 700;
+            color: #2ECC71;
+            margin-bottom: 8px;
+        }
+
+        .pricing-detail {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        /* Region */
+        .region-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .region-highlight {
+            font-size: 16px;
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .region-note {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-top: 8px;
+        }
+
+        /* Related services */
+        .related-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+
+        .related-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+        }
+
+        .related-name {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 6px;
+        }
+
+        .related-desc {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        /* Data retention note */
+        .note-card {
+            background-color: rgba(0, 161, 201, 0.1);
+            border: 1px solid rgba(0, 161, 201, 0.3);
+            border-radius: 12px;
+            padding: 16px;
+            margin-top: 16px;
+        }
+
+        .note-card-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--aws-teal);
+            margin-bottom: 8px;
+        }
+
+        .note-card-text {
+            font-size: 13px;
+            color: var(--light-gray);
+            line-height: 1.7;
+        }
+
+        /* Footer */
+        footer {
+            margin-top: 50px;
+            padding-top: 30px;
+            border-top: 1px solid var(--border-color);
+            text-align: center;
+        }
+
+        .source-links {
+            list-style: none;
+            margin-bottom: 16px;
+        }
+
+        .source-links li {
+            margin-bottom: 6px;
+        }
+
+        .source-link {
+            color: var(--aws-teal);
+            text-decoration: none;
+            font-size: 14px;
+            word-break: break-all;
+        }
+
+        .source-link:hover {
+            color: var(--aws-smile-orange);
+            text-decoration: underline;
+        }
+
+        .footer-note {
+            color: var(--text-secondary);
+            font-size: 12px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <span class="service-badge">Amazon Connect</span>
+            <h1>分析ダッシュボード向けきめ細かなアクセス制御</h1>
+            <p style="color: var(--light-gray); font-size: 15px; margin-bottom: 8px;">リソースタグを使用したタグベースアクセス制御によるメトリクス表示権限の管理</p>
+            <p class="release-date">2026 年 2 月 12 日</p>
+        </header>
+
+        <!-- Overview -->
+        <section class="section">
+            <h2 class="section-title">概要</h2>
+            <div class="overview-card">
+                <p class="overview-text">
+                    Amazon Connect が分析ダッシュボード向けに<span class="highlight">きめ細かなアクセス制御機能</span>をリリースしました。<span class="highlight">リソースタグ</span>を使用して、エージェント、キュー、ルーティングプロファイルなどの特定リソースに対するメトリクスの表示権限を制御できるようになります。
+                </p>
+                <p class="overview-text" style="margin-top: 12px;">
+                    例えば、エージェントに <code style="background: rgba(255,153,0,0.15); padding: 2px 6px; border-radius: 4px; color: var(--aws-orange);">Department:Customer Service</code> タグを付与することで、カスタマーサービスチームのマネージャーのみがそのエージェントのダッシュボードメトリクスを閲覧できるように制限できます。
+                </p>
+            </div>
+
+            <!-- Stats -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">&#128200;</div>
+                    <div class="stat-value">4</div>
+                    <div class="stat-label">対応レポートタイプ</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">&#127991;&#65039;</div>
+                    <div class="stat-value">7+</div>
+                    <div class="stat-label">対応リソースタイプ</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">&#128176;</div>
+                    <div class="stat-value">$0</div>
+                    <div class="stat-label">追加料金</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">&#127758;</div>
+                    <div class="stat-value">全リージョン</div>
+                    <div class="stat-label">+ GovCloud</div>
+                </div>
+            </div>
+
+            <!-- Before/After -->
+            <div class="comparison-grid">
+                <div class="comparison-card before">
+                    <div class="comparison-label">Before - アップデート前の課題</div>
+                    <ul class="comparison-list">
+                        <li>ダッシュボードメトリクスに対するアクセス制御が粗く、部門やチーム単位での表示制限が困難</li>
+                        <li>マネージャーが自チームのメトリクスのみを確認するためのフィルタリングオプションが限定的</li>
+                        <li>組織の階層構造に基づいた柔軟なアクセス制御の実現が困難</li>
+                    </ul>
+                </div>
+                <div class="comparison-card after">
+                    <div class="comparison-label">After - アップデート後の改善</div>
+                    <ul class="comparison-list">
+                        <li>リソースタグを使用して、ダッシュボード上のメトリクス表示をリソース単位で制御可能</li>
+                        <li>タグベースのフィルタリングにより、特定の部門やチームに関連するメトリクスのみを表示</li>
+                        <li>セキュリティプロファイルとタグの組み合わせで、組織構造に沿ったきめ細かなアクセス管理を実現</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Architecture Diagram -->
+        <section class="section">
+            <h2 class="section-title">アーキテクチャ図</h2>
+            <div class="diagram-container">
+                <div class="mermaid">
+flowchart TD
+    subgraph Resources["&#127991;&#65039; リソースとタグ"]
+        direction LR
+        Agent1["&#128084; エージェント A&lt;br/&gt;Department:CS"]
+        Agent2["&#128084; エージェント B&lt;br/&gt;Department:Sales"]
+        Queue1["&#128203; キュー X&lt;br/&gt;Department:CS"]
+        Agent1 ~~~ Agent2 ~~~ Queue1
+    end
+
+    subgraph SecurityProfile["&#128274; セキュリティプロファイル"]
+        direction LR
+        CSManager["&#128100; CS マネージャー&lt;br/&gt;Tag: Department:CS"]
+        SalesManager["&#128100; Sales マネージャー&lt;br/&gt;Tag: Department:Sales"]
+        CSManager ~~~ SalesManager
+    end
+
+    subgraph Dashboard["&#128202; 分析ダッシュボード"]
+        TBAC["&#128272; タグベース&lt;br/&gt;アクセス制御"]
+        Metrics["&#128200; フィルタリング&lt;br/&gt;されたメトリクス"]
+    end
+
+    Resources --> TBAC
+    SecurityProfile --> TBAC
+    TBAC --> Metrics
+
+    classDef resources fill:#E8F5E9,stroke:#A5D6A7,stroke-width:2px,color:#2E7D32
+    classDef security fill:#FFF3E0,stroke:#FFCC80,stroke-width:2px,color:#E65100
+    classDef dashboard fill:#E3F2FD,stroke:#BBDEFB,stroke-width:2px,color:#1565C0
+
+    class Resources,Agent1,Agent2,Queue1 resources
+    class SecurityProfile,CSManager,SalesManager security
+    class Dashboard,TBAC,Metrics dashboard
+                </div>
+            </div>
+            <p style="font-size: 13px; color: var(--text-secondary); margin-top: 12px; text-align: center;">
+                リソースに付与されたタグとセキュリティプロファイルのアクセス制御タグが照合され、ダッシュボードに表示されるメトリクスがフィルタリングされる仕組み
+            </p>
+        </section>
+
+        <!-- Key Features -->
+        <section class="section">
+            <h2 class="section-title">主要機能</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">&#127991;&#65039;</div>
+                    <div class="feature-title">リソースタグによる<br>アクセス制御</div>
+                    <div class="feature-description">エージェント、キュー、ルーティングプロファイル、フロー、フローモジュール、評価フォーム、テストケースにタグを付与し、ダッシュボード上のメトリクス表示を自動的にフィルタリング。</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#128270;</div>
+                    <div class="feature-title">タグベース<br>メトリクスフィルタリング</div>
+                    <div class="feature-description">同一タグを持つリソースの集計メトリクスを表示。「All accessible tags」の選択で権限範囲内のデータのみを表示し、セキュリティプロファイルに基づく自動制御。</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#128202;</div>
+                    <div class="feature-title">複数レポートタイプ<br>対応</div>
+                    <div class="feature-description">ダッシュボード、リアルタイムメトリクス、履歴メトリクス、エージェントアクティビティ監査の 4 種類のレポートでタグベースアクセス制御をサポート。</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Technical Spec: Supported Reports -->
+        <section class="section">
+            <h2 class="section-title">技術仕様</h2>
+
+            <h3 style="font-size: 16px; color: var(--text-primary); margin-bottom: 12px;">サポート対象レポート</h3>
+            <div class="report-grid">
+                <div class="report-card">
+                    <div class="report-card-title">&#128202; ダッシュボード</div>
+                    <div class="report-card-resources">ユーザー、キュー、ルーティングプロファイル、フロー、フローモジュール、評価フォーム、テストケース</div>
+                    <div class="report-card-note">全リソースタイプ対応</div>
+                </div>
+                <div class="report-card">
+                    <div class="report-card-title">&#9889; リアルタイムメトリクス</div>
+                    <div class="report-card-resources">ユーザー、キュー、ルーティングプロファイル</div>
+                    <div class="report-card-note">最大 500 リソース表示</div>
+                </div>
+                <div class="report-card">
+                    <div class="report-card-title">&#128197; 履歴メトリクス</div>
+                    <div class="report-card-resources">ユーザー、キュー、ルーティングプロファイル</div>
+                    <div class="report-card-note"></div>
+                </div>
+                <div class="report-card">
+                    <div class="report-card-title">&#128101; エージェントアクティビティ監査</div>
+                    <div class="report-card-resources">ユーザー</div>
+                    <div class="report-card-note">ユーザーのみ</div>
+                </div>
+            </div>
+
+            <h3 style="font-size: 16px; color: var(--text-primary); margin-top: 24px; margin-bottom: 12px;">非サポート</h3>
+            <ul class="unsupported-list">
+                <li>Agent Queues のアクセス制御</li>
+                <li>ログイン/ログアウトレポート</li>
+                <li>スケジュールレポート</li>
+            </ul>
+
+            <h3 style="font-size: 16px; color: var(--text-primary); margin-top: 24px; margin-bottom: 12px;">セキュリティプロファイル権限</h3>
+            <table class="perm-table">
+                <thead>
+                    <tr>
+                        <th>権限カテゴリ</th>
+                        <th>必要な権限</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>アクセスメトリクス</td>
+                        <td>Access metrics - Access、または Dashboard - Access、Real-time metrics - Access、Historical metrics - Access のいずれか</td>
+                    </tr>
+                    <tr>
+                        <td>リソースビュー</td>
+                        <td>Routing profiles - View、Queues - View、Users - View、Flows - View、Flow modules - View など</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="note-card">
+                <div class="note-card-title">&#128197; データ保持に関する注意事項</div>
+                <div class="note-card-text">2026 年 1 月 15 日以降、タグベースアクセス制御が有効なダッシュボードの履歴データは 2 か月間分から開始し、1 日ずつ増加して 2026 年 2 月 15 日に 3 か月分に達します。</div>
+            </div>
+        </section>
+
+        <!-- Configuration -->
+        <section class="section">
+            <h2 class="section-title">設定方法</h2>
+
+            <div class="overview-card" style="margin-bottom: 16px;">
+                <h3 style="font-size: 15px; color: var(--aws-orange); margin-bottom: 10px;">前提条件</h3>
+                <ul class="merit-list">
+                    <li>Amazon Connect インスタンスが構成済みであること</li>
+                    <li>制御対象のリソースが作成済みであること</li>
+                    <li>セキュリティプロファイルの編集権限を持つ管理者アカウント</li>
+                </ul>
+            </div>
+
+            <div class="flow-diagram">
+                <div class="flow-step">&#127991;&#65039; ステップ 1<br>リソースにタグを付与</div>
+                <span class="flow-arrow">&rarr;</span>
+                <div class="flow-step">&#128274; ステップ 2<br>セキュリティプロファイルに<br>アクセス制御タグを設定</div>
+                <span class="flow-arrow">&rarr;</span>
+                <div class="flow-step">&#128202; ステップ 3<br>ダッシュボードで確認</div>
+            </div>
+
+            <h3 style="font-size: 16px; color: var(--text-primary); margin-top: 20px; margin-bottom: 12px;">ステップ 1: リソースにタグを付与</h3>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Bash</span>
+                    <span class="code-title">AWS CLI によるリソースタグ付与</span>
+                </div>
+                <pre><code class="language-bash">aws connect tag-resource \
+  --resource-arn "arn:aws:connect:us-east-1:123456789012:instance/instance-id/agent/agent-id" \
+  --tags '{"Department": "CustomerService"}'</code></pre>
+            </div>
+
+            <h3 style="font-size: 16px; color: var(--text-primary); margin-top: 20px; margin-bottom: 12px;">ステップ 2: セキュリティプロファイルにアクセス制御タグを設定</h3>
+            <div class="overview-card">
+                <ul class="merit-list">
+                    <li>Amazon Connect 管理コンソールで「セキュリティプロファイル」を開く</li>
+                    <li>対象のセキュリティプロファイルを選択</li>
+                    <li><strong style="color: var(--text-primary);">Show advanced</strong> オプションを展開</li>
+                    <li>アクセス制御タグを設定 (例: <code style="background: rgba(255,153,0,0.15); padding: 2px 4px; border-radius: 4px; color: var(--aws-orange);">Department:CustomerService</code>)</li>
+                    <li>メトリクスアクセス権限とリソースビュー権限を付与</li>
+                </ul>
+            </div>
+
+            <h3 style="font-size: 16px; color: var(--text-primary); margin-top: 20px; margin-bottom: 12px;">ステップ 3: ダッシュボードでの確認</h3>
+            <div class="overview-card">
+                <ul class="merit-list">
+                    <li>タグベースアクセス制御が設定されたユーザーでサインイン</li>
+                    <li>ダッシュボードを開くと、セキュリティプロファイルのタグに一致するリソースのメトリクスのみが自動的に表示</li>
+                    <li>タグフィルターで「All accessible tags」を選択して、権限範囲内のデータを確認</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Benefits -->
+        <section class="section">
+            <h2 class="section-title">メリット</h2>
+            <div class="merit-grid">
+                <div class="merit-section">
+                    <h3>&#128188; ビジネス面</h3>
+                    <ul class="merit-list">
+                        <li><strong style="color: var(--text-primary);">データガバナンスの強化:</strong> 部門やチーム単位でメトリクスの可視性を制御し、情報の適切な管理を実現</li>
+                        <li><strong style="color: var(--text-primary);">マネージャーの業務効率化:</strong> 自チームに関連するメトリクスのみが表示されるため、必要な情報に素早くアクセス</li>
+                        <li><strong style="color: var(--text-primary);">コンプライアンス対応:</strong> データアクセスの粒度を細かく制御することで、規制要件への対応を支援</li>
+                    </ul>
+                </div>
+                <div class="merit-section">
+                    <h3>&#128736;&#65039; 技術面</h3>
+                    <ul class="merit-list">
+                        <li><strong style="color: var(--text-primary);">タグベースの柔軟な制御:</strong> 既存の AWS タグ管理体系との統合により、一貫したアクセス制御ポリシーを適用</li>
+                        <li><strong style="color: var(--text-primary);">自動フィルタリング:</strong> ダッシュボードとレポートが自動的にタグベースのアクセス制御を適用し、追加の手動設定が不要</li>
+                        <li><strong style="color: var(--text-primary);">複数レポートタイプ対応:</strong> ダッシュボード、リアルタイムメトリクス、履歴メトリクスなど幅広いレポートで統一的に適用</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Limitations -->
+        <section class="section">
+            <h2 class="section-title">制約事項・注意点</h2>
+            <div class="constraint-card">
+                <div class="constraint-title">制限事項</div>
+                <ul class="constraint-list">
+                    <li>Agent Queues のアクセス制御は非対応</li>
+                    <li>ログイン/ログアウトレポートとスケジュールレポートは非サポート</li>
+                    <li>リソースタグの変更は結果整合性であり、反映に短い遅延が発生する可能性がある</li>
+                    <li>リアルタイムメトリクステーブルでは 1 テーブルあたり最大 500 リソースの表示に制限</li>
+                </ul>
+            </div>
+            <div class="constraint-card">
+                <div class="constraint-title">考慮すべき点</div>
+                <ul class="constraint-list">
+                    <li>タグベースアクセス制御の導入前に、組織のタグ付け戦略を策定する必要がある</li>
+                    <li>既存のセキュリティプロファイルとの整合性を確認し、意図しないアクセス制限が発生しないよう注意が必要</li>
+                    <li>2026 年 1 月 15 日以前にタグベースアクセス制御を有効化していた環境では、新しい拡張体験への移行にサービスチームへの連絡が必要な場合がある</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Use Cases -->
+        <section class="section">
+            <h2 class="section-title">ユースケース</h2>
+
+            <div class="usecase-card">
+                <div class="usecase-header">
+                    <span style="font-size: 24px;">&#127970;</span>
+                    <div class="usecase-title">ユースケース 1: 部門別メトリクス管理</div>
+                </div>
+                <div class="usecase-scenario">
+                    <strong style="color: var(--text-primary);">シナリオ:</strong> カスタマーサービス部門のマネージャーが自チームのエージェントパフォーマンスのみを確認したい。
+                </div>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">Bash</span>
+                        <span class="code-title">実装例: エージェントとキューにタグを付与</span>
+                    </div>
+                    <pre><code class="language-bash"># エージェントにタグを付与
+aws connect tag-resource \
+  --resource-arn "arn:aws:connect:us-east-1:123456789012:instance/inst-id/agent/agent-id" \
+  --tags '{"Department": "CustomerService"}'
+
+# キューにタグを付与
+aws connect tag-resource \
+  --resource-arn "arn:aws:connect:us-east-1:123456789012:instance/inst-id/queue/queue-id" \
+  --tags '{"Department": "CustomerService"}'</code></pre>
+                </div>
+                <div class="usecase-effect">
+                    CS マネージャーは Department:CustomerService タグが付与されたエージェントとキューのメトリクスのみを閲覧可能
+                </div>
+            </div>
+
+            <div class="usecase-card">
+                <div class="usecase-header">
+                    <span style="font-size: 24px;">&#127759;</span>
+                    <div class="usecase-title">ユースケース 2: 拠点別アクセス制御</div>
+                </div>
+                <div class="usecase-scenario">
+                    <strong style="color: var(--text-primary);">シナリオ:</strong> 複数拠点のコンタクトセンターで、各拠点のスーパーバイザーが自拠点のメトリクスのみを確認する。
+                </div>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">Bash</span>
+                        <span class="code-title">実装例: 拠点別タグ付与</span>
+                    </div>
+                    <pre><code class="language-bash"># 東京拠点のエージェントにタグを付与
+aws connect tag-resource \
+  --resource-arn "arn:aws:connect:ap-northeast-1:123456789012:instance/inst-id/agent/agent-id" \
+  --tags '{"Location": "Tokyo"}'
+
+# 大阪拠点のエージェントにタグを付与
+aws connect tag-resource \
+  --resource-arn "arn:aws:connect:ap-northeast-1:123456789012:instance/inst-id/agent/agent-id-2" \
+  --tags '{"Location": "Osaka"}'</code></pre>
+                </div>
+                <div class="usecase-effect">
+                    各拠点のスーパーバイザーが自拠点のパフォーマンスデータのみにアクセスし、拠点間のデータ隔離を実現
+                </div>
+            </div>
+
+            <div class="usecase-card">
+                <div class="usecase-header">
+                    <span style="font-size: 24px;">&#128257;</span>
+                    <div class="usecase-title">ユースケース 3: レポート共有時のアクセス制御</div>
+                </div>
+                <div class="usecase-scenario">
+                    <strong style="color: var(--text-primary);">シナリオ:</strong> 異なるセキュリティプロファイルを持つユーザー間でダッシュボードレポートを共有する。
+                </div>
+                <div class="overview-card" style="margin-top: 12px;">
+                    <ul class="merit-list">
+                        <li>ダッシュボードのタグフィルターで「All accessible tags」を選択</li>
+                        <li>レポートを保存して共有</li>
+                    </ul>
+                </div>
+                <div class="usecase-effect" style="margin-top: 12px;">
+                    レポートを受け取ったユーザーは、自身のセキュリティプロファイルのタグに基づいてフィルタリングされたデータのみを閲覧。同一レポートでも閲覧者ごとに適切なデータのみが表示される
+                </div>
+            </div>
+        </section>
+
+        <!-- Pricing -->
+        <section class="section">
+            <h2 class="section-title">料金</h2>
+            <div class="pricing-card">
+                <div class="pricing-highlight">追加料金なし</div>
+                <div class="pricing-detail">タグベースアクセス制御機能の利用に追加料金は発生しません。Amazon Connect の標準料金が適用されます。</div>
+            </div>
+        </section>
+
+        <!-- Region -->
+        <section class="section">
+            <h2 class="section-title">利用可能リージョン</h2>
+            <div class="region-card">
+                <div style="font-size: 28px; margin-bottom: 8px;">&#127758;</div>
+                <div class="region-highlight">Amazon Connect が提供されているすべての AWS 商用リージョンおよび AWS GovCloud (US-West) リージョンで利用可能</div>
+                <div class="region-note">追加のリージョン展開の待機は不要です。</div>
+            </div>
+        </section>
+
+        <!-- Related Services -->
+        <section class="section">
+            <h2 class="section-title">関連サービス・機能</h2>
+            <div class="related-grid">
+                <div class="related-card">
+                    <div style="font-size: 24px; margin-bottom: 8px;">&#128200;</div>
+                    <div class="related-name">Amazon Connect Contact Lens</div>
+                    <div class="related-desc">会話分析ダッシュボードでもタグベースアクセス制御をサポート</div>
+                </div>
+                <div class="related-card">
+                    <div style="font-size: 24px; margin-bottom: 8px;">&#128274;</div>
+                    <div class="related-name">Amazon Connect セキュリティプロファイル</div>
+                    <div class="related-desc">タグベースアクセス制御の権限設定基盤</div>
+                </div>
+                <div class="related-card">
+                    <div style="font-size: 24px; margin-bottom: 8px;">&#127991;&#65039;</div>
+                    <div class="related-name">AWS Resource Groups &amp; Tag Editor</div>
+                    <div class="related-desc">リソースタグの一括管理</div>
+                </div>
+                <div class="related-card">
+                    <div style="font-size: 24px; margin-bottom: 8px;">&#128193;</div>
+                    <div class="related-name">Amazon Connect Cases</div>
+                    <div class="related-desc">ケースに対するタグベースアクセス制御もサポート</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer>
+            <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 12px;">参考リンク</p>
+            <ul class="source-links">
+                <li><a href="https://aws.amazon.com/about-aws/whats-new/2026/02/amazon-connect-launches-granular-access/" class="source-link" target="_blank">公式発表 - What's New</a></li>
+                <li><a href="https://docs.aws.amazon.com/connect/latest/adminguide/dashboard-tag-based-access-control.html" class="source-link" target="_blank">ドキュメント - ダッシュボードのタグベースアクセス制御</a></li>
+                <li><a href="https://docs.aws.amazon.com/connect/latest/adminguide/dashboards.html" class="source-link" target="_blank">ドキュメント - ダッシュボード</a></li>
+                <li><a href="https://aws.amazon.com/connect/pricing/" class="source-link" target="_blank">Amazon Connect 料金ページ</a></li>
+            </ul>
+            <p class="footer-note">Amazon Connect - 分析ダッシュボード向けきめ細かなアクセス制御 | 2026 年 2 月 12 日</p>
+        </footer>
+    </div>
+
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'base',
+            themeVariables: {
+                primaryColor: '#FF9900',
+                primaryTextColor: '#232F3E',
+                primaryBorderColor: '#FF9900',
+                lineColor: '#FF9900',
+                secondaryColor: '#F5F5F5',
+                tertiaryColor: '#FAFAFA',
+                background: '#FFFFFF',
+                mainBkg: '#FFF3E0',
+                nodeBorder: '#FF9900',
+                clusterBkg: '#FFF8E1',
+                clusterBorder: '#FF9900',
+                edgeLabelBackground: '#FFFFFF',
+                textColor: '#232F3E'
+            },
+            flowchart: {
+                curve: 'basis',
+                padding: 20
+            }
+        });
+        hljs.highlightAll();
+    </script>
+</body>
+</html>

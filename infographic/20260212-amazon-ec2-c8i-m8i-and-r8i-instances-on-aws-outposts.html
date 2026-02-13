@@ -1,0 +1,1287 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Amazon EC2 C8i, M8i, R8i - 第 2 世代 AWS Outposts racks 対応</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/styles/atom-one-dark.min.css">
+    <style>
+        :root {
+            --squid-ink: #232F3E;
+            --dark-squid: #1A242F;
+            --aws-orange: #FF9900;
+            --smile-orange: #FFAD33;
+            --text-primary: #FFFFFF;
+            --text-secondary: #D5DBDB;
+            --text-muted: #AAAAAA;
+            --card-bg: #2D3A4A;
+            --border-color: #3D4A5A;
+            --aws-teal: #00A1C9;
+            --aws-green: #1D8102;
+            --aws-red: #D13212;
+            --aws-purple: #8C4FFF;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            background-color: var(--squid-ink);
+            color: var(--text-secondary);
+            line-height: 1.8;
+            font-size: 16px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+            padding-bottom: 30px;
+            border-bottom: 3px solid var(--aws-orange);
+        }
+
+        .badge-row {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+
+        .service-badge {
+            display: inline-block;
+            background-color: var(--aws-orange);
+            color: var(--squid-ink);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .processor-badge {
+            display: inline-block;
+            background-color: var(--aws-teal);
+            color: #FFFFFF;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .outposts-badge {
+            display: inline-block;
+            background-color: var(--aws-purple);
+            color: #FFFFFF;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+            line-height: 1.4;
+        }
+
+        .release-date {
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--aws-orange);
+            margin-bottom: 20px;
+            padding-left: 15px;
+            border-left: 4px solid var(--aws-orange);
+        }
+
+        .overview-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .overview-text {
+            font-size: 16px;
+            line-height: 1.9;
+        }
+
+        .highlight {
+            color: var(--aws-orange);
+            font-weight: 700;
+        }
+
+        /* Comparison Grid */
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .comparison-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .comparison-card.before {
+            border-top: 4px solid #E74C3C;
+        }
+
+        .comparison-card.after {
+            border-top: 4px solid #2ECC71;
+        }
+
+        .comparison-label {
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        .comparison-card.before .comparison-label {
+            color: #E74C3C;
+        }
+
+        .comparison-card.after .comparison-label {
+            color: #2ECC71;
+        }
+
+        .comparison-list {
+            list-style: none;
+        }
+
+        .comparison-list li {
+            padding: 8px 0;
+            padding-left: 25px;
+            position: relative;
+            font-size: 14px;
+        }
+
+        .comparison-card.before .comparison-list li::before {
+            content: "\2717";
+            position: absolute;
+            left: 0;
+            color: #E74C3C;
+            font-weight: bold;
+        }
+
+        .comparison-card.after .comparison-list li::before {
+            content: "\2713";
+            position: absolute;
+            left: 0;
+            color: #2ECC71;
+            font-weight: bold;
+        }
+
+        /* Statistics Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, var(--card-bg) 0%, var(--dark-squid) 100%);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid rgba(255, 153, 0, 0.2);
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--aws-orange);
+            line-height: 1.2;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 6px;
+        }
+
+        .stat-sublabel {
+            font-size: 11px;
+            color: var(--text-muted);
+            opacity: 0.7;
+        }
+
+        /* Instance Family Grid */
+        .family-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .family-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 25px;
+            border-top: 4px solid var(--aws-orange);
+            text-align: center;
+        }
+
+        .family-card-icon {
+            font-size: 40px;
+            margin-bottom: 10px;
+        }
+
+        .family-card-name {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--aws-orange);
+            margin-bottom: 6px;
+        }
+
+        .family-card-type {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-bottom: 15px;
+        }
+
+        .family-card-specs {
+            list-style: none;
+            text-align: left;
+        }
+
+        .family-card-specs li {
+            padding: 6px 0;
+            padding-left: 22px;
+            position: relative;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .family-card-specs li::before {
+            content: "\2713";
+            position: absolute;
+            left: 0;
+            color: var(--aws-orange);
+            font-weight: bold;
+        }
+
+        /* Performance Table */
+        .perf-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            font-size: 14px;
+        }
+
+        .perf-table th,
+        .perf-table td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .perf-table th {
+            color: var(--aws-orange);
+            font-weight: 700;
+            background-color: var(--dark-squid);
+            font-size: 13px;
+        }
+
+        .perf-table td {
+            color: var(--text-secondary);
+        }
+
+        .perf-table .perf-value {
+            color: var(--aws-orange);
+            font-weight: 700;
+        }
+
+        .perf-table tr:hover {
+            background-color: rgba(255, 153, 0, 0.05);
+        }
+
+        /* Workload Table */
+        .workload-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            font-size: 14px;
+        }
+
+        .workload-table th,
+        .workload-table td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .workload-table th {
+            color: var(--aws-orange);
+            font-weight: 700;
+            background-color: var(--dark-squid);
+            font-size: 13px;
+        }
+
+        .workload-table td {
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+
+        .workload-table .instance-name {
+            color: var(--aws-orange);
+            font-weight: 700;
+        }
+
+        .workload-table tr:hover {
+            background-color: rgba(255, 153, 0, 0.05);
+        }
+
+        /* Features Grid */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .feature-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .feature-icon {
+            font-size: 36px;
+            margin-bottom: 15px;
+        }
+
+        .feature-title {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--aws-orange);
+        }
+
+        .feature-description {
+            font-size: 14px;
+            color: var(--text-muted);
+            line-height: 1.7;
+        }
+
+        /* Use Cases */
+        .usecase-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 3px solid var(--smile-orange);
+        }
+
+        .usecase-title {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 6px;
+            color: var(--aws-orange);
+        }
+
+        .usecase-scenario {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+            font-style: italic;
+        }
+
+        .usecase-description {
+            font-size: 14px;
+            color: var(--text-muted);
+            line-height: 1.7;
+        }
+
+        .usecase-effect {
+            font-size: 13px;
+            color: #2ECC71;
+            margin-top: 8px;
+            font-weight: 500;
+        }
+
+        /* Instance Comparison Grid */
+        .instance-compare-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .instance-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 25px;
+            border-left: 4px solid var(--aws-orange);
+        }
+
+        .instance-card-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--aws-orange);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .instance-detail-list {
+            list-style: none;
+        }
+
+        .instance-detail-list li {
+            padding: 6px 0;
+            padding-left: 22px;
+            position: relative;
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .instance-detail-list li::before {
+            content: "\2713";
+            position: absolute;
+            left: 0;
+            color: var(--aws-orange);
+            font-weight: bold;
+        }
+
+        /* Considerations */
+        .consideration-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+        }
+
+        .consideration-card.warning {
+            border-left: 4px solid #F39C12;
+        }
+
+        .consideration-card.info {
+            border-left: 4px solid var(--aws-teal);
+        }
+
+        .consideration-title {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+        }
+
+        .consideration-list {
+            list-style: none;
+        }
+
+        .consideration-list li {
+            padding: 6px 0;
+            padding-left: 22px;
+            position: relative;
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        .consideration-card.warning .consideration-list li::before {
+            content: "\26A0";
+            position: absolute;
+            left: 0;
+            color: #F39C12;
+        }
+
+        .consideration-card.info .consideration-list li::before {
+            content: "\2139";
+            position: absolute;
+            left: 0;
+            color: var(--aws-teal);
+            font-weight: bold;
+        }
+
+        /* Code Block */
+        .code-block {
+            background: #1a1a2e;
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 16px 0;
+        }
+
+        .code-header {
+            background: #16213e;
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+        }
+
+        .code-lang {
+            color: var(--aws-orange);
+            font-weight: bold;
+        }
+
+        .code-title {
+            color: var(--text-muted);
+        }
+
+        .code-block pre {
+            margin: 0;
+            padding: 0;
+            overflow-x: auto;
+        }
+
+        .code-block code {
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            padding: 16px !important;
+        }
+
+        /* Pricing */
+        .pricing-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 25px;
+            text-align: center;
+        }
+
+        .pricing-options {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+
+        .pricing-tag {
+            background-color: var(--dark-squid);
+            border: 1px solid var(--aws-orange);
+            border-radius: 8px;
+            padding: 10px 20px;
+            font-size: 14px;
+            color: var(--text-primary);
+        }
+
+        .pricing-tag-icon {
+            display: block;
+            font-size: 22px;
+            margin-bottom: 4px;
+        }
+
+        .pricing-tag-detail {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        /* Related Services */
+        .related-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+
+        .related-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 18px;
+            text-align: center;
+        }
+
+        .related-icon {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        .related-name {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .related-desc {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        /* Mermaid Container */
+        .mermaid-container {
+            background: #FFFFFF;
+            border-radius: 12px;
+            padding: 24px;
+            margin: 20px 0;
+            border: 2px solid rgba(255, 153, 0, 0.3);
+            overflow-x: auto;
+        }
+        .mermaid {
+            display: flex;
+            justify-content: center;
+        }
+
+        /* Flow Diagram */
+        .flow-diagram {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin: 24px 0;
+        }
+
+        .flow-step {
+            background: var(--dark-squid);
+            border: 2px solid var(--aws-orange);
+            border-radius: 8px;
+            padding: 12px 20px;
+            text-align: center;
+            min-width: 100px;
+            font-size: 14px;
+        }
+
+        .flow-arrow {
+            color: var(--aws-orange);
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        /* API Table */
+        .api-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            font-size: 14px;
+        }
+
+        .api-table th,
+        .api-table td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .api-table th {
+            color: var(--aws-orange);
+            font-weight: 700;
+            background-color: var(--dark-squid);
+            font-size: 13px;
+        }
+
+        .api-table td {
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+
+        .api-table a {
+            color: var(--aws-teal);
+            text-decoration: none;
+        }
+
+        .api-table a:hover {
+            color: var(--smile-orange);
+            text-decoration: underline;
+        }
+
+        /* Footer */
+        footer {
+            margin-top: 50px;
+            padding-top: 30px;
+            border-top: 1px solid var(--border-color);
+            text-align: center;
+        }
+
+        .source-link {
+            color: var(--aws-teal);
+            text-decoration: none;
+            font-size: 14px;
+            display: inline-block;
+            margin-bottom: 8px;
+        }
+
+        .source-link:hover {
+            color: var(--smile-orange);
+            text-decoration: underline;
+        }
+
+        .footer-note {
+            color: var(--text-muted);
+            font-size: 12px;
+            margin-top: 15px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .comparison-grid {
+                grid-template-columns: 1fr;
+            }
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr) !important;
+            }
+            .features-grid {
+                grid-template-columns: 1fr !important;
+            }
+            .instance-compare-grid {
+                grid-template-columns: 1fr !important;
+            }
+            .related-grid {
+                grid-template-columns: 1fr !important;
+            }
+            .family-grid {
+                grid-template-columns: 1fr !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="badge-row">
+                <span class="service-badge">Amazon EC2</span>
+                <span class="processor-badge">Intel Xeon 6</span>
+                <span class="outposts-badge">AWS Outposts</span>
+            </div>
+            <h1>Amazon EC2 C8i, M8i, R8i インスタンス<br>第 2 世代 AWS Outposts racks 対応</h1>
+            <p class="release-date">2026 年 2 月 12 日</p>
+        </header>
+
+        <!-- Overview Section -->
+        <section class="section">
+            <h2 class="section-title">概要</h2>
+            <div class="overview-card">
+                <p class="overview-text">
+                    Amazon EC2 <span class="highlight">C8i</span> (コンピューティング最適化)、<span class="highlight">M8i</span> (汎用)、<span class="highlight">R8i</span> (メモリ最適化) インスタンスが、<span class="highlight">第 2 世代 AWS Outposts racks</span> で利用可能になりました。AWS 専用の<span class="highlight">カスタム Intel Xeon 6 プロセッサ</span>を搭載し、前世代と比較して <span class="highlight">20%</span> 優れたパフォーマンスと <span class="highlight">2.5 倍</span>のメモリ帯域幅を提供します。
+                </p>
+                <p class="overview-text" style="margin-top: 12px;">
+                    同じラックスペースと電力消費で <span class="highlight">20% 多いコンピューティング容量</span>を提供するため、オンプレミスワークロードのスペースとエネルギー効率が大幅に向上します。データベース、メモリ集約型アプリケーション、リアルタイムビッグデータ分析、ビデオエンコーディング、エッジ ML 推論など、幅広いオンプレミスワークロードに適しています。
+                </p>
+            </div>
+
+            <div class="comparison-grid">
+                <div class="comparison-card before">
+                    <div class="comparison-label">Before - アップデート前の課題</div>
+                    <ul class="comparison-list">
+                        <li>第 2 世代 Outposts racks では C7i、M7i、R7i が最新であり、より高いパフォーマンスが必要なワークロードへの対応が限定されていた</li>
+                        <li>メモリ帯域幅が制約となり、メモリ集約型のワークロードでボトルネックが生じる場合があった</li>
+                        <li>同じラックスペースでのコンピューティング密度を向上させる選択肢がなかった</li>
+                    </ul>
+                </div>
+                <div class="comparison-card after">
+                    <div class="comparison-label">After - アップデート後の改善</div>
+                    <ul class="comparison-list">
+                        <li>C8i、M8i、R8i インスタンスにより 20% 優れたパフォーマンスを実現</li>
+                        <li>2.5 倍のメモリ帯域幅により、メモリ集約型ワークロードのパフォーマンスが大幅に向上</li>
+                        <li>同じラックスペースと電力消費で 20% 多いコンピューティング容量を提供し、スペースとエネルギー効率が改善</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Stats Section -->
+        <section class="section">
+            <h2 class="section-title">数字で見るパフォーマンス向上</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value">20%</div>
+                    <div class="stat-label">パフォーマンス向上</div>
+                    <div class="stat-sublabel">C7i / M7i / R7i 比</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">2.5x</div>
+                    <div class="stat-label">メモリ帯域幅</div>
+                    <div class="stat-sublabel">前世代比</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">+20%</div>
+                    <div class="stat-label">コンピューティング容量</div>
+                    <div class="stat-sublabel">同じラックスペース</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Architecture Diagram -->
+        <section class="section">
+            <h2 class="section-title">アーキテクチャ図</h2>
+            <div class="mermaid-container">
+                <pre class="mermaid">
+flowchart TD
+    subgraph OnPrem["&#127970; オンプレミス / データセンター"]
+        subgraph Outposts["&#9889; 第 2 世代 AWS Outposts Rack"]
+            subgraph Compute["&#9881;&#65039; コンピューティング"]
+                direction LR
+                C8i["&#128187; C8i&lt;br/&gt;コンピューティング最適化"]
+                M8i["&#128187; M8i&lt;br/&gt;汎用"]
+                R8i["&#128187; R8i&lt;br/&gt;メモリ最適化"]
+                C8i ~~~ M8i ~~~ R8i
+            end
+            CPU["&#128295; カスタム Intel Xeon 6&lt;br/&gt;プロセッサ"]
+        end
+    end
+
+    subgraph AWS["&#9729;&#65039; AWS Cloud"]
+        Region["&#127757; AWS リージョン"]
+        Console["&#128421;&#65039; AWS マネジメントコンソール"]
+    end
+
+    subgraph Workloads["&#128230; ワークロード"]
+        direction LR
+        DB["&#128452;&#65039; データベース"]
+        Analytics["&#128202; ビッグデータ分析"]
+        ML["&#129302; エッジ ML 推論"]
+        Video["&#127916; ビデオエンコーディング"]
+        DB ~~~ Analytics ~~~ ML ~~~ Video
+    end
+
+    Workloads --> Compute
+    Compute --> CPU
+    Outposts <-->|Service Link| Region
+    Console -->|管理・運用| Outposts
+
+    classDef onprem fill:#FFF3E0,stroke:#FF9800,stroke-width:2px,color:#333333
+    classDef outposts fill:#E8F1FF,stroke:#4A90E2,stroke-width:2px,color:#333333
+    classDef compute fill:#FFE0B2,stroke:#FFCC80,stroke-width:2px,color:#5D4037
+    classDef cloud fill:none,stroke:#CCCCCC,stroke-width:2px,color:#666666
+    classDef workload fill:#E9F7EC,stroke:#66BB6A,stroke-width:2px,color:#333333
+    classDef cpu fill:#F3E5F5,stroke:#7B61FF,stroke-width:2px,color:#333333
+
+    class OnPrem onprem
+    class Outposts outposts
+    class Compute,C8i,M8i,R8i compute
+    class AWS,Region,Console cloud
+    class Workloads,DB,Analytics,ML,Video workload
+    class CPU cpu
+                </pre>
+            </div>
+            <p style="font-size: 14px; color: var(--text-muted); text-align: center; margin-top: 10px;">
+                第 2 世代 AWS Outposts racks 上で C8i、M8i、R8i インスタンスが稼働し、カスタム Intel Xeon 6 プロセッサによる高性能なオンプレミスコンピューティングを提供する構成を示しています。
+            </p>
+        </section>
+
+        <!-- Instance Family Section -->
+        <section class="section">
+            <h2 class="section-title">インスタンスファミリー</h2>
+            <div class="family-grid">
+                <div class="family-card">
+                    <div class="family-card-icon">&#9889;</div>
+                    <div class="family-card-name">C8i</div>
+                    <div class="family-card-type">コンピューティング最適化</div>
+                    <ul class="family-card-specs">
+                        <li>コンピューティング集約型ワークロードに最適</li>
+                        <li>高性能ウェブサーバー</li>
+                        <li>バッチ処理</li>
+                        <li>分散分析</li>
+                        <li>ビデオエンコーディング</li>
+                        <li>ゲームサーバー</li>
+                        <li>C7i 比 20% パフォーマンス向上</li>
+                    </ul>
+                </div>
+                <div class="family-card">
+                    <div class="family-card-icon">&#9881;</div>
+                    <div class="family-card-name">M8i</div>
+                    <div class="family-card-type">汎用</div>
+                    <ul class="family-card-specs">
+                        <li>バランスの取れたリソース構成</li>
+                        <li>アプリケーションサーバー</li>
+                        <li>マイクロサービス</li>
+                        <li>エンタープライズアプリ</li>
+                        <li>中規模データベース</li>
+                        <li>M7i 比 20% パフォーマンス向上</li>
+                    </ul>
+                </div>
+                <div class="family-card">
+                    <div class="family-card-icon">&#128204;</div>
+                    <div class="family-card-name">R8i</div>
+                    <div class="family-card-type">メモリ最適化</div>
+                    <ul class="family-card-specs">
+                        <li>メモリ集約型ワークロードに最適</li>
+                        <li>インメモリデータベース</li>
+                        <li>リアルタイムビッグデータ分析</li>
+                        <li>大規模インメモリキャッシュ</li>
+                        <li>R7i 比 20% パフォーマンス向上</li>
+                        <li>2.5 倍のメモリ帯域幅</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Key Features Section -->
+        <section class="section">
+            <h2 class="section-title">主要機能</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">&#128187;</div>
+                    <div class="feature-title">カスタム Intel Xeon 6 プロセッサ</div>
+                    <div class="feature-description">AWS 専用に設計されたカスタムプロセッサ。同じラックスペースと電力消費で 20% 多いコンピューティング容量を実現し、スペースとエネルギー効率が向上。</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#9889;</div>
+                    <div class="feature-title">20% パフォーマンス向上</div>
+                    <div class="feature-description">第 2 世代 Outposts racks 上の C7i、M7i、R7i と比較して 20% 優れたパフォーマンスを提供。オンプレミスワークロードの処理速度を大幅に改善。</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#128200;</div>
+                    <div class="feature-title">2.5 倍のメモリ帯域幅</div>
+                    <div class="feature-description">前世代と比較して 2.5 倍のメモリ帯域幅により、メモリ集約型ワークロードのボトルネックを解消し、パフォーマンスを大幅に向上。</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#127968;</div>
+                    <div class="feature-title">オンプレミス高性能コンピューティング</div>
+                    <div class="feature-description">AWS クラウドと同じ API、管理コンソール、ガバナンスポリシーを使用しながら、オンプレミスで最新のインスタンスタイプを利用可能。</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Technical Specifications -->
+        <section class="section">
+            <h2 class="section-title">技術仕様</h2>
+            <div class="overview-card">
+                <div style="font-size: 15px; font-weight: 700; color: var(--text-primary); margin-bottom: 12px;">インスタンスファミリー比較</div>
+                <table class="perf-table">
+                    <thead>
+                        <tr>
+                            <th>項目</th>
+                            <th>C7i / M7i / R7i</th>
+                            <th>C8i / M8i / R8i</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>プロセッサ</td>
+                            <td>Intel Xeon Scalable</td>
+                            <td class="perf-value">カスタム Intel Xeon 6</td>
+                        </tr>
+                        <tr>
+                            <td>パフォーマンス</td>
+                            <td>ベースライン</td>
+                            <td class="perf-value">20% 向上</td>
+                        </tr>
+                        <tr>
+                            <td>メモリ帯域幅</td>
+                            <td>ベースライン</td>
+                            <td class="perf-value">2.5 倍</td>
+                        </tr>
+                        <tr>
+                            <td>コンピューティング密度</td>
+                            <td>ベースライン</td>
+                            <td class="perf-value">同じラックスペースで 20% 向上</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="overview-card" style="margin-top: 20px;">
+                <div style="font-size: 15px; font-weight: 700; color: var(--text-primary); margin-bottom: 12px;">推奨ワークロード</div>
+                <table class="workload-table">
+                    <thead>
+                        <tr>
+                            <th>インスタンス</th>
+                            <th>カテゴリ</th>
+                            <th>推奨ワークロード</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="instance-name">C8i</td>
+                            <td>コンピューティング最適化</td>
+                            <td>高性能ウェブサーバー、バッチ処理、分散分析、ビデオエンコーディング</td>
+                        </tr>
+                        <tr>
+                            <td class="instance-name">M8i</td>
+                            <td>汎用</td>
+                            <td>アプリケーションサーバー、マイクロサービス、エンタープライズアプリ、中規模 DB</td>
+                        </tr>
+                        <tr>
+                            <td class="instance-name">R8i</td>
+                            <td>メモリ最適化</td>
+                            <td>インメモリ DB、リアルタイムビッグデータ分析、大規模キャッシュ、エッジ ML 推論</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="overview-card" style="margin-top: 20px;">
+                <div style="font-size: 15px; font-weight: 700; color: var(--text-primary); margin-bottom: 12px;">API 変更履歴</div>
+                <table class="api-table">
+                    <thead>
+                        <tr>
+                            <th>日付</th>
+                            <th>サービス</th>
+                            <th>変更内容</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>2026/02/12</td>
+                            <td><a href="https://awsapichanges.com/archive/changes/504b9a-ec2.html" target="_blank" rel="noopener noreferrer">Amazon Elastic Compute Cloud</a></td>
+                            <td>8 updated api methods - ネステッド仮想化の起動</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Setup Section -->
+        <section class="section">
+            <h2 class="section-title">設定方法</h2>
+            <div class="overview-card">
+                <div style="font-size: 15px; font-weight: 700; color: var(--text-primary); margin-bottom: 12px;">前提条件</div>
+                <ul class="instance-detail-list" style="margin-bottom: 20px;">
+                    <li>第 2 世代 AWS Outposts racks がデプロイされていること</li>
+                    <li>AWS アカウントに EC2 インスタンスの起動権限があること</li>
+                    <li>Outposts racks で C8i、M8i、R8i インスタンスタイプが利用可能であること</li>
+                </ul>
+
+                <div style="font-size: 15px; font-weight: 700; color: var(--text-primary); margin-bottom: 12px;">ステップ 1: 利用可能なインスタンスタイプの確認</div>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">Bash</span>
+                        <span class="code-title">Outposts で利用可能なインスタンスタイプを確認</span>
+                    </div>
+                    <pre><code class="language-bash">aws ec2 describe-instance-type-offerings \
+    --location-type outpost \
+    --filters Name=instance-type,Values=c8i.*,m8i.*,r8i.* \
+    --region us-east-1</code></pre>
+                </div>
+
+                <div style="font-size: 15px; font-weight: 700; color: var(--text-primary); margin-bottom: 12px; margin-top: 20px;">ステップ 2: インスタンスの起動</div>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">Bash</span>
+                        <span class="code-title">C8i インスタンスを Outposts 上で起動</span>
+                    </div>
+                    <pre><code class="language-bash">aws ec2 run-instances \
+    --image-id ami-0abcdef1234567890 \
+    --instance-type c8i.4xlarge \
+    --subnet-id subnet-outposts-xxxxxxxxx \
+    --placement "GroupName=outpost-placement-group" \
+    --count 1</code></pre>
+                </div>
+                <p style="font-size: 14px; color: var(--text-muted); margin-top: 8px; margin-bottom: 20px;">
+                    Outposts に関連付けられたサブネットを指定して、C8i インスタンスを起動します。M8i や R8i の場合は <code style="color: var(--aws-orange);">--instance-type</code> を変更してください。
+                </p>
+
+                <div style="font-size: 15px; font-weight: 700; color: var(--text-primary); margin-bottom: 12px;">ステップ 3: インスタンスの確認</div>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">Bash</span>
+                        <span class="code-title">起動したインスタンスの詳細を確認</span>
+                    </div>
+                    <pre><code class="language-bash">aws ec2 describe-instances \
+    --filters Name=instance-type,Values=c8i.4xlarge \
+    --query "Reservations[*].Instances[*].[InstanceId,InstanceType,State.Name,Placement]" \
+    --output table</code></pre>
+                </div>
+            </div>
+        </section>
+
+        <!-- Use Cases Section -->
+        <section class="section">
+            <h2 class="section-title">ユースケース</h2>
+            <div class="usecase-card">
+                <div class="usecase-title">&#128451; ユースケース 1: オンプレミスデータベースの高速化</div>
+                <div class="usecase-scenario">シナリオ: 大規模なデータベースをオンプレミスで運用する企業が、R8i インスタンスの 2.5 倍のメモリ帯域幅を活用してパフォーマンスを向上させる</div>
+                <div class="usecase-description">R8i インスタンスの大幅に向上したメモリ帯域幅を活用して、インメモリデータベースやリアルタイムクエリ処理のパフォーマンスを改善します。</div>
+                <div class="usecase-effect">&#10004; R7i と比較して 20% のパフォーマンス向上と 2.5 倍のメモリ帯域幅により、データベースクエリの応答時間を大幅に短縮</div>
+            </div>
+            <div class="usecase-card">
+                <div class="usecase-title">&#129302; ユースケース 2: エッジ ML 推論の高度化</div>
+                <div class="usecase-scenario">シナリオ: 製造業が工場のエッジ環境で、より高度な機械学習モデルを使用したリアルタイム品質検査を実施する</div>
+                <div class="usecase-description">C8i インスタンスの向上したコンピューティング性能により、より大規模で高精度な ML モデルを低レイテンシで実行し、リアルタイム品質検査の精度を向上させます。</div>
+                <div class="usecase-effect">&#10004; C8i インスタンスの 20% のパフォーマンス向上により、より高度な ML モデルを低レイテンシで実行</div>
+            </div>
+            <div class="usecase-card">
+                <div class="usecase-title">&#128202; ユースケース 3: リアルタイムビッグデータ分析</div>
+                <div class="usecase-scenario">シナリオ: 小売業がオンプレミスの店舗データをリアルタイムで分析し、在庫管理と需要予測を最適化する</div>
+                <div class="usecase-description">M8i インスタンスのバランスの取れたコンピューティング、メモリ、ネットワーキングリソースを活用し、リアルタイムのデータ分析と意思決定を加速します。</div>
+                <div class="usecase-effect">&#10004; M8i インスタンスのバランスの取れたリソースと向上したパフォーマンスにより、リアルタイム分析と意思決定を加速</div>
+            </div>
+        </section>
+
+        <!-- Benefits Section -->
+        <section class="section">
+            <h2 class="section-title">メリット</h2>
+            <div class="instance-compare-grid">
+                <div class="instance-card">
+                    <div class="instance-card-title">&#128176; ビジネス面</div>
+                    <ul class="instance-detail-list">
+                        <li>コスト効率の向上: 同じラックスペースと電力消費で 20% 多いコンピューティング容量を提供し、TCO を削減</li>
+                        <li>パフォーマンスの向上: 20% のパフォーマンス向上により、処理速度が改善しビジネスの俊敏性が向上</li>
+                        <li>データレジデンシー要件の順守: オンプレミスでの高性能コンピューティングにより、データ主権要件を満たしながら最新インスタンスを利用可能</li>
+                    </ul>
+                </div>
+                <div class="instance-card">
+                    <div class="instance-card-title">&#9889; 技術面</div>
+                    <ul class="instance-detail-list">
+                        <li>2.5 倍のメモリ帯域幅: メモリ集約型ワークロードでのボトルネックを大幅に解消</li>
+                        <li>エネルギー効率の改善: 同じ電力消費でより多くのコンピューティング容量を提供</li>
+                        <li>ネステッド仮想化のサポート: API 変更によりネステッド仮想化が利用可能になり、仮想化ワークロードの柔軟性が向上</li>
+                        <li>一貫したハイブリッド体験: AWS クラウドと同じ API、管理コンソール、ガバナンスポリシーを使用可能</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Considerations Section -->
+        <section class="section">
+            <h2 class="section-title">制約事項・考慮点</h2>
+            <div class="consideration-card warning">
+                <div class="consideration-title">&#9888; 制限事項</div>
+                <ul class="consideration-list">
+                    <li>第 2 世代 Outposts racks でのみ利用可能で、第 1 世代 Outposts racks では使用できない</li>
+                    <li>利用可能なインスタンスサイズは Outposts racks の構成に依存する</li>
+                    <li>Outposts racks が利用可能な国と地域に限定される</li>
+                </ul>
+            </div>
+            <div class="consideration-card info">
+                <div class="consideration-title">&#8505; 考慮すべき点</div>
+                <ul class="consideration-list">
+                    <li>第 2 世代 Outposts racks のハードウェア更新が必要な場合がある</li>
+                    <li>C7i、M7i、R7i からの移行時に、アプリケーションの互換性テストを実施することを推奨</li>
+                    <li>Outposts racks のキャパシティプランニングを事前に行う必要がある</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Pricing Section -->
+        <section class="section">
+            <h2 class="section-title">料金</h2>
+            <div class="pricing-card">
+                <p style="font-size: 14px; margin-bottom: 15px;">C8i、M8i、R8i インスタンスの料金は、Outposts racks のサブスクリプションに含まれます。</p>
+                <div class="pricing-options">
+                    <div class="pricing-tag">
+                        <span class="pricing-tag-icon">&#128179;</span>
+                        Outposts サブスクリプション
+                        <div class="pricing-tag-detail">ハードウェア構成と期間に依存</div>
+                    </div>
+                    <div class="pricing-tag">
+                        <span class="pricing-tag-icon">&#128187;</span>
+                        EC2 インスタンス
+                        <div class="pricing-tag-detail">サブスクリプションに含まれる</div>
+                    </div>
+                    <div class="pricing-tag">
+                        <span class="pricing-tag-icon">&#128259;</span>
+                        データ転送
+                        <div class="pricing-tag-detail">リージョンへの転送料金が別途発生</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Available Regions Section -->
+        <section class="section">
+            <h2 class="section-title">利用可能リージョン</h2>
+            <div class="overview-card" style="text-align: center;">
+                <p style="font-size: 14px; margin-bottom: 15px;">C8i、M8i、R8i インスタンスは、第 2 世代 Outposts racks がサポートされている<span class="highlight">すべての AWS リージョンおよび国/地域</span>で利用可能です。</p>
+                <p style="font-size: 13px; color: var(--text-muted);">サポートされている国と地域の最新リストは、<a href="https://aws.amazon.com/outposts/rack/" target="_blank" rel="noopener noreferrer" style="color: var(--aws-teal); text-decoration: none;">Outposts racks 製品ページ</a> および <a href="https://aws.amazon.com/outposts/rack/faqs/" target="_blank" rel="noopener noreferrer" style="color: var(--aws-teal); text-decoration: none;">Outposts racks FAQ ページ</a>を参照してください。</p>
+            </div>
+        </section>
+
+        <!-- Related Services Section -->
+        <section class="section">
+            <h2 class="section-title">関連サービス</h2>
+            <div class="related-grid">
+                <div class="related-card">
+                    <div class="related-icon">&#127968;</div>
+                    <div class="related-name">AWS Outposts racks</div>
+                    <div class="related-desc">AWS インフラストラクチャをオンプレミスに拡張する完全マネージド型サービス</div>
+                </div>
+                <div class="related-card">
+                    <div class="related-icon">&#128187;</div>
+                    <div class="related-name">Amazon EC2</div>
+                    <div class="related-desc">クラウドおよびオンプレミスで利用可能なコンピューティングサービス</div>
+                </div>
+                <div class="related-card">
+                    <div class="related-icon">&#128190;</div>
+                    <div class="related-name">Amazon EBS</div>
+                    <div class="related-desc">Outposts racks 上の EC2 インスタンス向けブロックストレージ</div>
+                </div>
+                <div class="related-card">
+                    <div class="related-icon">&#128230;</div>
+                    <div class="related-name">Amazon S3 on Outposts</div>
+                    <div class="related-desc">Outposts racks 上のオブジェクトストレージ</div>
+                </div>
+                <div class="related-card">
+                    <div class="related-icon">&#128279;</div>
+                    <div class="related-name">AWS Local Gateway</div>
+                    <div class="related-desc">オンプレミスネットワークと Outposts racks 間の接続</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer>
+            <div>
+                <a href="https://aws.amazon.com/about-aws/whats-new/2026/02/amazon-ec2-c8i-m8i-and-r8i-instances-on-aws-outposts/" class="source-link" target="_blank" rel="noopener noreferrer">
+                    &#128279; 公式発表 (What's New) を見る
+                </a>
+            </div>
+            <div>
+                <a href="https://aws.amazon.com/outposts/rack/" class="source-link" target="_blank" rel="noopener noreferrer">
+                    &#127968; AWS Outposts rack 製品ページ
+                </a>
+            </div>
+            <div>
+                <a href="https://docs.aws.amazon.com/outposts/latest/network-userguide/what-is-outposts.html" class="source-link" target="_blank" rel="noopener noreferrer">
+                    &#128196; AWS Outposts ドキュメント
+                </a>
+            </div>
+            <div>
+                <a href="https://awsapichanges.com/archive/changes/504b9a-ec2.html" class="source-link" target="_blank" rel="noopener noreferrer">
+                    &#128203; API 変更履歴: Amazon EC2
+                </a>
+            </div>
+            <div>
+                <a href="https://aws.amazon.com/outposts/pricing/" class="source-link" target="_blank" rel="noopener noreferrer">
+                    &#128176; AWS Outposts 料金ページ
+                </a>
+            </div>
+            <p class="footer-note">第 2 世代 AWS Outposts racks での Amazon EC2 C8i、M8i、R8i インスタンスの提供開始により、オンプレミス環境でのコンピューティングパフォーマンスが大幅に向上しました。カスタム Intel Xeon 6 プロセッサによる 20% のパフォーマンス向上、2.5 倍のメモリ帯域幅、同じラックスペースでの 20% のコンピューティング容量増加は、高性能を必要とするオンプレミスワークロードにとって重要なアップデートです。</p>
+        </footer>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'base',
+            themeVariables: {
+                primaryColor: '#FF9900',
+                primaryTextColor: '#232F3E',
+                primaryBorderColor: '#FF9900',
+                lineColor: '#FF9900',
+                secondaryColor: '#F5F5F5',
+                tertiaryColor: '#FAFAFA',
+                background: '#FFFFFF',
+                mainBkg: '#FFF3E0',
+                nodeBorder: '#FF9900',
+                clusterBkg: '#FFF8E1',
+                clusterBorder: '#FF9900',
+                edgeLabelBackground: '#FFFFFF',
+                textColor: '#232F3E'
+            }
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/highlight.min.js"></script>
+    <script>hljs.highlightAll();</script>
+</body>
+</html>
