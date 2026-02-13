@@ -1,0 +1,238 @@
+# GitHub Actions Workflow for AWS News Summary Automation
+#
+# This workflow runs the awsnews-summary skill daily to fetch and summarize
+# the latest AWS news updates using Amazon Bedrock.
+#
+# Required GitHub Variables:
+# - AWS_ROLE_ARN: ARN of the IAM role to assume
+# - AWS_REGION: AWS region (default: us-east-1)
+# - BEDROCK_MODEL_ID: Bedrock model ID (default: global.anthropic.claude-opus-4-6-v1)
+# - INFOGRAPHIC_BASE_URL: Base URL for infographic pages (e.g. https://your-user.github.io/your-repo, without trailing slash)
+
+name: AWS News Summary
+
+on:
+  schedule:
+    - cron: '0 21 * * *'  # Daily at 6:00 AM JST
+
+  repository_dispatch:
+    types: [generate-aws-news-summary]
+
+  workflow_dispatch:
+
+# Required for AWS OIDC authentication and GitHub Pages deployment
+permissions:
+  id-token: write
+  contents: write
+  pull-requests: write
+  pages: write
+
+env:
+  PYTHON_VERSION: "3.14"
+  AWS_DEFAULT_REGION: "us-east-1"
+  # INFOGRAPHIC_BASE_URL: GitHub Repository Variables で設定すること
+  #   Settings > Secrets and variables > Actions > Variables > INFOGRAPHIC_BASE_URL
+  #   例: https://your-user.github.io/your-repo (末尾スラッシュなし)
+
+jobs:
+  generate-summary:
+    name: Generate AWS News Summary
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Install Python dependencies
+        run: |
+          echo "Setting up Python environment..."
+          python --version
+          pip --version
+          pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION || 'us-east-1' }}
+          role-session-name: github-actions-${{ github.run_id }}
+          role-duration-seconds: 3600
+
+      - name: Verify AWS credentials
+        run: |
+          echo "Verifying AWS credentials..."
+          aws sts get-caller-identity
+          echo "AWS authentication successful"
+
+      - name: Configure git
+        run: |
+          git config --global user.name "AWS News Bot"
+          git config --global user.email "awsnews-bot@users.noreply.github.com"
+
+      - name: Generate AWS News Summary
+        env:
+          CLAUDE_CODE_USE_BEDROCK: "1"
+          USE_BEDROCK: "1"
+          AWS_REGION: ${{ vars.AWS_REGION || 'us-east-1' }}
+          ANTHROPIC_MODEL: ${{ vars.BEDROCK_MODEL_ID || 'global.anthropic.claude-opus-4-6-v1' }}
+          INFOGRAPHIC_BASE_URL: ${{ vars.INFOGRAPHIC_BASE_URL }}
+          INFOGRAPHIC_BACKFILL_MAX: "16"
+          DEBUG: "1"
+        run: |
+          echo "Starting AWS News Summary generation..."
+          mkdir -p artifacts/new_reports artifacts/new_infographics
+          python run.py --debug || true
+
+      - name: Update index files
+        run: |
+          echo "Updating index files..."
+          python -c "from run import generate_reports_index; from pathlib import Path; generate_reports_index(Path('reports'))"
+          python -c "from run import generate_infographic_index; from pathlib import Path; generate_infographic_index(Path('infographic'))"
+
+      - name: Collect artifacts and commit
+        id: check_changes
+        run: |
+          # Collect report artifacts
+          git status --porcelain reports/ | while IFS= read -r line; do
+            [ -z "$line" ] && continue
+            file="${line:3}"
+            if [ -f "$file" ]; then
+              mkdir -p "artifacts/new_reports/$(dirname "$file")"
+              cp "$file" "artifacts/new_reports/$file"
+            fi
+          done
+
+          # Collect infographic artifacts
+          git status --porcelain infographic/ | while IFS= read -r line; do
+            [ -z "$line" ] && continue
+            file="${line:3}"
+            [ -f "$file" ] && cp "$file" "artifacts/new_infographics/"
+          done
+
+          # Commit all changes (reports + infographics + index files)
+          if [ -n "$(git status --porcelain reports/ infographic/)" ]; then
+            echo "changes=true" >> $GITHUB_OUTPUT
+            echo "Committing all new reports and infographics..."
+            git add reports/ infographic/
+            git commit -m "docs(reports): add reports for $(date -u +"%Y-%m-%d")" -m "[skip ci]" || true
+
+            echo "Fetching latest changes..."
+            git fetch origin ${{ github.ref_name }} 2>/dev/null || true
+            git rebase origin/${{ github.ref_name }} 2>/dev/null || git rebase --abort 2>/dev/null || true
+
+            git push origin ${{ github.ref_name }} || true
+            echo "Done"
+          else
+            echo "changes=false" >> $GITHUB_OUTPUT
+            echo "No new reports or infographics to commit."
+          fi
+
+      - name: Upload report artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: awsnews-summary-reports
+          path: artifacts/new_reports/
+          retention-days: 30
+
+      - name: Upload infographic artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: awsnews-summary-infographics
+          path: artifacts/new_infographics/
+          retention-days: 30
+
+      - name: Job summary
+        if: always()
+        run: |
+          echo "## AWS News Summary Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Execution Time:** $(date -u +'%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+          echo "**Status:** ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ "${{ steps.check_changes.outputs.changes }}" = "true" ]; then
+            echo "**Result:** New reports generated and committed" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### New Reports" >> $GITHUB_STEP_SUMMARY
+            git diff HEAD~1 --name-only reports/ 2>/dev/null | head -10 | while read file; do
+              echo "- \`$file\`" >> $GITHUB_STEP_SUMMARY
+            done
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### New Infographics" >> $GITHUB_STEP_SUMMARY
+            git diff HEAD~1 --name-only infographic/ 2>/dev/null | head -10 | while read file; do
+              echo "- \`$file\`" >> $GITHUB_STEP_SUMMARY
+            done
+          else
+            echo "**Result:** No new reports generated" >> $GITHUB_STEP_SUMMARY
+          fi
+
+  # GitHub Pages deployment for infographic HTML files
+  deploy-pages:
+    name: Deploy to GitHub Pages
+    runs-on: ubuntu-latest
+    needs: generate-summary
+    if: ${{ !cancelled() && needs.generate-summary.result == 'success' }}
+    timeout-minutes: 15
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.ref_name }}
+
+      - name: Pull latest changes
+        run: |
+          git pull origin ${{ github.ref_name }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Install Python dependencies
+        run: pip install -r requirements.txt -q
+
+      - name: Download infographic artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: awsnews-summary-infographics
+          path: artifacts/new_infographics/
+        continue-on-error: true
+
+      - name: Build Pages content
+        run: |
+          mkdir -p public
+          # Copy infographics from repo
+          cp infographic/*.html public/ 2>/dev/null || true
+          # Overlay any new infographics from artifacts
+          cp artifacts/new_infographics/*.html public/ 2>/dev/null || true
+          # Regenerate index from public/ contents
+          python -c "from run import generate_infographic_index; from pathlib import Path; generate_infographic_index(Path('public'))"
+          echo "Total HTML files in public/:" && ls public/*.html 2>/dev/null | wc -l
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: public
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

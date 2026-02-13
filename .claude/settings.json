@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls:*)",
+      "Bash(cat:*)",
+      "Bash(curl:*)",
+      "Bash(python:*)",
+      "Bash(python3:*)",
+      "Bash(npm search:*)",
+      "Edit",
+      "Write",
+      "Read",
+      "Glob",
+      "Grep",
+      "mcp__aws-knowledge-mcp-server__aws___search_documentation",
+      "mcp__aws-knowledge-mcp-server__aws___read_documentation",
+      "mcp__aws-knowledge-mcp-server__aws___recommend",
+      "mcp__aws-knowledge-mcp-server__aws___get_regional_availability",
+      "mcp__aws-knowledge-mcp-server__aws___list_regions",
+      "Skill"
+    ]
+  },
+  "enabledMcpjsonServers": [
+    "aws-knowledge-mcp-server"
+  ]
+}

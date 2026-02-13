@@ -1,0 +1,82 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >
+  GitLab CI OIDC provider and IAM role for AWS News Summary CI/CD.
+
+Parameters:
+  RoleName:
+    Type: String
+    Default: CICD-AWSNewsSummary
+    Description: Name of the IAM role
+
+  GitLabGroup:
+    Type: String
+    Description: GitLab group/namespace (e.g. mygroup)
+
+  GitLabProject:
+    Type: String
+    Description: GitLab project name (e.g. awsnews-summary)
+
+Resources:
+  GitLabOIDCProvider:
+    Type: AWS::IAM::OIDCProvider
+    Properties:
+      Url: https://gitlab.com
+      ClientIdList:
+        - https://gitlab.com
+      Tags:
+        - Key: Purpose
+          Value: GitLab CI OIDC
+
+  BedrockInvokePolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Sub '${RoleName}-BedrockInvoke'
+      Description: Allow invoking Anthropic Claude models via Bedrock (including global cross-region inference)
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: BedrockInvokeModel
+            Effect: Allow
+            Action:
+              - bedrock:InvokeModel
+              - bedrock:InvokeModelWithResponseStream
+            Resource:
+              - arn:aws:bedrock:*:*:inference-profile/global.anthropic.claude-*
+              - arn:aws:bedrock:*::foundation-model/anthropic.claude-*
+              - arn:aws:bedrock:*::foundation-model/us.anthropic.claude-*
+              - arn:aws:bedrock:::foundation-model/anthropic.claude-*
+
+  CICDRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Ref RoleName
+      ManagedPolicyArns:
+        - !Ref BedrockInvokePolicy
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Federated: !GetAtt GitLabOIDCProvider.Arn
+            Action: sts:AssumeRoleWithWebIdentity
+            Condition:
+              StringEquals:
+                gitlab.com:aud: https://gitlab.com
+              StringLike:
+                gitlab.com:sub: !Sub 'project_path:${GitLabGroup}/${GitLabProject}:*'
+      Tags:
+        - Key: Purpose
+          Value: AWS News Summary CI/CD (GitLab CI)
+
+Outputs:
+  RoleArn:
+    Description: IAM Role ARN to set as AWS_ROLE_ARN in GitLab CI/CD variables
+    Value: !GetAtt CICDRole.Arn
+
+  RoleName:
+    Description: IAM Role name
+    Value: !Ref RoleName
+
+  OIDCProviderArn:
+    Description: GitLab OIDC Provider ARN
+    Value: !GetAtt GitLabOIDCProvider.Arn
