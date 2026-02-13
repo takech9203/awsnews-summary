@@ -1,0 +1,1244 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Amazon Aurora DSQL - ID 列とシーケンスオブジェクトのサポート</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/styles/atom-one-dark.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/highlight.min.js"></script>
+    <style>
+        :root {
+            --squid-ink: #232F3E;
+            --aws-orange: #FF9900;
+            --aws-smile-orange: #FFAD33;
+            --text-primary: #FFFFFF;
+            --text-secondary: #AAAAAA;
+            --light-gray: #D5DBDB;
+            --card-bg: #2D3A4A;
+            --dark-squid: #1A242F;
+            --border-color: #3D4A5A;
+            --aws-teal: #00A1C9;
+            --aws-purple: #8C4FFF;
+            --aws-green: #1D8102;
+            --aws-red: #D13212;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            background-color: var(--squid-ink);
+            color: var(--light-gray);
+            line-height: 1.8;
+            font-size: 16px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+            padding-bottom: 30px;
+            border-bottom: 3px solid var(--aws-orange);
+        }
+
+        .service-badge {
+            display: inline-block;
+            background-color: var(--aws-orange);
+            color: var(--squid-ink);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+        }
+
+        .release-date {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--aws-orange);
+            margin-bottom: 20px;
+            padding-left: 15px;
+            border-left: 4px solid var(--aws-orange);
+        }
+
+        .overview-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .overview-text {
+            font-size: 16px;
+            line-height: 1.9;
+        }
+
+        .highlight {
+            background-color: rgba(255, 153, 0, 0.2);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+            color: var(--aws-orange);
+        }
+
+        /* Stats grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, var(--card-bg) 0%, var(--dark-squid) 100%);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid rgba(255, 153, 0, 0.2);
+        }
+
+        .stat-icon {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--aws-orange);
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        /* Before/After comparison */
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .comparison-grid {
+                grid-template-columns: 1fr;
+            }
+            .features-grid {
+                grid-template-columns: 1fr !important;
+            }
+            .cache-grid {
+                grid-template-columns: 1fr !important;
+            }
+            .related-grid {
+                grid-template-columns: repeat(2, 1fr) !important;
+            }
+            .merit-grid {
+                grid-template-columns: 1fr;
+            }
+            .id-comparison-grid {
+                grid-template-columns: 1fr !important;
+            }
+        }
+
+        .comparison-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .comparison-card.before {
+            border-top: 4px solid #E74C3C;
+        }
+
+        .comparison-card.after {
+            border-top: 4px solid #2ECC71;
+        }
+
+        .comparison-label {
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        .comparison-card.before .comparison-label {
+            color: #E74C3C;
+        }
+
+        .comparison-card.after .comparison-label {
+            color: #2ECC71;
+        }
+
+        .comparison-list {
+            list-style: none;
+        }
+
+        .comparison-list li {
+            padding: 8px 0;
+            padding-left: 25px;
+            position: relative;
+            font-size: 14px;
+        }
+
+        .comparison-card.before .comparison-list li::before {
+            content: "\2717";
+            position: absolute;
+            left: 0;
+            color: #E74C3C;
+            font-weight: bold;
+        }
+
+        .comparison-card.after .comparison-list li::before {
+            content: "\2713";
+            position: absolute;
+            left: 0;
+            color: #2ECC71;
+            font-weight: bold;
+        }
+
+        /* Mermaid diagram */
+        .diagram-container {
+            background-color: #FFFFFF;
+            border: 2px solid rgba(255, 153, 0, 0.3);
+            border-radius: 12px;
+            padding: 25px;
+            overflow-x: auto;
+        }
+
+        .mermaid {
+            display: flex;
+            justify-content: center;
+        }
+
+        .diagram-caption {
+            font-size: 14px;
+            color: var(--text-secondary);
+            text-align: center;
+            margin-top: 12px;
+        }
+
+        /* Feature cards */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .feature-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            border-left: 3px solid var(--aws-orange);
+        }
+
+        .feature-icon {
+            font-size: 36px;
+            margin-bottom: 12px;
+        }
+
+        .feature-title {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--aws-orange);
+        }
+
+        .feature-description {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        /* Technical spec tables */
+        .api-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+        }
+
+        .api-table th {
+            background-color: var(--dark-squid);
+            color: var(--aws-orange);
+            padding: 10px 14px;
+            text-align: left;
+            font-size: 13px;
+            font-weight: 700;
+            border-bottom: 2px solid var(--aws-orange);
+        }
+
+        .api-table td {
+            padding: 10px 14px;
+            font-size: 13px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--light-gray);
+        }
+
+        .api-table code {
+            color: var(--aws-teal);
+            font-size: 12px;
+            font-family: 'Courier New', monospace;
+        }
+
+        /* Cache comparison grid */
+        .cache-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 16px;
+        }
+
+        .cache-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            border-top: 3px solid var(--aws-teal);
+            text-align: center;
+        }
+
+        .cache-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--aws-teal);
+            margin-bottom: 8px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .cache-label {
+            font-size: 14px;
+            color: var(--aws-orange);
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .cache-desc {
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        /* ID comparison grid */
+        .id-comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 16px;
+        }
+
+        .id-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            border-left: 3px solid var(--aws-purple);
+        }
+
+        .id-card-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--aws-purple);
+            margin-bottom: 10px;
+        }
+
+        .id-card-desc {
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        /* Code blocks */
+        .code-block {
+            background: #1a1a2e;
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 16px 0;
+        }
+
+        .code-header {
+            background: #16213e;
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+        }
+
+        .code-lang {
+            color: var(--aws-orange);
+            font-weight: bold;
+        }
+
+        .code-title {
+            color: var(--light-gray);
+        }
+
+        .code-block pre {
+            margin: 0;
+            padding: 0;
+            overflow-x: auto;
+        }
+
+        .code-block code {
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            padding: 16px !important;
+        }
+
+        /* Flow diagram */
+        .flow-diagram {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin: 24px 0;
+        }
+
+        .flow-step {
+            background: var(--dark-squid);
+            border: 2px solid var(--aws-orange);
+            border-radius: 8px;
+            padding: 12px 20px;
+            text-align: center;
+            min-width: 120px;
+            font-size: 14px;
+        }
+
+        .flow-arrow {
+            color: var(--aws-orange);
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        /* Use case cards */
+        .usecase-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 3px solid var(--aws-orange);
+        }
+
+        .usecase-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .usecase-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--aws-orange);
+        }
+
+        .usecase-scenario {
+            font-size: 14px;
+            color: var(--light-gray);
+            margin-bottom: 12px;
+        }
+
+        .usecase-effect {
+            font-size: 14px;
+            color: #2ECC71;
+            padding: 10px;
+            background-color: rgba(46, 204, 113, 0.1);
+            border-radius: 8px;
+        }
+
+        .usecase-effect::before {
+            content: "\2713 ";
+            font-weight: bold;
+        }
+
+        /* Merit/Demerit */
+        .merit-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .merit-section {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .merit-section h3 {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: var(--aws-orange);
+        }
+
+        .merit-list {
+            list-style: none;
+        }
+
+        .merit-list li {
+            padding: 6px 0;
+            padding-left: 22px;
+            position: relative;
+            font-size: 14px;
+            color: var(--light-gray);
+        }
+
+        .merit-list li::before {
+            content: "\2713";
+            position: absolute;
+            left: 0;
+            color: #2ECC71;
+            font-weight: bold;
+        }
+
+        /* Constraint/Limitation */
+        .constraint-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 3px solid #E74C3C;
+        }
+
+        .constraint-title {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #E74C3C;
+        }
+
+        .constraint-list {
+            list-style: none;
+        }
+
+        .constraint-list li {
+            padding: 6px 0;
+            padding-left: 22px;
+            position: relative;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .constraint-list li::before {
+            content: "\26A0";
+            position: absolute;
+            left: 0;
+            font-size: 12px;
+        }
+
+        /* Pricing card */
+        .pricing-card {
+            background: linear-gradient(135deg, rgba(29, 129, 2, 0.15) 0%, var(--card-bg) 100%);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid rgba(29, 129, 2, 0.3);
+            text-align: center;
+        }
+
+        .pricing-highlight {
+            font-size: 22px;
+            font-weight: 700;
+            color: #2ECC71;
+            margin-bottom: 8px;
+        }
+
+        .pricing-detail {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .pricing-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+        }
+
+        .pricing-table th {
+            background-color: var(--dark-squid);
+            color: var(--aws-orange);
+            padding: 10px 14px;
+            text-align: left;
+            font-size: 13px;
+            font-weight: 700;
+            border-bottom: 2px solid var(--aws-orange);
+        }
+
+        .pricing-table td {
+            padding: 10px 14px;
+            font-size: 13px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--light-gray);
+        }
+
+        /* Region */
+        .region-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .region-highlight {
+            font-size: 16px;
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .region-note {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-top: 8px;
+        }
+
+        /* Related services */
+        .related-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+
+        .related-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+        }
+
+        .related-name {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 6px;
+        }
+
+        .related-desc {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        /* Footer */
+        footer {
+            margin-top: 50px;
+            padding-top: 30px;
+            border-top: 1px solid var(--border-color);
+            text-align: center;
+        }
+
+        .source-links {
+            list-style: none;
+            margin-bottom: 16px;
+        }
+
+        .source-links li {
+            margin-bottom: 6px;
+        }
+
+        .source-link {
+            color: var(--aws-teal);
+            text-decoration: none;
+            font-size: 14px;
+            word-break: break-all;
+        }
+
+        .source-link:hover {
+            color: var(--aws-smile-orange);
+            text-decoration: underline;
+        }
+
+        .footer-note {
+            color: var(--text-secondary);
+            font-size: 12px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <span class="service-badge">Amazon Aurora DSQL</span>
+            <h1>ID 列とシーケンスオブジェクトのサポート</h1>
+            <p style="color: var(--light-gray); font-size: 15px; margin-bottom: 8px;">Identity Columns and Sequence Objects</p>
+            <p class="release-date">2026 年 2 月 13 日</p>
+        </header>
+
+        <!-- Overview -->
+        <section class="section">
+            <h2 class="section-title">概要</h2>
+            <div class="overview-card">
+                <p class="overview-text">
+                    Amazon Aurora DSQL が <span class="highlight">IDENTITY 列</span> と <span class="highlight">シーケンスオブジェクト</span> のサポートを追加しました。自動インクリメントの整数ベース ID を生成でき、注文番号やアカウント ID など <span class="highlight">人間が読みやすい識別子</span> をカスタムロジックなしで作成可能になります。
+                </p>
+                <p class="overview-text" style="margin-top: 12px;">
+                    既存の PostgreSQL アプリケーションからの移行を簡素化し、アプリケーションコードやミドルウェアでのカスタム ID 生成ロジックが不要になります。標準的な PostgreSQL の構文をそのまま使用できます。
+                </p>
+            </div>
+
+            <!-- Stats -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">&#128290;</div>
+                    <div class="stat-value">2</div>
+                    <div class="stat-label">ID 生成方式<br>IDENTITY / SEQUENCE</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">&#9889;</div>
+                    <div class="stat-value">65536+</div>
+                    <div class="stat-label">高並行性向け<br>CACHE 値</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">&#128736;</div>
+                    <div class="stat-value">0</div>
+                    <div class="stat-label">カスタムロジック<br>不要</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">&#128176;</div>
+                    <div class="stat-value">$0</div>
+                    <div class="stat-label">追加料金</div>
+                </div>
+            </div>
+
+            <!-- Before/After -->
+            <div class="comparison-grid">
+                <div class="comparison-card before">
+                    <div class="comparison-label">Before - アップデート前の課題</div>
+                    <ul class="comparison-list">
+                        <li>Aurora DSQL で自動インクリメントの整数 ID を生成するネイティブな方法がなかった</li>
+                        <li>コンパクトで人間が読みやすい ID を生成するために、アプリケーションコードやミドルウェアにカスタムロジックが必要だった</li>
+                        <li>既存の PostgreSQL アプリケーションで IDENTITY 列やシーケンスを使用している場合、Aurora DSQL への移行が困難だった</li>
+                    </ul>
+                </div>
+                <div class="comparison-card after">
+                    <div class="comparison-label">After - アップデート後の改善</div>
+                    <ul class="comparison-list">
+                        <li>IDENTITY 列とシーケンスオブジェクトにより、自動インクリメント ID をデータベースレベルで生成可能になった</li>
+                        <li>カスタム ID 生成ロジックが不要になり、アプリケーションの複雑さが軽減された</li>
+                        <li>既存の PostgreSQL アプリケーションの移行が容易になった</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Architecture Diagram -->
+        <section class="section">
+            <h2 class="section-title">アーキテクチャ図</h2>
+            <div class="diagram-container">
+                <div class="mermaid">
+flowchart TD
+    subgraph App["&#128187; アプリケーション"]
+        direction LR
+        Insert["&#128221; INSERT 文"]
+        NextVal["&#9889; nextval 呼び出し"]
+        Insert ~~~ NextVal
+    end
+
+    subgraph DSQL["&#9729;&#65039; Amazon Aurora DSQL"]
+        subgraph IDGen["&#128290; ID 生成メカニズム"]
+            direction LR
+            Identity["&#128196; IDENTITY 列<br/>GENERATED ALWAYS<br/>GENERATED BY DEFAULT"]
+            Sequence["&#128279; SEQUENCE<br/>CREATE SEQUENCE<br/>nextval / currval / setval"]
+            Identity ~~~ Sequence
+        end
+        subgraph Cache["&#9881;&#65039; CACHE 設定"]
+            direction LR
+            Cache1["&#128274; CACHE = 1<br/>厳密な順序性"]
+            CacheHigh["&#128640; CACHE &gt;= 65536<br/>高スループット"]
+            Cache1 ~~~ CacheHigh
+        end
+        Table[("&#128451;&#65039; テーブル<br/>自動インクリメント ID")]
+    end
+
+    subgraph Output["&#128203; 生成される ID"]
+        direction LR
+        OrderID["&#128230; 注文番号<br/>100001, 100002..."]
+        AccountID["&#128100; アカウント ID<br/>1, 2, 3..."]
+        TicketID["&#127915; チケット番号<br/>T-001, T-002..."]
+        OrderID ~~~ AccountID ~~~ TicketID
+    end
+
+    App --> IDGen
+    IDGen --> Cache
+    Cache --> Table
+    Table --> Output
+
+    classDef app fill:#E3F2FD,stroke:#BBDEFB,stroke-width:2px,color:#1565C0
+    classDef dsql fill:none,stroke:#CCCCCC,stroke-width:2px,color:#666666
+    classDef idgen fill:#FFF3E0,stroke:#FFCC80,stroke-width:2px,color:#E65100
+    classDef cache fill:#E8F1FF,stroke:#4A90E2,stroke-width:2px,color:#333333
+    classDef table fill:#E8EAF6,stroke:#C5CAE9,stroke-width:2px,color:#283593
+    classDef output fill:#DCEDC8,stroke:#C5E1A5,stroke-width:2px,color:#33691E
+
+    class App app
+    class DSQL dsql
+    class IDGen idgen
+    class Cache cache
+    class Table table
+    class Output output
+                </div>
+            </div>
+            <p class="diagram-caption">IDENTITY 列またはシーケンスオブジェクトを通じて、分散環境に最適化された CACHE 設定で自動インクリメント ID を生成します。</p>
+        </section>
+
+        <!-- Key Features -->
+        <section class="section">
+            <h2 class="section-title">主要機能</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">&#128196;</div>
+                    <div class="feature-title">IDENTITY 列</div>
+                    <div class="feature-description">
+                        <code>GENERATED ALWAYS</code> と <code>GENERATED BY DEFAULT</code> の両方をサポート。テーブル作成時に定義し、INSERT 時に自動的に整数値を生成。
+                    </div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#128279;</div>
+                    <div class="feature-title">シーケンスオブジェクト</div>
+                    <div class="feature-description">
+                        PostgreSQL 互換の <code>CREATE SEQUENCE</code> 構文をサポート。<code>nextval</code>、<code>currval</code>、<code>setval</code> 関数で操作可能。
+                    </div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#128640;</div>
+                    <div class="feature-title">分散最適化 CACHE</div>
+                    <div class="feature-description">
+                        CACHE = 1 または CACHE >= 65536 の 2 つのモードを提供。分散システムにおけるコーディネーションオーバーヘッドを考慮した設計。
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Technical Spec: IDENTITY -->
+        <section class="section">
+            <h2 class="section-title">技術仕様</h2>
+
+            <h3 style="font-size: 16px; color: var(--text-primary); margin-bottom: 12px;">IDENTITY 列の構文</h3>
+            <table class="api-table">
+                <thead>
+                    <tr>
+                        <th>構文</th>
+                        <th>説明</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>GENERATED ALWAYS AS IDENTITY</code></td>
+                        <td>システム生成値を強制。明示的な値は <code>OVERRIDING SYSTEM VALUE</code> が必要</td>
+                    </tr>
+                    <tr>
+                        <td><code>GENERATED BY DEFAULT AS IDENTITY</code></td>
+                        <td>デフォルトでシーケンス値を使用。明示的な値の指定も可能</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- CACHE comparison -->
+            <h3 style="font-size: 16px; color: var(--text-primary); margin-top: 24px; margin-bottom: 12px;">CACHE 設定ガイド</h3>
+            <div class="cache-grid">
+                <div class="cache-card">
+                    <div class="cache-value">CACHE = 1</div>
+                    <div class="cache-label">厳密な順序性</div>
+                    <div class="cache-desc">低頻度の ID 割り当て、順序性が重要なワークロード向け。ギャップを最小化し、厳密な順序を保証します。</div>
+                </div>
+                <div class="cache-card">
+                    <div class="cache-value">CACHE >= 65536</div>
+                    <div class="cache-label">高スループット</div>
+                    <div class="cache-desc">高頻度の ID 生成、並行セッション多数のワークロード向け。スループットを最適化し、ギャップを許容します。</div>
+                </div>
+            </div>
+
+            <!-- UUID vs Sequence -->
+            <h3 style="font-size: 16px; color: var(--text-primary); margin-top: 24px; margin-bottom: 12px;">UUID との使い分け</h3>
+            <div class="id-comparison-grid">
+                <div class="id-card">
+                    <div class="id-card-title">UUID</div>
+                    <div class="id-card-desc">
+                        <strong style="color: var(--text-primary);">推奨ユースケース:</strong> プライマリキー、スケーラビリティ重視、コーディネーション不要な場面
+                    </div>
+                </div>
+                <div class="id-card">
+                    <div class="id-card-title">シーケンス / IDENTITY</div>
+                    <div class="id-card-desc">
+                        <strong style="color: var(--text-primary);">推奨ユースケース:</strong> 人間が読みやすい ID、レポート、外部インターフェース
+                    </div>
+                </div>
+            </div>
+
+            <!-- CREATE SEQUENCE syntax -->
+            <h3 style="font-size: 16px; color: var(--text-primary); margin-top: 24px; margin-bottom: 12px;">CREATE SEQUENCE 構文</h3>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">SQL</span>
+                    <span class="code-title">CREATE SEQUENCE 構文</span>
+                </div>
+                <pre><code class="language-sql">CREATE SEQUENCE [ IF NOT EXISTS ] name CACHE cache
+    [ AS data_type ]
+    [ INCREMENT [ BY ] increment ]
+    [ MINVALUE minvalue | NO MINVALUE ]
+    [ MAXVALUE maxvalue | NO MAXVALUE ]
+    [ [ NO ] CYCLE ]
+    [ START [ WITH ] start ]
+    [ OWNED BY { table_name.column_name | NONE } ]</code></pre>
+            </div>
+        </section>
+
+        <!-- Configuration -->
+        <section class="section">
+            <h2 class="section-title">設定方法</h2>
+
+            <div class="overview-card" style="margin-bottom: 16px;">
+                <h3 style="font-size: 15px; color: var(--aws-orange); margin-bottom: 10px;">前提条件</h3>
+                <ul class="merit-list">
+                    <li>Amazon Aurora DSQL クラスターが利用可能なリージョンで稼働している</li>
+                    <li>Aurora DSQL への接続権限が設定されている</li>
+                    <li>PostgreSQL 互換のクライアントツールが準備されている</li>
+                </ul>
+            </div>
+
+            <div class="flow-diagram">
+                <div class="flow-step">&#128221; IDENTITY 列を持つ<br>テーブル作成</div>
+                <span class="flow-arrow">&rarr;</span>
+                <div class="flow-step">&#128279; シーケンス<br>オブジェクト作成</div>
+                <span class="flow-arrow">&rarr;</span>
+                <div class="flow-step">&#9889; データ挿入で<br>ID 自動生成</div>
+            </div>
+
+            <h3 style="font-size: 16px; color: var(--text-primary); margin-top: 20px; margin-bottom: 12px;">ステップ 1: IDENTITY 列を持つテーブルの作成</h3>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">SQL</span>
+                    <span class="code-title">高並行性ワークロード向け CACHE >= 65536</span>
+                </div>
+                <pre><code class="language-sql">CREATE TABLE orders (
+    order_id bigint GENERATED ALWAYS AS IDENTITY (CACHE 70000),
+    customer_name text,
+    order_date timestamp DEFAULT now()
+);</code></pre>
+            </div>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">SQL</span>
+                    <span class="code-title">順序性重視のワークロード向け CACHE = 1</span>
+                </div>
+                <pre><code class="language-sql">CREATE TABLE accounts (
+    account_id bigint GENERATED BY DEFAULT AS IDENTITY (CACHE 1),
+    account_name text,
+    created_at timestamp DEFAULT now()
+);</code></pre>
+            </div>
+
+            <h3 style="font-size: 16px; color: var(--text-primary); margin-top: 20px; margin-bottom: 12px;">ステップ 2: シーケンスオブジェクトの作成</h3>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">SQL</span>
+                    <span class="code-title">独立したシーケンスの作成と使用</span>
+                </div>
+                <pre><code class="language-sql">-- 独立したシーケンスを作成
+CREATE SEQUENCE ticket_seq CACHE 65536 START 1001;
+
+-- シーケンスを使用した INSERT
+INSERT INTO support_tickets (ticket_id, description)
+VALUES (nextval('ticket_seq'), 'ネットワーク接続の問題');</code></pre>
+            </div>
+
+            <h3 style="font-size: 16px; color: var(--text-primary); margin-top: 20px; margin-bottom: 12px;">ステップ 3: IDENTITY 列を使用したデータ挿入</h3>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">SQL</span>
+                    <span class="code-title">IDENTITY 列の自動生成</span>
+                </div>
+                <pre><code class="language-sql">-- IDENTITY 列の値を自動生成
+INSERT INTO orders (customer_name, order_date)
+VALUES ('田中太郎', now());
+
+INSERT INTO orders (customer_name, order_date)
+VALUES ('鈴木花子', now());
+
+-- 結果を確認
+SELECT * FROM orders;
+-- order_id | customer_name | order_date
+-- ---------+---------------+---------------------
+--        1 | 田中太郎       | 2026-02-13 10:00:00
+--        2 | 鈴木花子       | 2026-02-13 10:01:00</code></pre>
+            </div>
+        </section>
+
+        <!-- Benefits -->
+        <section class="section">
+            <h2 class="section-title">メリット</h2>
+            <div class="merit-grid">
+                <div class="merit-section">
+                    <h3>&#128188; ビジネス面</h3>
+                    <ul class="merit-list">
+                        <li><strong style="color: var(--text-primary);">移行コストの削減:</strong> 既存の PostgreSQL アプリケーションの移行が簡素化され、コードの変更が最小限に</li>
+                        <li><strong style="color: var(--text-primary);">開発効率の向上:</strong> カスタム ID 生成ロジックが不要になり、開発速度が向上</li>
+                        <li><strong style="color: var(--text-primary);">可読性の高い ID:</strong> 注文番号やアカウント ID など、人間が読みやすいコンパクトな識別子を生成</li>
+                    </ul>
+                </div>
+                <div class="merit-section">
+                    <h3>&#128736;&#65039; 技術面</h3>
+                    <ul class="merit-list">
+                        <li><strong style="color: var(--text-primary);">PostgreSQL 互換性:</strong> 標準的な PostgreSQL 構文をサポートし、既存のスキル・ツールを活用可能</li>
+                        <li><strong style="color: var(--text-primary);">分散環境への最適化:</strong> CACHE 設定により、分散システムにおけるパフォーマンスと順序性のトレードオフを制御</li>
+                        <li><strong style="color: var(--text-primary);">柔軟な ID 戦略:</strong> UUID と整数ベース ID を組み合わせた識別子戦略を実装可能</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Limitations -->
+        <section class="section">
+            <h2 class="section-title">制約事項・注意点</h2>
+            <div class="constraint-card">
+                <div class="constraint-title">制限事項</div>
+                <ul class="constraint-list">
+                    <li>CACHE の値は 1 または 65536 以上のみ対応。中間値は使用不可</li>
+                    <li>データ型は BIGINT のみサポート</li>
+                    <li>シーケンス値のギャップレスな割り当ては保証されない</li>
+                    <li>IDENTITY 列は自動的に NOT NULL となるが、一意性は保証されない。PRIMARY KEY や UNIQUE 制約が別途必要</li>
+                </ul>
+            </div>
+            <div class="constraint-card">
+                <div class="constraint-title">考慮すべき点</div>
+                <ul class="constraint-list">
+                    <li>分散環境では CACHE >= 65536 使用時にセッション間で値の順序が保証されない</li>
+                    <li>キャッシュされた値が消費されずにセッションが終了すると、シーケンスにギャップが発生する</li>
+                    <li>スケーラビリティが重要なプライマリキーには、シーケンスよりも UUID の使用が推奨される</li>
+                    <li>setval による値のリセットは、他のセッションがキャッシュ済みの値を消費するまで反映されない</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Use Cases -->
+        <section class="section">
+            <h2 class="section-title">ユースケース</h2>
+
+            <div class="usecase-card">
+                <div class="usecase-header">
+                    <span style="font-size: 24px;">&#128230;&#128290;</span>
+                    <div class="usecase-title">ユースケース 1: 注文管理システムの ID 生成</div>
+                </div>
+                <div class="usecase-scenario">
+                    E コマースアプリケーションで、人間が読みやすい注文番号を自動生成したい。
+                </div>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">SQL</span>
+                        <span class="code-title">実装例</span>
+                    </div>
+                    <pre><code class="language-sql">CREATE TABLE orders (
+    order_id bigint GENERATED ALWAYS AS IDENTITY (CACHE 65536 START 100001),
+    product_name text,
+    quantity int,
+    total_amount numeric
+);
+
+INSERT INTO orders (product_name, quantity, total_amount)
+VALUES ('ノートパソコン', 1, 150000);
+-- order_id: 100001</code></pre>
+                </div>
+                <div class="usecase-effect">
+                    アプリケーション側で ID 生成ロジックを実装することなく、100001 から始まる連番の注文番号を自動生成できます。
+                </div>
+            </div>
+
+            <div class="usecase-card">
+                <div class="usecase-header">
+                    <span style="font-size: 24px;">&#128100;&#128260;</span>
+                    <div class="usecase-title">ユースケース 2: 既存 PostgreSQL アプリケーションの移行</div>
+                </div>
+                <div class="usecase-scenario">
+                    既存の PostgreSQL データベースで IDENTITY 列を使用しているアプリケーションを Aurora DSQL に移行したい。
+                </div>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">SQL</span>
+                        <span class="code-title">移行例: CACHE パラメータの追加のみ</span>
+                    </div>
+                    <pre><code class="language-sql">-- 既存の PostgreSQL スキーマ
+-- CREATE TABLE users (
+--     user_id bigint GENERATED ALWAYS AS IDENTITY,
+--     username text
+-- );
+
+-- Aurora DSQL 向けに CACHE を追加
+CREATE TABLE users (
+    user_id bigint GENERATED ALWAYS AS IDENTITY (CACHE 65536),
+    username text
+);</code></pre>
+                </div>
+                <div class="usecase-effect">
+                    CACHE パラメータの追加のみで、既存のスキーマをほぼそのまま Aurora DSQL に移行でき、アプリケーションコードの変更は不要です。
+                </div>
+            </div>
+
+            <div class="usecase-card">
+                <div class="usecase-header">
+                    <span style="font-size: 24px;">&#127915;&#128290;</span>
+                    <div class="usecase-title">ユースケース 3: サポートチケットの参照番号</div>
+                </div>
+                <div class="usecase-scenario">
+                    カスタマーサポートシステムで、順序性を重視したチケット番号を生成したい。
+                </div>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">SQL</span>
+                        <span class="code-title">実装例</span>
+                    </div>
+                    <pre><code class="language-sql">CREATE SEQUENCE ticket_seq CACHE 1 START 1;
+
+CREATE TABLE support_tickets (
+    ticket_id bigint DEFAULT nextval('ticket_seq'),
+    subject text,
+    status text DEFAULT 'open',
+    created_at timestamp DEFAULT now()
+);
+
+INSERT INTO support_tickets (subject)
+VALUES ('ログインできない');
+-- ticket_id: 1</code></pre>
+                </div>
+                <div class="usecase-effect">
+                    CACHE = 1 を使用することで、チケット番号の順序性を保ちつつ、自動的に連番を割り当てることができます。
+                </div>
+            </div>
+        </section>
+
+        <!-- Pricing -->
+        <section class="section">
+            <h2 class="section-title">料金</h2>
+            <div class="pricing-card">
+                <div class="pricing-highlight">追加料金なし</div>
+                <div class="pricing-detail" style="margin-bottom: 16px;">ID 列やシーケンスオブジェクトの使用に追加料金は発生しません。Aurora DSQL の従量課金制が適用されます。</div>
+                <table class="pricing-table">
+                    <thead>
+                        <tr>
+                            <th>項目</th>
+                            <th>説明</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong style="color: var(--text-primary);">DPU</strong></td>
+                            <td>リクエストベースのアクティビティに対して課金</td>
+                        </tr>
+                        <tr>
+                            <td><strong style="color: var(--text-primary);">ストレージ</strong></td>
+                            <td>データベースサイズ GB-月 に対して課金</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="pricing-detail" style="margin-top: 12px;">AWS Free Tier では、毎月最初の 100,000 DPU と 1 GB-月 のストレージが無料です。</div>
+            </div>
+        </section>
+
+        <!-- Region -->
+        <section class="section">
+            <h2 class="section-title">利用可能リージョン</h2>
+            <div class="region-card">
+                <div style="font-size: 28px; margin-bottom: 8px;">&#127758;</div>
+                <div class="region-highlight">Aurora DSQL が利用可能なすべての AWS リージョンで提供</div>
+                <div class="region-note">詳細は <a href="https://aws.amazon.com/rds/aurora/dsql/" target="_blank" style="color: var(--aws-teal);">Aurora DSQL 製品ページ</a> を参照してください。</div>
+            </div>
+        </section>
+
+        <!-- Related Services -->
+        <section class="section">
+            <h2 class="section-title">関連サービス・機能</h2>
+            <div class="related-grid">
+                <div class="related-card">
+                    <div style="font-size: 24px; margin-bottom: 8px;">&#9729;&#65039;</div>
+                    <div class="related-name">Amazon Aurora DSQL</div>
+                    <div class="related-desc">PostgreSQL 互換の分散 SQL データベースサービス</div>
+                </div>
+                <div class="related-card">
+                    <div style="font-size: 24px; margin-bottom: 8px;">&#128451;</div>
+                    <div class="related-name">Amazon Aurora PostgreSQL</div>
+                    <div class="related-desc">シーケンスや IDENTITY 列をフルサポートする PostgreSQL 互換エンジン</div>
+                </div>
+                <div class="related-card">
+                    <div style="font-size: 24px; margin-bottom: 8px;">&#128260;</div>
+                    <div class="related-name">AWS DMS</div>
+                    <div class="related-desc">既存の PostgreSQL から Aurora DSQL への移行を支援</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer>
+            <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 12px;">参考リンク</p>
+            <ul class="source-links">
+                <li><a href="https://aws.amazon.com/about-aws/whats-new/2026/02/amazon-aurora-dsql-identity-columns-sequence-objects/" class="source-link" target="_blank">公式発表 - What's New</a></li>
+                <li><a href="https://docs.aws.amazon.com/aurora-dsql/latest/userguide/sequences-identity-columns.html" class="source-link" target="_blank">ドキュメント: Sequences and Identity Columns</a></li>
+                <li><a href="https://docs.aws.amazon.com/aurora-dsql/latest/userguide/create-sequence-syntax-support.html" class="source-link" target="_blank">ドキュメント: CREATE SEQUENCE</a></li>
+                <li><a href="https://docs.aws.amazon.com/aurora-dsql/latest/userguide/sequences-identity-columns-overview.html" class="source-link" target="_blank">ドキュメント: Identity Columns</a></li>
+                <li><a href="https://aws.amazon.com/rds/aurora/dsql/" class="source-link" target="_blank">Aurora DSQL 製品ページ</a></li>
+            </ul>
+            <p class="footer-note">Amazon Aurora DSQL - ID 列とシーケンスオブジェクトのサポート | 2026 年 2 月 13 日</p>
+        </footer>
+    </div>
+
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'base',
+            themeVariables: {
+                primaryColor: '#FF9900',
+                primaryTextColor: '#232F3E',
+                primaryBorderColor: '#FF9900',
+                lineColor: '#FF9900',
+                secondaryColor: '#F5F5F5',
+                tertiaryColor: '#FAFAFA',
+                background: '#FFFFFF',
+                mainBkg: '#FFF3E0',
+                nodeBorder: '#FF9900',
+                clusterBkg: '#FFF8E1',
+                clusterBorder: '#FF9900',
+                edgeLabelBackground: '#FFFFFF',
+                textColor: '#232F3E'
+            },
+            flowchart: {
+                curve: 'basis',
+                padding: 20
+            }
+        });
+        hljs.highlightAll();
+    </script>
+</body>
+</html>

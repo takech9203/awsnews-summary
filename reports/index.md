@@ -5,12 +5,23 @@
 
 ## 2026 年
 
+- [2026-02-13 - Amazon Connect - タスク向け AI アシスタンス](2026/2026-02-13-amazon-connect-tasks-ai-assistance.md)
+- [2026-02-13 - Kiro - エンタープライズ ID プロバイダーとユーザーアクティビティメトリクス](2026/2026-02-13-kiro-enterprise-identity-and-usage-metrics.md)
+- [2026-02-13 - Amazon Connect - アプリ内通知機能](2026/2026-02-13-amazon-connect-in-app-notifications.md)
+- [2026-02-13 - AWS Batch - ジョブキューとシェア使用率の可視化](2026/2026-02-13-aws-batch-provides-job-queue-share-utilization.md)
+- [2026-02-13 - Amazon RDS / Aurora - スナップショット復元時のバックアップ設定](2026/2026-02-13-rds-aurora-backup-configuration-restoring-snapshots.md)
+- [2026-02-13 - Amazon Aurora DSQL - ID 列とシーケンスオブジェクトのサポート](2026/2026-02-13-amazon-aurora-dsql-adds-identity-columns-sequence.md)
 - [2026-02-12 - Kiro - 外部 ID プロバイダーサポートと Claude Opus 4.6 の eu-central-1 対応](2026/2026-02-12-kiro-changelog-2026-02-12.md)
 - [2026-02-12 - Amazon S3 Tables - CreateTable API でのパーティションおよびソートオーダー定義](2026/2026-02-12-s3-tables-partition-and-sort-order-createtable-api.md)
+- [2026-02-12 - AWS Resource Control Policies - Amazon DynamoDB のサポート拡大](2026/2026-02-12-aws-expands-resource-control-policies-amazon.md)
+- [2026-02-12 - Amazon RDS for SQL Server - 最新累積更新プログラム CU23 のサポート](2026/2026-02-12-amazon-rds-supports-latest-cumulative-update-cu23-for-microsoft-sql-server.md)
 - [2026-02-12 - AWS Backup - クロスリージョンデータベーススナップショットの論理的エアギャップボールトへの直接コピー](2026/2026-02-12-aws-backup-adds-cross-region-database-snapshot-logically-air-gapped-vaults.md)
 - [2026-02-12 - Amazon RDS for PostgreSQL - マイナーバージョン 18.2, 17.8, 16.12, 15.16, 14.21 サポート](2026/2026-02-12-rds-minor-version-18-2-17-8-16-12-15-16-14-21.md)
 - [2026-02-12 - Amazon EC2 M8azn - 5GHz の最高周波数を持つ汎用インスタンス](2026/2026-02-12-aws-m8azn-instances-generally-available.md)
 - [2026-02-12 - AWS Support Center Console の AI トラブルシューティングが 7 言語追加対応](2026/2026-02-12-ai-troubleshooting-in-aws-support-center.md)
+- [2026-02-12 - Amazon Bedrock - AWS PrivateLink サポートの拡大 (OpenAI API 互換エンドポイント)](2026/2026-02-12-amazon-bedrock-expands-aws-privatelink-support-openai-api-endpoints.md)
+- [2026-02-12 - Amazon EC2 C8i, M8i, R8i インスタンス - 第 2 世代 AWS Outposts racks 対応](2026/2026-02-12-amazon-ec2-c8i-m8i-and-r8i-instances-on-aws-outposts.md)
+- [2026-02-12 - Amazon Connect - 分析ダッシュボード向けきめ細かなアクセス制御](2026/2026-02-12-amazon-connect-launches-granular-access.md)
 - [2026-02-11 - Amazon Connect - オムニチャネル ACW タイムアウト設定](2026/2026-02-11-amazon-connect-omnichannel-acw-timeouts.md)
 - [2026-02-11 - Amazon RDS for MariaDB - コミュニティマイナーバージョン 10.6.25、10.11.16、11.4.10、11.8.6 サポート](2026/2026-02-11-amazon-rds-mariadb-community-versions.md)
 - [2026-02-11 - Amazon Bedrock AgentCore Browser - プロキシ設定サポート](2026/2026-02-11-bedrock-agentcore-browser-proxy.md)
