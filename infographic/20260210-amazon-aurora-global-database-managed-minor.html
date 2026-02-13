@@ -1,0 +1,1090 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Amazon Aurora Global Database - マネージドマイナーバージョンアップグレードのサポート</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/styles/atom-one-dark.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap');
+
+    :root {
+      --aws-squid-ink: #232F3E;
+      --aws-dark-squid: #1A242F;
+      --aws-orange: #FF9900;
+      --aws-smile-orange: #FFAD33;
+      --aws-white: #FFFFFF;
+      --aws-light-gray: #D5DBDB;
+      --aws-teal: #00A1C9;
+      --aws-purple: #8C4FFF;
+      --aws-green: #1D8102;
+      --aws-red: #D13212;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--aws-squid-ink);
+      font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+      color: var(--aws-light-gray);
+      font-size: 16px;
+      line-height: 1.6;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    /* ===== Header ===== */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 32px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .header-left { flex: 1; }
+
+    .service-badge {
+      display: inline-block;
+      background: var(--aws-orange);
+      color: var(--aws-squid-ink);
+      font-size: 13px;
+      font-weight: 700;
+      padding: 4px 14px;
+      border-radius: 20px;
+      margin-bottom: 12px;
+      letter-spacing: 0.5px;
+    }
+
+    h1 {
+      font-size: 36px;
+      font-weight: 700;
+      color: var(--aws-white);
+      line-height: 1.3;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      font-size: 16px;
+      color: var(--aws-light-gray);
+    }
+
+    .header-right {
+      text-align: right;
+      font-size: 14px;
+      color: var(--aws-light-gray);
+      flex-shrink: 0;
+    }
+
+    .date-label {
+      color: var(--aws-orange);
+      font-weight: 600;
+    }
+
+    /* ===== Sections ===== */
+    h2 {
+      font-size: 24px;
+      font-weight: 600;
+      color: var(--aws-orange);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .section {
+      background: var(--aws-dark-squid);
+      border-radius: 8px;
+      padding: 24px;
+      margin-bottom: 24px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .highlight {
+      background-color: rgba(255, 153, 0, 0.2);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 600;
+      color: var(--aws-orange);
+    }
+
+    /* ===== Overview Text ===== */
+    .overview-text {
+      font-size: 16px;
+      color: var(--aws-light-gray);
+      line-height: 1.8;
+      margin-bottom: 20px;
+    }
+
+    /* ===== Stats Cards ===== */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    @media (max-width: 640px) {
+      .stats-grid { grid-template-columns: 1fr; }
+    }
+
+    .stat-card {
+      background: linear-gradient(135deg, rgba(255, 153, 0, 0.15), rgba(140, 79, 255, 0.1));
+      border: 1px solid rgba(255, 153, 0, 0.3);
+      border-radius: 8px;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .stat-number {
+      font-size: 36px;
+      font-weight: 700;
+      color: var(--aws-orange);
+      line-height: 1.2;
+    }
+
+    .stat-label {
+      font-size: 13px;
+      color: var(--aws-light-gray);
+      margin-top: 4px;
+    }
+
+    /* ===== Before/After ===== */
+    .before-after {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-top: 16px;
+    }
+
+    @media (max-width: 640px) {
+      .before-after { grid-template-columns: 1fr; }
+    }
+
+    .before-card, .after-card {
+      border-radius: 8px;
+      padding: 20px;
+    }
+
+    .before-card {
+      background: rgba(209, 50, 18, 0.1);
+      border: 1px solid rgba(209, 50, 18, 0.3);
+    }
+
+    .after-card {
+      background: rgba(29, 129, 2, 0.1);
+      border: 1px solid rgba(29, 129, 2, 0.3);
+    }
+
+    .ba-label {
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .before-card .ba-label { color: var(--aws-red); }
+    .after-card .ba-label { color: var(--aws-green); }
+
+    .ba-list {
+      list-style: none;
+      padding: 0;
+    }
+
+    .ba-list li {
+      padding: 6px 0;
+      font-size: 14px;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .ba-list li::before { flex-shrink: 0; }
+    .before-card .ba-list li::before { content: "\2717"; color: var(--aws-red); font-weight: bold; }
+    .after-card .ba-list li::before { content: "\2713"; color: var(--aws-green); font-weight: bold; }
+
+    /* ===== Feature Cards ===== */
+    .feature-card {
+      background: var(--aws-dark-squid);
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 16px;
+      border-left: 4px solid var(--aws-orange);
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      border-right: 1px solid rgba(255, 255, 255, 0.08);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .feature-card.teal { border-left-color: var(--aws-teal); }
+    .feature-card.purple { border-left-color: var(--aws-purple); }
+    .feature-card.green { border-left-color: var(--aws-green); }
+
+    .feature-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--aws-white);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .feature-desc {
+      font-size: 14px;
+      color: var(--aws-light-gray);
+      line-height: 1.7;
+    }
+
+    .feature-desc ul {
+      list-style: none;
+      padding: 0;
+      margin-top: 8px;
+    }
+
+    .feature-desc ul li {
+      padding: 4px 0;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .feature-desc ul li::before {
+      content: "\2192";
+      color: var(--aws-orange);
+      flex-shrink: 0;
+      font-weight: bold;
+    }
+
+    /* ===== Use Case Cards ===== */
+    .usecase-card {
+      background: linear-gradient(135deg, rgba(255, 153, 0, 0.08), rgba(255, 153, 0, 0.03));
+      border: 1px solid rgba(255, 153, 0, 0.2);
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+
+    .usecase-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--aws-white);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .usecase-scenario {
+      font-size: 14px;
+      color: var(--aws-light-gray);
+      margin-bottom: 8px;
+    }
+
+    .usecase-effect {
+      font-size: 14px;
+      color: var(--aws-smile-orange);
+      font-weight: 500;
+    }
+
+    /* ===== Merits/Demerits ===== */
+    .merit-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    @media (max-width: 640px) {
+      .merit-grid { grid-template-columns: 1fr; }
+    }
+
+    .merit-box {
+      border-radius: 8px;
+      padding: 20px;
+    }
+
+    .merit-box.business {
+      background: rgba(255, 153, 0, 0.08);
+      border: 1px solid rgba(255, 153, 0, 0.2);
+    }
+
+    .merit-box.technical {
+      background: rgba(0, 161, 201, 0.08);
+      border: 1px solid rgba(0, 161, 201, 0.2);
+    }
+
+    .merit-box h3 {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+
+    .merit-box.business h3 { color: var(--aws-orange); }
+    .merit-box.technical h3 { color: var(--aws-teal); }
+
+    .merit-list {
+      list-style: none;
+      padding: 0;
+    }
+
+    .merit-list li {
+      padding: 6px 0;
+      font-size: 14px;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .merit-list li strong {
+      color: var(--aws-white);
+    }
+
+    /* ===== Caution / Limitations ===== */
+    .caution-card {
+      background: rgba(209, 50, 18, 0.06);
+      border: 1px solid rgba(209, 50, 18, 0.2);
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+
+    .caution-card h3 {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--aws-red);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .caution-list {
+      list-style: none;
+      padding: 0;
+    }
+
+    .caution-list li {
+      padding: 5px 0;
+      font-size: 14px;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      color: var(--aws-light-gray);
+    }
+
+    .caution-list li::before {
+      content: "\26A0";
+      flex-shrink: 0;
+    }
+
+    /* ===== Tables ===== */
+    .table-wrapper {
+      overflow-x: auto;
+      margin: 16px 0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    th {
+      background: rgba(255, 153, 0, 0.15);
+      color: var(--aws-orange);
+      font-weight: 600;
+      padding: 12px 16px;
+      text-align: left;
+      border-bottom: 2px solid rgba(255, 153, 0, 0.3);
+      white-space: nowrap;
+    }
+
+    td {
+      padding: 10px 16px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      color: var(--aws-light-gray);
+    }
+
+    tr:hover td {
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    /* ===== Flow Diagram ===== */
+    .flow-diagram {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin: 24px 0;
+    }
+
+    .flow-step {
+      background: var(--aws-dark-squid);
+      border: 2px solid var(--aws-orange);
+      border-radius: 8px;
+      padding: 12px 20px;
+      text-align: center;
+      min-width: 120px;
+      color: var(--aws-white);
+      font-size: 14px;
+    }
+
+    .flow-arrow {
+      color: var(--aws-orange);
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    /* ===== Code Block ===== */
+    .code-block {
+      background: #1a1a2e;
+      border-radius: 8px;
+      overflow: hidden;
+      margin: 16px 0;
+    }
+
+    .code-header {
+      background: #16213e;
+      padding: 8px 16px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+    }
+
+    .code-lang {
+      color: var(--aws-orange);
+      font-weight: bold;
+    }
+
+    .code-title {
+      color: var(--aws-light-gray);
+    }
+
+    .code-block pre {
+      margin: 0;
+      padding: 0;
+      overflow-x: auto;
+    }
+
+    .code-block code {
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      line-height: 1.5;
+      padding: 16px !important;
+    }
+
+    /* ===== Mermaid ===== */
+    .mermaid-container {
+      background: #FFFFFF;
+      border-radius: 12px;
+      padding: 24px;
+      margin: 20px 0;
+      border: 2px solid rgba(255, 153, 0, 0.3);
+      overflow-x: auto;
+    }
+
+    .mermaid {
+      display: flex;
+      justify-content: center;
+    }
+
+    /* ===== Region Badge ===== */
+    .region-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(0, 161, 201, 0.1);
+      border: 1px solid rgba(0, 161, 201, 0.3);
+      border-radius: 8px;
+      padding: 12px 20px;
+      font-size: 15px;
+      color: var(--aws-teal);
+      font-weight: 500;
+    }
+
+    .region-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    /* ===== Related Services ===== */
+    .related-service {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .related-service:last-child { border-bottom: none; }
+
+    .related-service-icon {
+      font-size: 24px;
+      flex-shrink: 0;
+    }
+
+    .related-service-name {
+      font-weight: 600;
+      color: var(--aws-white);
+      font-size: 15px;
+    }
+
+    .related-service-desc {
+      font-size: 13px;
+      color: var(--aws-light-gray);
+    }
+
+    /* ===== Summary Box ===== */
+    .summary-box {
+      background: linear-gradient(135deg, rgba(255, 153, 0, 0.12), rgba(140, 79, 255, 0.08));
+      border: 2px solid rgba(255, 153, 0, 0.3);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+
+    .summary-box p {
+      font-size: 15px;
+      line-height: 1.8;
+      color: var(--aws-light-gray);
+    }
+
+    /* ===== Footer ===== */
+    footer {
+      margin-top: 24px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(255, 255, 255, 0.2);
+      font-size: 12px;
+      color: var(--aws-light-gray);
+    }
+
+    footer a {
+      color: var(--aws-teal);
+      text-decoration: none;
+      word-break: break-all;
+    }
+
+    footer a:hover { color: var(--aws-smile-orange); }
+
+    .footer-links {
+      list-style: none;
+      padding: 0;
+    }
+
+    .footer-links li {
+      padding: 3px 0;
+    }
+
+    /* ===== Responsive ===== */
+    @media (max-width: 640px) {
+      h1 { font-size: 26px; }
+      .header { flex-direction: column; }
+      .header-right { text-align: left; }
+      .stats-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <!-- ===== Header ===== -->
+    <div class="header">
+      <div class="header-left">
+        <div class="service-badge">Amazon Aurora</div>
+        <h1>🌐 Aurora Global Database マネージドマイナーバージョンアップグレード</h1>
+        <div class="subtitle">グローバルトポロジ全体を単一オペレーションでアップグレード -- 運用負荷を大幅に軽減</div>
+      </div>
+      <div class="header-right">
+        <div><span class="date-label">📅 リリース日:</span> 2026 年 2 月 10 日</div>
+      </div>
+    </div>
+
+    <!-- ===== Stats ===== -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-number">最大 11</div>
+        <div class="stat-label">リージョンを一括アップグレード</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">1 コマンド</div>
+        <div class="stat-label">単一オペレーションで全リージョン完了</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">自動</div>
+        <div class="stat-label">問題発生時の自動ロールバック対応</div>
+      </div>
+    </div>
+
+    <!-- ===== 概要 ===== -->
+    <div class="section">
+      <h2>📋 概要</h2>
+      <p class="overview-text">
+        Amazon Aurora Global Database が<span class="highlight">マネージドマイナーバージョンアップグレード</span>をサポートしました。この機能により、グローバルトポロジ全体のすべてのクラスターを、最小限のダウンタイムで同時にアップグレードできます。個々のクラスターを手動でアップグレードする必要がなくなり、グローバルクラスター管理の運用負荷が大幅に軽減されます。
+      </p>
+      <p class="overview-text">
+        Aurora Global Database は、単一の Aurora データベースを最大 <strong style="color: var(--aws-white);">11 の AWS リージョン</strong>にまたがって構成でき、リージョン規模の障害からのディザスタリカバリやグローバル分散アプリケーションのための高速ローカル読み取りを提供します。今回のアップデートにより、AWS Management Console、SDK、または CLI を通じてマネージドマイナーバージョンアップグレードを実行でき、すべてのリージョンのグローバルクラスターが選択したマイナーバージョンにアップグレードされます。
+      </p>
+
+      <!-- Before/After -->
+      <div class="before-after">
+        <div class="before-card">
+          <div class="ba-label">Before</div>
+          <ul class="ba-list">
+            <li>各クラスターを個別に手動でアップグレードする必要があった</li>
+            <li>複数リージョンのバージョン管理が煩雑で運用負荷が高かった</li>
+            <li>リージョン間でバージョン不一致が発生するリスクがあった</li>
+            <li>アップグレード順序の調整やスケジューリングに多大な労力が必要だった</li>
+          </ul>
+        </div>
+        <div class="after-card">
+          <div class="ba-label">After</div>
+          <ul class="ba-list">
+            <li>単一のオペレーションでグローバル全体のアップグレードが可能に</li>
+            <li>手動アップグレードが不要になり、運用負荷が大幅に軽減</li>
+            <li>全リージョンのクラスターが同一バージョンにアップグレードされ、一貫性を確保</li>
+            <li>問題発生時にサービスが自動的に既存バージョンにロールバック</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== アーキテクチャ図 ===== -->
+    <div class="section">
+      <h2>🏗️ アーキテクチャ図</h2>
+      <div class="mermaid-container">
+        <pre class="mermaid">
+flowchart TD
+    subgraph Global["🌐 Aurora Global Database"]
+        subgraph Primary["🏠 プライマリリージョン"]
+            PCluster["📦 プライマリクラスター<br/>Writer + Reader"]
+        end
+        subgraph Secondary1["🌏 セカンダリリージョン 1"]
+            S1Cluster["📦 セカンダリクラスター<br/>Reader"]
+        end
+        subgraph Secondary2["🌍 セカンダリリージョン 2"]
+            S2Cluster["📦 セカンダリクラスター<br/>Reader"]
+        end
+    end
+
+    subgraph Upgrade["⚡ マネージドアップグレード"]
+        Console["🖥️ Console / SDK / CLI"]
+        Orchestrator["🔄 アップグレード<br/>オーケストレーション"]
+    end
+
+    Console --> Orchestrator
+    Orchestrator -->|一括アップグレード| PCluster
+    Orchestrator -->|一括アップグレード| S1Cluster
+    Orchestrator -->|一括アップグレード| S2Cluster
+
+    PCluster -.->|レプリケーション| S1Cluster
+    PCluster -.->|レプリケーション| S2Cluster
+
+    classDef cloud fill:none,stroke:#CCCCCC,stroke-width:2px,color:#666666
+    classDef primary fill:#E8F1FF,stroke:#4A90E2,stroke-width:2px,color:#333333
+    classDef secondary fill:#E9F7EC,stroke:#66BB6A,stroke-width:2px,color:#333333
+    classDef upgrade fill:#FFF3E0,stroke:#FF9800,stroke-width:2px,color:#333333
+    classDef process fill:#FFFFFF,stroke:#4A90E2,stroke-width:2px,color:#333333
+
+    class Global cloud
+    class Primary primary
+    class Secondary1,Secondary2 secondary
+    class Upgrade upgrade
+    class Console,Orchestrator process
+    class PCluster primary
+    class S1Cluster,S2Cluster secondary
+        </pre>
+      </div>
+      <p style="font-size: 14px; color: var(--aws-light-gray); margin-top: 8px;">Console、SDK、または CLI から単一のオペレーションを実行するだけで、プライマリクラスターとすべてのセカンダリクラスターが同時にアップグレードされます。</p>
+    </div>
+
+    <!-- ===== 主要機能 ===== -->
+    <div class="section">
+      <h2>🚀 主要機能</h2>
+
+      <div class="feature-card">
+        <div class="feature-title">🌐 グローバルトポロジ全体の一括アップグレード</div>
+        <div class="feature-desc">
+          <ul>
+            <li>単一のオペレーションですべてのリージョンのクラスターをアップグレード</li>
+            <li><code style="background: rgba(255,153,0,0.15); padding: 2px 6px; border-radius: 3px; color: var(--aws-orange);">modify-global-cluster</code> コマンドでターゲットエンジンバージョンを指定</li>
+            <li>サービスがプライマリクラスターとすべてのセカンダリクラスターのアップグレードを自動調整</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="feature-card teal">
+        <div class="feature-title">⚡ 最小限のダウンタイム</div>
+        <div class="feature-desc">
+          <ul>
+            <li>マネージドアップグレードにより、手動手順と比較してダウンタイムを最小化</li>
+            <li>アップグレードは即座に適用</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="feature-card green">
+        <div class="feature-title">🔄 自動ロールバック</div>
+        <div class="feature-desc">
+          <ul>
+            <li>アップグレード中に問題が発生した場合、サービスが自動的に既存バージョンにロールバック</li>
+            <li>手動での復旧作業が不要</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="feature-card purple">
+        <div class="feature-title">🖥️ 複数の操作方法</div>
+        <div class="feature-desc">
+          <ul>
+            <li>AWS Management Console</li>
+            <li>AWS SDK</li>
+            <li>AWS CLI</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== 技術仕様 ===== -->
+    <div class="section">
+      <h2>📊 技術仕様</h2>
+
+      <h3 style="font-size: 18px; font-weight: 600; color: var(--aws-white); margin-bottom: 12px;">マネージドアップグレードの仕様</h3>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>項目</th>
+              <th>詳細</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong style="color: var(--aws-white);">サポートエンジン</strong></td>
+              <td>Aurora PostgreSQL 互換エンジンのみ</td>
+            </tr>
+            <tr>
+              <td><strong style="color: var(--aws-white);">対象</strong></td>
+              <td>マイナーバージョンアップグレード</td>
+            </tr>
+            <tr>
+              <td><strong style="color: var(--aws-white);">最大リージョン数</strong></td>
+              <td style="color: var(--aws-orange); font-weight: 600;">最大 11 AWS リージョン</td>
+            </tr>
+            <tr>
+              <td><strong style="color: var(--aws-white);">ロールバック</strong></td>
+              <td style="color: var(--aws-green); font-weight: 600;">自動ロールバック対応</td>
+            </tr>
+            <tr>
+              <td><strong style="color: var(--aws-white);">適用タイミング</strong></td>
+              <td>即時適用</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 style="font-size: 18px; font-weight: 600; color: var(--aws-white); margin: 24px 0 12px;">考慮事項</h3>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>項目</th>
+              <th>説明</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong style="color: var(--aws-white);">パッチバージョン</strong></td>
+              <td>パッチバージョンアップグレードは既存のシステム更新メンテナンスアクションを使用</td>
+            </tr>
+            <tr>
+              <td><strong style="color: var(--aws-white);">個別アップグレード</strong></td>
+              <td>個別クラスターのアップグレードも引き続き可能。その場合、プライマリクラスターより先にすべてのセカンダリクラスターをアップグレードする必要がある</td>
+            </tr>
+            <tr>
+              <td><strong style="color: var(--aws-white);">クロスリージョンフェイルオーバー</strong></td>
+              <td>マネージドクロスリージョンフェイルオーバーを実行するには、プライマリとセカンダリのクラスターが同一のメジャー、マイナー、パッチレベルである必要がある</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 style="font-size: 18px; font-weight: 600; color: var(--aws-white); margin: 24px 0 12px;">API 変更履歴</h3>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>日付</th>
+              <th>サービス</th>
+              <th>変更内容</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>2026/02/10</td>
+              <td><a href="https://awsapichanges.com/archive/changes/56b6d8-rds.html" target="_blank" rel="noopener noreferrer" style="color: var(--aws-teal); text-decoration: none;">Amazon RDS</a></td>
+              <td>19 updated methods - RDS/Aurora リストアのバックアップ設定</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ===== 設定方法 ===== -->
+    <div class="section">
+      <h2>⚙️ 設定方法</h2>
+
+      <p style="font-size: 14px; color: var(--aws-white); font-weight: 600; margin-bottom: 8px;">前提条件:</p>
+      <ul style="list-style: none; padding: 0; margin-bottom: 20px;">
+        <li style="padding: 4px 0; font-size: 14px; color: var(--aws-light-gray);">&#10003; Aurora Global Database が作成されていること</li>
+        <li style="padding: 4px 0; font-size: 14px; color: var(--aws-light-gray);">&#10003; Aurora PostgreSQL 互換エンジンを使用していること</li>
+        <li style="padding: 4px 0; font-size: 14px; color: var(--aws-light-gray);">&#10003; 適切な IAM 権限があること</li>
+        <li style="padding: 4px 0; font-size: 14px; color: var(--aws-light-gray);">&#10003; セカンダリクラスターに少なくとも 1 つの DB インスタンスが存在すること</li>
+      </ul>
+
+      <p style="font-size: 14px; color: var(--aws-orange); font-weight: 600; margin-bottom: 8px;">ステップ 1: 現在のエンジンバージョンの確認</p>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash</span>
+          <span class="code-title">グローバルクラスターの情報を確認</span>
+        </div>
+        <pre><code class="language-bash">aws rds describe-global-clusters \
+  --global-cluster-identifier my-global-cluster \
+  --query 'GlobalClusters[0].{GlobalClusterIdentifier:GlobalClusterIdentifier,EngineVersion:EngineVersion,Engine:Engine}'</code></pre>
+      </div>
+
+      <p style="font-size: 14px; color: var(--aws-orange); font-weight: 600; margin-bottom: 8px; margin-top: 20px;">ステップ 2: アップグレード可能なバージョンの確認</p>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash</span>
+          <span class="code-title">ターゲットバージョンを確認</span>
+        </div>
+        <pre><code class="language-bash">aws rds describe-db-engine-versions \
+  --engine aurora-postgresql \
+  --engine-version &lt;current-version&gt; \
+  --query 'DBEngineVersions[0].ValidUpgradeTarget[*].{EngineVersion:EngineVersion,Description:Description}'</code></pre>
+      </div>
+
+      <p style="font-size: 14px; color: var(--aws-orange); font-weight: 600; margin-bottom: 8px; margin-top: 20px;">ステップ 3: マネージドマイナーバージョンアップグレードの実行</p>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash</span>
+          <span class="code-title">グローバルクラスターのアップグレード</span>
+        </div>
+        <pre><code class="language-bash">aws rds modify-global-cluster \
+  --global-cluster-identifier my-global-cluster \
+  --engine-version &lt;target-engine-version&gt;</code></pre>
+      </div>
+
+      <p style="font-size: 14px; color: var(--aws-orange); font-weight: 600; margin-bottom: 8px; margin-top: 20px;">ステップ 4: アップグレード状況の確認</p>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash</span>
+          <span class="code-title">アップグレード後のバージョンとステータスを確認</span>
+        </div>
+        <pre><code class="language-bash"># アップグレード後のバージョンを確認
+aws rds describe-global-clusters \
+  --global-cluster-identifier my-global-cluster \
+  --query 'GlobalClusters[0].{Status:Status,EngineVersion:EngineVersion}'
+
+# 各リージョンのクラスター状態を確認
+aws rds describe-db-clusters \
+  --db-cluster-identifier my-global-cluster \
+  --query 'DBClusters[0].{Status:Status,EngineVersion:EngineVersion}'</code></pre>
+      </div>
+
+      <div class="flow-diagram" style="margin-top: 24px;">
+        <div class="flow-step">🔍 バージョン確認</div>
+        <span class="flow-arrow">&#8594;</span>
+        <div class="flow-step">📋 ターゲット選定</div>
+        <span class="flow-arrow">&#8594;</span>
+        <div class="flow-step">⚡ 一括アップグレード</div>
+        <span class="flow-arrow">&#8594;</span>
+        <div class="flow-step">&#10003; 状況確認</div>
+      </div>
+    </div>
+
+    <!-- ===== メリット ===== -->
+    <div class="section">
+      <h2>&#10003; メリット</h2>
+      <div class="merit-grid">
+        <div class="merit-box business">
+          <h3>💼 ビジネス面</h3>
+          <ul class="merit-list">
+            <li>&#8594; <strong>運用負荷の大幅な軽減:</strong> 個別クラスターの手動アップグレードが不要になり、グローバルデータベース管理の運用コストを削減</li>
+            <li>&#8594; <strong>ダウンタイムの最小化:</strong> マネージドアップグレードにより最小限のダウンタイムで実行でき、ビジネスへの影響を抑制</li>
+            <li>&#8594; <strong>バージョン管理の簡素化:</strong> すべてのリージョンで同一バージョンが保証され、バージョン不一致によるリスクを排除</li>
+          </ul>
+        </div>
+        <div class="merit-box technical">
+          <h3>🔧 技術面</h3>
+          <ul class="merit-list">
+            <li>&#8594; <strong>一貫性の確保:</strong> すべてのリージョンのクラスターが同一バージョンにアップグレードされ、クロスリージョンフェイルオーバーの互換性を維持</li>
+            <li>&#8594; <strong>自動ロールバック:</strong> アップグレード中に問題が発生した場合の自動復旧により、安全性を確保</li>
+            <li>&#8594; <strong>オーケストレーションの自動化:</strong> プライマリクラスターとセカンダリクラスターのアップグレード順序をサービスが自動管理</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== デメリット・制約事項 ===== -->
+    <div class="section">
+      <h2>&#9888; デメリット・制約事項</h2>
+      <div class="caution-card">
+        <h3>🚧 制限事項</h3>
+        <ul class="caution-list">
+          <li>現時点では Aurora PostgreSQL 互換エンジンのみサポート (Aurora MySQL は非対応)</li>
+          <li>パッチバージョンアップグレードはこのマネージド機能の対象外</li>
+          <li>マネージドクロスリージョンフェイルオーバーには、プライマリとセカンダリのクラスターが同一バージョンである必要がある</li>
+        </ul>
+      </div>
+      <div class="caution-card">
+        <h3>💡 考慮すべき点</h3>
+        <ul class="caution-list">
+          <li>アップグレード前にアプリケーションの互換性をテスト環境で検証すること</li>
+          <li>RPO 機能が有効な Aurora PostgreSQL グローバルデータベースでは、メジャーバージョンアップグレードが実行できない点に注意 (マイナーバージョンは可能)</li>
+          <li>特定のパッチバージョンへの更新後、グローバルデータベース内のすべてのクラスターが同一パッチバージョン以上になるまで、クロスリージョンスイッチオーバーやフェイルオーバーが実行できない場合がある</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- ===== ユースケース ===== -->
+    <div class="section">
+      <h2>💡 ユースケース</h2>
+
+      <div class="usecase-card">
+        <div class="usecase-title">🌍 ユースケース 1: グローバル分散アプリケーションの定期メンテナンス</div>
+        <div class="usecase-scenario"><strong style="color: var(--aws-white);">シナリオ:</strong> 複数リージョンにまたがる Aurora Global Database を運用しており、定期的なマイナーバージョンアップグレードが必要。</div>
+        <div class="usecase-effect">&#8594; 以前は各リージョンのクラスターを順番に手動でアップグレードしていた作業が、単一のコマンドで完了します。アップグレード順序の管理やバージョン不一致のリスクが排除されます。</div>
+      </div>
+
+      <div class="usecase-card">
+        <div class="usecase-title">🛡️ ユースケース 2: ディザスタリカバリ環境の一貫性維持</div>
+        <div class="usecase-scenario"><strong style="color: var(--aws-white);">シナリオ:</strong> プライマリリージョンと複数のセカンダリリージョンでディザスタリカバリ構成を運用しており、マネージドクロスリージョンフェイルオーバーの互換性を維持する必要がある。</div>
+        <div class="usecase-effect">&#8594; すべてのリージョンが同一バージョンに保たれるため、マネージドクロスリージョンフェイルオーバーの互換性が常に確保されます。</div>
+      </div>
+
+      <div class="usecase-card">
+        <div class="usecase-title">🔒 ユースケース 3: 大規模マルチリージョン展開のバージョン統制</div>
+        <div class="usecase-scenario"><strong style="color: var(--aws-white);">シナリオ:</strong> 最大 11 リージョンにまたがる Aurora Global Database を運用しており、セキュリティパッチを含むマイナーバージョンアップグレードを迅速に適用する必要がある。</div>
+        <div class="usecase-effect">&#8594; 大規模なマルチリージョン環境でも、セキュリティ修正を含むアップグレードを短時間で全リージョンに適用でき、セキュリティリスクの露出期間を最小化できます。</div>
+      </div>
+    </div>
+
+    <!-- ===== 料金情報 ===== -->
+    <div class="section">
+      <h2>💳 料金</h2>
+      <p style="font-size: 15px; color: var(--aws-light-gray); line-height: 1.8;">
+        Aurora Global Database のマネージドマイナーバージョンアップグレード機能自体に<span class="highlight">追加料金は発生しません</span>。Aurora Global Database の標準料金が適用されます。
+      </p>
+      <p style="font-size: 14px; color: var(--aws-light-gray); margin-top: 12px;">
+        詳細については、<a href="https://aws.amazon.com/rds/aurora/pricing/" target="_blank" rel="noopener noreferrer" style="color: var(--aws-teal); text-decoration: none;">Amazon Aurora Pricing</a> を参照してください。
+      </p>
+    </div>
+
+    <!-- ===== 利用可能リージョン ===== -->
+    <div class="section">
+      <h2>🌍 利用可能リージョン</h2>
+      <div class="region-list">
+        <div class="region-badge">🌐 すべての商用 AWS リージョン</div>
+        <div class="region-badge">🏛️ AWS GovCloud (US) リージョン</div>
+      </div>
+      <p style="font-size: 13px; color: var(--aws-light-gray); margin-top: 12px;">
+        Aurora Global Database がサポートされるリージョンの詳細は、<a href="https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/Concepts.Aurora_Fea_Regions_DB-eng.Feature.GlobalDatabase.html" target="_blank" rel="noopener noreferrer" style="color: var(--aws-teal); text-decoration: none;">Aurora Global Database リージョンサポート</a> を参照してください。
+      </p>
+    </div>
+
+    <!-- ===== 関連サービス ===== -->
+    <div class="section">
+      <h2>🔗 関連サービス・機能</h2>
+      <div class="related-service">
+        <div class="related-service-icon">🌐</div>
+        <div>
+          <div class="related-service-name">Amazon Aurora Global Database</div>
+          <div class="related-service-desc">最大 11 の AWS リージョンにまたがるグローバルデータベース</div>
+        </div>
+      </div>
+      <div class="related-service">
+        <div class="related-service-icon">🐘</div>
+        <div>
+          <div class="related-service-name">Amazon Aurora PostgreSQL</div>
+          <div class="related-service-desc">PostgreSQL 互換の高性能クラウドネイティブデータベース</div>
+        </div>
+      </div>
+      <div class="related-service">
+        <div class="related-service-icon">🗄️</div>
+        <div>
+          <div class="related-service-name">Amazon RDS</div>
+          <div class="related-service-desc">マネージド型リレーショナルデータベースサービス</div>
+        </div>
+      </div>
+      <div class="related-service">
+        <div class="related-service-icon">⌨️</div>
+        <div>
+          <div class="related-service-name">AWS CLI</div>
+          <div class="related-service-desc">コマンドラインからの AWS サービス管理ツール</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== まとめ ===== -->
+    <div class="summary-box">
+      <h2>📝 まとめ</h2>
+      <p>
+        Amazon Aurora Global Database がマネージドマイナーバージョンアップグレードをサポートしたことで、複数リージョンにまたがるグローバルデータベースのバージョン管理が大幅に簡素化されました。単一のオペレーションでプライマリクラスターとすべてのセカンダリクラスターを同時にアップグレードでき、手動での個別アップグレードが不要になります。現時点では Aurora PostgreSQL 互換エンジンのみの対応ですが、グローバルデータベースを運用しているお客様は、この機能を活用して運用負荷を軽減し、バージョンの一貫性を維持することをお勧めします。
+      </p>
+    </div>
+
+    <!-- ===== Footer ===== -->
+    <footer>
+      <p style="margin-bottom: 8px;"><strong style="color: var(--aws-orange);">📎 参考リンク</strong></p>
+      <ul class="footer-links">
+        <li>📊 <a href="https://takech9203.github.io/awsnews-summary/20260210-amazon-aurora-global-database-managed-minor.html" target="_blank" rel="noopener noreferrer">インフォグラフィック</a></li>
+        <li>📄 <a href="https://aws.amazon.com/about-aws/whats-new/2026/02/amazon-aurora-global-database-managed-minor/" target="_blank" rel="noopener noreferrer">公式発表 (What's New)</a></li>
+        <li>📖 <a href="https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-global-database-upgrade.html" target="_blank" rel="noopener noreferrer">Aurora Global Database アップグレードドキュメント</a></li>
+        <li>🔧 <a href="https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/USER_UpgradeDBInstance.PostgreSQL.MinorUpgrade.html" target="_blank" rel="noopener noreferrer">Aurora PostgreSQL マイナーバージョンアップグレード</a></li>
+        <li>🌍 <a href="https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/Concepts.Aurora_Fea_Regions_DB-eng.Feature.GlobalDatabase.html" target="_blank" rel="noopener noreferrer">Aurora Global Database リージョンサポート</a></li>
+        <li>💰 <a href="https://aws.amazon.com/rds/aurora/pricing/" target="_blank" rel="noopener noreferrer">Amazon Aurora Pricing</a></li>
+      </ul>
+      <p style="margin-top: 12px; font-size: 11px; color: rgba(213, 219, 219, 0.5);">Generated from reports/2026/2026-02-10-amazon-aurora-global-database-managed-minor.md</p>
+    </footer>
+
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'base',
+      themeVariables: {
+        primaryColor: '#FF9900',
+        primaryTextColor: '#232F3E',
+        primaryBorderColor: '#FF9900',
+        lineColor: '#FF9900',
+        secondaryColor: '#F5F5F5',
+        tertiaryColor: '#FAFAFA',
+        background: '#FFFFFF',
+        mainBkg: '#FFF3E0',
+        nodeBorder: '#FF9900',
+        clusterBkg: '#FFF8E1',
+        clusterBorder: '#FF9900',
+        edgeLabelBackground: '#FFFFFF',
+        textColor: '#232F3E'
+      }
+    });
+  </script>
+  <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/highlight.min.js"></script>
+  <script>hljs.highlightAll();</script>
+</body>
+</html>

@@ -1,0 +1,1228 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Amazon MSK Express Brokers - Broker Logs Support</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/styles/atom-one-dark.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/highlight.min.js"></script>
+    <style>
+        :root {
+            --squid-ink: #232F3E;
+            --aws-orange: #FF9900;
+            --aws-smile-orange: #FFAD33;
+            --text-primary: #FFFFFF;
+            --text-secondary: #AAAAAA;
+            --light-gray: #D5DBDB;
+            --card-bg: #2D3A4A;
+            --dark-squid: #1A242F;
+            --border-color: #3D4A5A;
+            --aws-teal: #00A1C9;
+            --aws-green: #1D8102;
+            --aws-red: #D13212;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            background-color: var(--squid-ink);
+            color: var(--light-gray);
+            line-height: 1.8;
+            font-size: 16px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+            padding-bottom: 30px;
+            border-bottom: 3px solid var(--aws-orange);
+        }
+
+        .service-badge {
+            display: inline-block;
+            background-color: var(--aws-orange);
+            color: var(--squid-ink);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+        }
+
+        .release-date {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--aws-orange);
+            margin-bottom: 20px;
+            padding-left: 15px;
+            border-left: 4px solid var(--aws-orange);
+        }
+
+        .overview-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .overview-text {
+            font-size: 16px;
+            line-height: 1.9;
+        }
+
+        .highlight {
+            background-color: rgba(255, 153, 0, 0.2);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+            color: var(--aws-orange);
+        }
+
+        /* Before/After comparison */
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .comparison-grid {
+                grid-template-columns: 1fr;
+            }
+            .features-grid {
+                grid-template-columns: 1fr !important;
+            }
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr) !important;
+            }
+            .dest-grid {
+                grid-template-columns: 1fr !important;
+            }
+            .merit-grid {
+                grid-template-columns: 1fr;
+            }
+            .related-grid {
+                grid-template-columns: 1fr !important;
+            }
+            .pricing-table-grid {
+                grid-template-columns: 1fr !important;
+            }
+        }
+
+        .comparison-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .comparison-card.before {
+            border-top: 4px solid #E74C3C;
+        }
+
+        .comparison-card.after {
+            border-top: 4px solid #2ECC71;
+        }
+
+        .comparison-label {
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        .comparison-card.before .comparison-label {
+            color: #E74C3C;
+        }
+
+        .comparison-card.after .comparison-label {
+            color: #2ECC71;
+        }
+
+        .comparison-list {
+            list-style: none;
+        }
+
+        .comparison-list li {
+            padding: 8px 0;
+            padding-left: 25px;
+            position: relative;
+            font-size: 14px;
+        }
+
+        .comparison-card.before .comparison-list li::before {
+            content: "\2717";
+            position: absolute;
+            left: 0;
+            color: #E74C3C;
+            font-weight: bold;
+        }
+
+        .comparison-card.after .comparison-list li::before {
+            content: "\2713";
+            position: absolute;
+            left: 0;
+            color: #2ECC71;
+            font-weight: bold;
+        }
+
+        /* Mermaid diagram */
+        .diagram-container {
+            background-color: #FFFFFF;
+            border: 2px solid rgba(255, 153, 0, 0.3);
+            border-radius: 12px;
+            padding: 25px;
+            overflow-x: auto;
+        }
+
+        .mermaid {
+            display: flex;
+            justify-content: center;
+        }
+
+        /* Stats grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, var(--card-bg) 0%, var(--dark-squid) 100%);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid rgba(255, 153, 0, 0.2);
+        }
+
+        .stat-icon {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--aws-orange);
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        /* Feature cards */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .feature-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            border-left: 3px solid var(--aws-orange);
+        }
+
+        .feature-icon {
+            font-size: 36px;
+            margin-bottom: 12px;
+        }
+
+        .feature-title {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--aws-orange);
+        }
+
+        .feature-description {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        /* Destination grid */
+        .dest-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-top: 16px;
+        }
+
+        .dest-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid rgba(255, 153, 0, 0.15);
+        }
+
+        .dest-icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+
+        .dest-name {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 6px;
+        }
+
+        .dest-purpose {
+            font-size: 13px;
+            color: var(--aws-orange);
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        .dest-detail {
+            font-size: 12px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        /* Express Brokers spec table */
+        .spec-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+        }
+
+        .spec-table th {
+            background-color: var(--dark-squid);
+            color: var(--aws-orange);
+            padding: 10px 14px;
+            text-align: left;
+            font-size: 13px;
+            font-weight: 700;
+            border-bottom: 2px solid var(--aws-orange);
+        }
+
+        .spec-table td {
+            padding: 10px 14px;
+            font-size: 13px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--light-gray);
+        }
+
+        .spec-table td:last-child {
+            color: var(--aws-orange);
+            font-weight: 600;
+        }
+
+        /* Use case cards */
+        .usecase-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 3px solid var(--aws-orange);
+        }
+
+        .usecase-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .usecase-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--aws-orange);
+        }
+
+        .usecase-scenario {
+            font-size: 14px;
+            color: var(--light-gray);
+            margin-bottom: 12px;
+        }
+
+        .usecase-effect {
+            font-size: 14px;
+            color: #2ECC71;
+            padding: 10px;
+            background-color: rgba(46, 204, 113, 0.1);
+            border-radius: 8px;
+        }
+
+        .usecase-effect::before {
+            content: "\2713 ";
+            font-weight: bold;
+        }
+
+        /* Code blocks */
+        .code-block {
+            background: #1a1a2e;
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 16px 0;
+        }
+
+        .code-header {
+            background: #16213e;
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+        }
+
+        .code-lang {
+            color: var(--aws-orange);
+            font-weight: bold;
+        }
+
+        .code-title {
+            color: var(--light-gray);
+        }
+
+        .code-block pre {
+            margin: 0;
+            padding: 0;
+            overflow-x: auto;
+        }
+
+        .code-block code {
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            padding: 16px !important;
+        }
+
+        /* Flow diagram */
+        .flow-diagram {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin: 24px 0;
+        }
+
+        .flow-step {
+            background: var(--dark-squid);
+            border: 2px solid var(--aws-orange);
+            border-radius: 8px;
+            padding: 12px 20px;
+            text-align: center;
+            min-width: 120px;
+            font-size: 14px;
+        }
+
+        .flow-arrow {
+            color: var(--aws-orange);
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        /* Merit/Demerit */
+        .merit-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .merit-section {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .merit-section h3 {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: var(--aws-orange);
+        }
+
+        .merit-list {
+            list-style: none;
+        }
+
+        .merit-list li {
+            padding: 6px 0;
+            padding-left: 22px;
+            position: relative;
+            font-size: 14px;
+            color: var(--light-gray);
+        }
+
+        .merit-list li::before {
+            content: "\2713";
+            position: absolute;
+            left: 0;
+            color: #2ECC71;
+            font-weight: bold;
+        }
+
+        /* Constraint/Limitation */
+        .constraint-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 3px solid #E74C3C;
+        }
+
+        .constraint-title {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #E74C3C;
+        }
+
+        .constraint-list {
+            list-style: none;
+        }
+
+        .constraint-list li {
+            padding: 6px 0;
+            padding-left: 22px;
+            position: relative;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .constraint-list li::before {
+            content: "\26A0";
+            position: absolute;
+            left: 0;
+            font-size: 12px;
+        }
+
+        /* Pricing */
+        .pricing-card {
+            background: linear-gradient(135deg, rgba(29, 129, 2, 0.15) 0%, var(--card-bg) 100%);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid rgba(29, 129, 2, 0.3);
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .pricing-highlight {
+            font-size: 22px;
+            font-weight: 700;
+            color: #2ECC71;
+            margin-bottom: 8px;
+        }
+
+        .pricing-detail {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .pricing-table-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-top: 16px;
+        }
+
+        .pricing-item {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+        }
+
+        .pricing-item-name {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .pricing-item-value {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--aws-orange);
+            margin-bottom: 4px;
+        }
+
+        .pricing-item-unit {
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        /* Region */
+        .region-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .region-highlight {
+            font-size: 16px;
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .region-note {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-top: 8px;
+        }
+
+        /* Related services */
+        .related-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+
+        .related-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+        }
+
+        .related-name {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 6px;
+        }
+
+        .related-desc {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        /* Footer */
+        footer {
+            margin-top: 50px;
+            padding-top: 30px;
+            border-top: 1px solid var(--border-color);
+            text-align: center;
+        }
+
+        .source-links {
+            list-style: none;
+            margin-bottom: 16px;
+        }
+
+        .source-links li {
+            margin-bottom: 6px;
+        }
+
+        .source-link {
+            color: var(--aws-teal);
+            text-decoration: none;
+            font-size: 14px;
+            word-break: break-all;
+        }
+
+        .source-link:hover {
+            color: var(--aws-smile-orange);
+            text-decoration: underline;
+        }
+
+        .footer-note {
+            color: var(--text-secondary);
+            font-size: 12px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <span class="service-badge">Amazon MSK</span>
+            <h1>Express Brokers - Broker Logs Support</h1>
+            <p style="color: var(--light-gray); font-size: 15px; margin-bottom: 8px;">Express Brokers でブローカーログをサポート - 追加料金なしでオブザーバビリティを強化</p>
+            <p class="release-date">2026 年 2 月 11 日</p>
+        </header>
+
+        <!-- Overview -->
+        <section class="section">
+            <h2 class="section-title">概要</h2>
+            <div class="overview-card">
+                <p class="overview-text">
+                    Amazon Managed Streaming for Apache Kafka (MSK) が、<span class="highlight">Express Brokers でブローカーログ</span>をサポートしました。この機能は<span class="highlight">追加料金なし</span>で利用でき、クライアント接続や可用性の問題のトラブルシューティング、リバランスやフェイルオーバー時のブローカー動作に関するインサイトの取得が可能になります。
+                </p>
+                <p class="overview-text" style="margin-top: 12px;">
+                    Amazon CloudWatch Logs および Amazon S3 との事前構築済みの統合により、Kafka の運用テレメトリを既存のオブザーバビリティパイプラインに容易に統合できます。ブローカーログは新規および既存の Express Brokers の両方で利用でき、Amazon MSK Console または AWS CLI から有効化できます。
+                </p>
+            </div>
+
+            <!-- Stats -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">&#128230;</div>
+                    <div class="stat-value">3x</div>
+                    <div class="stat-label">Standard 比スループット</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">&#9889;</div>
+                    <div class="stat-value">20x</div>
+                    <div class="stat-label">スケールアップ速度</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">&#128260;</div>
+                    <div class="stat-value">90%</div>
+                    <div class="stat-label">リカバリ時間短縮</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">&#128176;</div>
+                    <div class="stat-value">$0</div>
+                    <div class="stat-label">ログ機能の追加料金</div>
+                </div>
+            </div>
+
+            <!-- Before/After -->
+            <div class="comparison-grid">
+                <div class="comparison-card before">
+                    <div class="comparison-label">Before - アップデート前の課題</div>
+                    <ul class="comparison-list">
+                        <li>Express Brokers ではブローカーログが利用できず、クライアント接続の問題やブローカー動作の診断が困難</li>
+                        <li>リバランスやフェイルオーバー時のブローカー挙動を詳細に分析する手段が限られていた</li>
+                        <li>Kafka の運用テレメトリを既存のオブザーバビリティパイプラインに統合する方法が不足</li>
+                    </ul>
+                </div>
+                <div class="comparison-card after">
+                    <div class="comparison-label">After - アップデート後の改善</div>
+                    <ul class="comparison-list">
+                        <li>Express Brokers でブローカーログが追加料金なしで利用可能に</li>
+                        <li>クライアント接続や可用性の問題を効率的にトラブルシューティング可能に</li>
+                        <li>CloudWatch Logs や S3 との事前構築済み統合で、既存の監視体制にシームレスに組み込み可能</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Architecture Diagram -->
+        <section class="section">
+            <h2 class="section-title">アーキテクチャ図</h2>
+            <div class="diagram-container">
+                <div class="mermaid">
+flowchart TB
+    subgraph MSKCluster["&#9729;&#65039; Amazon MSK Express Brokers"]
+        direction LR
+        B1["&#128230; Express Broker 1"]
+        B2["&#128230; Express Broker 2"]
+        B3["&#128230; Express Broker 3"]
+        B1 ~~~ B2 ~~~ B3
+    end
+
+    subgraph LogDest["&#128202; ログ配信先"]
+        CW["&#128203; CloudWatch Logs&lt;br/&gt;リアルタイム分析&lt;br/&gt;アラーム設定"]
+        S3["&#128452; Amazon S3&lt;br/&gt;長期保存&lt;br/&gt;バッチ分析"]
+        Firehose["&#128293; Amazon Data Firehose&lt;br/&gt;OpenSearch Service&lt;br/&gt;ストリーム配信"]
+    end
+
+    subgraph Monitoring["&#128269; オブザーバビリティ"]
+        Dashboard["&#128200; CloudWatch&lt;br/&gt;ダッシュボード"]
+        Alarm["&#128276; CloudWatch&lt;br/&gt;アラーム"]
+        Analysis["&#128270; ログ分析&lt;br/&gt;トラブルシューティング"]
+    end
+
+    Producer(["&#128221; プロデューサー"]) -->|"データ書き込み"| MSKCluster
+    MSKCluster -->|"データ読み取り"| Consumer(["&#128214; コンシューマー"])
+
+    B1 & B2 & B3 -->|"ブローカーログ配信"| CW
+    B1 & B2 & B3 -->|"ブローカーログ配信"| S3
+    B1 & B2 & B3 -.->|"オプション"| Firehose
+
+    CW --> Dashboard
+    CW --> Alarm
+    S3 --> Analysis
+
+    classDef cluster fill:#E8F1FF,stroke:#4A90E2,stroke-width:2px,color:#333333
+    classDef broker fill:#FFE0B2,stroke:#FFCC80,stroke-width:2px,color:#5D4037
+    classDef logdest fill:#E9F7EC,stroke:#66BB6A,stroke-width:2px,color:#333333
+    classDef monitoring fill:#F3E5F5,stroke:#7B61FF,stroke-width:2px,color:#333333
+    classDef app fill:#E3F2FD,stroke:#BBDEFB,stroke-width:2px,color:#1565C0
+
+    class MSKCluster cluster
+    class B1,B2,B3 broker
+    class CW,S3,Firehose logdest
+    class Dashboard,Alarm,Analysis monitoring
+    class Producer,Consumer app
+                </div>
+            </div>
+            <p style="font-size: 13px; color: var(--text-secondary); margin-top: 10px; text-align: center;">Express Brokers からブローカーログを CloudWatch Logs、S3、Data Firehose に配信し、オブザーバビリティパイプラインに統合する構成</p>
+        </section>
+
+        <!-- Key Features -->
+        <section class="section">
+            <h2 class="section-title">主要機能</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">&#128203;</div>
+                    <div class="feature-title">Express Brokers での<br>ブローカーログ</div>
+                    <div class="feature-description">INFO レベルのブローカーログを配信先に出力。クライアント接続や可用性の問題をトラブルシューティングし、リバランスやフェイルオーバー時のブローカー動作を詳細に把握。</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#128279;</div>
+                    <div class="feature-title">事前構築済みの<br>統合</div>
+                    <div class="feature-description">CloudWatch Logs でリアルタイムのログ分析とアラーム設定。Amazon S3 でログの長期保存とバッチ分析。Data Firehose で OpenSearch Service などへのストリーム配信。</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#128176;</div>
+                    <div class="feature-title">追加料金なし</div>
+                    <div class="feature-description">ブローカーログ機能自体に追加コストは不要。新規および既存の Express Brokers の両方で利用可能。MSK Console または AWS CLI から有効化。</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Log Destinations -->
+        <section class="section">
+            <h2 class="section-title">ブローカーログの配信先</h2>
+            <div class="dest-grid">
+                <div class="dest-card">
+                    <div class="dest-icon">&#128203;</div>
+                    <div class="dest-name">CloudWatch Logs</div>
+                    <div class="dest-purpose">リアルタイム分析</div>
+                    <div class="dest-detail">アラーム設定、ダッシュボード表示、Logs Insights によるクエリ</div>
+                </div>
+                <div class="dest-card">
+                    <div class="dest-icon">&#128452;</div>
+                    <div class="dest-name">Amazon S3</div>
+                    <div class="dest-purpose">長期保存・バッチ分析</div>
+                    <div class="dest-detail">コスト効率の高い保存、Athena による分析</div>
+                </div>
+                <div class="dest-card">
+                    <div class="dest-icon">&#128293;</div>
+                    <div class="dest-name">Amazon Data Firehose</div>
+                    <div class="dest-purpose">ストリーム配信</div>
+                    <div class="dest-detail">OpenSearch Service への配信、リアルタイムダッシュボード</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Technical Spec -->
+        <section class="section">
+            <h2 class="section-title">技術仕様</h2>
+
+            <h3 style="font-size: 16px; color: var(--text-primary); margin-bottom: 12px;">Express Brokers の特徴</h3>
+            <table class="spec-table">
+                <thead>
+                    <tr>
+                        <th>項目</th>
+                        <th>詳細</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>スループット</td>
+                        <td>Standard Brokers の最大 3 倍</td>
+                    </tr>
+                    <tr>
+                        <td>スケールアップ速度</td>
+                        <td>最大 20 倍高速</td>
+                    </tr>
+                    <tr>
+                        <td>リカバリ時間</td>
+                        <td>90% 短縮</td>
+                    </tr>
+                    <tr>
+                        <td>ストレージ</td>
+                        <td>フルマネージド、事前プロビジョニング不要</td>
+                    </tr>
+                    <tr>
+                        <td>対応 Kafka バージョン</td>
+                        <td>3.6、3.8、3.9</td>
+                    </tr>
+                    <tr>
+                        <td>ログレベル</td>
+                        <td>INFO (デフォルト)</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- Configuration -->
+        <section class="section">
+            <h2 class="section-title">設定方法</h2>
+
+            <div class="overview-card" style="margin-bottom: 16px;">
+                <h3 style="font-size: 15px; color: var(--aws-orange); margin-bottom: 10px;">前提条件</h3>
+                <ul class="merit-list">
+                    <li>AWS アカウントへのアクセス権限</li>
+                    <li>Amazon MSK へのアクセス権限 (AmazonMSKFullAccess ポリシーを推奨)</li>
+                    <li>ログ配信先リソース (CloudWatch ロググループ、S3 バケットなど) の事前作成</li>
+                    <li>S3 に配信する場合は s3:PutBucketPolicy 権限が必要</li>
+                </ul>
+            </div>
+
+            <div class="flow-diagram">
+                <div class="flow-step">&#128452; ログ配信先<br>リソースを準備</div>
+                <span class="flow-arrow">&rarr;</span>
+                <div class="flow-step">&#9881;&#65039; ブローカーログを<br>有効化</div>
+                <span class="flow-arrow">&rarr;</span>
+                <div class="flow-step">&#128270; ログの<br>確認・分析</div>
+            </div>
+
+            <h3 style="font-size: 16px; color: var(--text-primary); margin-top: 24px; margin-bottom: 12px;">Step 1: ログ配信先リソースの準備</h3>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Bash</span>
+                    <span class="code-title">CloudWatch Logs ロググループ・S3 バケットの作成</span>
+                </div>
+                <pre><code class="language-bash"># CloudWatch Logs のロググループを作成
+aws logs create-log-group \
+  --log-group-name /aws/msk/express-broker-logs
+
+# S3 バケットを作成
+aws s3 mb s3://my-msk-broker-logs-bucket</code></pre>
+            </div>
+
+            <h3 style="font-size: 16px; color: var(--text-primary); margin-top: 24px; margin-bottom: 12px;">Step 2: 既存クラスターでブローカーログを有効化</h3>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Bash</span>
+                    <span class="code-title">既存 Express Brokers クラスターへのログ有効化</span>
+                </div>
+                <pre><code class="language-bash">aws kafka update-monitoring \
+  --cluster-arn &lt;cluster-arn&gt; \
+  --current-version &lt;cluster-version&gt; \
+  --logging-info '{
+    "BrokerLogs": {
+      "CloudWatchLogs": {
+        "Enabled": true,
+        "LogGroup": "/aws/msk/express-broker-logs"
+      },
+      "S3": {
+        "Enabled": true,
+        "Bucket": "my-msk-broker-logs-bucket",
+        "Prefix": "broker-logs"
+      }
+    }
+  }'</code></pre>
+            </div>
+
+            <h3 style="font-size: 16px; color: var(--text-primary); margin-top: 24px; margin-bottom: 12px;">Step 3: 新規クラスター作成時にブローカーログを有効化</h3>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Bash</span>
+                    <span class="code-title">新規 Express Brokers クラスター作成</span>
+                </div>
+                <pre><code class="language-bash">aws kafka create-cluster-v2 \
+  --cluster-name my-express-cluster \
+  --provisioned '{
+    "brokerNodeGroupInfo": {
+      "instanceType": "kafka.m7g.large",
+      "clientSubnets": ["subnet-xxx", "subnet-yyy", "subnet-zzz"],
+      "securityGroups": ["sg-xxx"]
+    },
+    "kafkaVersion": "3.9.0",
+    "numberOfBrokerNodes": 3,
+    "clusterType": "EXPRESS",
+    "loggingInfo": {
+      "brokerLogs": {
+        "cloudWatchLogs": {
+          "enabled": true,
+          "logGroup": "/aws/msk/express-broker-logs"
+        },
+        "s3": {
+          "enabled": true,
+          "bucket": "my-msk-broker-logs-bucket",
+          "prefix": "broker-logs"
+        }
+      }
+    }
+  }'</code></pre>
+            </div>
+
+            <h3 style="font-size: 16px; color: var(--text-primary); margin-top: 24px; margin-bottom: 12px;">Step 4: ログの確認</h3>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Bash</span>
+                    <span class="code-title">CloudWatch Logs Insights でブローカーログをクエリ</span>
+                </div>
+                <pre><code class="language-bash">aws logs start-query \
+  --log-group-name /aws/msk/express-broker-logs \
+  --start-time $(date -d '1 hour ago' +%s) \
+  --end-time $(date +%s) \
+  --query-string 'fields @timestamp, @message
+    | filter @message like /ERROR|WARN/
+    | sort @timestamp desc
+    | limit 50'</code></pre>
+            </div>
+        </section>
+
+        <!-- Benefits -->
+        <section class="section">
+            <h2 class="section-title">メリット</h2>
+            <div class="merit-grid">
+                <div class="merit-section">
+                    <h3>&#128188; ビジネス面</h3>
+                    <ul class="merit-list">
+                        <li><strong style="color: var(--text-primary);">トラブルシューティングの迅速化:</strong> クライアント接続の問題やブローカーの挙動を詳細に分析し、問題解決までの時間を短縮</li>
+                        <li><strong style="color: var(--text-primary);">追加コストなし:</strong> ブローカーログ機能自体に追加料金が不要で、運用コストを抑制</li>
+                        <li><strong style="color: var(--text-primary);">既存環境への即時適用:</strong> 新規・既存の Express Brokers の両方で利用可能で、迅速に導入可能</li>
+                    </ul>
+                </div>
+                <div class="merit-section">
+                    <h3>&#128736;&#65039; 技術面</h3>
+                    <ul class="merit-list">
+                        <li><strong style="color: var(--text-primary);">オブザーバビリティの向上:</strong> リバランスやフェイルオーバー時のブローカー動作を詳細に把握可能</li>
+                        <li><strong style="color: var(--text-primary);">既存パイプラインとの統合:</strong> CloudWatch Logs、S3、Data Firehose との事前構築済み統合で既存の監視体制に容易に組み込み可能</li>
+                        <li><strong style="color: var(--text-primary);">運用効率の改善:</strong> MSK Console または AWS CLI から簡単に有効化でき、運用負荷を最小限に抑制</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Limitations -->
+        <section class="section">
+            <h2 class="section-title">制約事項・注意点</h2>
+            <div class="constraint-card">
+                <div class="constraint-title">制限事項</div>
+                <ul class="constraint-list">
+                    <li>ブローカーログはデフォルトで INFO レベルのみを配信</li>
+                    <li>ログ配信先リソース (CloudWatch ロググループ、S3 バケットなど) は事前に作成する必要がある</li>
+                    <li>S3 バケットで SSE-KMS を使用する場合は、KMS キーポリシーに追加設定が必要</li>
+                </ul>
+            </div>
+            <div class="constraint-card">
+                <div class="constraint-title">考慮すべき点</div>
+                <ul class="constraint-list">
+                    <li>ログ配信先のストレージコスト (CloudWatch Logs のデータ取り込み料金、S3 のストレージ料金) は別途発生</li>
+                    <li>大量のログが生成される場合、S3 または Data Firehose をログ配信先として使用することを推奨</li>
+                    <li>CloudWatch Logs をログ配信先とする場合、DEBUG や TRACE レベルのログはブローカーのパフォーマンスに影響を与える可能性がある</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Use Cases -->
+        <section class="section">
+            <h2 class="section-title">ユースケース</h2>
+
+            <div class="usecase-card">
+                <div class="usecase-header">
+                    <span style="font-size: 24px;">&#128268;</span>
+                    <div class="usecase-title">ユースケース 1: クライアント接続の問題調査</div>
+                </div>
+                <div class="usecase-scenario">
+                    <strong>シナリオ:</strong> プロデューサーまたはコンシューマーアプリケーションが断続的に接続エラーを報告している
+                </div>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">Bash</span>
+                        <span class="code-title">CloudWatch Logs Insights で接続関連ログを検索</span>
+                    </div>
+                    <pre><code class="language-bash">aws logs start-query \
+  --log-group-name /aws/msk/express-broker-logs \
+  --start-time $(date -d '24 hours ago' +%s) \
+  --end-time $(date +%s) \
+  --query-string 'fields @timestamp, @message
+    | filter @message like /connection|disconnect|authentication/
+    | sort @timestamp desc
+    | limit 100'</code></pre>
+                </div>
+                <div class="usecase-effect">
+                    ブローカーログから接続エラーの原因 (認証失敗、ネットワークタイムアウトなど) を特定し、迅速に問題を解決
+                </div>
+            </div>
+
+            <div class="usecase-card">
+                <div class="usecase-header">
+                    <span style="font-size: 24px;">&#128260;</span>
+                    <div class="usecase-title">ユースケース 2: リバランス時のブローカー動作の監視</div>
+                </div>
+                <div class="usecase-scenario">
+                    <strong>シナリオ:</strong> Express Brokers クラスターのスケールアウト時に、パーティションリバランスの進行状況を把握したい
+                </div>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">Bash</span>
+                        <span class="code-title">CloudWatch アラームでリバランスイベントを通知</span>
+                    </div>
+                    <pre><code class="language-bash">aws cloudwatch put-metric-alarm \
+  --alarm-name msk-rebalance-monitor \
+  --metric-name ActiveControllerCount \
+  --namespace AWS/Kafka \
+  --statistic Average \
+  --period 60 \
+  --threshold 1 \
+  --comparison-operator LessThanThreshold \
+  --evaluation-periods 3 \
+  --alarm-actions arn:aws:sns:ap-northeast-1:123456789012:msk-alerts</code></pre>
+                </div>
+                <div class="usecase-effect">
+                    リバランスの開始・完了タイミングをログから追跡し、アプリケーションへの影響を最小限に抑えるための知見を得る
+                </div>
+            </div>
+
+            <div class="usecase-card">
+                <div class="usecase-header">
+                    <span style="font-size: 24px;">&#128269;</span>
+                    <div class="usecase-title">ユースケース 3: フェイルオーバー後の事後分析</div>
+                </div>
+                <div class="usecase-scenario">
+                    <strong>シナリオ:</strong> ブローカー障害後のフェイルオーバーが発生し、原因分析と再発防止策の策定が必要
+                </div>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">Bash</span>
+                        <span class="code-title">S3 に保存されたログを Athena で分析</span>
+                    </div>
+                    <pre><code class="language-bash">aws athena start-query-execution \
+  --query-string "
+    SELECT *
+    FROM msk_broker_logs
+    WHERE timestamp BETWEEN '2026-02-11T00:00:00Z'
+      AND '2026-02-11T23:59:59Z'
+    AND message LIKE '%fail%'
+    ORDER BY timestamp DESC
+  " \
+  --result-configuration OutputLocation=s3://my-athena-results/</code></pre>
+                </div>
+                <div class="usecase-effect">
+                    S3 に長期保存されたブローカーログを Athena で分析し、フェイルオーバーの根本原因を特定して再発防止策を策定
+                </div>
+            </div>
+        </section>
+
+        <!-- Pricing -->
+        <section class="section">
+            <h2 class="section-title">料金</h2>
+            <div class="pricing-card">
+                <div class="pricing-highlight">ブローカーログ機能: 追加料金なし</div>
+                <div class="pricing-detail">ブローカーログ機能自体に追加料金はありません。ただし、ログ配信先のサービスに対する標準料金が適用されます。</div>
+            </div>
+            <div class="pricing-table-grid">
+                <div class="pricing-item">
+                    <div class="pricing-item-name">CloudWatch Logs<br>データ取り込み</div>
+                    <div class="pricing-item-value">$0.76</div>
+                    <div class="pricing-item-unit">/GB (東京リージョン)</div>
+                </div>
+                <div class="pricing-item">
+                    <div class="pricing-item-name">CloudWatch Logs<br>データ保存</div>
+                    <div class="pricing-item-value">$0.033</div>
+                    <div class="pricing-item-unit">/GB/月 (東京リージョン)</div>
+                </div>
+                <div class="pricing-item">
+                    <div class="pricing-item-name">S3 ストレージ<br>(S3 Standard)</div>
+                    <div class="pricing-item-value">$0.025</div>
+                    <div class="pricing-item-unit">/GB/月 (東京リージョン)</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Region -->
+        <section class="section">
+            <h2 class="section-title">利用可能リージョン</h2>
+            <div class="region-card">
+                <div style="font-size: 28px; margin-bottom: 8px;">&#127758;</div>
+                <div class="region-highlight">Express Brokers がサポートされているすべての AWS リージョンで利用可能</div>
+                <div class="region-note">追加のリージョン展開の待機は不要です。</div>
+            </div>
+        </section>
+
+        <!-- Related Services -->
+        <section class="section">
+            <h2 class="section-title">関連サービス・機能</h2>
+            <div class="related-grid">
+                <div class="related-card">
+                    <div style="font-size: 24px; margin-bottom: 8px;">&#128203;</div>
+                    <div class="related-name">Amazon CloudWatch Logs</div>
+                    <div class="related-desc">ブローカーログのリアルタイム分析とアラーム設定</div>
+                </div>
+                <div class="related-card">
+                    <div style="font-size: 24px; margin-bottom: 8px;">&#128452;</div>
+                    <div class="related-name">Amazon S3</div>
+                    <div class="related-desc">ブローカーログの長期保存とバッチ分析</div>
+                </div>
+                <div class="related-card">
+                    <div style="font-size: 24px; margin-bottom: 8px;">&#128293;</div>
+                    <div class="related-name">Amazon Data Firehose</div>
+                    <div class="related-desc">OpenSearch Service などへのストリーム配信</div>
+                </div>
+                <div class="related-card">
+                    <div style="font-size: 24px; margin-bottom: 8px;">&#128279;</div>
+                    <div class="related-name">Amazon MSK Connect</div>
+                    <div class="related-desc">Kafka Connect のマネージドサービス</div>
+                </div>
+                <div class="related-card">
+                    <div style="font-size: 24px; margin-bottom: 8px;">&#128200;</div>
+                    <div class="related-name">Amazon CloudWatch</div>
+                    <div class="related-desc">MSK クラスターのメトリクス監視</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer>
+            <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 12px;">参考リンク</p>
+            <ul class="source-links">
+                <li><a href="https://aws.amazon.com/about-aws/whats-new/2026/02/aws-msk-express-brokers-support-broker-logs/" class="source-link" target="_blank">公式発表 - What's New</a></li>
+                <li><a href="https://docs.aws.amazon.com/msk/latest/developerguide/msk-logging.html" class="source-link" target="_blank">Amazon MSK ブローカーログドキュメント</a></li>
+                <li><a href="https://aws.amazon.com/msk/features/express-brokers-for-amazon-msk/" class="source-link" target="_blank">Express Brokers 製品ページ</a></li>
+                <li><a href="https://docs.aws.amazon.com/msk/latest/developerguide/what-is-msk.html" class="source-link" target="_blank">Amazon MSK 開発者ガイド</a></li>
+            </ul>
+            <p class="footer-note">Amazon MSK Express Brokers - Broker Logs Support | 2026 年 2 月 11 日</p>
+        </footer>
+    </div>
+
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'base',
+            themeVariables: {
+                primaryColor: '#FF9900',
+                primaryTextColor: '#232F3E',
+                primaryBorderColor: '#FF9900',
+                lineColor: '#FF9900',
+                secondaryColor: '#F5F5F5',
+                tertiaryColor: '#FAFAFA',
+                background: '#FFFFFF',
+                mainBkg: '#FFF3E0',
+                nodeBorder: '#FF9900',
+                clusterBkg: '#FFF8E1',
+                clusterBorder: '#FF9900',
+                edgeLabelBackground: '#FFFFFF',
+                textColor: '#232F3E'
+            },
+            flowchart: {
+                curve: 'basis',
+                padding: 20
+            }
+        });
+        hljs.highlightAll();
+    </script>
+</body>
+</html>

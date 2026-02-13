@@ -1,0 +1,1061 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kiro - Claude Opus 4.6 モデルサポート</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      mermaid.initialize({
+        startOnLoad: true,
+        theme: 'base',
+        themeVariables: {
+          primaryColor: '#FF9900',
+          primaryTextColor: '#232F3E',
+          primaryBorderColor: '#FF9900',
+          lineColor: '#FF9900',
+          secondaryColor: '#F5F5F5',
+          tertiaryColor: '#FAFAFA',
+          background: '#FFFFFF',
+          mainBkg: '#FFF3E0',
+          nodeBorder: '#FF9900',
+          clusterBkg: '#FFF8E1',
+          clusterBorder: '#FF9900',
+          edgeLabelBackground: '#FFFFFF',
+          textColor: '#232F3E'
+        }
+      });
+    });
+  </script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap');
+
+    :root {
+      --aws-squid-ink: #232F3E;
+      --aws-dark-squid: #1A242F;
+      --aws-orange: #FF9900;
+      --aws-smile-orange: #FFAD33;
+      --aws-white: #FFFFFF;
+      --aws-light-gray: #D5DBDB;
+      --aws-teal: #00A1C9;
+      --aws-purple: #8C4FFF;
+      --aws-green: #1D8102;
+      --aws-red: #D13212;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      background-color: var(--aws-squid-ink);
+      font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+      color: var(--aws-light-gray);
+      font-size: 16px;
+      line-height: 1.6;
+      padding: 20px;
+      margin: 0;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 32px;
+      padding-bottom: 24px;
+      border-bottom: 2px solid var(--aws-orange);
+    }
+
+    .service-badge {
+      display: inline-block;
+      background: var(--aws-orange);
+      color: var(--aws-squid-ink);
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-weight: 600;
+      font-size: 14px;
+      margin-bottom: 16px;
+    }
+
+    .experimental-badge {
+      display: inline-block;
+      background: var(--aws-purple);
+      color: var(--aws-white);
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-weight: 600;
+      font-size: 12px;
+      margin-left: 8px;
+    }
+
+    h1 {
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--aws-white);
+      margin: 0 0 12px 0;
+    }
+
+    .subtitle {
+      font-size: 16px;
+      color: var(--aws-light-gray);
+    }
+
+    .date {
+      color: var(--aws-orange);
+      font-weight: 500;
+    }
+
+    h2 {
+      font-size: 22px;
+      font-weight: 600;
+      color: var(--aws-orange);
+      margin: 0 0 16px 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .section {
+      background: var(--aws-dark-squid);
+      border-radius: 8px;
+      padding: 24px;
+      margin-bottom: 24px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .overview-text {
+      font-size: 17px;
+      line-height: 1.8;
+      margin-bottom: 20px;
+    }
+
+    .highlight {
+      background-color: rgba(255, 153, 0, 0.2);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 600;
+      color: var(--aws-orange);
+    }
+
+    /* Before/After */
+    .comparison-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-top: 20px;
+    }
+
+    @media (max-width: 600px) {
+      .comparison-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .comparison-card {
+      padding: 16px;
+      border-radius: 8px;
+    }
+
+    .comparison-card.before {
+      background: rgba(209, 50, 18, 0.15);
+      border: 2px solid var(--aws-red);
+    }
+
+    .comparison-card.after {
+      background: rgba(29, 129, 2, 0.15);
+      border: 2px solid var(--aws-green);
+    }
+
+    .comparison-title {
+      font-weight: 700;
+      font-size: 14px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .comparison-card.before .comparison-title {
+      color: var(--aws-red);
+    }
+
+    .comparison-card.after .comparison-title {
+      color: var(--aws-green);
+    }
+
+    .comparison-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .comparison-list li {
+      padding: 6px 0;
+      font-size: 14px;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    /* 統計カード */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    @media (max-width: 700px) {
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .stat-card {
+      background: linear-gradient(135deg, rgba(255, 153, 0, 0.2) 0%, rgba(140, 79, 255, 0.15) 100%);
+      border: 1px solid rgba(255, 153, 0, 0.3);
+      border-radius: 8px;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--aws-orange);
+      margin-bottom: 4px;
+    }
+
+    .stat-label {
+      font-size: 13px;
+      color: var(--aws-light-gray);
+    }
+
+    /* Mermaid コンテナ */
+    .mermaid-container {
+      background: #FFFFFF;
+      border-radius: 12px;
+      padding: 24px;
+      margin: 20px 0;
+      border: 2px solid rgba(255, 153, 0, 0.3);
+      overflow-x: auto;
+    }
+
+    .mermaid {
+      display: flex;
+      justify-content: center;
+    }
+
+    /* 機能カード */
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+    }
+
+    @media (max-width: 700px) {
+      .feature-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .feature-card {
+      background: var(--aws-squid-ink);
+      border-left: 4px solid var(--aws-orange);
+      border-radius: 0 8px 8px 0;
+      padding: 16px;
+    }
+
+    .feature-card-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .feature-icon {
+      font-size: 24px;
+    }
+
+    .feature-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--aws-white);
+    }
+
+    .feature-desc {
+      font-size: 14px;
+      color: var(--aws-light-gray);
+    }
+
+    .feature-list {
+      list-style: none;
+      padding: 0;
+      margin: 8px 0 0 0;
+    }
+
+    .feature-list li {
+      padding: 4px 0;
+      font-size: 14px;
+      display: flex;
+      align-items: flex-start;
+      gap: 6px;
+      color: var(--aws-light-gray);
+    }
+
+    /* テーブル */
+    .spec-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0;
+    }
+
+    .spec-table th,
+    .spec-table td {
+      padding: 10px 14px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      text-align: left;
+      font-size: 14px;
+    }
+
+    .spec-table th {
+      background: rgba(255, 153, 0, 0.15);
+      color: var(--aws-orange);
+      font-weight: 600;
+    }
+
+    .spec-table td {
+      color: var(--aws-light-gray);
+    }
+
+    .spec-table tr:hover td {
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    /* フロー図 */
+    .flow-diagram {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin: 24px 0;
+    }
+
+    .flow-step {
+      background: var(--aws-dark-squid);
+      border: 2px solid var(--aws-orange);
+      border-radius: 8px;
+      padding: 12px 20px;
+      text-align: center;
+      min-width: 100px;
+    }
+
+    .flow-arrow {
+      color: var(--aws-orange);
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    /* ユースケース */
+    .usecase-card {
+      background: linear-gradient(135deg, rgba(255, 153, 0, 0.1) 0%, rgba(255, 153, 0, 0.05) 100%);
+      border: 1px solid rgba(255, 153, 0, 0.3);
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+
+    .usecase-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--aws-white);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .usecase-scenario {
+      font-size: 14px;
+      color: var(--aws-light-gray);
+      margin-bottom: 8px;
+    }
+
+    .usecase-effect {
+      font-size: 14px;
+      color: var(--aws-green);
+      display: flex;
+      align-items: flex-start;
+      gap: 6px;
+    }
+
+    /* メリット・デメリット */
+    .merit-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-top: 16px;
+    }
+
+    @media (max-width: 600px) {
+      .merit-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .merit-card {
+      padding: 16px;
+      border-radius: 8px;
+    }
+
+    .merit-card.positive {
+      background: rgba(29, 129, 2, 0.1);
+      border: 1px solid rgba(29, 129, 2, 0.3);
+    }
+
+    .merit-card.negative {
+      background: rgba(209, 50, 18, 0.1);
+      border: 1px solid rgba(209, 50, 18, 0.3);
+    }
+
+    .merit-title {
+      font-weight: 700;
+      font-size: 15px;
+      margin-bottom: 12px;
+    }
+
+    .merit-card.positive .merit-title {
+      color: var(--aws-green);
+    }
+
+    .merit-card.negative .merit-title {
+      color: var(--aws-red);
+    }
+
+    .merit-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .merit-list li {
+      padding: 5px 0;
+      font-size: 14px;
+      display: flex;
+      align-items: flex-start;
+      gap: 6px;
+    }
+
+    /* 注意事項カード */
+    .note-card {
+      background: rgba(255, 153, 0, 0.08);
+      border: 1px solid rgba(255, 153, 0, 0.25);
+      border-radius: 8px;
+      padding: 16px;
+      margin-top: 16px;
+    }
+
+    .note-card-title {
+      font-weight: 600;
+      color: var(--aws-orange);
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
+
+    .note-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .note-list li {
+      padding: 4px 0;
+      font-size: 14px;
+      display: flex;
+      align-items: flex-start;
+      gap: 6px;
+      color: var(--aws-light-gray);
+    }
+
+    /* 関連サービスカード */
+    .related-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    @media (max-width: 700px) {
+      .related-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .related-card {
+      background: var(--aws-squid-ink);
+      border: 1px solid rgba(255, 153, 0, 0.3);
+      border-radius: 8px;
+      padding: 16px;
+      text-align: center;
+    }
+
+    .related-icon {
+      font-size: 28px;
+      margin-bottom: 8px;
+    }
+
+    .related-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--aws-white);
+      margin-bottom: 6px;
+    }
+
+    .related-desc {
+      font-size: 12px;
+      color: var(--aws-light-gray);
+    }
+
+    /* プラン比較テーブル */
+    .plan-available {
+      color: var(--aws-green);
+      font-weight: 600;
+    }
+
+    /* リージョンバッジ */
+    .region-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(0, 161, 201, 0.15);
+      border: 1px solid rgba(0, 161, 201, 0.4);
+      border-radius: 8px;
+      padding: 12px 20px;
+      margin: 12px 0;
+    }
+
+    .region-badge-text {
+      color: var(--aws-teal);
+      font-weight: 600;
+      font-size: 15px;
+    }
+
+    .region-sub {
+      color: var(--aws-light-gray);
+      font-size: 13px;
+    }
+
+    /* リンクカード */
+    .link-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+
+    @media (max-width: 600px) {
+      .link-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .link-card {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--aws-squid-ink);
+      border: 1px solid rgba(0, 161, 201, 0.3);
+      border-radius: 8px;
+      padding: 12px 16px;
+      text-decoration: none;
+      transition: background 0.2s, border-color 0.2s;
+    }
+
+    .link-card:hover {
+      background: rgba(0, 161, 201, 0.1);
+      border-color: var(--aws-teal);
+    }
+
+    .link-icon {
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+
+    .link-text {
+      color: var(--aws-teal);
+      font-size: 14px;
+      font-weight: 500;
+      word-break: break-all;
+    }
+
+    /* フッター */
+    footer {
+      margin-top: 32px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(255, 255, 255, 0.2);
+      font-size: 12px;
+      color: var(--aws-light-gray);
+      text-align: center;
+    }
+
+    footer a {
+      color: var(--aws-teal);
+      text-decoration: none;
+    }
+
+    footer a:hover {
+      color: var(--aws-smile-orange);
+    }
+
+    /* サマリーバー */
+    .summary-bar {
+      background: linear-gradient(135deg, rgba(140, 79, 255, 0.2) 0%, rgba(255, 153, 0, 0.2) 100%);
+      border: 1px solid rgba(140, 79, 255, 0.3);
+      border-radius: 8px;
+      padding: 20px 24px;
+      margin-bottom: 24px;
+      text-align: center;
+    }
+
+    .summary-bar p {
+      font-size: 16px;
+      line-height: 1.7;
+      margin: 0;
+      color: var(--aws-white);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <!-- ヘッダー -->
+    <div class="header">
+      <div>
+        <span class="service-badge">☁️ Kiro</span>
+        <span class="experimental-badge">🧪 実験的サポート</span>
+      </div>
+      <h1>🧠 Claude Opus 4.6 モデルサポート</h1>
+      <p class="subtitle">Anthropic 最新・最強のコーディングモデルが Kiro IDE &amp; CLI で利用可能に</p>
+      <p class="date">📅 2026 年 2 月 5 日</p>
+    </div>
+
+    <!-- サマリーバー -->
+    <div class="summary-bar">
+      <p>🚀 Claude Opus 4.6 は Anthropic の最新かつ最も強力なモデルであり、<span class="highlight">コーディング領域で世界最高水準の性能</span>を誇ります。大規模コードベースや長期プロジェクトに特に優れた能力を発揮し、Kiro のスペック駆動開発ワークフローに最適です。</p>
+    </div>
+
+    <!-- 統計カード -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-value">2.2x</div>
+        <div class="stat-label">クレジット乗数</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">数日→数時間</div>
+        <div class="stat-label">プロジェクト完了時間</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">3 プラン</div>
+        <div class="stat-label">Pro / Pro+ / Power</div>
+      </div>
+    </div>
+
+    <!-- 概要: Before/After -->
+    <div class="section">
+      <h2>📊 概要: アップデート前後の比較</h2>
+      <p class="overview-text">
+        Opus 4.6 は Opus 4.5 の全機能を維持しつつ、プロダクションコードや高度なエージェントに対するコーディング能力をさらに拡張しています。スペック駆動開発ワークフローにおいて最も適したモデルであり、大規模な既存プロジェクトに対して詳細かつ正確なスペックを作成し、<span class="highlight">最小限のユーザー入力で的確な変更</span>を行います。
+      </p>
+      <div class="comparison-grid">
+        <div class="comparison-card before">
+          <div class="comparison-title">❌ アップデート前の課題</div>
+          <ul class="comparison-list">
+            <li><span>⚠️</span><span>大規模コードベースでの複雑なタスクに追加の監視が必要</span></li>
+            <li><span>⚠️</span><span>スペック駆動開発での大規模プロジェクトへの精密な変更に改善の余地</span></li>
+            <li><span>⚠️</span><span>シニアエンジニアが複数日かかるプロジェクトを効率的に委任する限界</span></li>
+          </ul>
+        </div>
+        <div class="comparison-card after">
+          <div class="comparison-title">✅ アップデート後の改善</div>
+          <ul class="comparison-list">
+            <li><span>🚀</span><span>大規模コードベースと長期プロジェクトで優れた性能を発揮</span></li>
+            <li><span>🎯</span><span>大規模既存プロジェクトに対する精密な変更が可能に</span></li>
+            <li><span>⚡</span><span>複数日かかるプロジェクトを数時間で完了</span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- アーキテクチャ図 -->
+    <div class="section">
+      <h2>🏗️ Kiro + Claude Opus 4.6 アーキテクチャ</h2>
+      <div class="mermaid-container">
+        <pre class="mermaid">
+flowchart TD
+    subgraph UserLayer["👤 ユーザーレイヤー"]
+        direction LR
+        IDE["🖥️ Kiro IDE"]
+        CLI["⌨️ Kiro CLI"]
+        IDE ~~~ CLI
+    end
+
+    subgraph KiroLayer["⚙️ Kiro プラットフォーム"]
+        direction LR
+        Spec["📋 スペック駆動開発"]
+        Agent["🤖 エージェントワークフロー"]
+        Spec ~~~ Agent
+    end
+
+    subgraph ModelLayer["🧠 モデルレイヤー"]
+        Opus46["🏆 Claude Opus 4.6<br/>世界最高水準のコーディング"]
+    end
+
+    subgraph AWSLayer["☁️ AWS インフラ"]
+        Bedrock["🔧 Amazon Bedrock<br/>US-East-1"]
+    end
+
+    UserLayer --> KiroLayer
+    KiroLayer --> ModelLayer
+    ModelLayer --> AWSLayer
+
+    classDef cloud fill:none,stroke:#CCCCCC,stroke-width:2px,color:#666666
+    classDef layer fill:none,stroke:#E1BEE7,stroke-width:2px,color:#666666
+    classDef compute fill:#FFE0B2,stroke:#FFCC80,stroke-width:2px,color:#5D4037
+    classDef model fill:#E8EAF6,stroke:#C5CAE9,stroke-width:2px,color:#283593
+    classDef user fill:#E3F2FD,stroke:#BBDEFB,stroke-width:2px,color:#1565C0
+
+    class UserLayer,KiroLayer cloud
+    class ModelLayer layer
+    class IDE,CLI user
+    class Spec,Agent compute
+    class Opus46 model
+    class Bedrock compute
+        </pre>
+      </div>
+    </div>
+
+    <!-- 主要機能 -->
+    <div class="section">
+      <h2>⚡ 主要機能</h2>
+      <div class="feature-grid">
+        <div class="feature-card">
+          <div class="feature-card-header">
+            <span class="feature-icon">🧠</span>
+            <span class="feature-title">Claude Opus 4.6 モデル統合</span>
+          </div>
+          <ul class="feature-list">
+            <li><span>→</span><span>Kiro IDE と CLI の両方で選択可能</span></li>
+            <li><span>→</span><span>Anthropic の最も強力なモデルでコーディングタスクを実行</span></li>
+            <li><span>→</span><span>Pro、Pro+、Power のすべてのプランで利用可能</span></li>
+          </ul>
+        </div>
+        <div class="feature-card">
+          <div class="feature-card-header">
+            <span class="feature-icon">📦</span>
+            <span class="feature-title">大規模コードベース対応</span>
+          </div>
+          <ul class="feature-list">
+            <li><span>→</span><span>大規模なコードベースでの高精度な理解と変更</span></li>
+            <li><span>→</span><span>長期間にわたるプロジェクトでの一貫した品質</span></li>
+            <li><span>→</span><span>少ない監視で複雑なタスクの委任が可能</span></li>
+          </ul>
+        </div>
+        <div class="feature-card">
+          <div class="feature-card-header">
+            <span class="feature-icon">📋</span>
+            <span class="feature-title">スペック駆動開発の強化</span>
+          </div>
+          <ul class="feature-list">
+            <li><span>→</span><span>大規模既存プロジェクトに対する詳細かつ正確なスペック作成</span></li>
+            <li><span>→</span><span>最小限のユーザー入力で的確な変更を実行</span></li>
+            <li><span>→</span><span>既存コードへの外科的精度での更新</span></li>
+          </ul>
+        </div>
+        <div class="feature-card">
+          <div class="feature-card-header">
+            <span class="feature-icon">🤖</span>
+            <span class="feature-title">高度なエージェント能力</span>
+          </div>
+          <ul class="feature-list">
+            <li><span>→</span><span>プロダクションコードへの対応</span></li>
+            <li><span>→</span><span>複雑なエージェントワークフロー</span></li>
+            <li><span>→</span><span>Opus 4.5 の全機能を継承しつつ拡張</span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- 技術仕様 -->
+    <div class="section">
+      <h2>🔧 技術仕様</h2>
+      <h3 style="color: var(--aws-white); font-size: 16px; margin: 16px 0 12px 0;">📐 モデル仕様</h3>
+      <table class="spec-table">
+        <tr>
+          <th>項目</th>
+          <th>詳細</th>
+        </tr>
+        <tr>
+          <td>モデル名</td>
+          <td><strong style="color: var(--aws-white);">Claude Opus 4.6</strong></td>
+        </tr>
+        <tr>
+          <td>提供元</td>
+          <td>Anthropic</td>
+        </tr>
+        <tr>
+          <td>クレジット乗数</td>
+          <td><span class="highlight">2.2x</span> (Claude Opus 4.5 と同一)</td>
+        </tr>
+        <tr>
+          <td>モデル推論リージョン</td>
+          <td>AWS US-East-1 (バージニア北部)</td>
+        </tr>
+        <tr>
+          <td>コンテキスト</td>
+          <td>200K トークン (1M トークン プレビュー対応)</td>
+        </tr>
+        <tr>
+          <td>サポートステータス</td>
+          <td><span style="color: var(--aws-purple); font-weight: 600;">🧪 実験的サポート</span></td>
+        </tr>
+      </table>
+
+      <h3 style="color: var(--aws-white); font-size: 16px; margin: 24px 0 12px 0;">📋 対応プラン</h3>
+      <table class="spec-table">
+        <tr>
+          <th>プラン</th>
+          <th>利用可否</th>
+        </tr>
+        <tr>
+          <td>Kiro Pro</td>
+          <td><span class="plan-available">✅ 利用可能</span></td>
+        </tr>
+        <tr>
+          <td>Kiro Pro+</td>
+          <td><span class="plan-available">✅ 利用可能</span></td>
+        </tr>
+        <tr>
+          <td>Kiro Power</td>
+          <td><span class="plan-available">✅ 利用可能</span></td>
+        </tr>
+      </table>
+
+      <h3 style="color: var(--aws-white); font-size: 16px; margin: 24px 0 12px 0;">🔐 認証方法</h3>
+      <table class="spec-table">
+        <tr>
+          <th>認証プロバイダー</th>
+          <th>対応状況</th>
+        </tr>
+        <tr>
+          <td>Google</td>
+          <td><span class="plan-available">✅ 対応</span></td>
+        </tr>
+        <tr>
+          <td>GitHub</td>
+          <td><span class="plan-available">✅ 対応</span></td>
+        </tr>
+        <tr>
+          <td>AWS Builder ID</td>
+          <td><span class="plan-available">✅ 対応</span></td>
+        </tr>
+        <tr>
+          <td>AWS IAM Identity Center</td>
+          <td><span class="plan-available">✅ 対応</span></td>
+        </tr>
+      </table>
+    </div>
+
+    <!-- 設定方法 -->
+    <div class="section">
+      <h2>🛠️ 設定方法</h2>
+
+      <h3 style="color: var(--aws-white); font-size: 16px; margin: 0 0 12px 0;">📌 前提条件</h3>
+      <ul class="feature-list" style="margin-bottom: 20px;">
+        <li><span>✓</span><span>Kiro IDE または CLI がインストール済み</span></li>
+        <li><span>✓</span><span>Kiro Pro、Pro+、または Power プランに加入</span></li>
+        <li><span>✓</span><span>Google、GitHub、AWS Builder ID、または AWS IAM Identity Center のアカウント</span></li>
+      </ul>
+
+      <h3 style="color: var(--aws-white); font-size: 16px; margin: 0 0 16px 0;">📝 手順</h3>
+      <div class="flow-diagram">
+        <div class="flow-step">🔄 Kiro を更新<br/><span style="font-size: 12px; color: var(--aws-light-gray);">IDE 再起動 or<br/>CLI 最新版 DL</span></div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-step">🧠 モデル選択<br/><span style="font-size: 12px; color: var(--aws-light-gray);">Claude Opus 4.6<br/>を選択</span></div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-step">🚀 利用開始<br/><span style="font-size: 12px; color: var(--aws-light-gray);">クレジット乗数<br/>2.2x 適用</span></div>
+      </div>
+    </div>
+
+    <!-- メリット・デメリット -->
+    <div class="section">
+      <h2>⚖️ メリット・デメリット</h2>
+      <div class="merit-grid">
+        <div class="merit-card positive">
+          <div class="merit-title">✅ メリット</div>
+          <ul class="merit-list">
+            <li><span>💼</span><span><strong style="color: var(--aws-white);">開発期間の大幅短縮</strong>: 複数日かかるプロジェクトを数時間で完了</span></li>
+            <li><span>👁️</span><span><strong style="color: var(--aws-white);">監視コストの削減</strong>: 少ない監視で複雑なタスクを委任可能</span></li>
+            <li><span>📈</span><span><strong style="color: var(--aws-white);">生産性の向上</strong>: 世界最高水準のコーディングモデルによる効率化</span></li>
+            <li><span>📦</span><span><strong style="color: var(--aws-white);">大規模コードベース対応</strong>: 高精度な理解と変更</span></li>
+            <li><span>📋</span><span><strong style="color: var(--aws-white);">スペック精度向上</strong>: 詳細かつ正確なスペック作成</span></li>
+            <li><span>🤖</span><span><strong style="color: var(--aws-white);">高度なエージェント能力</strong>: プロダクションコード対応</span></li>
+          </ul>
+        </div>
+        <div class="merit-card negative">
+          <div class="merit-title">⚠️ 制約事項・注意点</div>
+          <ul class="merit-list">
+            <li><span>🧪</span><span><strong style="color: var(--aws-white);">実験的サポート</strong>: 安定性に改善の余地あり</span></li>
+            <li><span>💰</span><span><strong style="color: var(--aws-white);">クレジット消費増</strong>: 2.2x 乗数で通常より多く消費</span></li>
+            <li><span>🌍</span><span><strong style="color: var(--aws-white);">リージョン制限</strong>: 推論は US-East-1 のみ</span></li>
+            <li><span>🔄</span><span><strong style="color: var(--aws-white);">仕様変更の可能性</strong>: 実験的サポートのため今後変更あり得る</span></li>
+            <li><span>🎯</span><span><strong style="color: var(--aws-white);">適材適所</strong>: 全タスクに Opus 4.6 が必要ではない</span></li>
+          </ul>
+        </div>
+      </div>
+      <div class="note-card">
+        <div class="note-card-title">💡 推奨事項</div>
+        <ul class="note-list">
+          <li><span>→</span><span>タスクの複雑さに応じたモデル選択が推奨されます</span></li>
+          <li><span>→</span><span>使用量の管理を行い、クレジット消費量を把握してください</span></li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- ユースケース -->
+    <div class="section">
+      <h2>🎯 ユースケース</h2>
+      <div class="usecase-card">
+        <div class="usecase-title">🏗️ ユースケース 1: 大規模リファクタリングプロジェクト</div>
+        <div class="usecase-scenario"><strong>シナリオ</strong>: 数万行のレガシーコードベースをモダンなアーキテクチャに移行するプロジェクト</div>
+        <div class="usecase-effect"><span>✨</span><span><strong>効果</strong>: Opus 4.6 の大規模コードベース理解能力により、広範囲にわたるリファクタリングを高い精度で実行し、通常数日かかる作業を数時間に短縮</span></div>
+      </div>
+      <div class="usecase-card">
+        <div class="usecase-title">📋 ユースケース 2: スペック駆動の新機能開発</div>
+        <div class="usecase-scenario"><strong>シナリオ</strong>: 大規模既存プロジェクトに対する新機能のスペック作成と実装</div>
+        <div class="usecase-effect"><span>✨</span><span><strong>効果</strong>: Opus 4.6 が既存コードベースを深く理解した上で詳細なスペックを作成し、既存コードとの整合性を保ちながら外科的精度で変更を適用</span></div>
+      </div>
+      <div class="usecase-card">
+        <div class="usecase-title">🤖 ユースケース 3: 高度なエージェントワークフロー</div>
+        <div class="usecase-scenario"><strong>シナリオ</strong>: 複数のサブエージェントを活用した複雑な開発ワークフロー</div>
+        <div class="usecase-effect"><span>✨</span><span><strong>効果</strong>: Opus 4.6 の高度なエージェント能力により、複雑なマルチステップタスクをより少ない監視で確実に実行</span></div>
+      </div>
+    </div>
+
+    <!-- スペック駆動開発フロー -->
+    <div class="section">
+      <h2>🔄 スペック駆動開発ワークフロー</h2>
+      <div class="mermaid-container">
+        <pre class="mermaid">
+flowchart LR
+    A(["👤 ユーザー"]) -->|要件入力| B["📋 スペック作成<br/>Opus 4.6"]
+    B -->|詳細スペック| C["🔍 コードベース<br/>分析"]
+    C -->|変更計画| D["⚡ 外科的精度で<br/>コード変更"]
+    D -->|成果物| E(["✅ 完了"])
+
+    classDef user fill:#E3F2FD,stroke:#BBDEFB,stroke-width:2px,color:#1565C0
+    classDef process fill:#FFE0B2,stroke:#FFCC80,stroke-width:2px,color:#5D4037
+    classDef done fill:#E9F7EC,stroke:#66BB6A,stroke-width:2px,color:#333333
+
+    class A user
+    class B,C,D process
+    class E done
+        </pre>
+      </div>
+    </div>
+
+    <!-- 料金情報 -->
+    <div class="section">
+      <h2>💰 料金情報</h2>
+      <p>Kiro の料金については <a href="https://kiro.dev/pricing/" target="_blank" rel="noopener noreferrer" style="color: var(--aws-teal); text-decoration: none; font-weight: 500;">Kiro 料金ページ</a> を参照してください。</p>
+      <div class="note-card" style="margin-top: 12px;">
+        <div class="note-card-title">📊 クレジット乗数</div>
+        <ul class="note-list">
+          <li><span>→</span><span>Claude Opus 4.6 使用時のクレジット乗数: <span class="highlight">2.2x</span></span></li>
+          <li><span>→</span><span>Claude Opus 4.5 と同一の乗数設定</span></li>
+          <li><span>→</span><span>通常モデルより多くのクレジットを消費するため、使用量の管理が必要</span></li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- 利用可能リージョン -->
+    <div class="section">
+      <h2>🌍 利用可能リージョン</h2>
+      <div class="region-badge">
+        <span style="font-size: 24px;">🌐</span>
+        <div>
+          <div class="region-badge-text">グローバル</div>
+          <div class="region-sub">モデル推論: AWS US-East-1 (バージニア北部)</div>
+        </div>
+      </div>
+      <p style="font-size: 14px; margin-top: 8px;">Kiro は世界中からアクセス可能です。モデルの推論処理は AWS US-East-1 リージョンで実行されます。Amazon Bedrock 経由で Claude Opus 4.6 を利用する場合は、Bedrock の対応リージョンを確認してください。</p>
+    </div>
+
+    <!-- 関連サービス -->
+    <div class="section">
+      <h2>🔗 関連サービス・機能</h2>
+      <div class="related-grid">
+        <div class="related-card">
+          <div class="related-icon">⚙️</div>
+          <div class="related-name">Kiro 0.9</div>
+          <div class="related-desc">カスタムサブエージェント、Agent Skills、エンタープライズ制御を含む同日リリースのアップデート</div>
+        </div>
+        <div class="related-card">
+          <div class="related-icon">🔧</div>
+          <div class="related-name">Amazon Bedrock<br/>Claude Opus 4.6</div>
+          <div class="related-desc">Claude Opus 4.6 は Amazon Bedrock でも利用可能。エンタープライズワークロード向け</div>
+        </div>
+        <div class="related-card">
+          <div class="related-icon">🧠</div>
+          <div class="related-name">Claude Opus 4.5</div>
+          <div class="related-desc">Opus 4.6 の前世代モデル。全機能が 4.6 に継承</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 参考リンク -->
+    <div class="section">
+      <h2>📚 参考リンク</h2>
+      <div class="link-grid">
+        <a href="https://kiro.dev/blog/opus-4-6/" target="_blank" rel="noopener noreferrer" class="link-card">
+          <span class="link-icon">📝</span>
+          <span class="link-text">公式ブログ</span>
+        </a>
+        <a href="https://kiro.dev/changelog/" target="_blank" rel="noopener noreferrer" class="link-card">
+          <span class="link-icon">📋</span>
+          <span class="link-text">Changelog</span>
+        </a>
+        <a href="https://kiro.dev/" target="_blank" rel="noopener noreferrer" class="link-card">
+          <span class="link-icon">☁️</span>
+          <span class="link-text">Kiro</span>
+        </a>
+        <a href="https://aws.amazon.com/about-aws/whats-new/2026/2/claude-opus-4.6-available-amazon-bedrock/" target="_blank" rel="noopener noreferrer" class="link-card">
+          <span class="link-icon">🔧</span>
+          <span class="link-text">Amazon Bedrock Claude Opus 4.6</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- まとめ -->
+    <div class="section" style="border: 2px solid var(--aws-orange);">
+      <h2>📌 まとめ</h2>
+      <p style="font-size: 16px; line-height: 1.8;">
+        Claude Opus 4.6 の Kiro サポートにより、<span class="highlight">大規模コードベースや長期プロジェクト</span>での開発効率が大幅に向上します。特にスペック駆動開発ワークフローにおいて、既存プロジェクトへの精密な変更が可能になり、シニアエンジニアの生産性を飛躍的に高めます。Kiro Pro 以上のプランをご利用の方は、アプリケーションを更新して Claude Opus 4.6 をお試しください。
+      </p>
+    </div>
+
+    <!-- フッター -->
+    <footer>
+      <p>📎 出典:</p>
+      <p><a href="https://kiro.dev/blog/opus-4-6/" target="_blank" rel="noopener noreferrer">https://kiro.dev/blog/opus-4-6/</a></p>
+      <p><a href="https://kiro.dev/changelog/" target="_blank" rel="noopener noreferrer">https://kiro.dev/changelog/</a></p>
+      <p><a href="https://aws.amazon.com/about-aws/whats-new/2026/2/claude-opus-4.6-available-amazon-bedrock/" target="_blank" rel="noopener noreferrer">https://aws.amazon.com/about-aws/whats-new/2026/2/claude-opus-4.6-available-amazon-bedrock/</a></p>
+      <p style="margin-top: 12px; color: rgba(213, 219, 219, 0.6);">Generated by AWS News Infographic Tool</p>
+    </footer>
+
+  </div>
+</body>
+</html>

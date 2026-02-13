@@ -1,0 +1,1381 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Amazon Bedrock - 6 つのオープンウェイトモデルのフルマネージドサポート</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/styles/atom-one-dark.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap');
+
+    :root {
+      --aws-squid-ink: #232F3E;
+      --aws-dark-squid: #1A242F;
+      --aws-orange: #FF9900;
+      --aws-smile-orange: #FFAD33;
+      --aws-white: #FFFFFF;
+      --aws-light-gray: #D5DBDB;
+      --aws-teal: #00A1C9;
+      --aws-purple: #8C4FFF;
+      --aws-green: #1D8102;
+      --aws-red: #D13212;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--aws-squid-ink);
+      font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+      color: var(--aws-light-gray);
+      font-size: 16px;
+      line-height: 1.6;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    /* ===== Header ===== */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 32px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .header-left { flex: 1; }
+
+    .service-badge {
+      display: inline-block;
+      background: var(--aws-orange);
+      color: var(--aws-squid-ink);
+      font-size: 13px;
+      font-weight: 700;
+      padding: 4px 14px;
+      border-radius: 20px;
+      margin-bottom: 12px;
+      letter-spacing: 0.5px;
+    }
+
+    h1 {
+      font-size: 36px;
+      font-weight: 700;
+      color: var(--aws-white);
+      line-height: 1.3;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      font-size: 16px;
+      color: var(--aws-light-gray);
+    }
+
+    .header-right {
+      text-align: right;
+      font-size: 14px;
+      color: var(--aws-light-gray);
+      flex-shrink: 0;
+    }
+
+    .date-label {
+      color: var(--aws-orange);
+      font-weight: 600;
+    }
+
+    /* ===== Sections ===== */
+    h2 {
+      font-size: 24px;
+      font-weight: 600;
+      color: var(--aws-orange);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .section {
+      background: var(--aws-dark-squid);
+      border-radius: 8px;
+      padding: 24px;
+      margin-bottom: 24px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .highlight {
+      background-color: rgba(255, 153, 0, 0.2);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 600;
+      color: var(--aws-orange);
+    }
+
+    /* ===== Overview Text ===== */
+    .overview-text {
+      font-size: 16px;
+      color: var(--aws-light-gray);
+      line-height: 1.8;
+      margin-bottom: 20px;
+    }
+
+    /* ===== Before/After ===== */
+    .before-after {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-top: 16px;
+    }
+
+    @media (max-width: 640px) {
+      .before-after { grid-template-columns: 1fr; }
+    }
+
+    .before-card, .after-card {
+      border-radius: 8px;
+      padding: 20px;
+    }
+
+    .before-card {
+      background: rgba(209, 50, 18, 0.1);
+      border: 1px solid rgba(209, 50, 18, 0.3);
+    }
+
+    .after-card {
+      background: rgba(29, 129, 2, 0.1);
+      border: 1px solid rgba(29, 129, 2, 0.3);
+    }
+
+    .ba-label {
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .before-card .ba-label { color: var(--aws-red); }
+    .after-card .ba-label { color: var(--aws-green); }
+
+    .ba-list {
+      list-style: none;
+      padding: 0;
+    }
+
+    .ba-list li {
+      padding: 6px 0;
+      font-size: 14px;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .ba-list li::before { flex-shrink: 0; }
+    .before-card .ba-list li::before { content: "\2717"; color: var(--aws-red); font-weight: bold; }
+    .after-card .ba-list li::before { content: "\2713"; color: var(--aws-green); font-weight: bold; }
+
+    /* ===== Stats Cards ===== */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    @media (max-width: 640px) {
+      .stats-grid { grid-template-columns: 1fr; }
+    }
+
+    .stat-card {
+      background: linear-gradient(135deg, rgba(255, 153, 0, 0.15), rgba(140, 79, 255, 0.1));
+      border: 1px solid rgba(255, 153, 0, 0.3);
+      border-radius: 8px;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .stat-number {
+      font-size: 36px;
+      font-weight: 700;
+      color: var(--aws-orange);
+      line-height: 1.2;
+    }
+
+    .stat-label {
+      font-size: 13px;
+      color: var(--aws-light-gray);
+      margin-top: 4px;
+    }
+
+    /* ===== Feature Cards ===== */
+    .feature-card {
+      background: var(--aws-dark-squid);
+      border-radius: 8px;
+      padding: 24px;
+      margin-bottom: 16px;
+      border-left: 4px solid var(--aws-orange);
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      border-right: 1px solid rgba(255, 255, 255, 0.08);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .feature-card.reasoning { border-left-color: var(--aws-teal); }
+    .feature-card.coding { border-left-color: var(--aws-purple); }
+    .feature-card.efficient { border-left-color: var(--aws-green); }
+    .feature-card.mantle { border-left-color: var(--aws-orange); }
+
+    .feature-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .feature-name {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--aws-white);
+    }
+
+    .category-badge {
+      font-size: 12px;
+      font-weight: 700;
+      padding: 4px 12px;
+      border-radius: 20px;
+      display: inline-block;
+    }
+
+    .category-badge.reasoning {
+      background: rgba(0, 161, 201, 0.2);
+      color: var(--aws-teal);
+      border: 1px solid rgba(0, 161, 201, 0.4);
+    }
+
+    .category-badge.coding {
+      background: rgba(140, 79, 255, 0.2);
+      color: var(--aws-purple);
+      border: 1px solid rgba(140, 79, 255, 0.4);
+    }
+
+    .category-badge.efficient {
+      background: rgba(29, 129, 2, 0.2);
+      color: var(--aws-green);
+      border: 1px solid rgba(29, 129, 2, 0.4);
+    }
+
+    .feature-desc {
+      font-size: 14px;
+      color: var(--aws-light-gray);
+      margin-bottom: 12px;
+      line-height: 1.7;
+    }
+
+    .feature-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .feature-tag {
+      font-size: 12px;
+      padding: 3px 10px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: var(--aws-light-gray);
+    }
+
+    /* ===== Comparison Table ===== */
+    .table-wrapper {
+      overflow-x: auto;
+      margin: 16px 0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    th {
+      background: rgba(255, 153, 0, 0.15);
+      color: var(--aws-orange);
+      font-weight: 600;
+      padding: 12px 16px;
+      text-align: left;
+      border-bottom: 2px solid rgba(255, 153, 0, 0.3);
+      white-space: nowrap;
+    }
+
+    td {
+      padding: 10px 16px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      color: var(--aws-light-gray);
+    }
+
+    tr:hover td {
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    /* ===== Use Case Cards ===== */
+    .usecase-card {
+      background: linear-gradient(135deg, rgba(255, 153, 0, 0.08), rgba(255, 153, 0, 0.03));
+      border: 1px solid rgba(255, 153, 0, 0.2);
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+
+    .usecase-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--aws-white);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .usecase-scenario {
+      font-size: 14px;
+      color: var(--aws-light-gray);
+      margin-bottom: 8px;
+    }
+
+    .usecase-steps {
+      list-style: none;
+      padding: 0;
+      margin: 8px 0;
+    }
+
+    .usecase-steps li {
+      padding: 4px 0;
+      font-size: 13px;
+      color: var(--aws-light-gray);
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .usecase-steps li::before {
+      content: "\2192";
+      color: var(--aws-orange);
+      flex-shrink: 0;
+      font-weight: bold;
+    }
+
+    .usecase-effect {
+      font-size: 14px;
+      color: var(--aws-smile-orange);
+      font-weight: 500;
+      margin-top: 8px;
+    }
+
+    /* ===== Merits / Demerits ===== */
+    .merit-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    @media (max-width: 640px) {
+      .merit-grid { grid-template-columns: 1fr; }
+    }
+
+    .merit-box {
+      border-radius: 8px;
+      padding: 20px;
+    }
+
+    .merit-box.business {
+      background: rgba(255, 153, 0, 0.08);
+      border: 1px solid rgba(255, 153, 0, 0.2);
+    }
+
+    .merit-box.technical {
+      background: rgba(0, 161, 201, 0.08);
+      border: 1px solid rgba(0, 161, 201, 0.2);
+    }
+
+    .merit-box h3 {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+
+    .merit-box.business h3 { color: var(--aws-orange); }
+    .merit-box.technical h3 { color: var(--aws-teal); }
+
+    .merit-list {
+      list-style: none;
+      padding: 0;
+    }
+
+    .merit-list li {
+      padding: 6px 0;
+      font-size: 14px;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .merit-list li strong {
+      color: var(--aws-white);
+    }
+
+    /* ===== Caution / Limitations ===== */
+    .caution-card {
+      background: rgba(209, 50, 18, 0.06);
+      border: 1px solid rgba(209, 50, 18, 0.2);
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+
+    .caution-card h3 {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--aws-red);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .caution-list {
+      list-style: none;
+      padding: 0;
+    }
+
+    .caution-list li {
+      padding: 5px 0;
+      font-size: 14px;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      color: var(--aws-light-gray);
+    }
+
+    .caution-list li::before {
+      content: "\26A0";
+      flex-shrink: 0;
+    }
+
+    /* ===== Pricing ===== */
+    .pricing-highlight {
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .pricing-highlight.low { color: var(--aws-green); }
+    .pricing-highlight.mid { color: var(--aws-teal); }
+    .pricing-highlight.high { color: var(--aws-orange); }
+
+    /* ===== Tier Cards ===== */
+    .tier-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-top: 16px;
+    }
+
+    @media (max-width: 640px) {
+      .tier-grid { grid-template-columns: 1fr; }
+    }
+
+    .tier-card {
+      border-radius: 8px;
+      padding: 20px;
+      text-align: center;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .tier-card.standard {
+      background: rgba(255, 153, 0, 0.08);
+      border-color: rgba(255, 153, 0, 0.3);
+    }
+
+    .tier-card.priority {
+      background: rgba(140, 79, 255, 0.08);
+      border-color: rgba(140, 79, 255, 0.3);
+    }
+
+    .tier-card.flex {
+      background: rgba(29, 129, 2, 0.08);
+      border-color: rgba(29, 129, 2, 0.3);
+    }
+
+    .tier-name {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .tier-card.standard .tier-name { color: var(--aws-orange); }
+    .tier-card.priority .tier-name { color: var(--aws-purple); }
+    .tier-card.flex .tier-name { color: var(--aws-green); }
+
+    .tier-desc {
+      font-size: 13px;
+      color: var(--aws-light-gray);
+      margin-bottom: 8px;
+    }
+
+    .tier-price {
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .tier-card.standard .tier-price { color: var(--aws-orange); }
+    .tier-card.priority .tier-price { color: var(--aws-purple); }
+    .tier-card.flex .tier-price { color: var(--aws-green); }
+
+    /* ===== Region Badges ===== */
+    .region-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .region-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(0, 161, 201, 0.1);
+      border: 1px solid rgba(0, 161, 201, 0.3);
+      border-radius: 8px;
+      padding: 8px 14px;
+      font-size: 13px;
+      color: var(--aws-teal);
+      font-weight: 500;
+    }
+
+    /* ===== Related Services ===== */
+    .related-service {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .related-service:last-child { border-bottom: none; }
+
+    .related-service-icon {
+      font-size: 24px;
+      flex-shrink: 0;
+    }
+
+    .related-service-name {
+      font-weight: 600;
+      color: var(--aws-white);
+      font-size: 15px;
+    }
+
+    .related-service-desc {
+      font-size: 13px;
+      color: var(--aws-light-gray);
+    }
+
+    /* ===== Code Block ===== */
+    .code-block {
+      background: #1a1a2e;
+      border-radius: 8px;
+      overflow: hidden;
+      margin: 16px 0;
+    }
+
+    .code-header {
+      background: #16213e;
+      padding: 8px 16px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+    }
+
+    .code-lang {
+      color: var(--aws-orange);
+      font-weight: bold;
+    }
+
+    .code-title {
+      color: var(--aws-light-gray);
+    }
+
+    .code-block pre {
+      margin: 0;
+      padding: 0;
+      overflow-x: auto;
+    }
+
+    .code-block code {
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      line-height: 1.5;
+      padding: 16px !important;
+    }
+
+    /* ===== Flow Diagram ===== */
+    .flow-diagram {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin: 24px 0;
+    }
+
+    .flow-step {
+      background: var(--aws-dark-squid);
+      border: 2px solid var(--aws-orange);
+      border-radius: 8px;
+      padding: 12px 20px;
+      text-align: center;
+      min-width: 120px;
+      color: var(--aws-white);
+      font-size: 14px;
+    }
+
+    .flow-arrow {
+      color: var(--aws-orange);
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    /* ===== Mermaid ===== */
+    .mermaid-container {
+      background: #FFFFFF;
+      border-radius: 12px;
+      padding: 24px;
+      margin: 20px 0;
+      border: 2px solid rgba(255, 153, 0, 0.3);
+      overflow-x: auto;
+    }
+
+    .mermaid {
+      display: flex;
+      justify-content: center;
+    }
+
+    /* ===== Summary Box ===== */
+    .summary-box {
+      background: linear-gradient(135deg, rgba(255, 153, 0, 0.12), rgba(140, 79, 255, 0.08));
+      border: 2px solid rgba(255, 153, 0, 0.3);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+
+    .summary-box p {
+      font-size: 15px;
+      line-height: 1.8;
+      color: var(--aws-light-gray);
+    }
+
+    /* ===== Footer ===== */
+    footer {
+      margin-top: 24px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(255, 255, 255, 0.2);
+      font-size: 12px;
+      color: var(--aws-light-gray);
+    }
+
+    footer a {
+      color: var(--aws-teal);
+      text-decoration: none;
+      word-break: break-all;
+    }
+
+    footer a:hover { color: var(--aws-smile-orange); }
+
+    .footer-links {
+      list-style: none;
+      padding: 0;
+    }
+
+    .footer-links li {
+      padding: 3px 0;
+    }
+
+    /* ===== Responsive ===== */
+    @media (max-width: 640px) {
+      h1 { font-size: 26px; }
+      .header { flex-direction: column; }
+      .header-right { text-align: left; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <!-- ===== Header ===== -->
+    <div class="header">
+      <div class="header-left">
+        <div class="service-badge">Amazon Bedrock</div>
+        <h1>&#x1F9E0; 6 つのオープンウェイトモデルのフルマネージドサポート</h1>
+        <div class="subtitle">DeepSeek V3.2 / MiniMax M2.1 / GLM 4.7 / GLM 4.7 Flash / Kimi K2.5 / Qwen3 Coder Next + Project Mantle</div>
+      </div>
+      <div class="header-right">
+        <div><span class="date-label">&#x1F4C5; リリース日:</span> 2026 年 02 月 10 日</div>
+      </div>
+    </div>
+
+    <!-- ===== Stats ===== -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-number">6</div>
+        <div class="stat-label">新規オープンウェイトモデル</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">12</div>
+        <div class="stat-label">利用可能リージョン</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">$0.07~</div>
+        <div class="stat-label">入力 100 万トークンあたり最低料金</div>
+      </div>
+    </div>
+
+    <!-- ===== 概要 ===== -->
+    <div class="section">
+      <h2>&#x1F4CB; 概要</h2>
+      <p class="overview-text">
+        Amazon Bedrock が、<span class="highlight">フロンティアレベルの推論</span>と<span class="highlight">エージェンティックコーディング</span>をカバーする 6 つの新しいオープンウェイトモデルのサポートを開始しました。追加されたモデルは DeepSeek V3.2、MiniMax M2.1、GLM 4.7、GLM 4.7 Flash、Kimi K2.5、Qwen3 Coder Next です。
+      </p>
+      <p class="overview-text">
+        これらのモデルは、従来のプロプライエタリモデルと比較して<strong style="color: var(--aws-white);">大幅に低い推論コスト</strong>でフロンティアクラスのパフォーマンスを提供します。新しい分散推論エンジン <span class="highlight">Project Mantle</span> によって駆動され、OpenAI API 仕様との互換性を標準で備えています。
+      </p>
+
+      <!-- Before/After -->
+      <div class="before-after">
+        <div class="before-card">
+          <div class="ba-label">Before</div>
+          <ul class="ba-list">
+            <li>オープンウェイトモデルの選択肢が限定的</li>
+            <li>フロンティアレベルの推論には高コストのプロプライエタリモデルに依存</li>
+            <li>エージェンティックコーディング向けモデルが不足</li>
+            <li>OpenAI SDK からの移行に追加の開発作業が必要</li>
+          </ul>
+        </div>
+        <div class="after-card">
+          <div class="ba-label">After</div>
+          <ul class="ba-list">
+            <li>6 つの新モデルで推論・コーディング・コスト効率を選択可能</li>
+            <li>フロンティアクラスの性能を大幅に低いコストで利用可能</li>
+            <li>Project Mantle による高パフォーマンスなサーバーレス推論</li>
+            <li>OpenAI API 互換でベース URL と API キーの変更のみで移行完了</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== アーキテクチャ図 ===== -->
+    <div class="section">
+      <h2>&#x1F3D7;&#xFE0F; アーキテクチャ図</h2>
+      <div class="mermaid-container">
+        <pre class="mermaid">
+flowchart TD
+    subgraph Client["&#x1F464; クライアントアプリケーション"]
+        direction LR
+        OpenAI["&#x1F50C; OpenAI SDK"]
+        AWS_SDK["&#x1F50C; AWS SDK"]
+        OpenAI ~~~ AWS_SDK
+    end
+
+    subgraph Bedrock["&#x2601;&#xFE0F; Amazon Bedrock"]
+        subgraph Mantle["&#x2699;&#xFE0F; Project Mantle 分散推論エンジン"]
+            direction LR
+            MantleAPI["&#x1F50C; OpenAI API 互換&lt;br/&gt;エンドポイント"]
+            BedrockAPI["&#x1F50C; Bedrock API&lt;br/&gt;エンドポイント"]
+            MantleAPI ~~~ BedrockAPI
+        end
+
+        subgraph Models["&#x1F916; オープンウェイトモデル"]
+            direction LR
+            Reasoning["&#x1F9E0; 推論特化&lt;br/&gt;DeepSeek V3.2&lt;br/&gt;Kimi K2.5"]
+            Coding["&#x1F4BB; コーディング特化&lt;br/&gt;GLM 4.7&lt;br/&gt;MiniMax M2.1"]
+            Efficient["&#x26A1; コスト効率特化&lt;br/&gt;Qwen3 Coder Next&lt;br/&gt;GLM 4.7 Flash"]
+            Reasoning ~~~ Coding ~~~ Efficient
+        end
+    end
+
+    subgraph Output["&#x1F4E4; 出力"]
+        direction LR
+        Response["&#x1F4CB; 推論レスポンス"]
+        Stream["&#x1F4E1; ストリーミング"]
+        Response ~~~ Stream
+    end
+
+    OpenAI --> MantleAPI
+    AWS_SDK --> BedrockAPI
+    Mantle --> Models
+    Models --> Output
+
+    classDef client fill:#E3F2FD,stroke:#BBDEFB,stroke-width:2px,color:#1565C0
+    classDef container fill:none,stroke:#CCCCCC,stroke-width:2px,color:#666666
+    classDef engine fill:#FFE0B2,stroke:#FFCC80,stroke-width:2px,color:#5D4037
+    classDef model fill:#E8EAF6,stroke:#C5CAE9,stroke-width:2px,color:#283593
+    classDef output fill:#DCEDC8,stroke:#C5E1A5,stroke-width:2px,color:#33691E
+
+    class Client,Bedrock,Models,Output container
+    class OpenAI,AWS_SDK client
+    class Mantle,MantleAPI,BedrockAPI engine
+    class Reasoning,Coding,Efficient model
+    class Response,Stream output
+        </pre>
+      </div>
+      <p style="font-size: 14px; color: var(--aws-light-gray);">クライアントアプリケーションは OpenAI SDK または AWS SDK を使用して Amazon Bedrock にアクセスし、Project Mantle の分散推論エンジンを通じて 6 つのオープンウェイトモデルから推論結果を取得します。</p>
+    </div>
+
+    <!-- ===== 主要機能 ===== -->
+    <div class="section">
+      <h2>&#x1F680; 主要機能 -- 6 つのオープンウェイトモデル</h2>
+
+      <!-- 推論特化 -->
+      <div class="feature-card reasoning">
+        <div class="feature-header">
+          <div class="feature-name">&#x1F9E0; DeepSeek V3.2</div>
+          <span class="category-badge reasoning">推論 / エージェンティック</span>
+        </div>
+        <div class="feature-desc">フロンティアレベルの推論能力を持つオープンウェイトモデル。複雑な問題解決やエージェンティックワークフローに適しています。</div>
+        <div class="feature-tags">
+          <span class="feature-tag">DeepSeek</span>
+          <span class="feature-tag">フロンティア推論</span>
+          <span class="feature-tag">エージェンティック</span>
+        </div>
+      </div>
+
+      <div class="feature-card reasoning">
+        <div class="feature-header">
+          <div class="feature-name">&#x1F9E0; Kimi K2.5</div>
+          <span class="category-badge reasoning">推論 / エージェンティック</span>
+        </div>
+        <div class="feature-desc">Moonshot AI が提供する推論とエージェンティックインテリジェンスのフロンティアモデル。</div>
+        <div class="feature-tags">
+          <span class="feature-tag">Moonshot AI</span>
+          <span class="feature-tag">推論</span>
+          <span class="feature-tag">エージェンティック</span>
+        </div>
+      </div>
+
+      <!-- コーディング特化 -->
+      <div class="feature-card coding">
+        <div class="feature-header">
+          <div class="feature-name">&#x1F4BB; GLM 4.7</div>
+          <span class="category-badge coding">自律コーディング</span>
+        </div>
+        <div class="feature-desc">Z AI が提供する大規模出力ウィンドウを持つ自律コーディングモデル。コード生成と分析に優れた性能を発揮します。</div>
+        <div class="feature-tags">
+          <span class="feature-tag">Z AI</span>
+          <span class="feature-tag">大規模出力</span>
+          <span class="feature-tag">コード生成</span>
+        </div>
+      </div>
+
+      <div class="feature-card coding">
+        <div class="feature-header">
+          <div class="feature-name">&#x1F4BB; MiniMax M2.1</div>
+          <span class="category-badge coding">自律コーディング</span>
+        </div>
+        <div class="feature-desc">MiniMax AI が提供する大規模出力ウィンドウ対応モデル。自律的なコーディングタスクの新基準を確立します。</div>
+        <div class="feature-tags">
+          <span class="feature-tag">MiniMax AI</span>
+          <span class="feature-tag">大規模出力</span>
+          <span class="feature-tag">自律コーディング</span>
+        </div>
+      </div>
+
+      <!-- コスト効率特化 -->
+      <div class="feature-card efficient">
+        <div class="feature-header">
+          <div class="feature-name">&#x26A1; Qwen3 Coder Next</div>
+          <span class="category-badge efficient">コスト効率</span>
+        </div>
+        <div class="feature-desc">Qwen が提供する軽量かつコスト効率の高いコーディングモデル。本番環境でのデプロイメントに最適化されています。</div>
+        <div class="feature-tags">
+          <span class="feature-tag">Qwen</span>
+          <span class="feature-tag">軽量</span>
+          <span class="feature-tag">本番環境向け</span>
+        </div>
+      </div>
+
+      <div class="feature-card efficient">
+        <div class="feature-header">
+          <div class="feature-name">&#x26A1; GLM 4.7 Flash</div>
+          <span class="category-badge efficient">コスト効率</span>
+        </div>
+        <div class="feature-desc">Z AI が提供する軽量モデル。低コストでの本番環境デプロイメントに最適です。</div>
+        <div class="feature-tags">
+          <span class="feature-tag">Z AI</span>
+          <span class="feature-tag">Flash</span>
+          <span class="feature-tag">低コスト</span>
+        </div>
+      </div>
+
+      <!-- Project Mantle -->
+      <div class="feature-card mantle">
+        <div class="feature-header">
+          <div class="feature-name">&#x2699;&#xFE0F; Project Mantle 分散推論エンジン</div>
+        </div>
+        <div class="feature-desc">大規模機械学習モデルサービング向けの新しい分散推論エンジン。新しいモデルのオンボーディングを簡素化・迅速化し、高パフォーマンスで信頼性の高いサーバーレス推論を提供します。高度な QoS 制御と自動キャパシティ管理、OpenAI API 仕様との互換性を標準で備えています。</div>
+        <div class="feature-tags">
+          <span class="feature-tag">分散推論</span>
+          <span class="feature-tag">サーバーレス</span>
+          <span class="feature-tag">OpenAI API 互換</span>
+          <span class="feature-tag">自動キャパシティ管理</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== 技術仕様 ===== -->
+    <div class="section">
+      <h2>&#x1F4CA; 技術仕様 -- モデル一覧</h2>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>モデル名</th>
+              <th>プロバイダー</th>
+              <th>特化領域</th>
+              <th>主な用途</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong style="color: var(--aws-white);">DeepSeek V3.2</strong></td>
+              <td>DeepSeek</td>
+              <td><span class="category-badge reasoning" style="font-size: 11px;">推論</span></td>
+              <td>複雑な推論、エージェンティックワークフロー</td>
+            </tr>
+            <tr>
+              <td><strong style="color: var(--aws-white);">Kimi K2.5</strong></td>
+              <td>Moonshot AI</td>
+              <td><span class="category-badge reasoning" style="font-size: 11px;">推論</span></td>
+              <td>推論、エージェンティックインテリジェンス</td>
+            </tr>
+            <tr>
+              <td><strong style="color: var(--aws-white);">GLM 4.7</strong></td>
+              <td>Z AI</td>
+              <td><span class="category-badge coding" style="font-size: 11px;">コーディング</span></td>
+              <td>大規模出力ウィンドウでのコード生成・分析</td>
+            </tr>
+            <tr>
+              <td><strong style="color: var(--aws-white);">MiniMax M2.1</strong></td>
+              <td>MiniMax AI</td>
+              <td><span class="category-badge coding" style="font-size: 11px;">コーディング</span></td>
+              <td>大規模出力ウィンドウでのコード生成</td>
+            </tr>
+            <tr>
+              <td><strong style="color: var(--aws-white);">Qwen3 Coder Next</strong></td>
+              <td>Qwen</td>
+              <td><span class="category-badge efficient" style="font-size: 11px;">コスト効率</span></td>
+              <td>本番環境向けコーディング</td>
+            </tr>
+            <tr>
+              <td><strong style="color: var(--aws-white);">GLM 4.7 Flash</strong></td>
+              <td>Z AI</td>
+              <td><span class="category-badge efficient" style="font-size: 11px;">コスト効率</span></td>
+              <td>本番環境向け軽量推論</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 style="font-size: 18px; font-weight: 600; color: var(--aws-white); margin-top: 24px; margin-bottom: 12px;">&#x1F50C; サポートされる API</h3>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>API</th>
+              <th>説明</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong style="color: var(--aws-white);">Chat Completions API</strong></td>
+              <td>会話型レスポンスの生成</td>
+            </tr>
+            <tr>
+              <td><strong style="color: var(--aws-white);">Responses API</strong></td>
+              <td>ステートフルな会話管理、非同期推論</td>
+            </tr>
+            <tr>
+              <td><strong style="color: var(--aws-white);">Models API</strong></td>
+              <td>利用可能なモデルの一覧取得</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ===== 設定方法 ===== -->
+    <div class="section">
+      <h2>&#x2699;&#xFE0F; 設定方法</h2>
+      <p style="font-size: 14px; color: var(--aws-light-gray); margin-bottom: 8px;"><strong style="color: var(--aws-white);">前提条件:</strong></p>
+      <ul style="list-style: none; padding: 0; margin-bottom: 20px;">
+        <li style="padding: 4px 0; font-size: 14px;">&#x2713; AWS アカウントを持ち、Amazon Bedrock へのアクセス権限が設定されていること</li>
+        <li style="padding: 4px 0; font-size: 14px;">&#x2713; 使用するモデルへのアクセスが有効になっていること</li>
+        <li style="padding: 4px 0; font-size: 14px;">&#x2713; OpenAI SDK を使用する場合は、Amazon Bedrock API キーが設定されていること</li>
+      </ul>
+
+      <p style="font-size: 14px; color: var(--aws-orange); font-weight: 600; margin-bottom: 8px;">ステップ 1: モデルアクセスの有効化</p>
+      <p style="font-size: 14px; color: var(--aws-light-gray); margin-bottom: 16px;">AWS マネジメントコンソール > Amazon Bedrock > Model access から使用したいモデルを選択してアクセスを有効化します。</p>
+
+      <p style="font-size: 14px; color: var(--aws-orange); font-weight: 600; margin-bottom: 8px;">ステップ 2: 環境変数の設定</p>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash</span>
+          <span class="code-title">OpenAI API 互換エンドポイントの設定</span>
+        </div>
+        <pre><code class="language-bash"># Amazon Bedrock API キーを設定
+export OPENAI_API_KEY="your-bedrock-api-key"
+
+# Amazon Bedrock エンドポイントを設定
+export OPENAI_BASE_URL="https://bedrock-mantle.us-east-1.api.aws/v1"</code></pre>
+      </div>
+
+      <p style="font-size: 14px; color: var(--aws-orange); font-weight: 600; margin-bottom: 8px; margin-top: 20px;">ステップ 3: OpenAI SDK での利用</p>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python</span>
+          <span class="code-title">Chat Completions API でのリクエスト例</span>
+        </div>
+        <pre><code class="language-python">from openai import OpenAI
+
+client = OpenAI()
+
+# Chat Completions API でのリクエスト例
+completion = client.chat.completions.create(
+    model="deepseek.deepseek-v3-2",
+    messages=[
+        {"role": "system", "content": "You are a helpful assistant."},
+        {"role": "user", "content": "Hello!"}
+    ]
+)
+print(completion.choices[0].message)</code></pre>
+      </div>
+
+      <p style="font-size: 14px; color: var(--aws-orange); font-weight: 600; margin-bottom: 8px; margin-top: 20px;">ステップ 4: ストリーミングレスポンス</p>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python</span>
+          <span class="code-title">ストリーミングレスポンスの利用</span>
+        </div>
+        <pre><code class="language-python">from openai import OpenAI
+
+client = OpenAI()
+
+stream = client.chat.completions.create(
+    model="deepseek.deepseek-v3-2",
+    messages=[{"role": "user", "content": "Tell me a story"}],
+    stream=True
+)
+
+for chunk in stream:
+    if chunk.choices[0].delta.content is not None:
+        print(chunk.choices[0].delta.content, end="")</code></pre>
+      </div>
+
+      <div class="flow-diagram" style="margin-top: 24px;">
+        <div class="flow-step">&#x1F511; API キー設定</div>
+        <span class="flow-arrow">&rarr;</span>
+        <div class="flow-step">&#x1F50C; エンドポイント設定</div>
+        <span class="flow-arrow">&rarr;</span>
+        <div class="flow-step">&#x1F4BB; SDK でリクエスト</div>
+        <span class="flow-arrow">&rarr;</span>
+        <div class="flow-step">&#x1F4E1; レスポンス取得</div>
+      </div>
+    </div>
+
+    <!-- ===== ユースケース ===== -->
+    <div class="section">
+      <h2>&#x1F4A1; ユースケース</h2>
+
+      <div class="usecase-card">
+        <div class="usecase-title">&#x1F916; ユースケース 1: エージェンティック AI ワークフローの構築</div>
+        <div class="usecase-scenario"><strong style="color: var(--aws-white);">シナリオ:</strong> 複雑なビジネスプロセスの自動化のために、推論能力の高い AI エージェントを構築したい。</div>
+        <ul class="usecase-steps">
+          <li>DeepSeek V3.2 または Kimi K2.5 をエージェントの推論エンジンとして選択</li>
+          <li>Responses API を使用してステートフルな会話管理を実装</li>
+          <li>ツール統合機能を活用してデータベースクエリや API 呼び出しを自動化</li>
+          <li>ストリーミングレスポンスでリアルタイムなフィードバックを提供</li>
+        </ul>
+        <div class="usecase-effect">&#x2192; フロンティアレベルの推論能力を低コストで利用でき、複雑な意思決定プロセスを自動化できる。</div>
+      </div>
+
+      <div class="usecase-card">
+        <div class="usecase-title">&#x1F4BB; ユースケース 2: 大規模コードベースの自律的コード生成</div>
+        <div class="usecase-scenario"><strong style="color: var(--aws-white);">シナリオ:</strong> ソフトウェア開発チームが、大規模なコード生成やリファクタリングを自動化したい。</div>
+        <ul class="usecase-steps">
+          <li>GLM 4.7 または MiniMax M2.1 を選択し、大規模出力ウィンドウを活用</li>
+          <li>Chat Completions API を使用してコード生成リクエストを送信</li>
+          <li>システムプロンプトでコーディング規約やプロジェクト構造を指定</li>
+          <li>生成されたコードを CI/CD パイプラインに統合して自動テストを実施</li>
+        </ul>
+        <div class="usecase-effect">&#x2192; 大規模出力ウィンドウにより、複数のファイルにまたがるコード生成やリファクタリングを一度のリクエストで実行でき、開発効率が向上する。</div>
+      </div>
+
+      <div class="usecase-card">
+        <div class="usecase-title">&#x26A1; ユースケース 3: コスト効率を重視した本番環境 AI デプロイメント</div>
+        <div class="usecase-scenario"><strong style="color: var(--aws-white);">シナリオ:</strong> 本番環境で大量の AI リクエストを処理する必要があるが、コストを最小限に抑えたい。</div>
+        <ul class="usecase-steps">
+          <li>Qwen3 Coder Next または GLM 4.7 Flash を選択し、低コストでの推論を実現</li>
+          <li>OpenAI API 互換エンドポイントを使用して既存アプリケーションを最小限の変更で移行</li>
+          <li>Flex ティアを活用して、即時処理が不要なワークロードのコストをさらに削減</li>
+          <li>モデルのパフォーマンスを監視し、必要に応じてモデルを切り替え</li>
+        </ul>
+        <div class="usecase-effect">&#x2192; 軽量モデルの採用と Flex ティアの活用により、本番環境の推論コストを大幅に削減しながら、十分な品質のレスポンスを維持できる。</div>
+      </div>
+    </div>
+
+    <!-- ===== メリット ===== -->
+    <div class="section">
+      <h2>&#x2705; メリット</h2>
+      <div class="merit-grid">
+        <div class="merit-box business">
+          <h3>&#x1F4BC; ビジネス面</h3>
+          <ul class="merit-list">
+            <li>&rarr; <strong>コスト削減:</strong> フロンティアクラスのパフォーマンスを大幅に低い推論コストで利用でき、AI ワークロードの TCO を削減</li>
+            <li>&rarr; <strong>ワークロード最適化:</strong> 推論、コーディング、コスト効率の各領域に特化したモデルを選択可能</li>
+            <li>&rarr; <strong>移行コストの最小化:</strong> OpenAI API 互換エンドポイントにより、ベース URL と API キーの変更のみで移行完了</li>
+            <li>&rarr; <strong>ベンダーロックインの回避:</strong> オープンウェイトモデルの採用により、特定のモデルプロバイダーへの依存を軽減</li>
+          </ul>
+        </div>
+        <div class="merit-box technical">
+          <h3>&#x1F527; 技術面</h3>
+          <ul class="merit-list">
+            <li>&rarr; <strong>サーバーレス推論:</strong> インフラストラクチャの管理が不要で、Project Mantle が自動的にキャパシティを管理</li>
+            <li>&rarr; <strong>高パフォーマンス:</strong> 分散推論エンジンによる高パフォーマンスで信頼性の高い推論</li>
+            <li>&rarr; <strong>OpenAI API 互換:</strong> 既存の OpenAI SDK やツールをそのまま使用可能</li>
+            <li>&rarr; <strong>ストリーミング対応:</strong> Chat Completions API と Responses API の両方でストリーミングレスポンスをサポート</li>
+            <li>&rarr; <strong>ステートフル会話管理:</strong> Responses API を使用した自動的な会話コンテキストの再構築</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== デメリット・制約事項 ===== -->
+    <div class="section">
+      <h2>&#x26A0;&#xFE0F; デメリット・制約事項</h2>
+      <div class="caution-card">
+        <h3>&#x1F6A7; 制限事項</h3>
+        <ul class="caution-list">
+          <li>bedrock-mantle エンドポイントを通じて提供されるため、従来の Bedrock API エンドポイントとは異なるエンドポイントが必要</li>
+          <li>各モデルの利用可能リージョンはモデルによって異なる場合がある</li>
+          <li>オープンウェイトモデルはプロプライエタリモデルと比較して、特定のベンチマークにおいて性能差がある場合がある</li>
+        </ul>
+      </div>
+      <div class="caution-card">
+        <h3>&#x1F4A1; 考慮すべき点</h3>
+        <ul class="caution-list">
+          <li>Project Mantle エンドポイントを使用するには、Amazon Bedrock API キーの取得が必要</li>
+          <li>モデル選択にあたっては、各モデルの特化領域とユースケースの適合性を評価する必要がある</li>
+          <li>料金はリージョンによって異なるため、デプロイ先のリージョンの料金を事前に確認することが推奨される</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- ===== 料金情報 ===== -->
+    <div class="section">
+      <h2>&#x1F4B3; 料金情報</h2>
+      <p style="font-size: 14px; color: var(--aws-light-gray); margin-bottom: 16px;">オンデマンド料金 (Standard ティア、US East リージョン)</p>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>モデル名</th>
+              <th>プロバイダー</th>
+              <th>入力 / 100 万トークン</th>
+              <th>出力 / 100 万トークン</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong style="color: var(--aws-white);">DeepSeek V3.2</strong></td>
+              <td>DeepSeek</td>
+              <td><span class="pricing-highlight mid">$0.62</span></td>
+              <td><span class="pricing-highlight mid">$1.85</span></td>
+            </tr>
+            <tr>
+              <td><strong style="color: var(--aws-white);">Kimi K2.5</strong></td>
+              <td>Moonshot AI</td>
+              <td><span class="pricing-highlight mid">$0.60</span></td>
+              <td><span class="pricing-highlight high">$3.00</span></td>
+            </tr>
+            <tr>
+              <td><strong style="color: var(--aws-white);">GLM 4.7</strong></td>
+              <td>Z AI</td>
+              <td><span class="pricing-highlight mid">$0.60</span></td>
+              <td><span class="pricing-highlight mid">$2.20</span></td>
+            </tr>
+            <tr>
+              <td><strong style="color: var(--aws-white);">MiniMax M2.1</strong></td>
+              <td>MiniMax AI</td>
+              <td><span class="pricing-highlight low">$0.30</span></td>
+              <td><span class="pricing-highlight mid">$1.20</span></td>
+            </tr>
+            <tr>
+              <td><strong style="color: var(--aws-white);">Qwen3 Coder Next</strong></td>
+              <td>Qwen</td>
+              <td><span class="pricing-highlight mid">$0.50</span></td>
+              <td><span class="pricing-highlight mid">$1.20</span></td>
+            </tr>
+            <tr>
+              <td><strong style="color: var(--aws-white);">GLM 4.7 Flash</strong></td>
+              <td>Z AI</td>
+              <td><span class="pricing-highlight low">$0.07</span></td>
+              <td><span class="pricing-highlight low">$0.40</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 style="font-size: 18px; font-weight: 600; color: var(--aws-white); margin-top: 24px; margin-bottom: 12px;">&#x1F3AF; サービスティア</h3>
+      <div class="tier-grid">
+        <div class="tier-card standard">
+          <div class="tier-name">Standard</div>
+          <div class="tier-desc">通常のパフォーマンス</div>
+          <div class="tier-price">標準料金</div>
+        </div>
+        <div class="tier-card priority">
+          <div class="tier-name">Priority</div>
+          <div class="tier-desc">優先処理、低レイテンシ</div>
+          <div class="tier-price">+75% プレミアム</div>
+        </div>
+        <div class="tier-card flex">
+          <div class="tier-name">Flex</div>
+          <div class="tier-desc">コスト効率重視</div>
+          <div class="tier-price">-50% ディスカウント</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== 利用可能リージョン ===== -->
+    <div class="section">
+      <h2>&#x1F30D; 利用可能リージョン</h2>
+      <p style="font-size: 14px; color: var(--aws-light-gray); margin-bottom: 16px;">bedrock-mantle エンドポイントは以下の 12 リージョンで利用可能です。</p>
+      <div class="region-grid">
+        <div class="region-badge">&#x1F1FA;&#x1F1F8; us-east-1</div>
+        <div class="region-badge">&#x1F1FA;&#x1F1F8; us-east-2</div>
+        <div class="region-badge">&#x1F1FA;&#x1F1F8; us-west-2</div>
+        <div class="region-badge">&#x1F1EF;&#x1F1F5; ap-northeast-1</div>
+        <div class="region-badge">&#x1F1EE;&#x1F1F3; ap-south-1</div>
+        <div class="region-badge">&#x1F1EE;&#x1F1E9; ap-southeast-3</div>
+        <div class="region-badge">&#x1F1E9;&#x1F1EA; eu-central-1</div>
+        <div class="region-badge">&#x1F1EE;&#x1F1EA; eu-west-1</div>
+        <div class="region-badge">&#x1F1EC;&#x1F1E7; eu-west-2</div>
+        <div class="region-badge">&#x1F1EE;&#x1F1F9; eu-south-1</div>
+        <div class="region-badge">&#x1F1F8;&#x1F1EA; eu-north-1</div>
+        <div class="region-badge">&#x1F1E7;&#x1F1F7; sa-east-1</div>
+      </div>
+      <p style="font-size: 13px; color: var(--aws-light-gray); margin-top: 12px;">※ モデルごとの利用可能リージョンは異なる場合があるため、最新情報は Amazon Bedrock コンソールまたはドキュメントをご確認ください。</p>
+    </div>
+
+    <!-- ===== 関連サービス ===== -->
+    <div class="section">
+      <h2>&#x1F517; 関連サービス・機能</h2>
+      <div class="related-service">
+        <div class="related-service-icon">&#x1F4E1;</div>
+        <div>
+          <div class="related-service-name">Amazon Bedrock Responses API</div>
+          <div class="related-service-desc">ステートフルな会話管理と非同期推論をサポートする API</div>
+        </div>
+      </div>
+      <div class="related-service">
+        <div class="related-service-icon">&#x1F4AC;</div>
+        <div>
+          <div class="related-service-name">Amazon Bedrock Chat Completions API</div>
+          <div class="related-service-desc">会話型レスポンスの生成に使用する API</div>
+        </div>
+      </div>
+      <div class="related-service">
+        <div class="related-service-icon">&#x2699;&#xFE0F;</div>
+        <div>
+          <div class="related-service-name">Project Mantle</div>
+          <div class="related-service-desc">Amazon Bedrock 上の分散推論エンジン。OpenAI API 互換エンドポイントを提供</div>
+        </div>
+      </div>
+      <div class="related-service">
+        <div class="related-service-icon">&#x1F6E1;&#xFE0F;</div>
+        <div>
+          <div class="related-service-name">Amazon Bedrock Guardrails</div>
+          <div class="related-service-desc">モデル出力にセーフガードを適用し、責任ある AI の実践を支援</div>
+        </div>
+      </div>
+      <div class="related-service">
+        <div class="related-service-icon">&#x1F916;</div>
+        <div>
+          <div class="related-service-name">Amazon Bedrock AgentCore</div>
+          <div class="related-service-desc">AI エージェントの構築とデプロイメントを支援するサービス</div>
+        </div>
+      </div>
+      <div class="related-service">
+        <div class="related-service-icon">&#x1F510;</div>
+        <div>
+          <div class="related-service-name">AWS PrivateLink</div>
+          <div class="related-service-desc">bedrock-mantle エンドポイントへのプライベート接続をサポート</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== まとめ ===== -->
+    <div class="summary-box">
+      <h2>&#x1F4DD; まとめ</h2>
+      <p>
+        Amazon Bedrock に 6 つのオープンウェイトモデルが追加されたことで、エンタープライズ AI ワークロードのあらゆる領域をカバーするモデル選択肢が大幅に拡充されました。<strong style="color: var(--aws-white);">推論・エージェンティック特化</strong>、<strong style="color: var(--aws-white);">自律コーディング特化</strong>、<strong style="color: var(--aws-white);">コスト効率特化</strong>の 3 つのカテゴリにわたるモデル群により、ユースケースに最適なモデルを選択できます。Project Mantle 分散推論エンジンによる高パフォーマンスなサーバーレス推論と OpenAI API 互換エンドポイントにより、既存の OpenAI SDK ベースのアプリケーションからの移行も容易です。フロンティアクラスのパフォーマンスを低コストで利用でき、AI ワークロードのコスト最適化とパフォーマンス向上を同時に実現できるアップデートです。
+      </p>
+    </div>
+
+    <!-- ===== Footer ===== -->
+    <footer>
+      <p style="margin-bottom: 8px;"><strong style="color: var(--aws-orange);">&#x1F4CE; 参考リンク</strong></p>
+      <ul class="footer-links">
+        <li>&#x1F4C4; <a href="https://aws.amazon.com/about-aws/whats-new/2026/02/amazon-bedrock-adds-support-six-open-weights-models/" target="_blank" rel="noopener noreferrer">公式発表 - What's New</a></li>
+        <li>&#x1F4D6; <a href="https://docs.aws.amazon.com/bedrock/latest/userguide/getting-started.html" target="_blank" rel="noopener noreferrer">Amazon Bedrock ドキュメント</a></li>
+        <li>&#x1F50C; <a href="https://docs.aws.amazon.com/bedrock/latest/userguide/bedrock-mantle.html" target="_blank" rel="noopener noreferrer">OpenAI API 互換エンドポイント ドキュメント</a></li>
+        <li>&#x1F4B0; <a href="https://aws.amazon.com/bedrock/pricing/" target="_blank" rel="noopener noreferrer">Amazon Bedrock 料金</a></li>
+        <li>&#x1F30D; <a href="https://docs.aws.amazon.com/bedrock/latest/userguide/models-regions.html" target="_blank" rel="noopener noreferrer">モデル別リージョンサポート</a></li>
+        <li>&#x1F3AF; <a href="https://aws.amazon.com/bedrock/service-tiers/" target="_blank" rel="noopener noreferrer">Amazon Bedrock サービスティア</a></li>
+      </ul>
+      <p style="margin-top: 12px; font-size: 11px; color: rgba(213, 219, 219, 0.5);">Generated from reports/2026/2026-02-10-amazon-bedrock-adds-support-six-open-weights-models.md</p>
+    </footer>
+
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'base',
+      themeVariables: {
+        primaryColor: '#FF9900',
+        primaryTextColor: '#232F3E',
+        primaryBorderColor: '#FF9900',
+        lineColor: '#FF9900',
+        secondaryColor: '#F5F5F5',
+        tertiaryColor: '#FAFAFA',
+        background: '#FFFFFF',
+        mainBkg: '#FFF3E0',
+        nodeBorder: '#FF9900',
+        clusterBkg: '#FFF8E1',
+        clusterBorder: '#FF9900',
+        edgeLabelBackground: '#FFFFFF',
+        textColor: '#232F3E'
+      }
+    });
+  </script>
+  <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/highlight.min.js"></script>
+  <script>hljs.highlightAll();</script>
+</body>
+</html>

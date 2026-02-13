@@ -1,0 +1,1233 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Amazon DocumentDB - アジアパシフィック (メルボルン) およびヨーロッパ (チューリッヒ) リージョンで利用可能に</title>
+    <meta property="og:title" content="Amazon DocumentDB - メルボルン & チューリッヒリージョンで利用可能に">
+    <meta property="og:description" content="Amazon DocumentDB (with MongoDB compatibility) がアジアパシフィック (メルボルン) およびヨーロッパ (チューリッヒ) リージョンで新たに利用可能に。データレジデンシー要件への対応と低レイテンシーアクセスを実現。">
+    <meta property="og:url" content="https://takech9203.github.io/awsnews-summary/20260211-amazon-documentdb-mongodb-compatibility-asia-pacific-melbourne-region.html">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/styles/atom-one-dark.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/highlight.min.js"></script>
+    <style>
+        :root {
+            --squid-ink: #232F3E;
+            --aws-orange: #FF9900;
+            --aws-smile-orange: #FFAD33;
+            --text-primary: #FFFFFF;
+            --text-secondary: #AAAAAA;
+            --light-gray: #D5DBDB;
+            --card-bg: #2D3A4A;
+            --dark-squid: #1A242F;
+            --border-color: #3D4A5A;
+            --aws-teal: #00A1C9;
+            --aws-green: #1D8102;
+            --aws-red: #D13212;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            background-color: var(--squid-ink);
+            color: var(--light-gray);
+            line-height: 1.8;
+            font-size: 16px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+            padding-bottom: 30px;
+            border-bottom: 3px solid var(--aws-orange);
+        }
+
+        .service-badge {
+            display: inline-block;
+            background-color: var(--aws-orange);
+            color: var(--squid-ink);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+        }
+
+        .release-date {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--aws-orange);
+            margin-bottom: 20px;
+            padding-left: 15px;
+            border-left: 4px solid var(--aws-orange);
+        }
+
+        .overview-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .overview-text {
+            font-size: 16px;
+            line-height: 1.9;
+        }
+
+        .highlight {
+            background-color: rgba(255, 153, 0, 0.2);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+            color: var(--aws-orange);
+        }
+
+        /* Stats grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, var(--card-bg) 0%, var(--dark-squid) 100%);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid rgba(255, 153, 0, 0.2);
+        }
+
+        .stat-icon {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--aws-orange);
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        /* Before/After comparison */
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .comparison-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .comparison-card.before {
+            border-top: 4px solid #E74C3C;
+        }
+
+        .comparison-card.after {
+            border-top: 4px solid #2ECC71;
+        }
+
+        .comparison-label {
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        .comparison-card.before .comparison-label {
+            color: #E74C3C;
+        }
+
+        .comparison-card.after .comparison-label {
+            color: #2ECC71;
+        }
+
+        .comparison-list {
+            list-style: none;
+        }
+
+        .comparison-list li {
+            padding: 8px 0;
+            padding-left: 25px;
+            position: relative;
+            font-size: 14px;
+        }
+
+        .comparison-card.before .comparison-list li::before {
+            content: "\2717";
+            position: absolute;
+            left: 0;
+            color: #E74C3C;
+            font-weight: bold;
+        }
+
+        .comparison-card.after .comparison-list li::before {
+            content: "\2713";
+            position: absolute;
+            left: 0;
+            color: #2ECC71;
+            font-weight: bold;
+        }
+
+        /* Mermaid diagram */
+        .diagram-container {
+            background-color: #FFFFFF;
+            border: 2px solid rgba(255, 153, 0, 0.3);
+            border-radius: 12px;
+            padding: 25px;
+            overflow-x: auto;
+        }
+
+        .mermaid {
+            display: flex;
+            justify-content: center;
+        }
+
+        /* Feature cards */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .feature-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            border-left: 3px solid var(--aws-orange);
+        }
+
+        .feature-icon {
+            font-size: 36px;
+            margin-bottom: 12px;
+        }
+
+        .feature-title {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--aws-orange);
+        }
+
+        .feature-description {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        /* Tech spec table */
+        .spec-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+        }
+
+        .spec-table th {
+            background-color: var(--dark-squid);
+            color: var(--aws-orange);
+            padding: 10px 14px;
+            text-align: left;
+            font-size: 13px;
+            font-weight: 700;
+            border-bottom: 2px solid var(--aws-orange);
+        }
+
+        .spec-table td {
+            padding: 10px 14px;
+            font-size: 13px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--light-gray);
+        }
+
+        .spec-table a {
+            color: var(--aws-teal);
+            text-decoration: none;
+        }
+
+        .spec-table a:hover {
+            color: var(--aws-smile-orange);
+        }
+
+        /* Code blocks */
+        .code-block {
+            background: #1a1a2e;
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 16px 0;
+        }
+
+        .code-header {
+            background: #16213e;
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+        }
+
+        .code-lang {
+            color: var(--aws-orange);
+            font-weight: bold;
+        }
+
+        .code-title {
+            color: var(--light-gray);
+        }
+
+        .code-block pre {
+            margin: 0;
+            padding: 0;
+            overflow-x: auto;
+        }
+
+        .code-block code {
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            padding: 16px !important;
+        }
+
+        /* Use case cards */
+        .usecase-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 3px solid var(--aws-orange);
+        }
+
+        .usecase-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .usecase-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--aws-orange);
+        }
+
+        .usecase-scenario {
+            font-size: 14px;
+            color: var(--light-gray);
+            margin-bottom: 12px;
+        }
+
+        .usecase-effect {
+            font-size: 14px;
+            color: #2ECC71;
+            padding: 10px;
+            background-color: rgba(46, 204, 113, 0.1);
+            border-radius: 8px;
+        }
+
+        .usecase-effect::before {
+            content: "\2713 ";
+            font-weight: bold;
+        }
+
+        /* Merit/Demerit grid */
+        .merit-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .merit-section {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .merit-section h3 {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: var(--aws-orange);
+        }
+
+        .merit-list {
+            list-style: none;
+        }
+
+        .merit-list li {
+            padding: 6px 0;
+            padding-left: 22px;
+            position: relative;
+            font-size: 14px;
+            color: var(--light-gray);
+        }
+
+        .merit-list li::before {
+            content: "\2713";
+            position: absolute;
+            left: 0;
+            color: #2ECC71;
+            font-weight: bold;
+        }
+
+        /* Constraint/Limitation */
+        .constraint-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 3px solid #E74C3C;
+        }
+
+        .constraint-title {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #E74C3C;
+        }
+
+        .constraint-list {
+            list-style: none;
+        }
+
+        .constraint-list li {
+            padding: 6px 0;
+            padding-left: 22px;
+            position: relative;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .constraint-list li::before {
+            content: "\26A0";
+            position: absolute;
+            left: 0;
+            font-size: 12px;
+        }
+
+        /* Pricing card */
+        .pricing-card {
+            background: linear-gradient(135deg, rgba(29, 129, 2, 0.15) 0%, var(--card-bg) 100%);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid rgba(29, 129, 2, 0.3);
+        }
+
+        .pricing-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 12px 0;
+        }
+
+        .pricing-table th {
+            background-color: var(--dark-squid);
+            color: var(--aws-orange);
+            padding: 10px 14px;
+            text-align: left;
+            font-size: 13px;
+            font-weight: 700;
+            border-bottom: 2px solid var(--aws-orange);
+        }
+
+        .pricing-table td {
+            padding: 10px 14px;
+            font-size: 13px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--light-gray);
+        }
+
+        .pricing-note {
+            font-size: 14px;
+            color: var(--text-secondary);
+            text-align: center;
+            margin-top: 12px;
+        }
+
+        .pricing-note a {
+            color: var(--aws-teal);
+            text-decoration: none;
+        }
+
+        .pricing-note a:hover {
+            color: var(--aws-smile-orange);
+        }
+
+        /* Region section */
+        .region-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 16px;
+        }
+
+        .region-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .region-card.new-region {
+            border-top: 4px solid #2ECC71;
+        }
+
+        .region-card.existing-region {
+            border-top: 4px solid var(--aws-teal);
+        }
+
+        .region-card h3 {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        .region-card.new-region h3 {
+            color: #2ECC71;
+        }
+
+        .region-card.existing-region h3 {
+            color: var(--aws-teal);
+        }
+
+        .region-list {
+            list-style: none;
+        }
+
+        .region-list li {
+            padding: 4px 0;
+            font-size: 13px;
+            color: var(--light-gray);
+        }
+
+        .region-code {
+            color: var(--text-secondary);
+            font-size: 12px;
+        }
+
+        /* Flow diagram */
+        .flow-diagram {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin: 24px 0;
+        }
+
+        .flow-step {
+            background: var(--dark-squid);
+            border: 2px solid var(--aws-orange);
+            border-radius: 8px;
+            padding: 12px 20px;
+            text-align: center;
+            min-width: 120px;
+            font-size: 14px;
+        }
+
+        .flow-arrow {
+            color: var(--aws-orange);
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        /* Related services */
+        .related-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+
+        .related-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+        }
+
+        .related-name {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 6px;
+        }
+
+        .related-desc {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        /* Integration list */
+        .integration-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 12px;
+        }
+
+        .integration-card {
+            background-color: var(--card-bg);
+            border-radius: 10px;
+            padding: 14px 10px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+        }
+
+        .integration-card .icon {
+            font-size: 24px;
+            margin-bottom: 6px;
+        }
+
+        .integration-card .name {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .integration-card .desc {
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        /* Footer */
+        footer {
+            margin-top: 50px;
+            padding-top: 30px;
+            border-top: 1px solid var(--border-color);
+            text-align: center;
+        }
+
+        .source-links {
+            list-style: none;
+            margin-bottom: 16px;
+        }
+
+        .source-links li {
+            margin-bottom: 6px;
+        }
+
+        .source-link {
+            color: var(--aws-teal);
+            text-decoration: none;
+            font-size: 14px;
+            word-break: break-all;
+        }
+
+        .source-link:hover {
+            color: var(--aws-smile-orange);
+            text-decoration: underline;
+        }
+
+        .footer-note {
+            color: var(--text-secondary);
+            font-size: 12px;
+            margin-top: 10px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .comparison-grid,
+            .merit-grid,
+            .region-grid {
+                grid-template-columns: 1fr;
+            }
+            .features-grid {
+                grid-template-columns: 1fr !important;
+            }
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr) !important;
+            }
+            .related-grid {
+                grid-template-columns: 1fr !important;
+            }
+            .integration-grid {
+                grid-template-columns: repeat(2, 1fr) !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <span class="service-badge">Amazon DocumentDB (with MongoDB compatibility)</span>
+            <h1>アジアパシフィック (メルボルン) および<br>ヨーロッパ (チューリッヒ) リージョンで利用可能に</h1>
+            <p style="color: var(--light-gray); font-size: 15px; margin-bottom: 8px;">フルマネージド MongoDB 互換データベースが 2 つの新リージョンに展開 - データレジデンシーと低レイテンシーを実現</p>
+            <p class="release-date">2026 年 2 月 11 日</p>
+        </header>
+
+        <!-- Overview -->
+        <section class="section">
+            <h2 class="section-title">概要</h2>
+            <div class="overview-card">
+                <p class="overview-text">
+                    Amazon DocumentDB (with MongoDB compatibility) が、<span class="highlight">アジアパシフィック (メルボルン)</span> リージョンおよび <span class="highlight">ヨーロッパ (チューリッヒ)</span> リージョンで新たに利用可能になりました。これにより、オーストラリアおよびスイスのユーザーは、より低レイテンシーで DocumentDB を利用できるようになります。
+                </p>
+                <p class="overview-text" style="margin-top: 12px;">
+                    Amazon DocumentDB は、フルマネージドのネイティブ JSON データベースであり、MongoDB 互換のワークロードをインフラストラクチャ管理なしで実行可能です。ストレージは最大 <span class="highlight">128 TiB</span> まで自動スケーリングし、毎秒 <span class="highlight">数百万リクエスト</span> の処理に対応します。
+                </p>
+            </div>
+
+            <!-- Stats -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">&#127758;</div>
+                    <div class="stat-value">+2</div>
+                    <div class="stat-label">新規リージョン追加</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">&#128451;</div>
+                    <div class="stat-value">128 TiB</div>
+                    <div class="stat-label">最大ストレージ容量</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">&#9889;</div>
+                    <div class="stat-value">数百万</div>
+                    <div class="stat-label">毎秒リクエスト処理</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">&#128200;</div>
+                    <div class="stat-value">15</div>
+                    <div class="stat-label">最大リードレプリカ数</div>
+                </div>
+            </div>
+
+            <!-- Before/After -->
+            <div class="comparison-grid">
+                <div class="comparison-card before">
+                    <div class="comparison-label">Before - アップデート前の課題</div>
+                    <ul class="comparison-list">
+                        <li>メルボルンやチューリッヒに近い地域のユーザーは、他のリージョンの DocumentDB を利用する必要があり、レイテンシーが高かった</li>
+                        <li>データレジデンシー要件 (特にオーストラリアやスイスの規制) に対応するために、DocumentDB を選択肢に含められないケースがあった</li>
+                        <li>スイスの金融機関やオーストラリアの企業にとって、データの地理的配置が課題となっていた</li>
+                    </ul>
+                </div>
+                <div class="comparison-card after">
+                    <div class="comparison-label">After - アップデート後の改善</div>
+                    <ul class="comparison-list">
+                        <li>アジアパシフィック (メルボルン) リージョンでの DocumentDB 利用が可能になり、オーストラリア国内でのデータ保持が実現</li>
+                        <li>ヨーロッパ (チューリッヒ) リージョンでの DocumentDB 利用が可能になり、スイス国内でのデータレジデンシー要件に対応可能</li>
+                        <li>既存の DocumentDB 機能 (自動スケーリング、AWS サービスとの統合、リードレプリカ) がすべて新リージョンで利用可能</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Architecture Diagram -->
+        <section class="section">
+            <h2 class="section-title">アーキテクチャ図</h2>
+            <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 16px;">Amazon DocumentDB の構成概要と AWS サービス統合の全体像。新リージョンでも全機能が利用可能です。</p>
+            <div class="diagram-container">
+                <pre class="mermaid">
+flowchart TD
+    subgraph Global["&#9729;&#65039; Amazon DocumentDB グローバル展開"]
+        subgraph NewRegions["&#127381; 新規追加リージョン"]
+            direction LR
+            Melbourne["&#127462;&#127482; メルボルン&lt;br/&gt;ap-southeast-4"]
+            Zurich["&#127464;&#127469; チューリッヒ&lt;br/&gt;eu-central-2"]
+            Melbourne ~~~ Zurich
+        end
+
+        subgraph DocDB["&#128451; Amazon DocumentDB クラスター"]
+            direction LR
+            Primary["&#128272; プライマリ&lt;br/&gt;インスタンス"]
+            Replica1["&#128203; リードレプリカ&lt;br/&gt;最大 15"]
+            Storage[("&#128190; ストレージ&lt;br/&gt;最大 128 TiB&lt;br/&gt;自動スケーリング")]
+            Primary --> Replica1
+            Primary --> Storage
+        end
+
+        subgraph Integration["&#128295; AWS サービス統合"]
+            direction LR
+            DMS["&#128640; DMS&lt;br/&gt;データ移行"]
+            CW["&#128202; CloudWatch&lt;br/&gt;モニタリング"]
+            CT["&#128221; CloudTrail&lt;br/&gt;監査ログ"]
+            Lambda["&#9889; Lambda&lt;br/&gt;イベント駆動"]
+            Backup["&#128190; AWS Backup&lt;br/&gt;バックアップ"]
+            DMS ~~~ CW ~~~ CT ~~~ Lambda ~~~ Backup
+        end
+    end
+
+    App(["&#128100; アプリケーション"]) -->|MongoDB 互換 API| DocDB
+    DocDB --> Integration
+
+    classDef cloud fill:none,stroke:#CCCCCC,stroke-width:2px,color:#666666
+    classDef region fill:none,stroke:#E1BEE7,stroke-width:2px,color:#666666
+    classDef newregion fill:#E9F7EC,stroke:#66BB6A,stroke-width:2px,color:#333333
+    classDef dbcluster fill:none,stroke:#FF9900,stroke-width:2px,color:#666666
+    classDef primary fill:#FFE0B2,stroke:#FFCC80,stroke-width:2px,color:#5D4037
+    classDef replica fill:#E8F1FF,stroke:#4A90E2,stroke-width:2px,color:#333333
+    classDef storage fill:#DCEDC8,stroke:#C5E1A5,stroke-width:2px,color:#33691E
+    classDef integration fill:#F3E5F5,stroke:#7B61FF,stroke-width:2px,color:#333333
+    classDef app fill:#E3F2FD,stroke:#BBDEFB,stroke-width:2px,color:#1565C0
+
+    class Global cloud
+    class NewRegions region
+    class Melbourne,Zurich newregion
+    class DocDB dbcluster
+    class Primary primary
+    class Replica1 replica
+    class Storage storage
+    class DMS,CW,CT,Lambda,Backup integration
+    class Integration region
+    class App app
+                </pre>
+            </div>
+        </section>
+
+        <!-- Key Features -->
+        <section class="section">
+            <h2 class="section-title">主要機能</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">&#128451;</div>
+                    <div class="feature-title">フルマネージド<br>MongoDB 互換データベース</div>
+                    <div class="feature-description">インフラストラクチャ管理不要で MongoDB ワークロードを実行。ストレージは最大 128 TiB まで自動スケーリング。アプリケーションへの影響なし。</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#128170;</div>
+                    <div class="feature-title">高可用性と<br>スケーラビリティ</div>
+                    <div class="feature-description">毎秒数百万リクエストの処理に対応。最大 15 の低レイテンシーリードレプリカを数分で追加可能。アプリケーションのダウンタイムなし。</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#128295;</div>
+                    <div class="feature-title">AWS サービスとの<br>ネイティブ統合</div>
+                    <div class="feature-description">DMS によるデータ移行、CloudWatch モニタリング、CloudTrail 監査ログ、Lambda イベント駆動処理、AWS Backup バックアップ管理に対応。</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- AWS Service Integration Detail -->
+        <section class="section">
+            <h2 class="section-title">AWS サービス統合</h2>
+            <div class="integration-grid">
+                <div class="integration-card">
+                    <div class="icon">&#128640;</div>
+                    <div class="name">AWS DMS</div>
+                    <div class="desc">データ移行</div>
+                </div>
+                <div class="integration-card">
+                    <div class="icon">&#128202;</div>
+                    <div class="name">CloudWatch</div>
+                    <div class="desc">モニタリング</div>
+                </div>
+                <div class="integration-card">
+                    <div class="icon">&#128221;</div>
+                    <div class="name">CloudTrail</div>
+                    <div class="desc">監査ログ</div>
+                </div>
+                <div class="integration-card">
+                    <div class="icon">&#9889;</div>
+                    <div class="name">Lambda</div>
+                    <div class="desc">イベント駆動処理</div>
+                </div>
+                <div class="integration-card">
+                    <div class="icon">&#128190;</div>
+                    <div class="name">AWS Backup</div>
+                    <div class="desc">バックアップ管理</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Technical Specifications -->
+        <section class="section">
+            <h2 class="section-title">技術仕様</h2>
+
+            <h3 style="font-size: 16px; color: var(--text-primary); margin-bottom: 12px;">新規対応リージョン</h3>
+            <table class="spec-table">
+                <thead>
+                    <tr>
+                        <th>リージョン</th>
+                        <th>リージョンコード</th>
+                        <th>発表日</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>アジアパシフィック (メルボルン)</td>
+                        <td><code style="background-color: rgba(255, 153, 0, 0.1); padding: 2px 6px; border-radius: 3px; font-family: 'Courier New', monospace; font-size: 12px; color: var(--aws-orange);">ap-southeast-4</code></td>
+                        <td>2026 年 2 月 11 日</td>
+                    </tr>
+                    <tr>
+                        <td>ヨーロッパ (チューリッヒ)</td>
+                        <td><code style="background-color: rgba(255, 153, 0, 0.1); padding: 2px 6px; border-radius: 3px; font-family: 'Courier New', monospace; font-size: 12px; color: var(--aws-orange);">eu-central-2</code></td>
+                        <td>2026 年 2 月 11 日</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3 style="font-size: 16px; color: var(--text-primary); margin-top: 24px; margin-bottom: 12px;">利用可能な機能</h3>
+            <table class="spec-table">
+                <thead>
+                    <tr>
+                        <th>機能</th>
+                        <th>対応状況</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>インスタンスベースクラスター</td>
+                        <td style="color: #2ECC71; font-weight: 700;">&#10003; 対応</td>
+                    </tr>
+                    <tr>
+                        <td>エラスティッククラスター</td>
+                        <td>各リージョンの対応状況を確認</td>
+                    </tr>
+                    <tr>
+                        <td>グローバルクラスター</td>
+                        <td>各リージョンの対応状況を確認</td>
+                    </tr>
+                    <tr>
+                        <td>自動スケーリング (ストレージ)</td>
+                        <td style="color: #2ECC71; font-weight: 700;">&#10003; 最大 128 TiB</td>
+                    </tr>
+                    <tr>
+                        <td>リードレプリカ</td>
+                        <td style="color: #2ECC71; font-weight: 700;">&#10003; 最大 15</td>
+                    </tr>
+                    <tr>
+                        <td>DMS 統合</td>
+                        <td style="color: #2ECC71; font-weight: 700;">&#10003; 対応</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- Configuration -->
+        <section class="section">
+            <h2 class="section-title">設定方法</h2>
+
+            <div class="overview-card" style="margin-bottom: 16px;">
+                <h3 style="font-size: 15px; color: var(--aws-orange); margin-bottom: 10px;">前提条件</h3>
+                <ul class="merit-list">
+                    <li>AWS アカウント</li>
+                    <li>対象リージョンへのアクセス権限</li>
+                    <li>VPC およびサブネットの設定</li>
+                </ul>
+            </div>
+
+            <div class="flow-diagram">
+                <div class="flow-step">&#127760; リージョンを<br>選択</div>
+                <span class="flow-arrow">&rarr;</span>
+                <div class="flow-step">&#128451; DocumentDB<br>サービスに移動</div>
+                <span class="flow-arrow">&rarr;</span>
+                <div class="flow-step">&#9881;&#65039; クラスター<br>を作成</div>
+                <span class="flow-arrow">&rarr;</span>
+                <div class="flow-step">&#128268; インスタンス<br>を追加</div>
+            </div>
+
+            <h3 style="font-size: 16px; color: var(--text-primary); margin-top: 20px; margin-bottom: 12px;">ステップ 1: AWS CLI でクラスターを作成</h3>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Bash</span>
+                    <span class="code-title">メルボルンリージョンで DocumentDB クラスターを作成</span>
+                </div>
+                <pre><code class="language-bash"># メルボルンリージョンで DocumentDB クラスターを作成
+aws docdb create-db-cluster \
+  --db-cluster-identifier my-docdb-cluster \
+  --engine docdb \
+  --master-username masteruser \
+  --master-user-password &lt;password&gt; \
+  --region ap-southeast-4</code></pre>
+            </div>
+
+            <h3 style="font-size: 16px; color: var(--text-primary); margin-top: 20px; margin-bottom: 12px;">ステップ 2: インスタンスの追加</h3>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Bash</span>
+                    <span class="code-title">クラスターにインスタンスを追加</span>
+                </div>
+                <pre><code class="language-bash"># クラスターにインスタンスを追加
+aws docdb create-db-instance \
+  --db-instance-identifier my-docdb-instance \
+  --db-cluster-identifier my-docdb-cluster \
+  --db-instance-class db.r6g.large \
+  --engine docdb \
+  --region ap-southeast-4</code></pre>
+            </div>
+        </section>
+
+        <!-- Benefits -->
+        <section class="section">
+            <h2 class="section-title">メリット</h2>
+            <div class="merit-grid">
+                <div class="merit-section">
+                    <h3>&#128188; ビジネス面</h3>
+                    <ul class="merit-list">
+                        <li><strong style="color: var(--text-primary);">データレジデンシーの遵守:</strong> オーストラリアおよびスイスの法規制に準拠したデータ配置が可能</li>
+                        <li><strong style="color: var(--text-primary);">低レイテンシーアクセス:</strong> 地理的に近いリージョンを利用することで、エンドユーザーのレスポンス時間を改善</li>
+                        <li><strong style="color: var(--text-primary);">グローバル展開の加速:</strong> オセアニアおよびヨーロッパ地域での DocumentDB 活用のハードルが低下</li>
+                    </ul>
+                </div>
+                <div class="merit-section">
+                    <h3>&#128736;&#65039; 技術面</h3>
+                    <ul class="merit-list">
+                        <li><strong style="color: var(--text-primary);">既存機能の完全サポート:</strong> 自動スケーリング、リードレプリカ、AWS サービス統合がすべて利用可能</li>
+                        <li><strong style="color: var(--text-primary);">MongoDB 互換性:</strong> 既存の MongoDB アプリケーションからの移行がスムーズ</li>
+                        <li><strong style="color: var(--text-primary);">フルマネージド:</strong> インフラストラクチャ管理が不要で、運用負荷を軽減</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Limitations -->
+        <section class="section">
+            <h2 class="section-title">制約事項・注意点</h2>
+            <div class="constraint-card">
+                <div class="constraint-title">制限事項</div>
+                <ul class="constraint-list">
+                    <li>新リージョンでの料金は既存リージョンと異なる場合がある (リージョン固有の料金を確認すること)</li>
+                    <li>エラスティッククラスターやグローバルクラスターの対応状況はリージョンによって異なる場合がある</li>
+                    <li>一部のインスタンスタイプが新リージョンでは利用できない可能性がある</li>
+                </ul>
+            </div>
+            <div class="constraint-card">
+                <div class="constraint-title">考慮すべき点</div>
+                <ul class="constraint-list">
+                    <li>既存のクラスターを新リージョンに移行する場合は、DMS またはスナップショットコピーの利用を検討</li>
+                    <li>マルチリージョン構成を検討する場合は、グローバルクラスターの対応状況を確認</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Use Cases -->
+        <section class="section">
+            <h2 class="section-title">ユースケース</h2>
+
+            <div class="usecase-card">
+                <div class="usecase-header">
+                    <span style="font-size: 24px;">&#127974;&#127462;&#127482;</span>
+                    <div class="usecase-title">ユースケース 1: オーストラリアの金融サービス</div>
+                </div>
+                <div class="usecase-scenario">
+                    オーストラリアの金融機関が、顧客データをオーストラリア国内に保持しながら、MongoDB 互換のドキュメントデータベースを利用したい。
+                </div>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">Bash</span>
+                        <span class="code-title">実装例 - 暗号化有効</span>
+                    </div>
+                    <pre><code class="language-bash">aws docdb create-db-cluster \
+  --db-cluster-identifier finserv-cluster \
+  --engine docdb \
+  --master-username admin \
+  --master-user-password &lt;secure-password&gt; \
+  --region ap-southeast-4 \
+  --storage-encrypted \
+  --kms-key-id &lt;kms-key-arn&gt;</code></pre>
+                </div>
+                <div class="usecase-effect">
+                    データレジデンシー要件を満たしながら、低レイテンシーでの DocumentDB 利用が可能
+                </div>
+            </div>
+
+            <div class="usecase-card">
+                <div class="usecase-header">
+                    <span style="font-size: 24px;">&#127973;&#127464;&#127469;</span>
+                    <div class="usecase-title">ユースケース 2: スイスの医療データ管理</div>
+                </div>
+                <div class="usecase-scenario">
+                    スイスの医療機関が、患者の医療記録をスイス国内のリージョンで管理したい。
+                </div>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">Bash</span>
+                        <span class="code-title">実装例 - チューリッヒリージョン</span>
+                    </div>
+                    <pre><code class="language-bash">aws docdb create-db-cluster \
+  --db-cluster-identifier healthcare-cluster \
+  --engine docdb \
+  --master-username admin \
+  --master-user-password &lt;secure-password&gt; \
+  --region eu-central-2 \
+  --storage-encrypted</code></pre>
+                </div>
+                <div class="usecase-effect">
+                    スイスのデータ保護規制に準拠しながら、フルマネージドの DocumentDB を利用可能
+                </div>
+            </div>
+
+            <div class="usecase-card">
+                <div class="usecase-header">
+                    <span style="font-size: 24px;">&#127760;&#9889;</span>
+                    <div class="usecase-title">ユースケース 3: オセアニア地域向け SaaS アプリケーション</div>
+                </div>
+                <div class="usecase-scenario">
+                    グローバル SaaS プロバイダーが、オセアニア地域のユーザー向けにレスポンス時間を改善したい。
+                </div>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">Bash</span>
+                        <span class="code-title">実装例 - リードレプリカの追加</span>
+                    </div>
+                    <pre><code class="language-bash"># メルボルンリージョンにリードレプリカを追加
+aws docdb create-db-instance \
+  --db-instance-identifier saas-replica-mel \
+  --db-cluster-identifier saas-cluster \
+  --db-instance-class db.r6g.xlarge \
+  --engine docdb \
+  --region ap-southeast-4</code></pre>
+                </div>
+                <div class="usecase-effect">
+                    オセアニア地域のユーザーに対して、低レイテンシーの読み取りアクセスを提供
+                </div>
+            </div>
+        </section>
+
+        <!-- Pricing -->
+        <section class="section">
+            <h2 class="section-title">料金</h2>
+            <div class="pricing-card">
+                <p style="font-size: 14px; color: var(--light-gray); margin-bottom: 12px;">Amazon DocumentDB の料金はリージョンごとに異なります。主な課金要素は以下の通りです。</p>
+                <table class="pricing-table">
+                    <thead>
+                        <tr>
+                            <th>項目</th>
+                            <th>詳細</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>オンデマンドインスタンス</td>
+                            <td>インスタンスタイプとリージョンにより異なる</td>
+                        </tr>
+                        <tr>
+                            <td>I/O 最適化ストレージ</td>
+                            <td>ストレージ使用量に基づく課金</td>
+                        </tr>
+                        <tr>
+                            <td>バックアップストレージ</td>
+                            <td>無料枠を超えた分に課金</td>
+                        </tr>
+                        <tr>
+                            <td>データ転送</td>
+                            <td>リージョン間転送に課金</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="pricing-note">
+                    最新の料金情報は <a href="https://aws.amazon.com/documentdb/pricing/" target="_blank">Amazon DocumentDB 料金ページ</a> を参照
+                </div>
+            </div>
+        </section>
+
+        <!-- Available Regions -->
+        <section class="section">
+            <h2 class="section-title">利用可能リージョン</h2>
+            <div class="region-grid">
+                <div class="region-card new-region">
+                    <h3>&#127381; 新規追加リージョン (2026 年 2 月 11 日)</h3>
+                    <ul class="region-list">
+                        <li>&#127462;&#127482; アジアパシフィック (メルボルン) <span class="region-code">ap-southeast-4</span></li>
+                        <li>&#127464;&#127469; ヨーロッパ (チューリッヒ) <span class="region-code">eu-central-2</span></li>
+                    </ul>
+                </div>
+                <div class="region-card existing-region">
+                    <h3>&#127970; 既存対応リージョン</h3>
+                    <ul class="region-list">
+                        <li>利用可能なリージョンの完全なリストは <a href="https://aws.amazon.com/about-aws/global-infrastructure/regional-product-services/" target="_blank" style="color: var(--aws-teal); text-decoration: none;">AWS リージョン表</a> を参照</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Related Services -->
+        <section class="section">
+            <h2 class="section-title">関連サービス・機能</h2>
+            <div class="related-grid">
+                <div class="related-card">
+                    <div style="font-size: 24px; margin-bottom: 8px;">&#128640;</div>
+                    <div class="related-name">AWS DMS</div>
+                    <div class="related-desc">既存の MongoDB から DocumentDB への移行をサポート</div>
+                </div>
+                <div class="related-card">
+                    <div style="font-size: 24px; margin-bottom: 8px;">&#128202;</div>
+                    <div class="related-name">Amazon CloudWatch</div>
+                    <div class="related-desc">DocumentDB クラスターのモニタリングとアラート設定</div>
+                </div>
+                <div class="related-card">
+                    <div style="font-size: 24px; margin-bottom: 8px;">&#128190;</div>
+                    <div class="related-name">AWS Backup</div>
+                    <div class="related-desc">DocumentDB クラスターの自動バックアップ管理</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer>
+            <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 12px;">参考リンク</p>
+            <ul class="source-links">
+                <li><a href="https://aws.amazon.com/about-aws/whats-new/2026/02/amazon-documentdb-mongodb-compatibility-asia-pacific-melbourne-region/" class="source-link" target="_blank">公式発表 - メルボルンリージョン (What's New)</a></li>
+                <li><a href="https://aws.amazon.com/about-aws/whats-new/2026/02/amazon-documentdb-mongodb-compatibility-europe-zurich-region/" class="source-link" target="_blank">公式発表 - チューリッヒリージョン (What's New)</a></li>
+                <li><a href="https://docs.aws.amazon.com/documentdb/" class="source-link" target="_blank">Amazon DocumentDB ドキュメント</a></li>
+                <li><a href="https://aws.amazon.com/documentdb/pricing/" class="source-link" target="_blank">料金ページ</a></li>
+                <li><a href="https://aws.amazon.com/about-aws/global-infrastructure/regional-product-services/" class="source-link" target="_blank">AWS リージョン表</a></li>
+            </ul>
+            <p class="footer-note">Amazon DocumentDB - アジアパシフィック (メルボルン) およびヨーロッパ (チューリッヒ) リージョンで利用可能に | 2026 年 2 月 11 日</p>
+        </footer>
+    </div>
+
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'base',
+            themeVariables: {
+                primaryColor: '#FF9900',
+                primaryTextColor: '#232F3E',
+                primaryBorderColor: '#FF9900',
+                lineColor: '#FF9900',
+                secondaryColor: '#F5F5F5',
+                tertiaryColor: '#FAFAFA',
+                background: '#FFFFFF',
+                mainBkg: '#FFF3E0',
+                nodeBorder: '#FF9900',
+                clusterBkg: '#FFF8E1',
+                clusterBorder: '#FF9900',
+                edgeLabelBackground: '#FFFFFF',
+                textColor: '#232F3E'
+            },
+            flowchart: {
+                curve: 'basis',
+                padding: 20
+            }
+        });
+        hljs.highlightAll();
+    </script>
+</body>
+</html>

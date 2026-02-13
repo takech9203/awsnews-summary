@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AWS アップデート週次サマリー - 2026 年第 5 週</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap');
+
+    :root {
+      --aws-squid-ink: #232F3E;
+      --aws-dark-squid: #1A242F;
+      --aws-orange: #FF9900;
+      --aws-smile-orange: #FFAD33;
+      --aws-white: #FFFFFF;
+      --aws-light-gray: #D5DBDB;
+      --aws-teal: #00A1C9;
+      --aws-purple: #8C4FFF;
+      --aws-green: #1D8102;
+      --aws-red: #D13212;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background-color: var(--aws-squid-ink);
+      font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+      color: var(--aws-light-gray);
+      font-size: 16px;
+      line-height: 1.6;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    /* Header */
+    .header {
+      text-align: center;
+      margin-bottom: 40px;
+      padding: 32px;
+      background: linear-gradient(135deg, var(--aws-dark-squid) 0%, rgba(255, 153, 0, 0.1) 100%);
+      border-radius: 16px;
+      border: 1px solid rgba(255, 153, 0, 0.3);
+    }
+
+    .header-badge {
+      display: inline-block;
+      background: var(--aws-orange);
+      color: var(--aws-squid-ink);
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 16px;
+    }
+
+    h1 {
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--aws-white);
+      margin-bottom: 12px;
+    }
+
+    .subtitle {
+      font-size: 16px;
+      color: var(--aws-light-gray);
+    }
+
+    .stats-row {
+      display: flex;
+      justify-content: center;
+      gap: 32px;
+      margin-top: 24px;
+      flex-wrap: wrap;
+    }
+
+    .stat-item {
+      text-align: center;
+    }
+
+    .stat-number {
+      font-size: 48px;
+      font-weight: 700;
+      color: var(--aws-orange);
+      display: block;
+    }
+
+    .stat-label {
+      font-size: 14px;
+      color: var(--aws-light-gray);
+    }
+
+    /* Section */
+    h2 {
+      font-size: 22px;
+      font-weight: 600;
+      color: var(--aws-orange);
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .section {
+      background: var(--aws-dark-squid);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 24px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    /* Top Updates */
+    .top-updates {
+      display: grid;
+      gap: 16px;
+    }
+
+    .top-update-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      padding: 16px;
+      background: rgba(255, 153, 0, 0.05);
+      border-radius: 8px;
+      border-left: 4px solid var(--aws-orange);
+    }
+
+    .rank-badge {
+      background: var(--aws-orange);
+      color: var(--aws-squid-ink);
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+
+    .top-update-content h3 {
+      color: var(--aws-white);
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .top-update-content p {
+      font-size: 14px;
+      color: var(--aws-light-gray);
+    }
+
+    /* Category Grid */
+    .category-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+    }
+
+    .category-card {
+      background: var(--aws-dark-squid);
+      border-radius: 12px;
+      padding: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .category-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid rgba(255, 153, 0, 0.3);
+    }
+
+    .category-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--aws-white);
+    }
+
+    .category-count {
+      background: var(--aws-orange);
+      color: var(--aws-squid-ink);
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .update-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .update-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      font-size: 14px;
+    }
+
+    .update-item .icon {
+      color: var(--aws-orange);
+      flex-shrink: 0;
+    }
+
+    .update-item.hot {
+      font-weight: 500;
+      color: var(--aws-white);
+    }
+
+    .hot-badge {
+      color: #FF6B35;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+
+    /* Trend Cards */
+    .trend-section {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+    }
+
+    .trend-card {
+      background: linear-gradient(135deg, rgba(255, 153, 0, 0.1) 0%, var(--aws-dark-squid) 100%);
+      border-radius: 12px;
+      padding: 20px;
+      border: 1px solid rgba(255, 153, 0, 0.2);
+    }
+
+    .trend-card h3 {
+      color: var(--aws-white);
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .trend-card p {
+      font-size: 14px;
+      color: var(--aws-light-gray);
+    }
+
+    /* Use Case Cards */
+    .usecase-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(440px, 1fr));
+      gap: 16px;
+    }
+
+    .usecase-card {
+      background: rgba(255, 153, 0, 0.08);
+      border-radius: 12px;
+      padding: 20px;
+      border: 1px solid rgba(255, 153, 0, 0.2);
+    }
+
+    .usecase-card h3 {
+      color: var(--aws-orange);
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .usecase-card p {
+      font-size: 14px;
+      color: var(--aws-light-gray);
+    }
+
+    /* API Changes Table */
+    .api-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    .api-table th {
+      background: rgba(255, 153, 0, 0.15);
+      color: var(--aws-orange);
+      text-align: left;
+      padding: 10px 12px;
+      font-weight: 600;
+      border-bottom: 2px solid rgba(255, 153, 0, 0.3);
+    }
+
+    .api-table td {
+      padding: 10px 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      color: var(--aws-light-gray);
+    }
+
+    .api-table tr:hover td {
+      background: rgba(255, 153, 0, 0.05);
+    }
+
+    .api-table a {
+      color: var(--aws-teal);
+      text-decoration: none;
+    }
+
+    .api-table a:hover {
+      color: var(--aws-smile-orange);
+    }
+
+    /* Next Week Tags */
+    .next-week {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .next-week-item {
+      background: var(--aws-dark-squid);
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 14px;
+      border: 1px solid rgba(255, 153, 0, 0.3);
+      color: var(--aws-light-gray);
+    }
+
+    /* Summary Box */
+    .summary-box {
+      background: linear-gradient(135deg, rgba(255, 153, 0, 0.15) 0%, var(--aws-dark-squid) 100%);
+      border-radius: 12px;
+      padding: 24px;
+      border: 2px solid var(--aws-orange);
+    }
+
+    .summary-box p {
+      font-size: 15px;
+      line-height: 1.8;
+    }
+
+    .highlight {
+      background-color: rgba(255, 153, 0, 0.2);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 600;
+      color: var(--aws-orange);
+    }
+
+    /* Mermaid Container */
+    .mermaid-container {
+      background: #FFFFFF;
+      border-radius: 12px;
+      padding: 24px;
+      margin: 20px 0;
+      border: 2px solid rgba(255, 153, 0, 0.3);
+      overflow-x: auto;
+    }
+    .mermaid {
+      display: flex;
+      justify-content: center;
+    }
+
+    /* AWS Link */
+    .aws-link {
+      color: var(--aws-teal);
+      text-decoration: none;
+    }
+
+    .aws-link:hover {
+      color: var(--aws-smile-orange);
+    }
+
+    /* Footer */
+    footer {
+      margin-top: 32px;
+      padding-top: 20px;
+      border-top: 1px solid rgba(255, 255, 255, 0.2);
+      font-size: 12px;
+      color: var(--aws-light-gray);
+      text-align: center;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      h1 {
+        font-size: 24px;
+      }
+
+      .stat-number {
+        font-size: 36px;
+      }
+
+      .category-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .trend-section {
+        grid-template-columns: 1fr;
+      }
+
+      .usecase-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <div class="header-badge">📊 週次サマリー</div>
+      <h1>☁️ AWS アップデート - 2026 年第 5 週</h1>
+      <div class="subtitle">期間: 2026 年 1 月 28 日 - 2 月 4 日</div>
+
+      <div class="stats-row">
+        <div class="stat-item">
+          <span class="stat-number">37</span>
+          <span class="stat-label">件のアップデート</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-number">9</span>
+          <span class="stat-label">カテゴリ</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-number">5</span>
+          <span class="stat-label">注目アップデート</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Top Updates -->
+    <div class="section">
+      <h2>🏆 今週のトップアップデート</h2>
+      <div class="top-updates">
+        <div class="top-update-item">
+          <div class="rank-badge">1</div>
+          <div class="top-update-content">
+            <h3>DynamoDB マルチアカウントグローバルテーブル</h3>
+            <p>複数 AWS アカウント間での自動レプリケーションに対応。アカウントレベルでの障害分離とセキュリティ/ガバナンス制御が可能に</p>
+          </div>
+        </div>
+        <div class="top-update-item">
+          <div class="rank-badge">2</div>
+          <div class="top-update-content">
+            <h3>IAM Identity Center マルチリージョン対応</h3>
+            <p>プライマリリージョンから追加リージョンへの自動レプリケーション。プライマリリージョン中断時もアクセス継続可能</p>
+          </div>
+        </div>
+        <div class="top-update-item">
+          <div class="rank-badge">3</div>
+          <div class="top-update-content">
+            <h3>EventBridge ペイロードサイズ拡大</h3>
+            <p>イベントペイロードサイズを 256 KB から 1 MB に拡大。LLM プロンプトや ML 出力などリッチなデータをサポート</p>
+          </div>
+        </div>
+        <div class="top-update-item">
+          <div class="rank-badge">4</div>
+          <div class="top-update-content">
+            <h3>S3 サーバーサイド暗号化タイプの変更</h3>
+            <p>データ移動なしで暗号化タイプをアトミックに変更可能。S3 Batch Operations で大規模な変更もサポート</p>
+          </div>
+        </div>
+        <div class="top-update-item">
+          <div class="rank-badge">5</div>
+          <div class="top-update-content">
+            <h3>CloudFront オリジン mTLS サポート</h3>
+            <p>オリジン認証に証明書ベースの mTLS を使用可能に。カスタム認証ソリューションが不要に、追加料金なし</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Architecture Diagram: Multi-Account/Multi-Region Strategy -->
+    <div class="section">
+      <h2>🏗️ 今週の注目アーキテクチャ: マルチアカウント・マルチリージョン戦略</h2>
+      <p style="margin-bottom: 16px; font-size: 14px;">DynamoDB マルチアカウント GT と IAM Identity Center マルチリージョンの組み合わせにより、エンタープライズグレードのグローバル展開が容易に</p>
+      <div class="mermaid-container">
+        <pre class="mermaid">
+flowchart TD
+    subgraph Org["🏢 AWS Organizations"]
+        subgraph AccountA["📋 アカウント A - 事業部門 1"]
+            direction LR
+            DDB_A[("📋 DynamoDB<br/>テーブル")]
+            IAM_A["🔐 IAM Identity Center<br/>プライマリ"]
+            DDB_A ~~~ IAM_A
+        end
+
+        subgraph AccountB["📋 アカウント B - 事業部門 2"]
+            direction LR
+            DDB_B[("📋 DynamoDB<br/>レプリカ")]
+            IAM_B["🔐 IAM Identity Center<br/>レプリカ"]
+            DDB_B ~~~ IAM_B
+        end
+
+        subgraph AccountC["📋 アカウント C - DR"]
+            direction LR
+            DDB_C[("📋 DynamoDB<br/>レプリカ")]
+            IAM_C["🔐 IAM Identity Center<br/>レプリカ"]
+            DDB_C ~~~ IAM_C
+        end
+    end
+
+    DDB_A -->|自動レプリケーション| DDB_B
+    DDB_A -->|自動レプリケーション| DDB_C
+    IAM_A -->|ID/権限セット<br/>レプリケーション| IAM_B
+    IAM_A -->|ID/権限セット<br/>レプリケーション| IAM_C
+
+    User(["👤 ユーザー"]) --> IAM_A
+    CF["🌐 CloudFront<br/>mTLS 認証"] --> ALB["🔌 ALB"]
+    ALB --> DDB_A
+
+    classDef cloud fill:none,stroke:#CCCCCC,stroke-width:2px,color:#666666
+    classDef account fill:#FFF8E1,stroke:#FF9900,stroke-width:2px,color:#5D4037
+    classDef database fill:#E8EAF6,stroke:#C5CAE9,stroke-width:2px,color:#283593
+    classDef security fill:#F3E5F5,stroke:#7B61FF,stroke-width:2px,color:#333333
+    classDef user fill:#E3F2FD,stroke:#BBDEFB,stroke-width:2px,color:#1565C0
+    classDef network fill:#E9F7EC,stroke:#66BB6A,stroke-width:2px,color:#333333
+
+    class Org cloud
+    class AccountA,AccountB,AccountC account
+    class DDB_A,DDB_B,DDB_C database
+    class IAM_A,IAM_B,IAM_C security
+    class User user
+    class CF,ALB network
+        </pre>
+      </div>
+    </div>
+
+    <!-- Category Updates -->
+    <h2 style="margin-bottom: 20px;">📂 カテゴリ別アップデート</h2>
+    <div class="category-grid">
+      <!-- Database -->
+      <div class="category-card">
+        <div class="category-header">
+          <div class="category-title">🗄️ データベース</div>
+          <div class="category-count">7 件</div>
+        </div>
+        <div class="update-list">
+          <div class="update-item hot">
+            <span class="hot-badge">🔥</span>
+            <span class="icon">→</span>
+            <span>DynamoDB マルチアカウント GT</span>
+          </div>
+          <div class="update-item">
+            <span class="icon">→</span>
+            <span>RDS 接続エクスペリエンス強化</span>
+          </div>
+          <div class="update-item">
+            <span class="icon">→</span>
+            <span>Aurora DSQL NUMERIC インデックス</span>
+          </div>
+          <div class="update-item">
+            <span class="icon">→</span>
+            <span>RDS for Oracle クロスリージョンレプリカ</span>
+          </div>
+          <div class="update-item">
+            <span class="icon">→</span>
+            <span>RDS IPv6 VPC エンドポイント</span>
+          </div>
+          <div class="update-item">
+            <span class="icon">→</span>
+            <span>Keyspaces テーブルプリウォーミング</span>
+          </div>
+          <div class="update-item">
+            <span class="icon">→</span>
+            <span>Oracle@AWS 新リージョン</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Security -->
+      <div class="category-card">
+        <div class="category-header">
+          <div class="category-title">🔐 セキュリティ</div>
+          <div class="category-count">7 件</div>
+        </div>
+        <div class="update-list">
+          <div class="update-item hot">
+            <span class="hot-badge">🔥</span>
+            <span class="icon">→</span>
+            <span>IAM Identity Center マルチリージョン</span>
+          </div>
+          <div class="update-item hot">
+            <span class="hot-badge">🔥</span>
+            <span class="icon">→</span>
+            <span>CloudFront オリジン mTLS</span>
+          </div>
+          <div class="update-item">
+            <span class="icon">→</span>
+            <span>Console アカウント名表示</span>
+          </div>
+          <div class="update-item">
+            <span class="icon">→</span>
+            <span>STS クレーム検証サポート</span>
+          </div>
+          <div class="update-item">
+            <span class="icon">→</span>
+            <span>Multi-party Approval OTP</span>
+          </div>
+          <div class="update-item">
+            <span class="icon">→</span>
+            <span>Cognito フェデレーション Lambda トリガー</span>
+          </div>
+          <div class="update-item">
+            <span class="icon">→</span>
+            <span>Network Firewall GovCloud コスト配分</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- AI/ML -->
+      <div class="category-card">
+        <div class="category-header">
+          <div class="category-title">🤖 AI/ML</div>
+          <div class="category-count">5 件</div>
+        </div>
+        <div class="update-list">
+          <div class="update-item">
+            <span class="icon">→</span>
+            <span>SageMaker JumpStart 新モデル追加</span>
+          </div>
+          <div class="update-item">
+            <span class="icon">→</span>
+            <span>SageMaker NVIDIA NIMs モデル</span>
+          </div>
+          <div class="update-item">
+            <span class="icon">→</span>
+            <span>Bedrock サーバーサイドカスタムツール</span>
+          </div>
+          <div class="update-item">
+            <span class="icon">→</span>
+            <span>CloudWatch Kiro Powers 統合</span>
+          </div>
+          <div class="update-item">
+            <span class="icon">→</span>
+            <span>HealthImaging JPEG XL サポート</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Compute -->
+      <div class="category-card">
+        <div class="category-header">
+          <div class="category-title">☁️ コンピュート</div>
+          <div class="category-count">6 件</div>
+        </div>
+        <div class="update-list">
+          <div class="update-item">
+            <span class="icon">→</span>
+            <span>EC2 R8a ヨーロッパ拡大</span>
+          </div>
+          <div class="update-item">
+            <span class="icon">→</span>
+            <span>Lightsail メモリ最適化インスタンス</span>
+          </div>
+          <div class="update-item">
+            <span class="icon">→</span>
+            <span>ECS コンテナヘルスステータス</span>
+          </div>
+          <div class="update-item">
+            <span class="icon">→</span>
+            <span>Lambda Kafka ESM オブザーバビリティ</span>
+          </div>
+          <div class="update-item">
+            <span class="icon">→</span>
+            <span>EKS Kubernetes 1.35 サポート</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Networking -->
+      <div class="category-card">
+        <div class="category-header">
+          <div class="category-title">🌐 ネットワーキング</div>
+          <div class="category-count">3 件</div>
+        </div>
+        <div class="update-list">
+          <div class="update-item hot">
+            <span class="hot-badge">🔥</span>
+            <span class="icon">→</span>
+            <span>EventBridge 1 MB ペイロード</span>
+          </div>
+          <div class="update-item">
+            <span class="icon">→</span>
+            <span>CloudFront mTLS (セキュリティ参照)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Storage -->
+      <div class="category-card">
+        <div class="category-header">
+          <div class="category-title">💾 ストレージ</div>
+          <div class="category-count">2 件</div>
+        </div>
+        <div class="update-list">
+          <div class="update-item hot">
+            <span class="hot-badge">🔥</span>
+            <span class="icon">→</span>
+            <span>S3 暗号化タイプ変更</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Analytics -->
+      <div class="category-card">
+        <div class="category-header">
+          <div class="category-title">📊 分析</div>
+          <div class="category-count">3 件</div>
+        </div>
+        <div class="update-list">
+          <div class="update-item">
+            <span class="icon">→</span>
+            <span>Lake Formation NZ リージョン</span>
+          </div>
+          <div class="update-item">
+            <span class="icon">→</span>
+            <span>Quick Suite 地理情報解決</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Developer Tools -->
+      <div class="category-card">
+        <div class="category-header">
+          <div class="category-title">🔧 開発者ツール</div>
+          <div class="category-count">2 件</div>
+        </div>
+        <div class="update-list">
+          <div class="update-item">
+            <span class="icon">→</span>
+            <span>MCP Server デプロイメント Agent SOPs</span>
+          </div>
+          <div class="update-item">
+            <span class="icon">→</span>
+            <span>Partner Revenue Measurement</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Contact Center -->
+      <div class="category-card">
+        <div class="category-header">
+          <div class="category-title">📞 コンタクトセンター</div>
+          <div class="category-count">4 件</div>
+        </div>
+        <div class="update-list">
+          <div class="update-item">
+            <span class="icon">→</span>
+            <span>Connect 評価異議申し立て</span>
+          </div>
+          <div class="update-item">
+            <span class="icon">→</span>
+            <span>Connect 待ち時間推定改善</span>
+          </div>
+          <div class="update-item">
+            <span class="icon">→</span>
+            <span>Connect 音声テスト/シミュレーション API</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- API Changes -->
+    <div class="section">
+      <h2>🔌 API 変更サマリー</h2>
+      <div style="overflow-x: auto;">
+        <table class="api-table">
+          <thead>
+            <tr>
+              <th>サービス</th>
+              <th>変更内容</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><a href="https://awsapichanges.com/archive/changes/104e8e-dynamodb.html" target="_blank">Amazon DynamoDB</a></td>
+              <td>9 updated methods - マルチアカウント GT サポート</td>
+            </tr>
+            <tr>
+              <td><a href="https://awsapichanges.com/archive/changes/104e8e-sso.html" target="_blank">AWS SSO Admin</a></td>
+              <td>4 new + 2 updated methods - マルチリージョンレプリケーション API</td>
+            </tr>
+            <tr>
+              <td><a href="https://awsapichanges.com/archive/changes/12d57f-cloudfront.html" target="_blank">Amazon CloudFront</a></td>
+              <td>14 updated methods - オリジン mTLS サポート</td>
+            </tr>
+            <tr>
+              <td><a href="https://awsapichanges.com/archive/changes/12d57f-mpa.html" target="_blank">AWS Multi-party Approval</a></td>
+              <td>4 updated methods - MFA for voting operations</td>
+            </tr>
+            <tr>
+              <td><a href="https://awsapichanges.com/archive/changes/26a688-connect.html" target="_blank">Amazon Connect</a></td>
+              <td>2 updated methods - 待ち時間推定サポート</td>
+            </tr>
+            <tr>
+              <td><a href="https://awsapichanges.com/archive/changes/0b51ae-ec2.html" target="_blank">Amazon EC2</a></td>
+              <td>25 updated methods - G7e インスタンスサポート</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Trends -->
+    <div class="section">
+      <h2>📈 今週の傾向</h2>
+      <div class="trend-section">
+        <div class="trend-card">
+          <h3>🔄 マルチアカウント・マルチリージョン</h3>
+          <p>DynamoDB と IAM Identity Center の両方で機能が強化。エンタープライズグレードのグローバル展開がより容易に</p>
+        </div>
+        <div class="trend-card">
+          <h3>🔐 セキュリティ強化</h3>
+          <p>CloudFront mTLS、STS クレーム検証、Multi-party Approval OTP など、セキュリティ機能が複数強化</p>
+        </div>
+        <div class="trend-card">
+          <h3>🤖 AI/ML モデル拡充</h3>
+          <p>SageMaker JumpStart で複数の新モデル追加。バイオサイエンスとロボティクス向け NVIDIA NIMs が注目</p>
+        </div>
+        <div class="trend-card">
+          <h3>📦 データ処理の柔軟性</h3>
+          <p>EventBridge 1 MB ペイロードと S3 暗号化タイプ変更で運用の柔軟性が大きく向上</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Use Cases -->
+    <div class="section">
+      <h2>💡 注目のユースケース</h2>
+      <div class="usecase-grid">
+        <div class="usecase-card">
+          <h3>🏢 エンタープライズ向けマルチアカウント戦略</h3>
+          <p>DynamoDB マルチアカウント GT と IAM Identity Center マルチリージョンを組み合わせ、事業部門ごとの完全な分離とグローバルなデータ共有を両立</p>
+        </div>
+        <div class="usecase-card">
+          <h3>🔒 ゼロトラストアーキテクチャの強化</h3>
+          <p>CloudFront オリジン mTLS と STS クレーム検証により、証明書ベースの認証ときめ細かいアクセス制御が可能に</p>
+        </div>
+        <div class="usecase-card">
+          <h3>⚡ イベント駆動アーキテクチャの拡張</h3>
+          <p>EventBridge 1 MB ペイロードサポートにより、LLM プロンプトや ML 出力などリッチなデータをイベントに含めることが可能に</p>
+        </div>
+        <div class="usecase-card">
+          <h3>📋 コンプライアンス対応の簡素化</h3>
+          <p>S3 暗号化タイプ変更機能により、SSE-S3 から SSE-KMS への移行が容易になり規制要件への対応がスムーズに</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Next Week -->
+    <div class="section">
+      <h2>👀 次週の注目ポイント</h2>
+      <div class="next-week">
+        <div class="next-week-item">🗄️ DynamoDB マルチアカウント GT 実運用事例</div>
+        <div class="next-week-item">🔐 IAM Identity Center フェイルオーバーパターン</div>
+        <div class="next-week-item">⚡ EventBridge 1 MB 活用アーキテクチャ</div>
+        <div class="next-week-item">💾 S3 暗号化タイプ変更の大規模運用事例</div>
+      </div>
+    </div>
+
+    <!-- Summary -->
+    <div class="section">
+      <h2>📝 まとめ</h2>
+      <div class="summary-box">
+        <p>今週は、<span class="highlight">マルチアカウント・マルチリージョン戦略の強化</span>、<span class="highlight">セキュリティ機能の拡充</span>、そして <span class="highlight">AI/ML モデルの追加</span>が目立ちました。特に DynamoDB のマルチアカウントグローバルテーブルと IAM Identity Center のマルチリージョン対応は、エンタープライズ環境でのグローバル展開を大幅に容易にする画期的な機能です。また、EventBridge のペイロードサイズ拡大と S3 の暗号化タイプ変更は、運用の柔軟性を大きく向上させます。これらの新機能を活用することで、より堅牢で柔軟なクラウドアーキテクチャを構築できるようになります。</p>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+      <p>📅 レポート作成日: 2026 年 2 月 4 日 | 期間: 2026 年 1 月 28 日 - 2 月 4 日</p>
+      <p style="margin-top: 8px;">
+        📎 出典:
+        <a href="https://aws.amazon.com/new/" target="_blank" class="aws-link">AWS What's New</a> |
+        <a href="https://awsapichanges.com/" target="_blank" class="aws-link">AWS API Changes</a> |
+        <a href="https://aws.amazon.com/blogs/aws/" target="_blank" class="aws-link">AWS Blog</a>
+      </p>
+      <p style="margin-top: 8px;">
+        <a href="https://takech9203.github.io/awsnews-summary/20260204-weekly-summary-week-05.html" target="_blank" class="aws-link">https://takech9203.github.io/awsnews-summary/20260204-weekly-summary-week-05.html</a>
+      </p>
+    </footer>
+  </div>
+
+  <!-- Mermaid.js -->
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'base',
+      themeVariables: {
+        primaryColor: '#FF9900',
+        primaryTextColor: '#232F3E',
+        primaryBorderColor: '#FF9900',
+        lineColor: '#FF9900',
+        secondaryColor: '#F5F5F5',
+        tertiaryColor: '#FAFAFA',
+        background: '#FFFFFF',
+        mainBkg: '#FFF3E0',
+        nodeBorder: '#FF9900',
+        clusterBkg: '#FFF8E1',
+        clusterBorder: '#FF9900',
+        edgeLabelBackground: '#FFFFFF',
+        textColor: '#232F3E'
+      }
+    });
+  </script>
+</body>
+</html>

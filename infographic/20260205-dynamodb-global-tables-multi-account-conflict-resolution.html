@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Amazon DynamoDB Global Tables - マルチアカウント競合解決サポート</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --aws-squid-ink: #232F3E;
+            --aws-dark-squid: #1A242F;
+            --aws-orange: #FF9900;
+            --aws-smile-orange: #FFAD33;
+            --aws-white: #FFFFFF;
+            --aws-light-gray: #D5DBDB;
+            --aws-teal: #00A1C9;
+            --aws-purple: #8C4FFF;
+            --aws-green: #1D8102;
+            --aws-red: #D13212;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+            background: var(--aws-squid-ink);
+            color: var(--aws-light-gray);
+            line-height: 1.8;
+            padding: 40px 20px;
+        }
+        .container { max-width: 1000px; margin: 0 auto; }
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 40px 24px;
+            background: linear-gradient(135deg, var(--aws-dark-squid) 0%, var(--aws-squid-ink) 100%);
+            border-radius: 12px;
+            border: 3px solid var(--aws-orange);
+        }
+        .service-badge {
+            display: inline-block;
+            background: var(--aws-orange);
+            color: var(--aws-squid-ink);
+            padding: 8px 24px;
+            border-radius: 24px;
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 16px;
+        }
+        .header h1 {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--aws-white);
+            margin-bottom: 12px;
+            line-height: 1.4;
+        }
+        .header .subtitle { font-size: 16px; color: var(--aws-light-gray); }
+        .release-date {
+            font-size: 14px;
+            color: var(--aws-orange);
+            margin-top: 16px;
+            font-weight: 600;
+        }
+        .section {
+            background: var(--aws-dark-squid);
+            padding: 24px;
+            border-radius: 8px;
+            margin-bottom: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .section h2 {
+            font-size: 22px;
+            font-weight: 600;
+            color: var(--aws-orange);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        @media (max-width: 768px) { .comparison { grid-template-columns: 1fr; } }
+        .comparison-card {
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 5px solid;
+        }
+        .comparison-card.before {
+            background: rgba(209, 50, 18, 0.15);
+            border-left-color: var(--aws-red);
+        }
+        .comparison-card.after {
+            background: rgba(29, 129, 2, 0.15);
+            border-left-color: var(--aws-green);
+        }
+        .comparison-card h4 { font-size: 16px; margin-bottom: 12px; font-weight: 600; }
+        .comparison-card.before h4 { color: var(--aws-red); }
+        .comparison-card.after h4 { color: var(--aws-green); }
+        .comparison-card ul { list-style: none; padding-left: 0; }
+        .comparison-card li {
+            margin-bottom: 8px;
+            padding-left: 20px;
+            position: relative;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        .comparison-card.before li::before { content: "✕"; position: absolute; left: 0; color: var(--aws-red); font-weight: bold; }
+        .comparison-card.after li::before { content: "✓"; position: absolute; left: 0; color: var(--aws-green); font-weight: bold; }
+        .highlight {
+            background: rgba(255, 153, 0, 0.2);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+            color: var(--aws-orange);
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-top: 16px;
+        }
+        @media (max-width: 768px) { .stats-grid { grid-template-columns: 1fr; } }
+        .stats-card {
+            background: linear-gradient(135deg, var(--aws-orange) 0%, #FF6B00 100%);
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            color: var(--aws-white);
+        }
+        .stats-card .number { font-size: 36px; font-weight: bold; line-height: 1; }
+        .stats-card .label { font-size: 13px; margin-top: 8px; }
+
+        .usecase {
+            background: linear-gradient(135deg, rgba(255, 153, 0, 0.15) 0%, rgba(255, 153, 0, 0.05) 100%);
+            padding: 20px;
+            border-radius: 8px;
+            border: 2px solid rgba(255, 153, 0, 0.3);
+            margin-bottom: 16px;
+        }
+        .usecase h3 { font-size: 18px; color: var(--aws-orange); margin-bottom: 8px; }
+        .usecase p { font-size: 15px; color: #EEEEEE; }
+        a { color: var(--aws-teal); text-decoration: none; }
+        a:hover { color: var(--aws-smile-orange); text-decoration: underline; }
+        footer {
+            margin-top: 32px;
+            padding: 24px;
+            background: var(--aws-dark-squid);
+            border-radius: 8px;
+            border-top: 3px solid var(--aws-orange);
+        }
+        footer h3 { font-size: 18px; color: var(--aws-orange); margin-bottom: 16px; }
+        footer a {
+            display: block;
+            margin-bottom: 10px;
+            padding: 8px 12px;
+            background: rgba(255, 153, 0, 0.1);
+            border-radius: 6px;
+        }
+        .footer-note {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid #333;
+            font-size: 12px;
+            color: #888;
+        }
+        .arch-diagram {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            padding: 24px;
+            margin: 20px 0;
+            border: 2px solid rgba(255, 153, 0, 0.3);
+        }
+        .arch-flow {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+        }
+        .arch-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 24px;
+            flex-wrap: wrap;
+        }
+        .account-box {
+            background: rgba(0, 0, 0, 0.2);
+            border: 2px solid var(--aws-teal);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+            min-width: 200px;
+        }
+        .account-box h4 {
+            color: var(--aws-teal);
+            font-size: 13px;
+            margin-bottom: 12px;
+        }
+        .region-box {
+            background: var(--aws-dark-squid);
+            border: 2px solid var(--aws-purple);
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 8px;
+        }
+        .region-box .region-name {
+            font-size: 11px;
+            color: var(--aws-purple);
+            margin-bottom: 6px;
+        }
+        .table-icon {
+            background: rgba(255, 153, 0, 0.2);
+            border: 2px solid var(--aws-orange);
+            border-radius: 8px;
+            padding: 8px 12px;
+            display: inline-block;
+        }
+        .table-icon .icon { font-size: 20px; }
+        .table-icon .label { font-size: 10px; color: var(--aws-orange); }
+        .conflict-box {
+            background: rgba(140, 79, 255, 0.15);
+            border: 2px solid var(--aws-purple);
+            border-radius: 8px;
+            padding: 16px;
+            text-align: center;
+            margin: 16px 0;
+        }
+        .conflict-box h4 {
+            color: var(--aws-purple);
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+        .conflict-box p {
+            font-size: 12px;
+            color: var(--aws-light-gray);
+        }
+        .replication-line {
+            color: var(--aws-green);
+            font-size: 13px;
+            text-align: center;
+        }
+        .code-block {
+            background: #1a1a2e;
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 16px 0;
+        }
+        .code-header {
+            background: #16213e;
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+        }
+        .code-lang { color: var(--aws-orange); font-weight: bold; }
+        .code-title { color: var(--aws-light-gray); }
+        .code-block pre {
+            margin: 0;
+            padding: 16px;
+            overflow-x: auto;
+        }
+        .code-block code {
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            color: #e0e0e0;
+            line-height: 1.5;
+        }
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            margin-top: 16px;
+        }
+        @media (max-width: 768px) { .feature-grid { grid-template-columns: 1fr; } }
+        .feature-card {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 16px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 153, 0, 0.2);
+        }
+        .feature-card h4 {
+            color: var(--aws-orange);
+            font-size: 15px;
+            margin-bottom: 8px;
+        }
+        .feature-card p { font-size: 13px; color: var(--aws-light-gray); }
+        .mermaid-container {
+            background: #FFFFFF;
+            border-radius: 12px;
+            padding: 24px;
+            margin: 20px 0;
+            border: 2px solid rgba(255, 153, 0, 0.3);
+            overflow-x: auto;
+        }
+        .mermaid {
+            display: flex;
+            justify-content: center;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'base',
+            themeVariables: {
+                primaryColor: '#FF9900',
+                primaryTextColor: '#232F3E',
+                primaryBorderColor: '#FF9900',
+                lineColor: '#FF9900',
+                secondaryColor: '#F5F5F5',
+                tertiaryColor: '#FAFAFA',
+                background: '#FFFFFF',
+                mainBkg: '#FFF3E0',
+                nodeBorder: '#FF9900',
+                clusterBkg: '#FFF8E1',
+                clusterBorder: '#FF9900',
+                edgeLabelBackground: '#FFFFFF',
+                textColor: '#232F3E'
+            }
+        });
+    </script>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="service-badge">Amazon DynamoDB Global Tables</div>
+            <h1>🔄 マルチアカウント<br/>競合解決サポート</h1>
+            <div class="subtitle">Last Writer Wins による自動競合解決でマルチアカウント環境を実現</div>
+            <div class="release-date">📅 リリース日: 2026年02月05日</div>
+        </div>
+
+        <div class="section">
+            <h2>📊 概要</h2>
+            <p>DynamoDB Global Tables が<span class="highlight">複数の AWS アカウント間でのレプリケーション</span>をサポート。<span class="highlight">Last Writer Wins</span> による競合解決メカニズムがマルチアカウント環境でも動作し、アカウントレベルの障害分離と耐障害性を実現します。</p>
+            <div class="comparison">
+                <div class="comparison-card before">
+                    <h4>⚠️ アップデート前</h4>
+                    <ul>
+                        <li>単一アカウント内でのみレプリケーション可能</li>
+                        <li>アカウント障害で全リージョンが影響</li>
+                        <li>マルチアカウントにはカスタム実装が必要</li>
+                        <li>競合解決の一貫性確保が困難</li>
+                    </ul>
+                </div>
+                <div class="comparison-card after">
+                    <h4>✨ アップデート後</h4>
+                    <ul>
+                        <li>複数アカウント間で自動レプリケーション</li>
+                        <li>アカウントレベルの障害分離が可能</li>
+                        <li>Last Writer Wins が自動で競合解決</li>
+                        <li>既存機能 (PITR, Streams) もサポート</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🏗️ アーキテクチャ図</h2>
+            <div class="mermaid-container">
+                <pre class="mermaid">
+flowchart TB
+    subgraph AccountA["🏢 AWS アカウント A (本番)"]
+        subgraph RegionA["🌏 ap-northeast-1 東京"]
+            TableA[("📊 DynamoDB<br/>プライマリ")]
+        end
+    end
+    
+    subgraph AccountB["🏢 AWS アカウント B (DR)"]
+        subgraph RegionB["🌎 us-west-2 オレゴン"]
+            TableB[("📊 DynamoDB<br/>レプリカ 1")]
+        end
+        subgraph RegionC["🌍 eu-west-1 アイルランド"]
+            TableC[("📊 DynamoDB<br/>レプリカ 2")]
+        end
+    end
+    
+    TableA <-->|"🔄 双方向同期"| TableB
+    TableA <-->|"🔄 双方向同期"| TableC
+    TableB <-->|"🔄 双方向同期"| TableC
+    
+    Conflict{{"⚡ 競合発生時"}}
+    LWW["🏆 Last Writer Wins<br/>最新タイムスタンプが優先"]
+    
+    TableA -.-> Conflict
+    TableB -.-> Conflict
+    Conflict --> LWW
+                </pre>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🔧 主要機能</h2>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h4>🔄 マルチアカウントレプリケーション</h4>
+                    <p>複数の AWS アカウント間でデータを自動レプリケート。各アカウントは独立した IAM、請求、リソース制限を持つ。</p>
+                </div>
+                <div class="feature-card">
+                    <h4>⚡ Last Writer Wins 競合解決</h4>
+                    <p>同一アイテムへの同時書き込みは、最後のタイムスタンプを持つ書き込みが自動的に優先される。</p>
+                </div>
+                <div class="feature-card">
+                    <h4>🛡️ アカウントレベル耐障害性</h4>
+                    <p>単一アカウントで障害が発生しても、他のアカウントのレプリカから継続的にアクセス可能。</p>
+                </div>
+                <div class="feature-card">
+                    <h4>🔗 既存機能との統合</h4>
+                    <p>PITR、オンデマンドバックアップ、DynamoDB Streams、GSI など既存機能をフルサポート。</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>📈 技術仕様</h2>
+            <div class="stats-grid">
+                <div class="stats-card">
+                    <div class="number">&lt;1s</div>
+                    <div class="label">レプリケーション遅延 (通常)</div>
+                </div>
+                <div class="stats-card">
+                    <div class="number">LWW</div>
+                    <div class="label">競合解決 (Last Writer Wins)</div>
+                </div>
+                <div class="stats-card">
+                    <div class="number">結果整合性</div>
+                    <div class="label">整合性モデル</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>💻 設定例</h2>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Bash</span>
+                    <span class="code-title">Global Table 作成 (マルチアカウント)</span>
+                </div>
+                <pre><code># アカウント A でプライマリテーブルを作成後、
+# アカウント B にレプリカを追加
+aws dynamodb create-global-table \
+  --global-table-name TransactionData \
+  --replication-group \
+    RegionName=ap-northeast-1 \
+    RegionName=us-west-2,GlobalTableSourceArn=arn:aws:dynamodb:us-west-2:ACCOUNT_B:table/TransactionData \
+  --region ap-northeast-1</code></pre>
+            </div>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">JSON</span>
+                    <span class="code-title">必要な IAM 権限</span>
+                </div>
+                <pre><code>{
+  "Effect": "Allow",
+  "Action": [
+    "dynamodb:CreateGlobalTable",
+    "dynamodb:UpdateGlobalTableSettings",
+    "dynamodb:DescribeGlobalTable"
+  ],
+  "Resource": "arn:aws:dynamodb:*:*:table/*"
+}</code></pre>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>💡 ユースケース</h2>
+            <div class="usecase">
+                <h3>🏦 ディザスタリカバリ (DR) 環境</h3>
+                <p>金融機関が本番環境 (アカウント A) と DR 環境 (アカウント B) を分離。アカウント A で障害が発生しても、アカウント B から継続的にデータアクセス可能。</p>
+            </div>
+            <div class="usecase">
+                <h3>🏥 セキュリティ分離とコンプライアンス</h3>
+                <p>ヘルスケア企業が患者データを別アカウントに分離し、データ境界ガードレールを実装。HIPAA などの規制要件を満たしながらデータ共有。</p>
+            </div>
+            <div class="usecase">
+                <h3>🔧 開発・テスト・本番環境の分離</h3>
+                <p>SaaS 企業が各環境を別アカウントに分離。テスト環境が本番データのレプリカを使用でき、誤って本番データを変更するリスクを低減。</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🌏 利用可能リージョン</h2>
+            <p>DynamoDB Global Tables がサポートされている<span class="highlight">全ての AWS リージョン</span>で利用可能です。東京、オレゴン、アイルランド、フランクフルト、シンガポール、シドニーなど主要リージョンを含みます。</p>
+        </div>
+
+        <footer>
+            <h3>📎 出典・参考リンク</h3>
+            <a href="https://aws.amazon.com/about-aws/whats-new/2026/02/dynamodb-gt-multi-account/" target="_blank">🔗 公式発表 (What's New)</a>
+            <a href="https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/GlobalTables.html" target="_blank">📖 DynamoDB Global Tables ドキュメント</a>
+            <a href="https://aws.amazon.com/dynamodb/pricing/" target="_blank">💰 DynamoDB 料金ページ</a>
+            <p class="footer-note">🤖 Generated with Kiro | 📅 2026-02-05</p>
+        </footer>
+    </div>
+</body>
+</html>

@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Amazon Bedrock - 1 時間 Prompt Caching</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <style>
+        :root {
+            --aws-squid-ink: #232F3E;
+            --aws-dark-squid: #1A242F;
+            --aws-orange: #FF9900;
+            --aws-smile-orange: #FFAD33;
+            --aws-white: #FFFFFF;
+            --aws-light-gray: #D5DBDB;
+            --aws-teal: #00A1C9;
+            --aws-purple: #8C4FFF;
+            --aws-green: #1D8102;
+            --aws-red: #D13212;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+            background: var(--aws-squid-ink);
+            color: var(--aws-light-gray);
+            line-height: 1.8;
+            padding: 40px 20px;
+        }
+        .container { max-width: 1000px; margin: 0 auto; }
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 40px 24px;
+            background: linear-gradient(135deg, var(--aws-dark-squid) 0%, var(--aws-squid-ink) 100%);
+            border-radius: 12px;
+            border: 3px solid var(--aws-purple);
+        }
+        .service-badge {
+            display: inline-block;
+            background: var(--aws-purple);
+            color: var(--aws-white);
+            padding: 8px 24px;
+            border-radius: 24px;
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 16px;
+        }
+        .header h1 {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--aws-white);
+            margin-bottom: 12px;
+            line-height: 1.4;
+        }
+        .header .subtitle { font-size: 16px; color: var(--aws-light-gray); }
+        .release-date { font-size: 14px; color: var(--aws-purple); margin-top: 16px; font-weight: 600; }
+        .section {
+            background: var(--aws-dark-squid);
+            padding: 24px;
+            border-radius: 8px;
+            margin-bottom: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .section h2 {
+            font-size: 22px;
+            font-weight: 600;
+            color: var(--aws-orange);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        @media (max-width: 768px) { .comparison { grid-template-columns: 1fr; } }
+        .comparison-card {
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 5px solid;
+        }
+        .comparison-card.before { background: rgba(209, 50, 18, 0.15); border-left-color: var(--aws-red); }
+        .comparison-card.after { background: rgba(29, 129, 2, 0.15); border-left-color: var(--aws-green); }
+        .comparison-card h4 { font-size: 16px; margin-bottom: 12px; font-weight: 600; }
+        .comparison-card.before h4 { color: var(--aws-red); }
+        .comparison-card.after h4 { color: var(--aws-green); }
+        .comparison-card ul { list-style: none; padding-left: 0; }
+        .comparison-card li { margin-bottom: 8px; padding-left: 20px; position: relative; font-size: 14px; line-height: 1.6; }
+        .comparison-card.before li::before { content: "✕"; position: absolute; left: 0; color: var(--aws-red); font-weight: bold; }
+        .comparison-card.after li::before { content: "✓"; position: absolute; left: 0; color: var(--aws-green); font-weight: bold; }
+        .card {
+            background: var(--aws-dark-squid);
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid rgba(140, 79, 255, 0.3);
+            margin-bottom: 16px;
+        }
+        .card h3 { font-size: 18px; color: var(--aws-purple); margin-bottom: 8px; display: flex; align-items: center; gap: 10px; }
+        .card p { font-size: 15px; color: var(--aws-light-gray); }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-top: 16px;
+        }
+        @media (max-width: 768px) { .stats-grid { grid-template-columns: 1fr; } }
+        .stats-card {
+            background: linear-gradient(135deg, var(--aws-purple) 0%, #6B4FFF 100%);
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            color: var(--aws-white);
+        }
+        .stats-card .number { font-size: 36px; font-weight: bold; line-height: 1; }
+        .stats-card .label { font-size: 13px; margin-top: 8px; }
+        .usecase {
+            background: linear-gradient(135deg, rgba(140, 79, 255, 0.15) 0%, rgba(140, 79, 255, 0.05) 100%);
+            padding: 20px;
+            border-radius: 8px;
+            border: 2px solid rgba(140, 79, 255, 0.3);
+            margin-bottom: 16px;
+        }
+        .usecase h3 { font-size: 18px; color: var(--aws-purple); margin-bottom: 8px; }
+        .usecase p { font-size: 15px; color: #EEEEEE; }
+        .highlight {
+            background: rgba(140, 79, 255, 0.2);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+            color: var(--aws-purple);
+        }
+        .ttl-comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        @media (max-width: 768px) { .ttl-comparison { grid-template-columns: 1fr; } }
+        .ttl-card {
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .ttl-card.old { background: rgba(255, 153, 0, 0.15); border: 2px solid var(--aws-orange); }
+        .ttl-card.new { background: rgba(140, 79, 255, 0.15); border: 2px solid var(--aws-purple); }
+        .ttl-card .time { font-size: 48px; font-weight: bold; }
+        .ttl-card.old .time { color: var(--aws-orange); }
+        .ttl-card.new .time { color: var(--aws-purple); }
+        .ttl-card .label { font-size: 14px; margin-top: 8px; }
+        a { color: var(--aws-teal); text-decoration: none; }
+        a:hover { color: var(--aws-smile-orange); text-decoration: underline; }
+        footer {
+            margin-top: 32px;
+            padding: 24px;
+            background: var(--aws-dark-squid);
+            border-radius: 8px;
+            border-top: 3px solid var(--aws-purple);
+        }
+        footer h3 { font-size: 18px; color: var(--aws-purple); margin-bottom: 16px; }
+        footer a { display: block; margin-bottom: 10px; padding: 8px 12px; background: rgba(140, 79, 255, 0.1); border-radius: 6px; }
+        .footer-note { margin-top: 16px; padding-top: 16px; border-top: 1px solid #333; font-size: 12px; color: #888; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+            font-size: 14px;
+        }
+        th {
+            background: var(--aws-purple);
+            color: var(--aws-white);
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+        }
+        td {
+            background: var(--aws-dark-squid);
+            padding: 12px;
+            border-bottom: 1px solid #333;
+        }
+        .mermaid-container {
+            background: #FFFFFF;
+            border-radius: 12px;
+            padding: 24px;
+            margin: 20px 0;
+            border: 2px solid rgba(140, 79, 255, 0.3);
+            overflow-x: auto;
+        }
+        .mermaid {
+            display: flex;
+            justify-content: center;
+        }
+    </style>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            mermaid.initialize({
+                startOnLoad: true,
+                theme: 'base',
+                themeVariables: {
+                    primaryColor: '#8C4FFF',
+                    primaryTextColor: '#232F3E',
+                    primaryBorderColor: '#8C4FFF',
+                    lineColor: '#8C4FFF',
+                    secondaryColor: '#F5F5F5',
+                    tertiaryColor: '#FAFAFA',
+                    background: '#FFFFFF',
+                    mainBkg: '#F3E5F5',
+                    nodeBorder: '#8C4FFF',
+                    clusterBkg: '#F3E5F5',
+                    clusterBorder: '#8C4FFF',
+                    edgeLabelBackground: '#FFFFFF',
+                    textColor: '#232F3E',
+                    actorBkg: '#F3E5F5',
+                    actorBorder: '#8C4FFF',
+                    actorTextColor: '#232F3E',
+                    signalColor: '#8C4FFF',
+                    signalTextColor: '#232F3E',
+                    noteBkgColor: '#FFF8E1',
+                    noteBorderColor: '#FF9900',
+                    noteTextColor: '#232F3E',
+                    activationBkgColor: '#E8F1FF',
+                    activationBorderColor: '#4A90E2'
+                }
+            });
+        });
+    </script>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="service-badge">Amazon Bedrock</div>
+            <h1>⏱️ 1 時間 Prompt Caching</h1>
+            <div class="subtitle">長時間実行ワークフローのコスト効率とパフォーマンスを向上</div>
+            <div class="release-date">📅 リリース日: 2026年01月26日</div>
+        </div>
+
+        <div class="section">
+            <h2>📊 概要</h2>
+            <p>Amazon Bedrock が Anthropic Claude モデルで<span class="highlight">1 時間 TTL</span>の Prompt Caching をサポート開始。キャッシュ持続時間を 5 分から 1 時間に延長でき、長時間実行されるエージェント型ワークフローやマルチターン会話のコスト効率とパフォーマンスが大幅に向上します。</p>
+            <div class="ttl-comparison">
+                <div class="ttl-card old">
+                    <div class="time">5 分</div>
+                    <div class="label">従来の TTL</div>
+                </div>
+                <div class="ttl-card new">
+                    <div class="time">1 時間</div>
+                    <div class="label">新しい TTL オプション</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>⚠️ Before / After</h2>
+            <div class="comparison">
+                <div class="comparison-card before">
+                    <h4>⚠️ 5 分 TTL の課題</h4>
+                    <ul>
+                        <li>長時間ワークフローで頻繁にキャッシュミス</li>
+                        <li>操作頻度が低いユーザーはキャッシュの恩恵なし</li>
+                        <li>複雑なエージェントでコンテキスト喪失</li>
+                        <li>バッチ処理でコストとレイテンシ増加</li>
+                    </ul>
+                </div>
+                <div class="comparison-card after">
+                    <h4>✨ 1 時間 TTL の改善</h4>
+                    <ul>
+                        <li>長時間ワークフローでキャッシュヒット率向上</li>
+                        <li>操作頻度が低いユーザーもキャッシュ活用</li>
+                        <li>複雑なエージェントでコンテキスト維持</li>
+                        <li>バッチ処理で全体的なコスト効率向上</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🎯 対応モデル</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>モデル</th>
+                        <th>5 分 TTL</th>
+                        <th>1 時間 TTL</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Claude Sonnet 4.5</td>
+                        <td>✓</td>
+                        <td>✓</td>
+                    </tr>
+                    <tr>
+                        <td>Claude Haiku 4.5</td>
+                        <td>✓</td>
+                        <td>✓</td>
+                    </tr>
+                    <tr>
+                        <td>Claude Opus 4.5</td>
+                        <td>✓</td>
+                        <td>✓</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="section">
+            <h2>🎯 主要機能</h2>
+            <div class="card">
+                <h3>⏱️ 1 時間 TTL オプション</h3>
+                <p>プロンプトキャッシュの持続時間を 5 分から 1 時間に延長可能。キャッシュヒット時に TTL がリセットされ、さらに 1 時間延長されます。</p>
+            </div>
+            <div class="card">
+                <h3>💰 コスト効率の向上</h3>
+                <p>長時間実行されるワークフローでキャッシュヒット率が向上。キャッシュから読み取るトークンは割引料金で課金されます。</p>
+            </div>
+            <div class="card">
+                <h3>⚡ レイテンシーの削減</h3>
+                <p>キャッシュヒット時、モデルの内部状態の再計算が不要。レスポンスレイテンシーが大幅に短縮されます。</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🏗️ アーキテクチャ図</h2>
+            <p>1 時間 TTL により、5 分以上の間隔が空いても、1 時間以内であればキャッシュを再利用できるようになります。</p>
+            <div class="mermaid-container">
+                <pre class="mermaid">
+sequenceDiagram
+    participant User as 👤 ユーザー
+    participant App as 📱 アプリケーション
+    participant Bedrock as 🧠 Amazon Bedrock
+    participant Cache as 💾 プロンプトキャッシュ
+    participant Model as 🤖 Claude モデル
+
+    Note over Cache: 5 分 TTL vs 1 時間 TTL の比較
+
+    rect rgb(255,243,224)
+        Note over User,Model: 最初のリクエスト
+        User->>App: 1. プロンプト送信
+        App->>Bedrock: 2. InvokeModel API 呼び出し<br/>ttl: 1h 指定
+        Bedrock->>Cache: 3. キャッシュ確認
+        Cache-->>Bedrock: キャッシュミス
+        Bedrock->>Model: 4. モデル実行
+        Model-->>Bedrock: 5. レスポンス生成
+        Bedrock->>Cache: 6. プロンプトをキャッシュ<br/>TTL = 1 時間
+        Bedrock-->>App: 7. レスポンス返却<br/>CacheWriteInputTokens
+        App-->>User: 8. 結果表示
+    end
+
+    Note over User,Model: 30 分後の 2 回目のリクエスト
+
+    rect rgb(232,245,233)
+        User->>App: 9. フォローアップ質問
+        App->>Bedrock: 10. InvokeModel API 呼び出し
+        Bedrock->>Cache: 11. キャッシュ確認
+        Cache-->>Bedrock: キャッシュヒット<br/>TTL リセット
+        Bedrock->>Model: 12. キャッシュ利用で実行
+        Model-->>Bedrock: 13. 高速レスポンス
+        Bedrock-->>App: 14. レスポンス返却<br/>CacheReadInputTokens
+        App-->>User: 15. 結果表示
+    end
+
+    Note over Cache: 5 分 TTL の場合はキャッシュミス<br/>1 時間 TTL の場合はキャッシュヒット
+                </pre>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>💡 ユースケース</h2>
+            <div class="usecase">
+                <h3>💬 カスタマーサポートチャットボット</h3>
+                <p>ユーザーが問い合わせの途中で離席し、30 分後に会話を再開する場合でも、FAQ と製品情報がキャッシュされているためコストとレイテンシーが削減されます。</p>
+            </div>
+            <div class="usecase">
+                <h3>📊 データ分析エージェント</h3>
+                <p>大量のデータセットを読み込み、複数のステップで分析を実行。各ステップの間に 10-15 分かかる場合でもキャッシュを再利用できます。</p>
+            </div>
+            <div class="usecase">
+                <h3>📄 ドキュメント Q&A システム</h3>
+                <p>長大なドキュメントに対する Q&A で、45 分後の質問でもドキュメントがキャッシュされているため、毎回再処理する必要がありません。</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🌏 利用可能リージョン</h2>
+            <p>Anthropic の Claude Sonnet 4.5、Claude Haiku 4.5、Claude Opus 4.5 が利用可能な<span class="highlight">すべての商用 AWS リージョン</span>および AWS GovCloud (US) リージョンで一般提供されています。</p>
+        </div>
+
+        <footer>
+            <h3>📎 出典・参考リンク</h3>
+            <a href="https://aws.amazon.com/about-aws/whats-new/2026/01/amazon-bedrock-one-hour-duration-prompt-caching/" target="_blank">🔗 公式発表 (What's New)</a>
+            <a href="https://docs.aws.amazon.com/bedrock/latest/userguide/prompt-caching.html" target="_blank">📖 Prompt Caching ドキュメント</a>
+            <a href="https://aws.amazon.com/bedrock/pricing/" target="_blank">💰 Amazon Bedrock 料金</a>
+            <p class="footer-note">🤖 Generated with Kiro | 📅 2026-02-05</p>
+        </footer>
+    </div>
+</body>
+</html>

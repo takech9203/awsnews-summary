@@ -1,0 +1,1218 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Amazon Neptune Analytics - 7 つの追加リージョンで利用可能に</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/styles/atom-one-dark.min.css">
+    <style>
+        :root {
+            --squid-ink: #232F3E;
+            --dark-squid: #1A242F;
+            --aws-orange: #FF9900;
+            --smile-orange: #FFAD33;
+            --text-primary: #FFFFFF;
+            --text-secondary: #D5DBDB;
+            --text-muted: #AAAAAA;
+            --card-bg: #2D3A4A;
+            --border-color: #3D4A5A;
+            --aws-teal: #00A1C9;
+            --aws-green: #1D8102;
+            --aws-red: #D13212;
+            --aws-purple: #8C4FFF;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            background-color: var(--squid-ink);
+            color: var(--text-secondary);
+            line-height: 1.8;
+            font-size: 16px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+            padding-bottom: 30px;
+            border-bottom: 3px solid var(--aws-orange);
+        }
+
+        .badge-row {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+
+        .service-badge {
+            display: inline-block;
+            background-color: var(--aws-orange);
+            color: var(--squid-ink);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .region-badge {
+            display: inline-block;
+            background-color: #2ECC71;
+            color: #FFFFFF;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .ai-badge {
+            display: inline-block;
+            background-color: var(--aws-purple);
+            color: #FFFFFF;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .graph-badge {
+            display: inline-block;
+            background-color: var(--aws-teal);
+            color: #FFFFFF;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+            line-height: 1.4;
+        }
+
+        .release-date {
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--aws-orange);
+            margin-bottom: 20px;
+            padding-left: 15px;
+            border-left: 4px solid var(--aws-orange);
+        }
+
+        .overview-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .overview-text {
+            font-size: 16px;
+            line-height: 1.9;
+        }
+
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .comparison-grid {
+                grid-template-columns: 1fr;
+            }
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr) !important;
+            }
+            .features-grid {
+                grid-template-columns: 1fr !important;
+            }
+            .new-regions-grid {
+                grid-template-columns: repeat(2, 1fr) !important;
+            }
+            .benefits-grid {
+                grid-template-columns: 1fr !important;
+            }
+            .related-grid {
+                grid-template-columns: repeat(2, 1fr) !important;
+            }
+            .flow-diagram {
+                flex-direction: column;
+            }
+            .flow-arrow {
+                transform: rotate(90deg);
+            }
+        }
+
+        .comparison-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .comparison-card.before {
+            border-top: 4px solid #E74C3C;
+        }
+
+        .comparison-card.after {
+            border-top: 4px solid #2ECC71;
+        }
+
+        .comparison-label {
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        .comparison-card.before .comparison-label {
+            color: #E74C3C;
+        }
+
+        .comparison-card.after .comparison-label {
+            color: #2ECC71;
+        }
+
+        .comparison-list {
+            list-style: none;
+        }
+
+        .comparison-list li {
+            padding: 8px 0;
+            padding-left: 25px;
+            position: relative;
+            font-size: 14px;
+        }
+
+        .comparison-card.before .comparison-list li::before {
+            content: "\2717";
+            position: absolute;
+            left: 0;
+            color: #E74C3C;
+            font-weight: bold;
+        }
+
+        .comparison-card.after .comparison-list li::before {
+            content: "\2713";
+            position: absolute;
+            left: 0;
+            color: #2ECC71;
+            font-weight: bold;
+        }
+
+        /* Statistics Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, var(--card-bg) 0%, var(--dark-squid) 100%);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid rgba(255, 153, 0, 0.2);
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--aws-orange);
+            line-height: 1.2;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 6px;
+        }
+
+        .stat-sublabel {
+            font-size: 11px;
+            color: var(--text-muted);
+            opacity: 0.7;
+        }
+
+        /* Mermaid */
+        .mermaid-container {
+            background: #FFFFFF;
+            border-radius: 12px;
+            padding: 24px;
+            margin: 20px 0;
+            border: 2px solid rgba(255, 153, 0, 0.3);
+            overflow-x: auto;
+        }
+        .mermaid {
+            display: flex;
+            justify-content: center;
+        }
+
+        /* Features Grid */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .feature-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            border-left: 4px solid var(--aws-orange);
+        }
+
+        .feature-icon {
+            font-size: 36px;
+            margin-bottom: 12px;
+        }
+
+        .feature-title {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--aws-orange);
+        }
+
+        .feature-description {
+            font-size: 14px;
+            color: var(--text-muted);
+            line-height: 1.7;
+        }
+
+        .feature-detail-list {
+            list-style: none;
+            margin-top: 10px;
+        }
+
+        .feature-detail-list li {
+            padding: 4px 0;
+            padding-left: 22px;
+            position: relative;
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .feature-detail-list li::before {
+            content: "\2713";
+            position: absolute;
+            left: 0;
+            color: var(--aws-orange);
+            font-weight: bold;
+        }
+
+        /* Spec Table */
+        .spec-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            font-size: 14px;
+        }
+
+        .spec-table th,
+        .spec-table td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .spec-table th {
+            color: var(--aws-orange);
+            font-weight: 700;
+            background-color: var(--dark-squid);
+            font-size: 13px;
+        }
+
+        .spec-table td {
+            color: var(--text-secondary);
+        }
+
+        .spec-table .spec-value {
+            color: var(--aws-orange);
+            font-weight: 700;
+        }
+
+        .spec-table tr:hover {
+            background-color: rgba(255, 153, 0, 0.05);
+        }
+
+        /* New Regions Highlight */
+        .new-regions-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-top: 15px;
+        }
+
+        .new-region-item {
+            background-color: var(--dark-squid);
+            border: 2px solid #2ECC71;
+            border-radius: 10px;
+            padding: 14px;
+            text-align: center;
+        }
+
+        .new-region-flag {
+            font-size: 28px;
+            margin-bottom: 6px;
+        }
+
+        .new-region-name {
+            font-size: 13px;
+            font-weight: 700;
+            color: #2ECC71;
+        }
+
+        .new-region-code {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 2px;
+            font-family: 'Courier New', monospace;
+        }
+
+        /* Use Cases */
+        .usecase-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 3px solid var(--smile-orange);
+        }
+
+        .usecase-title {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: var(--aws-orange);
+        }
+
+        .usecase-scenario {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+            line-height: 1.7;
+        }
+
+        .usecase-effect {
+            font-size: 14px;
+            color: var(--text-muted);
+            line-height: 1.7;
+            padding-left: 15px;
+            border-left: 2px solid var(--aws-orange);
+        }
+
+        .usecase-code {
+            margin-top: 12px;
+        }
+
+        /* Benefits */
+        .benefits-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .benefit-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .benefit-icon {
+            font-size: 36px;
+            margin-bottom: 12px;
+        }
+
+        .benefit-title {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+
+        .benefit-desc {
+            font-size: 13px;
+            color: var(--text-muted);
+            line-height: 1.7;
+        }
+
+        /* Considerations */
+        .consideration-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+        }
+
+        .consideration-card.warning {
+            border-left: 4px solid #F39C12;
+        }
+
+        .consideration-card.info {
+            border-left: 4px solid var(--aws-teal);
+        }
+
+        .consideration-title {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+        }
+
+        .consideration-list {
+            list-style: none;
+        }
+
+        .consideration-list li {
+            padding: 6px 0;
+            padding-left: 22px;
+            position: relative;
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        .consideration-card.warning .consideration-list li::before {
+            content: "\26A0";
+            position: absolute;
+            left: 0;
+            color: #F39C12;
+        }
+
+        .consideration-card.info .consideration-list li::before {
+            content: "\2139";
+            position: absolute;
+            left: 0;
+            color: var(--aws-teal);
+            font-weight: bold;
+        }
+
+        /* Code Block */
+        .code-block {
+            background: #1a1a2e;
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 16px 0;
+        }
+
+        .code-header {
+            background: #16213e;
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+        }
+
+        .code-lang {
+            color: var(--aws-orange);
+            font-weight: bold;
+        }
+
+        .code-title {
+            color: var(--text-muted);
+        }
+
+        .code-block pre {
+            margin: 0;
+            padding: 0;
+            overflow-x: auto;
+        }
+
+        .code-block code {
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            padding: 16px !important;
+        }
+
+        .code-desc {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-top: 8px;
+            line-height: 1.6;
+        }
+
+        /* Pricing */
+        .pricing-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 25px;
+        }
+
+        .pricing-items {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        @media (max-width: 768px) {
+            .pricing-items {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .pricing-item {
+            background-color: var(--dark-squid);
+            border: 1px solid var(--aws-orange);
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .pricing-item-icon {
+            font-size: 24px;
+            margin-bottom: 6px;
+        }
+
+        .pricing-item-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .pricing-item-desc {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        /* Related Services */
+        .related-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+
+        .related-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 18px;
+            text-align: center;
+        }
+
+        .related-icon {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        .related-name {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .related-desc {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        /* Flow Diagram */
+        .flow-diagram {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin: 24px 0;
+        }
+
+        .flow-step {
+            background: var(--dark-squid);
+            border: 2px solid var(--aws-orange);
+            border-radius: 8px;
+            padding: 12px 20px;
+            text-align: center;
+            min-width: 100px;
+            font-size: 14px;
+        }
+
+        .flow-arrow {
+            color: var(--aws-orange);
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        /* Footer */
+        footer {
+            margin-top: 50px;
+            padding-top: 30px;
+            border-top: 1px solid var(--border-color);
+            text-align: center;
+        }
+
+        .source-link {
+            color: var(--aws-teal);
+            text-decoration: none;
+            font-size: 14px;
+            display: inline-block;
+            margin-bottom: 8px;
+        }
+
+        .source-link:hover {
+            color: var(--smile-orange);
+            text-decoration: underline;
+        }
+
+        .footer-note {
+            color: var(--text-muted);
+            font-size: 12px;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="badge-row">
+                <span class="service-badge">Amazon Neptune Analytics</span>
+                <span class="graph-badge">Serverless Graph DB</span>
+                <span class="ai-badge">GraphRAG</span>
+                <span class="region-badge">7 Regions NEW</span>
+            </div>
+            <h1>Amazon Neptune Analytics<br>7 つの追加リージョンで利用可能に</h1>
+            <p class="release-date">2026 年 2 月 9 日</p>
+        </header>
+
+        <!-- Overview Section -->
+        <section class="section">
+            <h2 class="section-title">概要</h2>
+            <div class="overview-card">
+                <p class="overview-text">
+                    Amazon Neptune Analytics が <span style="color: var(--aws-orange); font-weight: 700;">7 つの追加リージョン</span>で利用可能になりました。新たに対応したリージョンは、<span style="color: #2ECC71; font-weight: 700;">中東 (バーレーン)</span>、<span style="color: #2ECC71; font-weight: 700;">中東 (UAE)</span>、<span style="color: #2ECC71; font-weight: 700;">イスラエル (テルアビブ)</span>、<span style="color: #2ECC71; font-weight: 700;">アフリカ (ケープタウン)</span>、<span style="color: #2ECC71; font-weight: 700;">カナダ (カルガリー)</span>、<span style="color: #2ECC71; font-weight: 700;">アジアパシフィック (マレーシア)</span>、<span style="color: #2ECC71; font-weight: 700;">ヨーロッパ (チューリッヒ)</span> です。Neptune Analytics はサーバーレスのグラフデータベースエンジンであり、数百億のリレーションシップを数秒で分析し、戦略的なインサイトを提供します。Amazon Bedrock Knowledge Bases との GraphRAG 統合や、Strands AI Agents SDK との連携もサポートしています。
+                </p>
+            </div>
+
+            <div class="comparison-grid">
+                <div class="comparison-card before">
+                    <div class="comparison-label">Before - アップデート前の課題</div>
+                    <ul class="comparison-list">
+                        <li>中東、アフリカ、カナダ西部、東南アジア、スイスのユーザーは他のリージョンにアクセスする必要があり、レイテンシーが高かった</li>
+                        <li>データレジデンシー要件がある地域 (特に中東やスイス) では Neptune Analytics を活用できなかった</li>
+                        <li>グローバル展開する AI アプリケーションにおいて、グラフ分析のリージョンカバレッジが不十分だった</li>
+                    </ul>
+                </div>
+                <div class="comparison-card after">
+                    <div class="comparison-label">After - アップデート後の改善</div>
+                    <ul class="comparison-list">
+                        <li>7 つの新リージョンで Neptune Analytics グラフの作成・管理が可能になった</li>
+                        <li>中東、アフリカ、東南アジアなど成長市場でのグラフ分析活用が可能に</li>
+                        <li>GraphRAG、ベクトル検索、グラフアルゴリズムなどの高度な分析機能を新リージョンで利用可能</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Stats Section -->
+        <section class="section">
+            <h2 class="section-title">数字で見るアップデート</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value">7</div>
+                    <div class="stat-label">新規リージョン</div>
+                    <div class="stat-sublabel">中東・アフリカ・アジアなど</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">数百億</div>
+                    <div class="stat-label">分析可能なリレーションシップ数</div>
+                    <div class="stat-sublabel">数秒で処理</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">5</div>
+                    <div class="stat-label">大陸をカバー</div>
+                    <div class="stat-sublabel">中東・アフリカ・アジア・欧州・北米</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">0</div>
+                    <div class="stat-label">サーバー管理</div>
+                    <div class="stat-sublabel">完全サーバーレス</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Architecture Diagram -->
+        <section class="section">
+            <h2 class="section-title">アーキテクチャ概要</h2>
+            <div class="mermaid-container">
+                <pre class="mermaid">
+flowchart TD
+    subgraph NewRegions["&#127381; 新規対応リージョン 7 拠点"]
+        direction LR
+        Bahrain["&#127312; 中東<br/>バーレーン"]
+        UAE["&#127312; 中東<br/>UAE"]
+        Israel["&#127312; イスラエル<br/>テルアビブ"]
+        Africa["&#127312; アフリカ<br/>ケープタウン"]
+        Bahrain ~~~ UAE ~~~ Israel ~~~ Africa
+    end
+
+    subgraph NewRegions2["&#127381; 新規対応リージョン 続き"]
+        direction LR
+        Canada["&#127312; カナダ<br/>カルガリー"]
+        Malaysia["&#127312; AP<br/>マレーシア"]
+        Zurich["&#127312; 欧州<br/>チューリッヒ"]
+        Canada ~~~ Malaysia ~~~ Zurich
+    end
+
+    subgraph NeptuneAnalytics["&#128202; Neptune Analytics"]
+        direction LR
+        Serverless["&#9889; サーバーレス<br/>グラフ DB"]
+        GraphAlgo["&#128200; グラフ<br/>アルゴリズム"]
+        VectorSearch["&#128269; ベクトル<br/>類似性検索"]
+        Serverless ~~~ GraphAlgo ~~~ VectorSearch
+    end
+
+    subgraph AIIntegration["&#129302; AI 統合"]
+        direction LR
+        Bedrock["&#9729; Bedrock<br/>Knowledge Bases"]
+        GraphRAG["&#128214; GraphRAG"]
+        Strands["&#129302; Strands AI<br/>Agents SDK"]
+        Bedrock ~~~ GraphRAG ~~~ Strands
+    end
+
+    NewRegions --> NeptuneAnalytics
+    NewRegions2 --> NeptuneAnalytics
+    NeptuneAnalytics --> AIIntegration
+
+    classDef newRegion fill:#E9F7EC,stroke:#66BB6A,stroke-width:2px,color:#333333
+    classDef neptune fill:#E8F1FF,stroke:#4A90E2,stroke-width:2px,color:#333333
+    classDef ai fill:#F3E5F5,stroke:#7B61FF,stroke-width:2px,color:#333333
+
+    class NewRegions,NewRegions2 newRegion
+    class NeptuneAnalytics neptune
+    class AIIntegration ai
+    class Bahrain,UAE,Israel,Africa,Canada,Malaysia,Zurich newRegion
+    class Serverless,GraphAlgo,VectorSearch neptune
+    class Bedrock,GraphRAG,Strands ai
+                </pre>
+            </div>
+            <p style="font-size: 14px; color: var(--text-muted); text-align: center; margin-top: 10px;">
+                新規 7 リージョンと Neptune Analytics の主要機能、AI 統合の全体像
+            </p>
+        </section>
+
+        <!-- New Regions Highlight -->
+        <section class="section">
+            <h2 class="section-title">新規利用可能リージョン</h2>
+            <div class="overview-card" style="border: 2px solid #2ECC71;">
+                <div class="new-regions-grid">
+                    <div class="new-region-item">
+                        <div class="new-region-flag">&#127463;&#127469;</div>
+                        <div class="new-region-name">中東 (バーレーン)</div>
+                        <div class="new-region-code">me-south-1</div>
+                    </div>
+                    <div class="new-region-item">
+                        <div class="new-region-flag">&#127462;&#127466;</div>
+                        <div class="new-region-name">中東 (UAE)</div>
+                        <div class="new-region-code">me-central-1</div>
+                    </div>
+                    <div class="new-region-item">
+                        <div class="new-region-flag">&#127470;&#127473;</div>
+                        <div class="new-region-name">イスラエル (テルアビブ)</div>
+                        <div class="new-region-code">il-central-1</div>
+                    </div>
+                    <div class="new-region-item">
+                        <div class="new-region-flag">&#127487;&#127462;</div>
+                        <div class="new-region-name">アフリカ (ケープタウン)</div>
+                        <div class="new-region-code">af-south-1</div>
+                    </div>
+                    <div class="new-region-item">
+                        <div class="new-region-flag">&#127464;&#127462;</div>
+                        <div class="new-region-name">カナダ (カルガリー)</div>
+                        <div class="new-region-code">ca-west-1</div>
+                    </div>
+                    <div class="new-region-item">
+                        <div class="new-region-flag">&#127474;&#127486;</div>
+                        <div class="new-region-name">AP (マレーシア)</div>
+                        <div class="new-region-code">ap-southeast-5</div>
+                    </div>
+                    <div class="new-region-item">
+                        <div class="new-region-flag">&#127464;&#127469;</div>
+                        <div class="new-region-name">欧州 (チューリッヒ)</div>
+                        <div class="new-region-code">eu-central-2</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Key Features Section -->
+        <section class="section">
+            <h2 class="section-title">主要機能</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">&#9889;</div>
+                    <div class="feature-title">サーバーレスグラフデータベース</div>
+                    <div class="feature-description">キャパシティ管理不要で自動スケーリング。数百億のリレーションシップを数秒で分析可能。</div>
+                    <ul class="feature-detail-list">
+                        <li>キャパシティ管理不要</li>
+                        <li>自動スケーリング</li>
+                        <li>運用負荷とコストの削減</li>
+                    </ul>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#129302;</div>
+                    <div class="feature-title">AI アプリケーションとの統合</div>
+                    <div class="feature-description">Amazon Bedrock Knowledge Bases との GraphRAG 統合で、生成 AI アプリケーションの精度を向上。</div>
+                    <ul class="feature-detail-list">
+                        <li>Bedrock Knowledge Bases との GraphRAG 統合</li>
+                        <li>Strands AI Agents SDK との連携</li>
+                        <li>エージェントメモリツールとの統合</li>
+                    </ul>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#128202;</div>
+                    <div class="feature-title">高度なグラフ分析</div>
+                    <div class="feature-description">最適化されたグラフ分析アルゴリズムライブラリと、低レイテンシーのグラフクエリを提供。</div>
+                    <ul class="feature-detail-list">
+                        <li>最適化されたアルゴリズムライブラリ</li>
+                        <li>低レイテンシーのグラフクエリ</li>
+                        <li>グラフトラバーサル内でのベクトル類似性検索</li>
+                    </ul>
+                </div>
+                <div class="feature-card" style="border-left-color: var(--aws-teal);">
+                    <div class="feature-icon">&#128640;</div>
+                    <div class="feature-title">API 変更</div>
+                    <div class="feature-description">StartLoaderJob API に新しいパラメータが追加されました。</div>
+                    <ul class="feature-detail-list">
+                        <li>edgeOnlyLoad パラメータ追加</li>
+                        <li>TRUE の場合、ファイルをスキャンせずに順番にロード</li>
+                        <li>エッジデータのロード効率を向上</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Setup Section -->
+        <section class="section">
+            <h2 class="section-title">設定方法</h2>
+            <div class="overview-card">
+                <div style="font-size: 15px; font-weight: 700; color: var(--text-primary); margin-bottom: 12px;">前提条件</div>
+                <ul class="feature-detail-list" style="margin-bottom: 20px;">
+                    <li>AWS アカウント</li>
+                    <li>対象リージョンへのアクセス権限</li>
+                    <li>適切な IAM ポリシーの設定</li>
+                </ul>
+            </div>
+
+            <div class="overview-card">
+                <div style="font-size: 15px; font-weight: 700; color: var(--text-primary); margin-bottom: 12px;">Step 1: Neptune Analytics グラフを作成</div>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">Bash</span>
+                        <span class="code-title">バーレーンリージョンで Neptune Analytics グラフを作成</span>
+                    </div>
+                    <pre><code class="language-bash"># バーレーンリージョンで Neptune Analytics グラフを作成
+aws neptune-graph create-graph \
+  --graph-name my-analytics-graph \
+  --provisioned-memory 128 \
+  --region me-south-1</code></pre>
+                </div>
+                <p class="code-desc">AWS CLI を使用して、新しいリージョンに Neptune Analytics グラフを作成する。--provisioned-memory でメモリサイズ (m-NCU) を指定する。</p>
+            </div>
+
+            <div class="overview-card">
+                <div style="font-size: 15px; font-weight: 700; color: var(--text-primary); margin-bottom: 12px;">Step 2: データのロード</div>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">Bash</span>
+                        <span class="code-title">S3 からデータをロード</span>
+                    </div>
+                    <pre><code class="language-bash"># S3 からデータをロード
+aws neptune-graph start-import-task \
+  --graph-identifier &lt;graph-id&gt; \
+  --source "s3://my-bucket/graph-data/" \
+  --role-arn arn:aws:iam::123456789012:role/NeptuneLoadRole \
+  --format CSV \
+  --region me-south-1</code></pre>
+                </div>
+                <p class="code-desc">Amazon S3 からグラフデータをインポートする。CSV、OpenCypher、RDF 形式に対応。</p>
+            </div>
+
+            <div class="overview-card">
+                <div style="font-size: 15px; font-weight: 700; color: var(--text-primary); margin-bottom: 12px;">Step 3: グラフクエリの実行</div>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">Bash</span>
+                        <span class="code-title">openCypher クエリの実行</span>
+                    </div>
+                    <pre><code class="language-bash"># openCypher クエリの実行
+aws neptune-graph execute-query \
+  --graph-identifier &lt;graph-id&gt; \
+  --query-string "MATCH (n)-[r]->(m) RETURN n, r, m LIMIT 10" \
+  --language OPEN_CYPHER \
+  --region me-south-1</code></pre>
+                </div>
+                <p class="code-desc">openCypher クエリを使用してグラフデータを分析する。</p>
+            </div>
+        </section>
+
+        <!-- Use Cases Section -->
+        <section class="section">
+            <h2 class="section-title">ユースケース</h2>
+            <div class="usecase-card">
+                <div class="usecase-title">&#128176; 中東の金融不正検知</div>
+                <div class="usecase-scenario">
+                    中東の銀行が、不正なトランザクションパターンをリアルタイムでグラフ分析により検知したい。
+                </div>
+                <div class="usecase-code">
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span class="code-lang">Cypher</span>
+                            <span class="code-title">不正トランザクション検知クエリ</span>
+                        </div>
+                        <pre><code class="language-cypher">MATCH (a:Account)-[t:TRANSFER]-&gt;(b:Account)-[t2:TRANSFER]-&gt;(c:Account)
+WHERE t.amount &gt; 10000 AND t2.amount &gt; 10000
+  AND duration.between(t.timestamp, t2.timestamp).minutes &lt; 30
+  AND a.country &lt;&gt; c.country
+RETURN a, b, c, t, t2</code></pre>
+                    </div>
+                </div>
+                <div class="usecase-effect">
+                    バーレーンまたは UAE リージョンで、低レイテンシーのグラフ分析による不正検知が可能。データレジデンシー要件にも対応。
+                </div>
+            </div>
+            <div class="usecase-card">
+                <div class="usecase-title">&#128225; アフリカの通信ネットワーク分析</div>
+                <div class="usecase-scenario">
+                    アフリカの通信事業者が、ネットワークトポロジーのグラフ分析を活用して、障害影響範囲の特定とサービス改善を行いたい。
+                </div>
+                <div class="usecase-code">
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span class="code-lang">Cypher</span>
+                            <span class="code-title">障害影響範囲の特定</span>
+                        </div>
+                        <pre><code class="language-cypher">MATCH (tower:CellTower {status: 'DOWN'})-[:CONNECTS*1..3]-(affected:CellTower)
+RETURN affected.id, affected.location, affected.subscribers
+ORDER BY affected.subscribers DESC</code></pre>
+                    </div>
+                </div>
+                <div class="usecase-effect">
+                    ケープタウンリージョンで、アフリカ大陸のネットワーク分析を低レイテンシーで実行可能。
+                </div>
+            </div>
+            <div class="usecase-card">
+                <div class="usecase-title">&#128722; 東南アジアの EC サイト向けレコメンデーション</div>
+                <div class="usecase-scenario">
+                    マレーシアの EC プラットフォームが、ユーザーの購買パターンをグラフ分析し、パーソナライズドレコメンデーションを提供したい。
+                </div>
+                <div class="usecase-code">
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span class="code-lang">Cypher</span>
+                            <span class="code-title">協調フィルタリングによるレコメンデーション</span>
+                        </div>
+                        <pre><code class="language-cypher">MATCH (u:User {id: $userId})-[:PURCHASED]-&gt;(p:Product)
+      &lt;-[:PURCHASED]-(similar:User)-[:PURCHASED]-&gt;(rec:Product)
+WHERE NOT (u)-[:PURCHASED]-&gt;(rec)
+RETURN rec.name, count(similar) AS score
+ORDER BY score DESC LIMIT 10</code></pre>
+                    </div>
+                </div>
+                <div class="usecase-effect">
+                    マレーシアリージョンで、低レイテンシーのリアルタイムレコメンデーションを提供可能。
+                </div>
+            </div>
+        </section>
+
+        <!-- Benefits Section -->
+        <section class="section">
+            <h2 class="section-title">メリット</h2>
+            <div style="font-size: 15px; font-weight: 700; color: var(--text-primary); margin-bottom: 15px;">ビジネス面</div>
+            <div class="benefits-grid" style="margin-bottom: 25px;">
+                <div class="benefit-card">
+                    <div class="benefit-icon">&#127758;</div>
+                    <div class="benefit-title">グローバルカバレッジの拡大</div>
+                    <div class="benefit-desc">中東、アフリカ、東南アジアなどの成長市場でグラフ分析が利用可能に。</div>
+                </div>
+                <div class="benefit-card">
+                    <div class="benefit-icon">&#128274;</div>
+                    <div class="benefit-title">データレジデンシー対応</div>
+                    <div class="benefit-desc">地域固有の規制要件に準拠したデータ配置が可能。</div>
+                </div>
+                <div class="benefit-card">
+                    <div class="benefit-icon">&#9889;</div>
+                    <div class="benefit-title">低レイテンシー</div>
+                    <div class="benefit-desc">ユーザーに近いリージョンでの分析処理により、レスポンス時間を改善。</div>
+                </div>
+            </div>
+            <div style="font-size: 15px; font-weight: 700; color: var(--text-primary); margin-bottom: 15px;">技術面</div>
+            <div class="benefits-grid">
+                <div class="benefit-card">
+                    <div class="benefit-icon">&#128187;</div>
+                    <div class="benefit-title">サーバーレスアーキテクチャ</div>
+                    <div class="benefit-desc">キャパシティの管理・計画が不要。自動スケーリングで運用負荷を削減。</div>
+                </div>
+                <div class="benefit-card">
+                    <div class="benefit-icon">&#129302;</div>
+                    <div class="benefit-title">AI 統合</div>
+                    <div class="benefit-desc">Bedrock Knowledge Bases との GraphRAG により、生成 AI アプリケーションの精度を向上。</div>
+                </div>
+                <div class="benefit-card">
+                    <div class="benefit-icon">&#128269;</div>
+                    <div class="benefit-title">マルチモデル対応</div>
+                    <div class="benefit-desc">openCypher クエリとベクトル検索の組み合わせによる高度な分析。</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Considerations Section -->
+        <section class="section">
+            <h2 class="section-title">制約事項・考慮点</h2>
+            <div class="consideration-card warning">
+                <div class="consideration-title">&#9888; 制限事項</div>
+                <ul class="consideration-list">
+                    <li>新リージョンでの料金は既存リージョンと異なる場合がある</li>
+                    <li>一部のグラフサイズや機能は、リージョンごとに利用可能なインスタンスタイプに依存する場合がある</li>
+                    <li>Neptune Database (トランザクション向け) と Neptune Analytics (分析向け) は別サービスであり、利用可能リージョンが異なる</li>
+                </ul>
+            </div>
+            <div class="consideration-card info">
+                <div class="consideration-title">&#8505; 考慮すべき点</div>
+                <ul class="consideration-list">
+                    <li>大量データのロードには S3 からのインポートが推奨される</li>
+                    <li>クロスリージョンのデータ転送にはデータ転送料金が発生する</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Pricing Section -->
+        <section class="section">
+            <h2 class="section-title">料金</h2>
+            <div class="pricing-card">
+                <p style="font-size: 14px; margin-bottom: 15px;">Neptune Analytics の料金は、プロビジョニングされたメモリ (m-NCU) に基づく従量課金制です。</p>
+                <div class="pricing-items">
+                    <div class="pricing-item">
+                        <div class="pricing-item-icon">&#128187;</div>
+                        <div class="pricing-item-title">メモリ (m-NCU)</div>
+                        <div class="pricing-item-desc">リージョンおよび使用量による</div>
+                    </div>
+                    <div class="pricing-item">
+                        <div class="pricing-item-icon">&#128202;</div>
+                        <div class="pricing-item-title">データ処理 (I/O)</div>
+                        <div class="pricing-item-desc">リクエスト数に基づく課金</div>
+                    </div>
+                    <div class="pricing-item">
+                        <div class="pricing-item-icon">&#128259;</div>
+                        <div class="pricing-item-title">データ転送</div>
+                        <div class="pricing-item-desc">リージョン間転送に課金</div>
+                    </div>
+                </div>
+                <p style="font-size: 13px; color: var(--text-muted); margin-top: 15px; text-align: center;">
+                    最新の料金情報は <a href="https://aws.amazon.com/neptune/pricing/" target="_blank" rel="noopener noreferrer" style="color: var(--aws-teal); text-decoration: none;">Amazon Neptune 料金ページ</a> を参照
+                </p>
+            </div>
+        </section>
+
+        <!-- Related Services Section -->
+        <section class="section">
+            <h2 class="section-title">関連サービス</h2>
+            <div class="related-grid">
+                <div class="related-card">
+                    <div class="related-icon">&#9729;</div>
+                    <div class="related-name">Amazon Bedrock<br>Knowledge Bases</div>
+                    <div class="related-desc">GraphRAG による生成 AI アプリケーションの精度向上</div>
+                </div>
+                <div class="related-card">
+                    <div class="related-icon">&#128202;</div>
+                    <div class="related-name">Amazon Neptune<br>Database</div>
+                    <div class="related-desc">トランザクション向けのグラフデータベース</div>
+                </div>
+                <div class="related-card">
+                    <div class="related-icon">&#129302;</div>
+                    <div class="related-name">Strands AI<br>Agents SDK</div>
+                    <div class="related-desc">AI エージェントとグラフデータの統合</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer>
+            <div>
+                <a href="https://aws.amazon.com/about-aws/whats-new/2026/02/amazon-neptune-analytics-in-seven-additional-regions/" class="source-link" target="_blank" rel="noopener noreferrer">
+                    &#128279; 公式発表 (What's New) を見る
+                </a>
+            </div>
+            <div>
+                <a href="https://docs.aws.amazon.com/neptune-analytics/latest/userguide/what-is-neptune-analytics.html" class="source-link" target="_blank" rel="noopener noreferrer">
+                    &#128196; Neptune Analytics ドキュメント
+                </a>
+            </div>
+            <div>
+                <a href="https://aws.amazon.com/neptune/pricing/" class="source-link" target="_blank" rel="noopener noreferrer">
+                    &#128176; 料金ページ
+                </a>
+            </div>
+            <div>
+                <a href="https://aws.amazon.com/about-aws/global-infrastructure/regional-product-services/" class="source-link" target="_blank" rel="noopener noreferrer">
+                    &#127758; AWS リージョン表
+                </a>
+            </div>
+            <div>
+                <a href="https://awsapichanges.com/archive/changes/d7d1a5-neptune-db.html" class="source-link" target="_blank" rel="noopener noreferrer">
+                    &#128295; API 変更履歴 - NeptuneData
+                </a>
+            </div>
+            <div style="margin-top: 10px;">
+                <a href="https://takech9203.github.io/awsnews-summary/infographic/20260209-amazon-neptune-analytics-in-seven-additional-regions.html" class="source-link" target="_blank" rel="noopener noreferrer" style="font-size: 12px;">
+                    &#128279; このインフォグラフィックの URL
+                </a>
+            </div>
+            <p class="footer-note">Amazon Neptune Analytics は、サーバーレスのグラフデータベースエンジンであり、数百億のリレーションシップを数秒で分析し、戦略的なインサイトを提供します。GraphRAG や Strands AI Agents SDK との統合により、生成 AI アプリケーションのグローバル展開を促進します。</p>
+        </footer>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'base',
+            themeVariables: {
+                primaryColor: '#FF9900',
+                primaryTextColor: '#232F3E',
+                primaryBorderColor: '#FF9900',
+                lineColor: '#FF9900',
+                secondaryColor: '#F5F5F5',
+                tertiaryColor: '#FAFAFA',
+                background: '#FFFFFF',
+                mainBkg: '#FFF3E0',
+                nodeBorder: '#FF9900',
+                clusterBkg: '#FFF8E1',
+                clusterBorder: '#FF9900',
+                edgeLabelBackground: '#FFFFFF',
+                textColor: '#232F3E'
+            }
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/highlight.min.js"></script>
+    <script>hljs.highlightAll();</script>
+</body>
+</html>

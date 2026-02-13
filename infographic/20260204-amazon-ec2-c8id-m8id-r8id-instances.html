@@ -1,0 +1,1261 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Amazon EC2 C8id / M8id / R8id - Intel Xeon 6 搭載 NVMe ストレージ内蔵インスタンス</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/styles/atom-one-dark.min.css">
+    <style>
+        :root {
+            --squid-ink: #232F3E;
+            --dark-squid: #1A242F;
+            --aws-orange: #FF9900;
+            --smile-orange: #FFAD33;
+            --text-primary: #FFFFFF;
+            --text-secondary: #D5DBDB;
+            --text-muted: #AAAAAA;
+            --card-bg: #2D3A4A;
+            --border-color: #3D4A5A;
+            --aws-teal: #00A1C9;
+            --aws-green: #1D8102;
+            --aws-red: #D13212;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            background-color: var(--squid-ink);
+            color: var(--text-secondary);
+            line-height: 1.8;
+            font-size: 16px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+            padding-bottom: 30px;
+            border-bottom: 3px solid var(--aws-orange);
+        }
+
+        .badge-row {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+
+        .service-badge {
+            display: inline-block;
+            background-color: var(--aws-orange);
+            color: var(--squid-ink);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .processor-badge {
+            display: inline-block;
+            background-color: var(--aws-teal);
+            color: #FFFFFF;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .storage-badge {
+            display: inline-block;
+            background-color: #8C4FFF;
+            color: #FFFFFF;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+            line-height: 1.4;
+        }
+
+        .release-date {
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--aws-orange);
+            margin-bottom: 20px;
+            padding-left: 15px;
+            border-left: 4px solid var(--aws-orange);
+        }
+
+        .overview-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .overview-text {
+            font-size: 16px;
+            line-height: 1.9;
+        }
+
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .comparison-grid {
+                grid-template-columns: 1fr;
+            }
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr) !important;
+            }
+            .features-grid {
+                grid-template-columns: 1fr !important;
+            }
+            .instance-compare-grid {
+                grid-template-columns: 1fr !important;
+            }
+            .related-grid {
+                grid-template-columns: 1fr !important;
+            }
+            .family-grid {
+                grid-template-columns: 1fr !important;
+            }
+        }
+
+        .comparison-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .comparison-card.before {
+            border-top: 4px solid #E74C3C;
+        }
+
+        .comparison-card.after {
+            border-top: 4px solid #2ECC71;
+        }
+
+        .comparison-label {
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        .comparison-card.before .comparison-label {
+            color: #E74C3C;
+        }
+
+        .comparison-card.after .comparison-label {
+            color: #2ECC71;
+        }
+
+        .comparison-list {
+            list-style: none;
+        }
+
+        .comparison-list li {
+            padding: 8px 0;
+            padding-left: 25px;
+            position: relative;
+            font-size: 14px;
+        }
+
+        .comparison-card.before .comparison-list li::before {
+            content: "\2717";
+            position: absolute;
+            left: 0;
+            color: #E74C3C;
+            font-weight: bold;
+        }
+
+        .comparison-card.after .comparison-list li::before {
+            content: "\2713";
+            position: absolute;
+            left: 0;
+            color: #2ECC71;
+            font-weight: bold;
+        }
+
+        /* Statistics Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, var(--card-bg) 0%, var(--dark-squid) 100%);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid rgba(255, 153, 0, 0.2);
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--aws-orange);
+            line-height: 1.2;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 6px;
+        }
+
+        .stat-sublabel {
+            font-size: 11px;
+            color: var(--text-muted);
+            opacity: 0.7;
+        }
+
+        /* Instance Family Grid */
+        .family-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .family-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 25px;
+            border-top: 4px solid var(--aws-orange);
+            text-align: center;
+        }
+
+        .family-card-icon {
+            font-size: 40px;
+            margin-bottom: 10px;
+        }
+
+        .family-card-name {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--aws-orange);
+            margin-bottom: 6px;
+        }
+
+        .family-card-type {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-bottom: 15px;
+        }
+
+        .family-card-specs {
+            list-style: none;
+            text-align: left;
+        }
+
+        .family-card-specs li {
+            padding: 6px 0;
+            padding-left: 22px;
+            position: relative;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .family-card-specs li::before {
+            content: "\2713";
+            position: absolute;
+            left: 0;
+            color: var(--aws-orange);
+            font-weight: bold;
+        }
+
+        /* Instance Comparison Grid */
+        .instance-compare-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .instance-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 25px;
+            border-left: 4px solid var(--aws-orange);
+        }
+
+        .instance-card-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--aws-orange);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .instance-card-desc {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 15px;
+            line-height: 1.7;
+        }
+
+        .instance-detail-list {
+            list-style: none;
+        }
+
+        .instance-detail-list li {
+            padding: 6px 0;
+            padding-left: 22px;
+            position: relative;
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .instance-detail-list li::before {
+            content: "\2713";
+            position: absolute;
+            left: 0;
+            color: var(--aws-orange);
+            font-weight: bold;
+        }
+
+        /* Performance Table */
+        .perf-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            font-size: 14px;
+        }
+
+        .perf-table th,
+        .perf-table td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .perf-table th {
+            color: var(--aws-orange);
+            font-weight: 700;
+            background-color: var(--dark-squid);
+            font-size: 13px;
+        }
+
+        .perf-table td {
+            color: var(--text-secondary);
+        }
+
+        .perf-table .perf-value {
+            color: var(--aws-orange);
+            font-weight: 700;
+        }
+
+        .perf-table tr:hover {
+            background-color: rgba(255, 153, 0, 0.05);
+        }
+
+        /* Features Grid */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .feature-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .feature-icon {
+            font-size: 36px;
+            margin-bottom: 15px;
+        }
+
+        .feature-title {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--aws-orange);
+        }
+
+        .feature-description {
+            font-size: 14px;
+            color: var(--text-muted);
+            line-height: 1.7;
+        }
+
+        /* Use Cases */
+        .usecase-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 3px solid var(--smile-orange);
+        }
+
+        .usecase-title {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 6px;
+            color: var(--aws-orange);
+        }
+
+        .usecase-scenario {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+            font-style: italic;
+        }
+
+        .usecase-description {
+            font-size: 14px;
+            color: var(--text-muted);
+            line-height: 1.7;
+        }
+
+        .usecase-effect {
+            font-size: 13px;
+            color: #2ECC71;
+            margin-top: 8px;
+            font-weight: 500;
+        }
+
+        /* Considerations */
+        .consideration-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+        }
+
+        .consideration-card.warning {
+            border-left: 4px solid #F39C12;
+        }
+
+        .consideration-card.info {
+            border-left: 4px solid var(--aws-teal);
+        }
+
+        .consideration-title {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+        }
+
+        .consideration-list {
+            list-style: none;
+        }
+
+        .consideration-list li {
+            padding: 6px 0;
+            padding-left: 22px;
+            position: relative;
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        .consideration-card.warning .consideration-list li::before {
+            content: "\26A0";
+            position: absolute;
+            left: 0;
+            color: #F39C12;
+        }
+
+        .consideration-card.info .consideration-list li::before {
+            content: "\2139";
+            position: absolute;
+            left: 0;
+            color: var(--aws-teal);
+            font-weight: bold;
+        }
+
+        /* Code Block */
+        .code-block {
+            background: #1a1a2e;
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 16px 0;
+        }
+
+        .code-header {
+            background: #16213e;
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+        }
+
+        .code-lang {
+            color: var(--aws-orange);
+            font-weight: bold;
+        }
+
+        .code-title {
+            color: var(--text-muted);
+        }
+
+        .code-block pre {
+            margin: 0;
+            padding: 0;
+            overflow-x: auto;
+        }
+
+        .code-block code {
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            padding: 16px !important;
+        }
+
+        /* Pricing */
+        .pricing-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 25px;
+            text-align: center;
+        }
+
+        .pricing-options {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+
+        .pricing-tag {
+            background-color: var(--dark-squid);
+            border: 1px solid var(--aws-orange);
+            border-radius: 8px;
+            padding: 10px 20px;
+            font-size: 14px;
+            color: var(--text-primary);
+        }
+
+        .pricing-tag-icon {
+            display: block;
+            font-size: 22px;
+            margin-bottom: 4px;
+        }
+
+        .pricing-tag-detail {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        /* Related Services */
+        .related-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+
+        .related-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 18px;
+            text-align: center;
+        }
+
+        .related-icon {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        .related-name {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .related-desc {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        /* Region List */
+        .region-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 15px;
+            justify-content: center;
+        }
+
+        .region-tag {
+            background-color: var(--card-bg);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .region-tag.highlight {
+            border: 1px solid var(--aws-orange);
+            color: var(--text-secondary);
+        }
+
+        /* Workload Table */
+        .workload-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            font-size: 14px;
+        }
+
+        .workload-table th,
+        .workload-table td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .workload-table th {
+            color: var(--aws-orange);
+            font-weight: 700;
+            background-color: var(--dark-squid);
+            font-size: 13px;
+        }
+
+        .workload-table td {
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+
+        .workload-table .instance-name {
+            color: var(--aws-orange);
+            font-weight: 700;
+        }
+
+        .workload-table tr:hover {
+            background-color: rgba(255, 153, 0, 0.05);
+        }
+
+        /* Flow Diagram */
+        .flow-diagram {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin: 24px 0;
+        }
+
+        .flow-step {
+            background: var(--dark-squid);
+            border: 2px solid var(--aws-orange);
+            border-radius: 8px;
+            padding: 12px 20px;
+            text-align: center;
+            min-width: 100px;
+            font-size: 14px;
+        }
+
+        .flow-arrow {
+            color: var(--aws-orange);
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        /* Mermaid Container */
+        .mermaid-container {
+            background: #FFFFFF;
+            border-radius: 12px;
+            padding: 24px;
+            margin: 20px 0;
+            border: 2px solid rgba(255, 153, 0, 0.3);
+            overflow-x: auto;
+        }
+        .mermaid {
+            display: flex;
+            justify-content: center;
+        }
+
+        /* Footer */
+        footer {
+            margin-top: 50px;
+            padding-top: 30px;
+            border-top: 1px solid var(--border-color);
+            text-align: center;
+        }
+
+        .source-link {
+            color: var(--aws-teal);
+            text-decoration: none;
+            font-size: 14px;
+            display: inline-block;
+            margin-bottom: 8px;
+        }
+
+        .source-link:hover {
+            color: var(--smile-orange);
+            text-decoration: underline;
+        }
+
+        .footer-note {
+            color: var(--text-muted);
+            font-size: 12px;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="badge-row">
+                <span class="service-badge">Amazon EC2</span>
+                <span class="processor-badge">Intel Xeon 6</span>
+                <span class="storage-badge">NVMe SSD</span>
+            </div>
+            <h1>Amazon EC2 C8id / M8id / R8id<br>Intel Xeon 6 搭載 NVMe ストレージ内蔵インスタンス</h1>
+            <p class="release-date">2026 年 2 月 4 日</p>
+        </header>
+
+        <!-- Overview Section -->
+        <section class="section">
+            <h2 class="section-title">概要</h2>
+            <div class="overview-card">
+                <p class="overview-text">
+                    AWS は、カスタム <span style="color: var(--aws-orange); font-weight: 700;">Intel Xeon 6</span> プロセッサを搭載した新しい Amazon EC2 インスタンスタイプ <span style="color: var(--aws-orange); font-weight: 700;">C8id</span>、<span style="color: var(--aws-orange); font-weight: 700;">M8id</span>、<span style="color: var(--aws-orange); font-weight: 700;">R8id</span> の一般提供を発表しました。前世代の C6id、M6id、R6id インスタンスと比較して最大 <span style="color: var(--aws-orange); font-weight: 700;">43%</span> の性能向上と <span style="color: var(--aws-orange); font-weight: 700;">3.3 倍</span>のメモリ帯域幅を実現します。
+                </p>
+                <p class="overview-text" style="margin-top: 12px;">
+                    最大 384 vCPU、3 TiB のメモリ、22.8 TB の NVMe SSD ストレージを提供し、前世代の <span style="color: var(--aws-orange); font-weight: 700;">3 倍</span>のストレージ容量を実現。I/O 集約型データベースワークロードで最大 46% の性能向上、リアルタイムデータ分析で最大 30% のクエリ高速化が期待できます。
+                </p>
+            </div>
+
+            <div class="comparison-grid">
+                <div class="comparison-card before">
+                    <div class="comparison-label">Before - アップデート前の課題</div>
+                    <ul class="comparison-list">
+                        <li>I/O 集約型ワークロードで十分な性能を得るために複数のインスタンスが必要だった</li>
+                        <li>NVMe SSD ストレージ容量の上限が限定的だった</li>
+                        <li>ネットワークと EBS 帯域幅の割り当てが固定されていた</li>
+                    </ul>
+                </div>
+                <div class="comparison-card after">
+                    <div class="comparison-label">After - アップデート後の改善</div>
+                    <ul class="comparison-list">
+                        <li>単一インスタンスでより高い I/O 性能を実現</li>
+                        <li>最大 22.8 TB の NVMe SSD ストレージで大規模データセットに対応</li>
+                        <li>Instance Bandwidth Configuration でネットワークと EBS 帯域幅を柔軟に調整可能</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Stats Section -->
+        <section class="section">
+            <h2 class="section-title">数字で見るパフォーマンス向上</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value">43%</div>
+                    <div class="stat-label">全般的な性能向上</div>
+                    <div class="stat-sublabel">前世代比</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">3.3x</div>
+                    <div class="stat-label">メモリ帯域幅</div>
+                    <div class="stat-sublabel">前世代比</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">46%</div>
+                    <div class="stat-label">I/O 集約型 DB 性能向上</div>
+                    <div class="stat-sublabel">前世代比</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">30%</div>
+                    <div class="stat-label">リアルタイム分析高速化</div>
+                    <div class="stat-sublabel">クエリ処理</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">3x</div>
+                    <div class="stat-label">NVMe ストレージ容量</div>
+                    <div class="stat-sublabel">前世代比</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">22.8TB</div>
+                    <div class="stat-label">最大 NVMe SSD</div>
+                    <div class="stat-sublabel">ローカルストレージ</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Architecture Diagram -->
+        <section class="section">
+            <h2 class="section-title">インスタンスアーキテクチャ</h2>
+            <div class="mermaid-container">
+                <pre class="mermaid">
+flowchart TD
+    subgraph Instance["&#9881; C8id / M8id / R8id インスタンス"]
+        direction TB
+        subgraph Processor["&#128187; プロセッサ"]
+            direction LR
+            CPU["Intel Xeon 6<br/>最大 384 vCPU"]
+            MEM["メモリ<br/>最大 3 TiB"]
+            CPU ~~~ MEM
+        end
+        subgraph Storage["&#128190; ローカルストレージ"]
+            direction LR
+            NVMe["NVMe SSD<br/>最大 22.8 TB"]
+            IO["高速 I/O<br/>低レイテンシー"]
+            NVMe ~~~ IO
+        end
+        subgraph Network["&#127760; ネットワーク"]
+            direction LR
+            BW["Instance Bandwidth<br/>Configuration"]
+            EBS["EBS 帯域幅<br/>柔軟配分"]
+            NET["ネットワーク帯域幅<br/>柔軟配分"]
+            BW ~~~ EBS ~~~ NET
+        end
+    end
+
+    User(["&#128100; ワークロード"]) --> Instance
+    Instance --> DB[("&#128203; データベース")]
+    Instance --> Analytics["&#128202; リアルタイム分析"]
+    Instance --> Game["&#127918; ゲームサーバー"]
+
+    classDef cloud fill:none,stroke:#CCCCCC,stroke-width:2px,color:#666666
+    classDef layer fill:none,stroke:#E1BEE7,stroke-width:2px,color:#666666
+    classDef compute fill:#FFE0B2,stroke:#FFCC80,stroke-width:2px,color:#5D4037
+    classDef storage fill:#DCEDC8,stroke:#C5E1A5,stroke-width:2px,color:#33691E
+    classDef database fill:#E8EAF6,stroke:#C5CAE9,stroke-width:2px,color:#283593
+    classDef user fill:#E3F2FD,stroke:#BBDEFB,stroke-width:2px,color:#1565C0
+    classDef process fill:#FFFFFF,stroke:#4A90E2,stroke-width:2px,color:#333333
+
+    class Instance cloud
+    class Processor,Storage,Network layer
+    class CPU,MEM compute
+    class NVMe,IO storage
+    class BW,EBS,NET process
+    class User user
+    class DB database
+    class Analytics,Game compute
+                </pre>
+            </div>
+        </section>
+
+        <!-- Instance Family Section -->
+        <section class="section">
+            <h2 class="section-title">インスタンスファミリー比較</h2>
+            <div class="family-grid">
+                <div class="family-card">
+                    <div class="family-card-icon">&#9889;</div>
+                    <div class="family-card-name">C8id</div>
+                    <div class="family-card-type">コンピュート最適化</div>
+                    <ul class="family-card-specs">
+                        <li>最大 384 vCPU</li>
+                        <li>最大 768 GiB メモリ</li>
+                        <li>最大 22.8 TB NVMe SSD</li>
+                        <li>高性能 Web サーバー</li>
+                        <li>バッチ処理、動画エンコード</li>
+                        <li>ゲームサーバー、広告配信</li>
+                    </ul>
+                </div>
+                <div class="family-card">
+                    <div class="family-card-icon">&#9881;</div>
+                    <div class="family-card-name">M8id</div>
+                    <div class="family-card-type">汎用</div>
+                    <ul class="family-card-specs">
+                        <li>最大 384 vCPU</li>
+                        <li>最大 1.5 TiB メモリ</li>
+                        <li>最大 22.8 TB NVMe SSD</li>
+                        <li>アプリケーションサーバー</li>
+                        <li>マイクロサービス</li>
+                        <li>中小規模データベース</li>
+                    </ul>
+                </div>
+                <div class="family-card">
+                    <div class="family-card-icon">&#128204;</div>
+                    <div class="family-card-name">R8id</div>
+                    <div class="family-card-type">メモリ最適化</div>
+                    <ul class="family-card-specs">
+                        <li>最大 384 vCPU</li>
+                        <li>最大 3 TiB メモリ</li>
+                        <li>最大 22.8 TB NVMe SSD</li>
+                        <li>インメモリデータベース</li>
+                        <li>リアルタイムビッグデータ分析</li>
+                        <li>科学計算</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Key Features Section -->
+        <section class="section">
+            <h2 class="section-title">主要機能</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">&#128187;</div>
+                    <div class="feature-title">高性能プロセッサ</div>
+                    <div class="feature-description">カスタム Intel Xeon 6 プロセッサ搭載。前世代比最大 43% の性能向上と 3.3 倍のメモリ帯域幅を実現。</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#128190;</div>
+                    <div class="feature-title">大容量ローカルストレージ</div>
+                    <div class="feature-description">最大 22.8 TB の NVMe SSD ストレージ。前世代の 3 倍の容量で I/O 集約型ワークロードに最適。</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#128295;</div>
+                    <div class="feature-title">Instance Bandwidth Configuration</div>
+                    <div class="feature-description">ネットワークと EBS 帯域幅の 25% を柔軟に配分。ワークロードに応じた最適なリソース割り当て。</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Performance Comparison Table -->
+        <section class="section">
+            <h2 class="section-title">性能向上の詳細</h2>
+            <div class="overview-card">
+                <table class="perf-table">
+                    <thead>
+                        <tr>
+                            <th>メトリクス</th>
+                            <th>前世代比向上率</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>全般的な性能</td>
+                            <td class="perf-value">最大 43%</td>
+                        </tr>
+                        <tr>
+                            <td>メモリ帯域幅</td>
+                            <td class="perf-value">3.3 倍</td>
+                        </tr>
+                        <tr>
+                            <td>I/O 集約型データベース</td>
+                            <td class="perf-value">最大 46%</td>
+                        </tr>
+                        <tr>
+                            <td>リアルタイムデータ分析</td>
+                            <td class="perf-value">最大 30% 高速化</td>
+                        </tr>
+                        <tr>
+                            <td>NVMe ストレージ容量</td>
+                            <td class="perf-value">3 倍</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Recommended Workloads Table -->
+        <section class="section">
+            <h2 class="section-title">推奨ワークロード</h2>
+            <div class="overview-card">
+                <table class="workload-table">
+                    <thead>
+                        <tr>
+                            <th>インスタンス</th>
+                            <th>推奨ワークロード</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="instance-name">C8id</td>
+                            <td>高性能 Web サーバー、バッチ処理、分散分析、広告配信、動画エンコード、ゲームサーバー</td>
+                        </tr>
+                        <tr>
+                            <td class="instance-name">M8id</td>
+                            <td>アプリケーションサーバー、マイクロサービス、エンタープライズアプリ、中小規模データベース</td>
+                        </tr>
+                        <tr>
+                            <td class="instance-name">R8id</td>
+                            <td>インメモリデータベース、リアルタイムビッグデータ分析、大規模インメモリキャッシュ、科学計算</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Setup Section -->
+        <section class="section">
+            <h2 class="section-title">設定方法</h2>
+            <div class="overview-card">
+                <div style="font-size: 15px; font-weight: 700; color: var(--text-primary); margin-bottom: 12px;">前提条件</div>
+                <ul class="instance-detail-list" style="margin-bottom: 20px;">
+                    <li>AWS アカウントと EC2 起動権限</li>
+                    <li>対象リージョンへのアクセス</li>
+                    <li>適切なサービスクォータの確認</li>
+                </ul>
+
+                <div style="font-size: 15px; font-weight: 700; color: var(--text-primary); margin-bottom: 12px;">ステップ 1: インスタンス起動</div>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">Bash</span>
+                        <span class="code-title">C8id インスタンス起動コマンド</span>
+                    </div>
+                    <pre><code class="language-bash">aws ec2 run-instances \
+    --instance-type c8id.24xlarge \
+    --image-id ami-xxxxxxxxx \
+    --key-name my-key-pair \
+    --security-group-ids sg-xxxxxxxxx \
+    --subnet-id subnet-xxxxxxxxx</code></pre>
+                </div>
+                <p style="font-size: 14px; color: var(--text-muted); margin-top: 8px; margin-bottom: 20px;">
+                    C8id インスタンスを指定したサイズで起動します。
+                </p>
+
+                <div style="font-size: 15px; font-weight: 700; color: var(--text-primary); margin-bottom: 12px;">ステップ 2: Instance Bandwidth Configuration の確認</div>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">Bash</span>
+                        <span class="code-title">帯域幅重み付けサポートの確認</span>
+                    </div>
+                    <pre><code class="language-bash">aws ec2 describe-instance-types \
+    --instance-types c8id.24xlarge \
+    --query 'InstanceTypes[0].NetworkInfo.BandwidthWeightingSupport'</code></pre>
+                </div>
+                <p style="font-size: 14px; color: var(--text-muted); margin-top: 8px; margin-bottom: 20px;">
+                    インスタンスタイプが帯域幅の重み付け調整をサポートしているか確認します。
+                </p>
+
+                <div style="font-size: 15px; font-weight: 700; color: var(--text-primary); margin-bottom: 12px;">ステップ 3: Savings Plans の適用確認</div>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">Bash</span>
+                        <span class="code-title">既存 Savings Plans の確認</span>
+                    </div>
+                    <pre><code class="language-bash">aws savingsplans describe-savings-plans \
+    --query 'SavingsPlans[?status==`active`]'</code></pre>
+                </div>
+                <p style="font-size: 14px; color: var(--text-muted); margin-top: 8px;">
+                    既存の Savings Plans が新インスタンスタイプに適用されるか確認します。
+                </p>
+            </div>
+        </section>
+
+        <!-- Use Cases Section -->
+        <section class="section">
+            <h2 class="section-title">ユースケース</h2>
+            <div class="usecase-card">
+                <div class="usecase-title">&#128203; ユースケース 1: 高性能データベース</div>
+                <div class="usecase-scenario">シナリオ: 大規模な OLTP データベースを低レイテンシーで運用</div>
+                <div class="usecase-description">R8id の大容量メモリと高速 NVMe ストレージでデータベース性能を最大化。r8id.24xlarge を使用して、インメモリ処理とローカルストレージの高速 I/O を組み合わせることで、大規模トランザクション処理を効率化します。</div>
+                <div class="usecase-effect">&#10004; R8id の大容量メモリと高速 NVMe ストレージでデータベース性能を最大化</div>
+            </div>
+            <div class="usecase-card">
+                <div class="usecase-title">&#128202; ユースケース 2: リアルタイム分析</div>
+                <div class="usecase-scenario">シナリオ: ストリーミングデータのリアルタイム分析処理</div>
+                <div class="usecase-description">M8id のバランスの取れたコンピュート・メモリ構成で、ストリーミングデータのリアルタイム分析を処理。m8id.16xlarge によりダッシュボードの応答性を大幅に改善します。</div>
+                <div class="usecase-effect">&#10004; 最大 30% 高速なクエリ処理でリアルタイムダッシュボードの応答性を向上</div>
+            </div>
+            <div class="usecase-card">
+                <div class="usecase-title">&#127918; ユースケース 3: ゲームサーバー</div>
+                <div class="usecase-scenario">シナリオ: 多数の同時接続を処理するオンラインゲームサーバー</div>
+                <div class="usecase-description">C8id の高いコンピュート性能と低レイテンシーネットワークで多数の同時接続プレイヤーを処理。c8id.8xlarge によりゲーム体験の品質を向上させます。</div>
+                <div class="usecase-effect">&#10004; 高いコンピュート性能と低レイテンシーネットワークでプレイヤー体験を向上</div>
+            </div>
+        </section>
+
+        <!-- Benefits Section -->
+        <section class="section">
+            <h2 class="section-title">メリット</h2>
+            <div class="instance-compare-grid">
+                <div class="instance-card">
+                    <div class="instance-card-title">&#128176; ビジネス面</div>
+                    <ul class="instance-detail-list">
+                        <li>コスト効率の向上: 少ないインスタンス数で同等以上の性能を実現</li>
+                        <li>スケーラビリティ: 大規模ワークロードを単一インスタンスで処理可能</li>
+                        <li>柔軟な購入オプション: Savings Plans、オンデマンド、スポットに対応</li>
+                    </ul>
+                </div>
+                <div class="instance-card">
+                    <div class="instance-card-title">&#9889; 技術面</div>
+                    <ul class="instance-detail-list">
+                        <li>高い I/O 性能: NVMe SSD による低レイテンシーストレージアクセス</li>
+                        <li>メモリ帯域幅の向上: インメモリ処理の高速化</li>
+                        <li>帯域幅の柔軟な配分: ワークロードに応じた最適化</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Considerations Section -->
+        <section class="section">
+            <h2 class="section-title">制約事項・考慮点</h2>
+            <div class="consideration-card warning">
+                <div class="consideration-title">&#9888; 制限事項</div>
+                <ul class="consideration-list">
+                    <li>利用可能リージョンが限定的 (米国東部、米国西部、欧州フランクフルト)</li>
+                    <li>前世代インスタンスからの移行には AMI 互換性の確認が必要</li>
+                    <li>一部の古い OS バージョンではドライバ更新が必要な場合がある</li>
+                </ul>
+            </div>
+            <div class="consideration-card info">
+                <div class="consideration-title">&#8505; 考慮すべき点</div>
+                <ul class="consideration-list">
+                    <li>大規模インスタンスは起動時間が長くなる可能性</li>
+                    <li>スポットインスタンスの中断リスクを考慮</li>
+                    <li>適切なサイジングのためのベンチマークテスト推奨</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Pricing Section -->
+        <section class="section">
+            <h2 class="section-title">料金</h2>
+            <div class="pricing-card">
+                <p style="font-size: 14px; margin-bottom: 15px;">C8id、M8id、R8id インスタンスは以下の購入オプションで利用可能です。</p>
+                <div class="pricing-options">
+                    <div class="pricing-tag">
+                        <span class="pricing-tag-icon">&#128179;</span>
+                        Savings Plans
+                        <div class="pricing-tag-detail">最大 72% 割引<br/>1 年 / 3 年コミットメント</div>
+                    </div>
+                    <div class="pricing-tag">
+                        <span class="pricing-tag-icon">&#128176;</span>
+                        オンデマンド
+                        <div class="pricing-tag-detail">コミットメントなし<br/>時間単位の課金</div>
+                    </div>
+                    <div class="pricing-tag">
+                        <span class="pricing-tag-icon">&#128200;</span>
+                        スポット
+                        <div class="pricing-tag-detail">最大 90% 割引<br/>中断の可能性あり</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Available Regions Section -->
+        <section class="section">
+            <h2 class="section-title">利用可能リージョン</h2>
+            <div class="overview-card" style="text-align: center;">
+                <table class="workload-table" style="margin-bottom: 20px;">
+                    <thead>
+                        <tr>
+                            <th>インスタンスファミリー</th>
+                            <th>利用可能リージョン</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="instance-name">C8id</td>
+                            <td>米国東部 (バージニア北部)、米国東部 (オハイオ)、米国西部 (オレゴン)</td>
+                        </tr>
+                        <tr>
+                            <td class="instance-name">M8id</td>
+                            <td>米国東部 (バージニア北部)、米国東部 (オハイオ)、米国西部 (オレゴン)</td>
+                        </tr>
+                        <tr>
+                            <td class="instance-name">R8id</td>
+                            <td>米国東部 (バージニア北部)、米国東部 (オハイオ)、米国西部 (オレゴン)、欧州 (フランクフルト)</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="region-list">
+                    <span class="region-tag highlight">&#127482;&#127480; US East (N. Virginia)</span>
+                    <span class="region-tag highlight">&#127482;&#127480; US East (Ohio)</span>
+                    <span class="region-tag highlight">&#127482;&#127480; US West (Oregon)</span>
+                    <span class="region-tag highlight">&#127466;&#127482; Europe (Frankfurt) - R8id のみ</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Related Services Section -->
+        <section class="section">
+            <h2 class="section-title">関連サービス</h2>
+            <div class="related-grid">
+                <div class="related-card">
+                    <div class="related-icon">&#128190;</div>
+                    <div class="related-name">Amazon EBS</div>
+                    <div class="related-desc">高性能永続ストレージとの組み合わせ</div>
+                </div>
+                <div class="related-card">
+                    <div class="related-icon">&#9889;</div>
+                    <div class="related-name">AWS Nitro System</div>
+                    <div class="related-desc">基盤となるハイパーバイザーテクノロジー</div>
+                </div>
+                <div class="related-card">
+                    <div class="related-icon">&#128200;</div>
+                    <div class="related-name">EC2 Auto Scaling</div>
+                    <div class="related-desc">需要に応じた自動スケーリング</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer>
+            <div>
+                <a href="https://aws.amazon.com/about-aws/whats-new/2026/02/amazon-ec2-c8id-m8id-r8id-instances/" class="source-link" target="_blank" rel="noopener noreferrer">
+                    &#128279; 公式発表 (What's New) を見る
+                </a>
+            </div>
+            <div>
+                <a href="https://aws.amazon.com/ec2/instance-types/" class="source-link" target="_blank" rel="noopener noreferrer">
+                    &#128196; Amazon EC2 インスタンスタイプ
+                </a>
+            </div>
+            <div>
+                <a href="https://aws.amazon.com/ec2/pricing/" class="source-link" target="_blank" rel="noopener noreferrer">
+                    &#128176; EC2 料金ページ
+                </a>
+            </div>
+            <p class="footer-note">Amazon EC2 C8id、M8id、R8id インスタンスは Intel Xeon 6 プロセッサと大容量 NVMe ストレージを組み合わせた高性能インスタンスです。I/O 集約型のデータベースワークロードやリアルタイムデータ分析に最適化されています。</p>
+        </footer>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'base',
+            themeVariables: {
+                primaryColor: '#FF9900',
+                primaryTextColor: '#232F3E',
+                primaryBorderColor: '#FF9900',
+                lineColor: '#FF9900',
+                secondaryColor: '#F5F5F5',
+                tertiaryColor: '#FAFAFA',
+                background: '#FFFFFF',
+                mainBkg: '#FFF3E0',
+                nodeBorder: '#FF9900',
+                clusterBkg: '#FFF8E1',
+                clusterBorder: '#FF9900',
+                edgeLabelBackground: '#FFFFFF',
+                textColor: '#232F3E'
+            }
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/highlight.min.js"></script>
+    <script>hljs.highlightAll();</script>
+</body>
+</html>

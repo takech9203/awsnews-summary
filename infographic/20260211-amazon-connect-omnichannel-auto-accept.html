@@ -1,0 +1,1069 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Amazon Connect - オムニチャネル自動承認 (Auto-Accept) 設定</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/styles/atom-one-dark.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/highlight.min.js"></script>
+    <style>
+        :root {
+            --squid-ink: #232F3E;
+            --dark-squid: #1A242F;
+            --aws-orange: #FF9900;
+            --smile-orange: #FFAD33;
+            --text-primary: #FFFFFF;
+            --text-secondary: #D5DBDB;
+            --text-muted: #AAAAAA;
+            --card-bg: #2D3A4A;
+            --border-color: #3D4A5A;
+            --teal: #00A1C9;
+            --green: #2ECC71;
+            --red: #E74C3C;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            background-color: var(--squid-ink);
+            color: var(--text-secondary);
+            line-height: 1.8;
+            font-size: 16px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+            padding-bottom: 30px;
+            border-bottom: 3px solid var(--aws-orange);
+        }
+
+        .service-badge {
+            display: inline-block;
+            background-color: var(--aws-orange);
+            color: var(--squid-ink);
+            padding: 5px 18px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+            line-height: 1.4;
+        }
+
+        .release-date {
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--aws-orange);
+            margin-bottom: 20px;
+            padding-left: 15px;
+            border-left: 4px solid var(--aws-orange);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .overview-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .overview-text {
+            font-size: 16px;
+            line-height: 1.9;
+        }
+
+        .highlight {
+            background-color: rgba(255, 153, 0, 0.2);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+            color: var(--aws-orange);
+        }
+
+        /* Before/After comparison */
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .comparison-grid {
+                grid-template-columns: 1fr;
+            }
+            .features-grid {
+                grid-template-columns: 1fr !important;
+            }
+            .stats-grid {
+                grid-template-columns: 1fr !important;
+            }
+            .channel-grid {
+                grid-template-columns: 1fr !important;
+            }
+        }
+
+        .comparison-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .comparison-card.before {
+            border-top: 4px solid var(--red);
+        }
+
+        .comparison-card.after {
+            border-top: 4px solid var(--green);
+        }
+
+        .comparison-label {
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        .comparison-card.before .comparison-label {
+            color: var(--red);
+        }
+
+        .comparison-card.after .comparison-label {
+            color: var(--green);
+        }
+
+        .comparison-list {
+            list-style: none;
+        }
+
+        .comparison-list li {
+            padding: 8px 0;
+            padding-left: 25px;
+            position: relative;
+            font-size: 14px;
+        }
+
+        .comparison-card.before .comparison-list li::before {
+            content: "\2717";
+            position: absolute;
+            left: 0;
+            color: var(--red);
+            font-weight: bold;
+        }
+
+        .comparison-card.after .comparison-list li::before {
+            content: "\2713";
+            position: absolute;
+            left: 0;
+            color: var(--green);
+            font-weight: bold;
+        }
+
+        /* Mermaid diagram */
+        .mermaid-container {
+            background: #FFFFFF;
+            border-radius: 12px;
+            padding: 24px;
+            margin: 20px 0;
+            border: 2px solid rgba(255, 153, 0, 0.3);
+            overflow-x: auto;
+        }
+
+        .mermaid {
+            display: flex;
+            justify-content: center;
+        }
+
+        /* Feature cards */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .feature-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            border-left: 4px solid var(--aws-orange);
+        }
+
+        .feature-icon {
+            font-size: 32px;
+            margin-bottom: 12px;
+        }
+
+        .feature-title {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--aws-orange);
+        }
+
+        .feature-description {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        /* Stats cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, rgba(255, 153, 0, 0.15), rgba(255, 153, 0, 0.05));
+            border: 1px solid rgba(255, 153, 0, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--aws-orange);
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        /* Channel grid */
+        .channel-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .channel-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 18px 12px;
+            text-align: center;
+            border: 2px solid rgba(255, 153, 0, 0.2);
+            transition: border-color 0.2s;
+        }
+
+        .channel-card:hover {
+            border-color: var(--aws-orange);
+        }
+
+        .channel-icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+
+        .channel-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .channel-status {
+            font-size: 12px;
+            padding: 2px 8px;
+            border-radius: 10px;
+            display: inline-block;
+        }
+
+        .channel-status.new {
+            background-color: rgba(46, 204, 113, 0.2);
+            color: var(--green);
+        }
+
+        .channel-status.existing {
+            background-color: rgba(0, 161, 201, 0.2);
+            color: var(--teal);
+        }
+
+        /* Use case cards */
+        .usecase-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 4px solid var(--smile-orange);
+        }
+
+        .usecase-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .usecase-icon {
+            font-size: 24px;
+        }
+
+        .usecase-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--aws-orange);
+        }
+
+        .usecase-scenario {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+            line-height: 1.7;
+        }
+
+        .usecase-effect {
+            font-size: 14px;
+            color: var(--green);
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .usecase-effect::before {
+            content: "\2713";
+            position: absolute;
+            left: 0;
+            color: var(--green);
+            font-weight: bold;
+        }
+
+        /* Code blocks */
+        .code-block {
+            background: #1a1a2e;
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 16px 0;
+        }
+
+        .code-header {
+            background: #16213e;
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+        }
+
+        .code-lang {
+            color: var(--aws-orange);
+            font-weight: bold;
+        }
+
+        .code-title {
+            color: var(--text-muted);
+        }
+
+        .code-block pre {
+            margin: 0;
+            padding: 0;
+            overflow-x: auto;
+        }
+
+        .code-block code {
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            padding: 16px !important;
+        }
+
+        /* API table */
+        .api-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+            font-size: 14px;
+        }
+
+        .api-table th {
+            background-color: rgba(255, 153, 0, 0.15);
+            color: var(--aws-orange);
+            padding: 12px 16px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid rgba(255, 153, 0, 0.3);
+        }
+
+        .api-table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-secondary);
+        }
+
+        .api-table a {
+            color: var(--teal);
+            text-decoration: none;
+        }
+
+        .api-table a:hover {
+            text-decoration: underline;
+        }
+
+        /* Merit/Demerit cards */
+        .merit-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .merit-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .merit-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .merit-card.positive {
+            border-top: 4px solid var(--green);
+        }
+
+        .merit-card.negative {
+            border-top: 4px solid var(--red);
+        }
+
+        .merit-card-title {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        .merit-card.positive .merit-card-title {
+            color: var(--green);
+        }
+
+        .merit-card.negative .merit-card-title {
+            color: var(--red);
+        }
+
+        .merit-list {
+            list-style: none;
+        }
+
+        .merit-list li {
+            padding: 6px 0;
+            padding-left: 25px;
+            position: relative;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .merit-card.positive .merit-list li::before {
+            content: "\2713";
+            position: absolute;
+            left: 0;
+            color: var(--green);
+            font-weight: bold;
+        }
+
+        .merit-card.negative .merit-list li::before {
+            content: "\26A0";
+            position: absolute;
+            left: 0;
+            color: var(--red);
+        }
+
+        .merit-subtitle {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--aws-orange);
+            margin-top: 12px;
+            margin-bottom: 8px;
+        }
+
+        /* Related services */
+        .related-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 15px 20px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .related-icon {
+            font-size: 24px;
+            flex-shrink: 0;
+        }
+
+        .related-info {
+            flex: 1;
+        }
+
+        .related-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .related-desc {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        /* Pricing card */
+        .pricing-card {
+            background: linear-gradient(135deg, rgba(29, 129, 2, 0.1), rgba(29, 129, 2, 0.05));
+            border: 1px solid rgba(29, 129, 2, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .pricing-highlight {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--green);
+            margin-bottom: 8px;
+        }
+
+        .pricing-detail {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        /* Flow diagram */
+        .flow-diagram {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin: 24px 0;
+        }
+
+        .flow-step {
+            background: var(--dark-squid);
+            border: 2px solid var(--aws-orange);
+            border-radius: 8px;
+            padding: 12px 20px;
+            text-align: center;
+            min-width: 100px;
+            color: var(--text-primary);
+            font-size: 14px;
+        }
+
+        .flow-arrow {
+            color: var(--aws-orange);
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        /* Footer */
+        footer {
+            margin-top: 50px;
+            padding-top: 30px;
+            border-top: 1px solid var(--border-color);
+            text-align: center;
+        }
+
+        .source-links {
+            margin-bottom: 15px;
+        }
+
+        .source-link {
+            color: var(--teal);
+            text-decoration: none;
+            font-size: 14px;
+            display: inline-block;
+            margin: 4px 10px;
+        }
+
+        .source-link:hover {
+            color: var(--smile-orange);
+            text-decoration: underline;
+        }
+
+        .footer-note {
+            color: var(--text-muted);
+            font-size: 12px;
+            margin-top: 10px;
+        }
+
+        .region-badge {
+            display: inline-block;
+            background-color: var(--card-bg);
+            padding: 4px 14px;
+            border-radius: 15px;
+            font-size: 12px;
+            color: var(--text-muted);
+            margin: 4px;
+        }
+
+        /* Note card */
+        .note-card {
+            background-color: rgba(255, 153, 0, 0.08);
+            border: 1px solid rgba(255, 153, 0, 0.25);
+            border-radius: 8px;
+            padding: 15px 20px;
+            margin: 15px 0;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <span class="service-badge">Amazon Connect</span>
+            <h1>オムニチャネル自動承認<br>Auto-Accept 設定</h1>
+            <p class="release-date">2026 年 2 月 11 日</p>
+        </header>
+
+        <!-- 概要セクション -->
+        <section class="section">
+            <h2 class="section-title">概要</h2>
+            <div class="overview-card">
+                <p class="overview-text">
+                    Amazon Connect が<span class="highlight">チャット、タスク、メール、コールバック</span>の各チャネルに対して自動承認 (Auto-Accept) 設定をサポートしました。Auto-Accept を有効にすると、着信コンタクトが利用可能なエージェントに自動的に接続され、エージェントが手動で承認・拒否する手順が不要になります。これまでインバウンド音声通話のみで利用可能だった Auto-Accept が、すべてのチャネルで<span class="highlight">チャネルレベルの粒度</span>で設定できるようになりました。
+                </p>
+            </div>
+
+            <div class="comparison-grid">
+                <div class="comparison-card before">
+                    <div class="comparison-label">Before - アップデート前の課題</div>
+                    <ul class="comparison-list">
+                        <li>Auto-Accept はインバウンド音声通話のみで利用可能</li>
+                        <li>チャット、タスク、メール、コールバックではエージェントが手動で承認が必要</li>
+                        <li>チャネルごとに異なる自動承認ポリシーを設定する柔軟性がなかった</li>
+                    </ul>
+                </div>
+                <div class="comparison-card after">
+                    <div class="comparison-label">After - アップデート後の改善</div>
+                    <ul class="comparison-list">
+                        <li>すべてのチャネルで Auto-Accept が設定可能に</li>
+                        <li>チャネルレベルでエージェントごとに個別の設定を構成可能</li>
+                        <li>タスクは自動承認、音声は手動承認といった使い分けが可能</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- 対応チャネル -->
+        <section class="section">
+            <h2 class="section-title">対応チャネル一覧</h2>
+            <div class="channel-grid">
+                <div class="channel-card">
+                    <div class="channel-icon">&#128222;</div>
+                    <div class="channel-name">VOICE</div>
+                    <span class="channel-status existing">既存対応</span>
+                </div>
+                <div class="channel-card">
+                    <div class="channel-icon">&#128172;</div>
+                    <div class="channel-name">CHAT</div>
+                    <span class="channel-status new">NEW</span>
+                </div>
+                <div class="channel-card">
+                    <div class="channel-icon">&#128203;</div>
+                    <div class="channel-name">TASK</div>
+                    <span class="channel-status new">NEW</span>
+                </div>
+                <div class="channel-card">
+                    <div class="channel-icon">&#128231;</div>
+                    <div class="channel-name">EMAIL</div>
+                    <span class="channel-status new">NEW</span>
+                </div>
+            </div>
+            <div class="note-card">
+                &#128260; <strong>コールバック</strong>: エージェントが最初のコールバックを受ける際の Auto-Accept も <code>AgentFirstCallbackAutoAccept</code> パラメータで個別に設定可能です。
+            </div>
+        </section>
+
+        <!-- アーキテクチャ図 -->
+        <section class="section">
+            <h2 class="section-title">アーキテクチャ図</h2>
+            <div class="mermaid-container">
+                <pre class="mermaid">
+flowchart TD
+    subgraph Channels["&#9742;&#65039; コンタクトチャネル"]
+        direction LR
+        VOICE["&#128222; 音声通話"]
+        CHAT["&#128172; チャット"]
+        TASK["&#128203; タスク"]
+        EMAIL["&#128231; メール"]
+        VOICE ~~~ CHAT ~~~ TASK ~~~ EMAIL
+    end
+
+    subgraph Connect["&#9729;&#65039; Amazon Connect"]
+        direction LR
+        Config["&#128736;&#65039; Auto-Accept 設定<br/>チャネルレベル制御"]
+        Routing["&#128256; ルーティング<br/>エンジン"]
+        Config ~~~ Routing
+    end
+
+    subgraph API["&#128295; 管理 API"]
+        direction LR
+        Create["CreateUser API"]
+        Update["UpdateUserConfig API"]
+        Describe["DescribeUser API"]
+        Create ~~~ Update ~~~ Describe
+    end
+
+    subgraph Agent["&#128100; エージェント"]
+        direction LR
+        Auto["&#9989; 自動接続<br/>Auto-Accept ON"]
+        Manual["&#9995; 手動承認<br/>Auto-Accept OFF"]
+        Auto ~~~ Manual
+    end
+
+    Channels --> Connect
+    Connect --> Agent
+    API -->|設定管理| Config
+
+    classDef channels fill:#E8F1FF,stroke:#4A90E2,stroke-width:2px,color:#333333
+    classDef connect fill:#FFE0B2,stroke:#FFCC80,stroke-width:2px,color:#5D4037
+    classDef api fill:#E9F7EC,stroke:#66BB6A,stroke-width:2px,color:#333333
+    classDef agent fill:#F3E5F5,stroke:#7B61FF,stroke-width:2px,color:#333333
+    classDef node fill:#FFFFFF,stroke:#4A90E2,stroke-width:2px,color:#333333
+
+    class Channels channels
+    class Connect connect
+    class API api
+    class Agent agent
+    class VOICE,CHAT,TASK,EMAIL,Config,Routing,Create,Update,Describe,Auto,Manual node
+                </pre>
+            </div>
+        </section>
+
+        <!-- 主要機能セクション -->
+        <section class="section">
+            <h2 class="section-title">主要機能</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">&#128260;</div>
+                    <div class="feature-title">チャネルレベル Auto-Accept</div>
+                    <div class="feature-description">各チャネル VOICE / CHAT / TASK / EMAIL に対して個別に Auto-Accept を有効/無効化。エージェントごとに異なる設定を適用可能。</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#128222;</div>
+                    <div class="feature-title">コールバック向け設定</div>
+                    <div class="feature-description">エージェントが最初のコールバックを受ける際の Auto-Accept を <code>AgentFirstCallbackAutoAccept</code> パラメータで個別に制御。</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#128295;</div>
+                    <div class="feature-title">UpdateUserConfig API</div>
+                    <div class="feature-description">新しい API で Auto-Accept 設定をプログラムで管理。CreateUser API にも AutoAcceptConfigs パラメータが追加。</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 技術仕様 -->
+        <section class="section">
+            <h2 class="section-title">技術仕様</h2>
+
+            <div class="overview-card">
+                <h3 style="color: var(--aws-orange); font-size: 16px; margin-bottom: 12px;">API 変更履歴</h3>
+                <table class="api-table">
+                    <thead>
+                        <tr>
+                            <th>日付</th>
+                            <th>サービス</th>
+                            <th>変更内容</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>2026/02/10</td>
+                            <td><a href="https://awsapichanges.com/archive/changes/56b6d8-connect.html" target="_blank">Amazon Connect Service</a></td>
+                            <td>1 new 3 updated api methods - UpdateUserConfig API の追加、CreateUser / DescribeUser / UpdateUser の更新</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div style="margin-top: 20px;">
+                <h3 style="color: var(--aws-orange); font-size: 16px; margin-bottom: 12px;">AutoAcceptConfigs パラメータ</h3>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">JSON</span>
+                        <span class="code-title">AutoAcceptConfigs 構造</span>
+                    </div>
+                    <pre><code class="language-json">{
+  "AutoAcceptConfigs": [
+    {
+      "Channel": "VOICE | CHAT | TASK | EMAIL",
+      "AutoAccept": true,
+      "AgentFirstCallbackAutoAccept": true
+    }
+  ],
+  "UserId": "agent-user-id",
+  "InstanceId": "connect-instance-id"
+}</code></pre>
+                </div>
+            </div>
+        </section>
+
+        <!-- 設定方法 -->
+        <section class="section">
+            <h2 class="section-title">設定方法</h2>
+
+            <div class="overview-card" style="margin-bottom: 20px;">
+                <h3 style="color: var(--aws-orange); font-size: 16px; margin-bottom: 12px;">前提条件</h3>
+                <ul class="comparison-list" style="list-style: none;">
+                    <li style="padding-left: 25px; position: relative; font-size: 14px;"><span style="position: absolute; left: 0; color: var(--aws-orange);">1.</span> Amazon Connect インスタンスが構成済みであること</li>
+                    <li style="padding-left: 25px; position: relative; font-size: 14px;"><span style="position: absolute; left: 0; color: var(--aws-orange);">2.</span> 管理者権限を持つ IAM ロールまたはユーザー</li>
+                    <li style="padding-left: 25px; position: relative; font-size: 14px;"><span style="position: absolute; left: 0; color: var(--aws-orange);">3.</span> 最新バージョンの AWS CLI / SDK</li>
+                </ul>
+            </div>
+
+            <div class="flow-diagram">
+                <div class="flow-step">&#128187; コンソールで<br>ユーザー管理を開く</div>
+                <span class="flow-arrow">&rarr;</span>
+                <div class="flow-step">&#128100; エージェントの<br>設定を選択</div>
+                <span class="flow-arrow">&rarr;</span>
+                <div class="flow-step">&#128260; チャネルごとに<br>Auto-Accept を設定</div>
+                <span class="flow-arrow">&rarr;</span>
+                <div class="flow-step">&#9989; 設定完了</div>
+            </div>
+
+            <div style="margin-top: 20px;">
+                <h3 style="color: var(--aws-orange); font-size: 16px; margin-bottom: 12px;">API による設定例</h3>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">Bash</span>
+                        <span class="code-title">AWS CLI - UpdateUserConfig</span>
+                    </div>
+                    <pre><code class="language-bash">aws connect update-user-config \
+  --instance-id "your-instance-id" \
+  --user-id "agent-user-id" \
+  --auto-accept-configs '[
+    {
+      "Channel": "TASK",
+      "AutoAccept": true
+    },
+    {
+      "Channel": "CHAT",
+      "AutoAccept": true
+    },
+    {
+      "Channel": "EMAIL",
+      "AutoAccept": true
+    },
+    {
+      "Channel": "VOICE",
+      "AutoAccept": false
+    }
+  ]'</code></pre>
+                </div>
+                <div class="note-card">
+                    &#128161; この例ではタスク、チャット、メールは自動承認にし、音声通話は手動承認のままにしています。チャネルごとに Auto-Accept の有効/無効を個別に設定できます。
+                </div>
+            </div>
+        </section>
+
+        <!-- メリット・デメリット -->
+        <section class="section">
+            <h2 class="section-title">メリット・デメリット</h2>
+            <div class="merit-grid">
+                <div class="merit-card positive">
+                    <div class="merit-card-title">&#9989; メリット</div>
+                    <div class="merit-subtitle">ビジネス面</div>
+                    <ul class="merit-list">
+                        <li>顧客待ち時間の短縮 - コンタクトが自動的にエージェントに接続</li>
+                        <li>エージェント稼働率の向上 - 手動承認の手間を削減</li>
+                        <li>チャネル別の最適化 - タスクやメールなど即時対応チャネルで効果的</li>
+                    </ul>
+                    <div class="merit-subtitle">技術面</div>
+                    <ul class="merit-list">
+                        <li>API による一括管理 - UpdateUserConfig API で大規模な設定を自動化</li>
+                        <li>既存ワークフローとの互換性 - 音声チャネルの既存設定を維持しながら追加設定可能</li>
+                        <li>きめ細かい制御 - チャネルとコールバックの組み合わせで柔軟な設定</li>
+                    </ul>
+                </div>
+                <div class="merit-card negative">
+                    <div class="merit-card-title">&#9888;&#65039; デメリット・制約事項</div>
+                    <div class="merit-subtitle">制限事項</div>
+                    <ul class="merit-list">
+                        <li>Auto-Accept 有効時、エージェントがコンタクトを選択的に拒否する機能が無効化される</li>
+                        <li>エージェントの準備状態を適切に管理する運用プロセスが必要</li>
+                    </ul>
+                    <div class="merit-subtitle">考慮すべき点</div>
+                    <ul class="merit-list">
+                        <li>音声通話の Auto-Accept は、エージェントが通話準備ができていない状態で接続されるリスクがあるため慎重に検討が必要</li>
+                        <li>設定変更時はエージェントへの周知と研修が推奨される</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- ユースケース -->
+        <section class="section">
+            <h2 class="section-title">ユースケース</h2>
+
+            <div class="usecase-card">
+                <div class="usecase-header">
+                    <span class="usecase-icon">&#128203;</span>
+                    <span class="usecase-title">タスク処理の高速化</span>
+                </div>
+                <p class="usecase-scenario">
+                    <strong>シナリオ</strong>: バックオフィス業務で大量のタスクを処理するエージェントが、手動承認なしで次々とタスクに取り組みたい場合。
+                </p>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">JSON</span>
+                        <span class="code-title">実装例</span>
+                    </div>
+                    <pre><code class="language-json">{
+  "AutoAcceptConfigs": [
+    {"Channel": "TASK", "AutoAccept": true},
+    {"Channel": "VOICE", "AutoAccept": false}
+  ]
+}</code></pre>
+                </div>
+                <p class="usecase-effect">タスクが自動的にエージェントに割り当てられ、処理スループットが向上。音声通話はエージェントの準備ができてから接続。</p>
+            </div>
+
+            <div class="usecase-card">
+                <div class="usecase-header">
+                    <span class="usecase-icon">&#128231;</span>
+                    <span class="usecase-title">メール対応の効率化</span>
+                </div>
+                <p class="usecase-scenario">
+                    <strong>シナリオ</strong>: メール専任のエージェントチームで、受信メールを即座にエージェントに振り分けたい場合。
+                </p>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">JSON</span>
+                        <span class="code-title">実装例</span>
+                    </div>
+                    <pre><code class="language-json">{
+  "AutoAcceptConfigs": [
+    {"Channel": "EMAIL", "AutoAccept": true},
+    {"Channel": "CHAT", "AutoAccept": true}
+  ]
+}</code></pre>
+                </div>
+                <p class="usecase-effect">メールとチャットが自動承認されることで、エージェントの応答開始時間が短縮され、SLA 遵守率が向上。</p>
+            </div>
+        </section>
+
+        <!-- 料金情報 -->
+        <section class="section">
+            <h2 class="section-title">料金</h2>
+            <div class="pricing-card">
+                <div class="pricing-highlight">追加料金なし</div>
+                <p class="pricing-detail">Auto-Accept 設定機能の利用に追加料金は発生しません。Amazon Connect の標準料金が適用されます。</p>
+            </div>
+        </section>
+
+        <!-- 利用可能リージョン -->
+        <section class="section">
+            <h2 class="section-title">利用可能リージョン</h2>
+            <div class="overview-card" style="text-align: center;">
+                <p style="font-size: 14px; margin-bottom: 12px;">Amazon Connect が提供されているすべての AWS リージョンで利用可能です。</p>
+                <span class="region-badge">&#127758; 全リージョン対応</span>
+            </div>
+        </section>
+
+        <!-- 関連サービス -->
+        <section class="section">
+            <h2 class="section-title">関連サービス・機能</h2>
+            <div class="related-card">
+                <span class="related-icon">&#9200;</span>
+                <div class="related-info">
+                    <div class="related-name">Amazon Connect ACW タイムアウト</div>
+                    <div class="related-desc">同日リリースされた、チャネルごとの ACW タイムアウト設定機能</div>
+                </div>
+            </div>
+            <div class="related-card">
+                <span class="related-icon">&#127908;</span>
+                <div class="related-info">
+                    <div class="related-name">Amazon Connect Audio Enhancement</div>
+                    <div class="related-desc">エージェント音声のノイズ抑制機能</div>
+                </div>
+            </div>
+            <div class="related-card">
+                <span class="related-icon">&#128256;</span>
+                <div class="related-info">
+                    <div class="related-name">Amazon Connect ルーティングプロファイル</div>
+                    <div class="related-desc">コンタクトルーティングの優先順位設定</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- フッター -->
+        <footer>
+            <div class="source-links">
+                <a href="https://aws.amazon.com/about-aws/whats-new/2026/02/amazon-connect-omnichannel-auto-accept/" class="source-link" target="_blank">
+                    &#128196; 公式発表 (What's New)
+                </a>
+                <a href="https://docs.aws.amazon.com/connect/latest/adminguide/enable-auto-accept.html" class="source-link" target="_blank">
+                    &#128214; 管理者ガイド - Auto-Accept 設定
+                </a>
+                <a href="https://aws.amazon.com/connect/" class="source-link" target="_blank">
+                    &#9729;&#65039; Amazon Connect ウェブサイト
+                </a>
+            </div>
+            <p class="footer-note">
+                &#128206; インフォグラフィック URL: <a href="https://takech9203.github.io/awsnews-summary/20260211-amazon-connect-omnichannel-auto-accept.html" class="source-link" style="font-size: 12px;" target="_blank">https://takech9203.github.io/awsnews-summary/20260211-amazon-connect-omnichannel-auto-accept.html</a>
+            </p>
+        </footer>
+    </div>
+
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'base',
+            themeVariables: {
+                primaryColor: '#FF9900',
+                primaryTextColor: '#232F3E',
+                primaryBorderColor: '#FF9900',
+                lineColor: '#FF9900',
+                secondaryColor: '#F5F5F5',
+                tertiaryColor: '#FAFAFA',
+                background: '#FFFFFF',
+                mainBkg: '#FFF3E0',
+                nodeBorder: '#FF9900',
+                clusterBkg: '#FFF8E1',
+                clusterBorder: '#FF9900',
+                edgeLabelBackground: '#FFFFFF',
+                textColor: '#232F3E'
+            },
+            flowchart: {
+                curve: 'basis',
+                padding: 20
+            }
+        });
+        hljs.highlightAll();
+    </script>
+</body>
+</html>

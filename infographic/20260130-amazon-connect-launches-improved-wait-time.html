@@ -1,0 +1,1043 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Amazon Connect - 改善された推定待機時間機能</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/styles/atom-one-dark.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/highlight.min.js"></script>
+    <style>
+        :root {
+            --squid-ink: #232F3E;
+            --aws-orange: #FF9900;
+            --aws-smile-orange: #FFAD33;
+            --text-primary: #FFFFFF;
+            --text-secondary: #AAAAAA;
+            --light-gray: #D5DBDB;
+            --card-bg: #2D3A4A;
+            --dark-squid: #1A242F;
+            --border-color: #3D4A5A;
+            --aws-teal: #00A1C9;
+            --aws-green: #1D8102;
+            --aws-red: #D13212;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            background-color: var(--squid-ink);
+            color: var(--light-gray);
+            line-height: 1.8;
+            font-size: 16px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+            padding-bottom: 30px;
+            border-bottom: 3px solid var(--aws-orange);
+        }
+
+        .service-badge {
+            display: inline-block;
+            background-color: var(--aws-orange);
+            color: var(--squid-ink);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+        }
+
+        .release-date {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--aws-orange);
+            margin-bottom: 20px;
+            padding-left: 15px;
+            border-left: 4px solid var(--aws-orange);
+        }
+
+        .overview-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .overview-text {
+            font-size: 16px;
+            line-height: 1.9;
+        }
+
+        .highlight {
+            background-color: rgba(255, 153, 0, 0.2);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+            color: var(--aws-orange);
+        }
+
+        /* Stats grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, var(--card-bg) 0%, var(--dark-squid) 100%);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid rgba(255, 153, 0, 0.2);
+        }
+
+        .stat-icon {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--aws-orange);
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        /* Before/After comparison */
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .comparison-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .comparison-card.before {
+            border-top: 4px solid #E74C3C;
+        }
+
+        .comparison-card.after {
+            border-top: 4px solid #2ECC71;
+        }
+
+        .comparison-label {
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        .comparison-card.before .comparison-label {
+            color: #E74C3C;
+        }
+
+        .comparison-card.after .comparison-label {
+            color: #2ECC71;
+        }
+
+        .comparison-list {
+            list-style: none;
+        }
+
+        .comparison-list li {
+            padding: 8px 0;
+            padding-left: 25px;
+            position: relative;
+            font-size: 14px;
+        }
+
+        .comparison-card.before .comparison-list li::before {
+            content: "\2717";
+            position: absolute;
+            left: 0;
+            color: #E74C3C;
+            font-weight: bold;
+        }
+
+        .comparison-card.after .comparison-list li::before {
+            content: "\2713";
+            position: absolute;
+            left: 0;
+            color: #2ECC71;
+            font-weight: bold;
+        }
+
+        /* Mermaid diagram */
+        .diagram-container {
+            background-color: #FFFFFF;
+            border: 2px solid rgba(255, 153, 0, 0.3);
+            border-radius: 12px;
+            padding: 25px;
+            overflow-x: auto;
+        }
+
+        .mermaid {
+            display: flex;
+            justify-content: center;
+        }
+
+        /* Feature cards */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .feature-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            border-left: 3px solid var(--aws-orange);
+        }
+
+        .feature-icon {
+            font-size: 36px;
+            margin-bottom: 12px;
+        }
+
+        .feature-title {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--aws-orange);
+        }
+
+        .feature-description {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        /* Tech spec table */
+        .spec-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+        }
+
+        .spec-table th {
+            background-color: var(--dark-squid);
+            color: var(--aws-orange);
+            padding: 10px 14px;
+            text-align: left;
+            font-size: 13px;
+            font-weight: 700;
+            border-bottom: 2px solid var(--aws-orange);
+        }
+
+        .spec-table td {
+            padding: 10px 14px;
+            font-size: 13px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--light-gray);
+        }
+
+        /* Code blocks */
+        .code-block {
+            background: #1a1a2e;
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 16px 0;
+        }
+
+        .code-header {
+            background: #16213e;
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+        }
+
+        .code-lang {
+            color: var(--aws-orange);
+            font-weight: bold;
+        }
+
+        .code-title {
+            color: var(--light-gray);
+        }
+
+        .code-block pre {
+            margin: 0;
+            padding: 0;
+            overflow-x: auto;
+        }
+
+        .code-block code {
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            padding: 16px !important;
+        }
+
+        /* Flow diagram */
+        .flow-diagram {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin: 24px 0;
+        }
+
+        .flow-step {
+            background: var(--dark-squid);
+            border: 2px solid var(--aws-orange);
+            border-radius: 8px;
+            padding: 12px 20px;
+            text-align: center;
+            min-width: 120px;
+            font-size: 14px;
+        }
+
+        .flow-arrow {
+            color: var(--aws-orange);
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        /* Use case cards */
+        .usecase-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 3px solid var(--aws-orange);
+        }
+
+        .usecase-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .usecase-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--aws-orange);
+        }
+
+        .usecase-scenario {
+            font-size: 14px;
+            color: var(--light-gray);
+            margin-bottom: 8px;
+        }
+
+        .usecase-impl {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+            padding: 8px 12px;
+            background-color: rgba(0, 161, 201, 0.1);
+            border-radius: 8px;
+            border-left: 3px solid var(--aws-teal);
+        }
+
+        .usecase-effect {
+            font-size: 14px;
+            color: #2ECC71;
+            padding: 10px;
+            background-color: rgba(46, 204, 113, 0.1);
+            border-radius: 8px;
+        }
+
+        .usecase-effect::before {
+            content: "\2713 ";
+            font-weight: bold;
+        }
+
+        /* Merit/Demerit */
+        .merit-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .merit-section {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .merit-section h3 {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: var(--aws-orange);
+        }
+
+        .merit-list {
+            list-style: none;
+        }
+
+        .merit-list li {
+            padding: 6px 0;
+            padding-left: 22px;
+            position: relative;
+            font-size: 14px;
+            color: var(--light-gray);
+        }
+
+        .merit-list li::before {
+            content: "\2713";
+            position: absolute;
+            left: 0;
+            color: #2ECC71;
+            font-weight: bold;
+        }
+
+        /* Constraint/Limitation */
+        .constraint-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 3px solid #E74C3C;
+        }
+
+        .constraint-title {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #E74C3C;
+        }
+
+        .constraint-list {
+            list-style: none;
+        }
+
+        .constraint-list li {
+            padding: 6px 0;
+            padding-left: 22px;
+            position: relative;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .constraint-list li::before {
+            content: "\26A0";
+            position: absolute;
+            left: 0;
+            font-size: 12px;
+        }
+
+        /* Pricing card */
+        .pricing-card {
+            background: linear-gradient(135deg, rgba(29, 129, 2, 0.15) 0%, var(--card-bg) 100%);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid rgba(29, 129, 2, 0.3);
+            text-align: center;
+        }
+
+        .pricing-highlight {
+            font-size: 22px;
+            font-weight: 700;
+            color: #2ECC71;
+            margin-bottom: 8px;
+        }
+
+        .pricing-detail {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        /* Region */
+        .region-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .region-highlight {
+            font-size: 16px;
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .region-note {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-top: 8px;
+        }
+
+        /* Related services */
+        .related-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+        }
+
+        .related-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+        }
+
+        .related-name {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 6px;
+        }
+
+        .related-desc {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        /* Footer */
+        footer {
+            margin-top: 50px;
+            padding-top: 30px;
+            border-top: 1px solid var(--border-color);
+            text-align: center;
+        }
+
+        .source-links {
+            list-style: none;
+            margin-bottom: 16px;
+        }
+
+        .source-links li {
+            margin-bottom: 6px;
+        }
+
+        .source-link {
+            color: var(--aws-teal);
+            text-decoration: none;
+            font-size: 14px;
+            word-break: break-all;
+        }
+
+        .source-link:hover {
+            color: var(--aws-smile-orange);
+            text-decoration: underline;
+        }
+
+        .footer-note {
+            color: var(--text-secondary);
+            font-size: 12px;
+            margin-top: 10px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .comparison-grid {
+                grid-template-columns: 1fr;
+            }
+            .features-grid {
+                grid-template-columns: 1fr !important;
+            }
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr) !important;
+            }
+            .merit-grid {
+                grid-template-columns: 1fr;
+            }
+            .related-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .stats-grid {
+                grid-template-columns: 1fr !important;
+            }
+            .related-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <span class="service-badge">Amazon Connect</span>
+            <h1>改善された推定待機時間機能</h1>
+            <p style="color: var(--light-gray); font-size: 15px; margin-bottom: 8px;">Improved Estimated Wait Time Metrics</p>
+            <p class="release-date">2026 年 1 月 30 日</p>
+        </header>
+
+        <!-- Overview -->
+        <section class="section">
+            <h2 class="section-title">概要</h2>
+            <div class="overview-card">
+                <p class="overview-text">
+                    Amazon Connect が、キューと待機中のコンタクトの<span class="highlight">推定待機時間メトリクス</span>を改善しました。この新機能により、コンタクトセンターは顧客に対してより正確な待機時間を伝え、<span class="highlight">コールバック</span>などの便利なオプションを提供できるようになり、顧客満足度の向上と効率的なリソース管理が実現されます。
+                </p>
+                <p class="overview-text" style="margin-top: 12px;">
+                    改善された推定待機時間メトリクスは、複数キュー間のルーティング判断を支援し、リソースプランニングの可視性を向上させます。
+                </p>
+            </div>
+
+            <!-- Stats -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">&#128200;</div>
+                    <div class="stat-value">EWT</div>
+                    <div class="stat-label">推定待機時間メトリクス</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">&#128260;</div>
+                    <div class="stat-value">Multi</div>
+                    <div class="stat-label">マルチキュー対応</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">&#9889;</div>
+                    <div class="stat-value">RT</div>
+                    <div class="stat-label">リアルタイム更新</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">&#128176;</div>
+                    <div class="stat-value">$0</div>
+                    <div class="stat-label">追加料金</div>
+                </div>
+            </div>
+
+            <!-- Before/After -->
+            <div class="comparison-grid">
+                <div class="comparison-card before">
+                    <div class="comparison-label">Before - アップデート前の課題</div>
+                    <ul class="comparison-list">
+                        <li>待機時間推定が不正確で、顧客に誤った情報を提供していた</li>
+                        <li>ピーク時間中の待機時間を正確に予測できなかった</li>
+                        <li>キュー間のトレードオフ判断が困難だった</li>
+                        <li>リソース計画の根拠となる待機時間データが不足していた</li>
+                    </ul>
+                </div>
+                <div class="comparison-card after">
+                    <div class="comparison-label">After - アップデート後の改善</div>
+                    <ul class="comparison-list">
+                        <li>より正確な推定待機時間で顧客期待値を適切に設定</li>
+                        <li>コールバックなどの選択肢を適切に提供可能に</li>
+                        <li>複数キュー間での戦略的なルーティング判断が可能</li>
+                        <li>リソースプランニング用の信頼できるメトリクスが利用可能</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Architecture Diagram -->
+        <section class="section">
+            <h2 class="section-title">アーキテクチャ図</h2>
+            <div class="diagram-container">
+                <div class="mermaid">
+flowchart TD
+    subgraph Customer["顧客"]
+        Call(["&#9742;&#65039; 顧客通話"])
+    end
+
+    subgraph Analysis["待機時間分析"]
+        direction LR
+        EWT["&#128202; 推定待機時間&lt;br/&gt;計算エンジン"]
+        METRICS["&#128200; キューメトリクス"]
+        EWT ~~~ METRICS
+    end
+
+    subgraph Routing["ルーティング判断"]
+        CHECK{"待機時間&lt;br/&gt;比較"}
+        CALLBACK["&#128222; Callback&lt;br/&gt;オプション提供"]
+        TRANSFER["&#8618;&#65039; 別キューへ&lt;br/&gt;転送"]
+    end
+
+    subgraph Outcome["結果"]
+        SATISFIED["&#128522; 顧客満足度向上"]
+        EFFICIENCY["&#9889; 効率改善"]
+    end
+
+    Call -->|キュー参加| Analysis
+    METRICS -->|分析| CHECK
+    CHECK -->|長い待ち| CALLBACK
+    CHECK -->|短いキューあり| TRANSFER
+    CALLBACK --> SATISFIED
+    TRANSFER --> SATISFIED
+    TRANSFER --> EFFICIENCY
+                </div>
+            </div>
+            <p style="font-size: 14px; color: var(--text-secondary); margin-top: 12px; text-align: center;">改善された推定待機時間メトリクスに基づいて、ルーティング判断がインテリジェントに実行されます。</p>
+        </section>
+
+        <!-- Key Features -->
+        <section class="section">
+            <h2 class="section-title">主要機能</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">&#128202;</div>
+                    <div class="feature-title">改善された推定待機時間メトリクス</div>
+                    <div class="feature-description">より正確な計算アルゴリズムを採用。キュー深さ、エージェント効率を考慮した推定により、顧客に信頼できる待機時間情報を提供します。</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#128260;</div>
+                    <div class="feature-title">マルチキュー対応ルーティング</div>
+                    <div class="feature-description">複数キュー間で推定待機時間を比較し、最適なキューへの転送を自動実行。15 分待ちのキューから 2 分待ちのキューへ戦略的に転送が可能です。</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#9881;&#65039;</div>
+                    <div class="feature-title">ルーティング基準との統合</div>
+                    <div class="feature-description">ルーティング基準でカスタム待機時間ロジックを設定可能。エージェント能力設定との組み合わせで、最適なエージェントのいるキューへ転送します。</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#128188;</div>
+                    <div class="feature-title">ビジネスコンディション対応</div>
+                    <div class="feature-description">ピーク時間、オフピーク時の対応に加え、特殊なビジネスシナリオにも柔軟に対応。季節変動やイベント時の需要にも適応します。</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Technical Specification -->
+        <section class="section">
+            <h2 class="section-title">技術仕様</h2>
+            <div class="overview-card">
+                <table class="spec-table">
+                    <thead>
+                        <tr>
+                            <th>項目</th>
+                            <th>詳細</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>メトリクスタイプ</td>
+                            <td>推定待機時間 (Estimated Wait Time - EWT)</td>
+                        </tr>
+                        <tr>
+                            <td>計算対象</td>
+                            <td>キュー深さ、エージェント効率、スキルレベル</td>
+                        </tr>
+                        <tr>
+                            <td>利用リージョン</td>
+                            <td>Amazon Connect 提供全リージョン</td>
+                        </tr>
+                        <tr>
+                            <td>ルーティング統合</td>
+                            <td>ルーティング基準、エージェント能力設定に統合</td>
+                        </tr>
+                        <tr>
+                            <td>データ精度</td>
+                            <td>リアルタイム更新</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Configuration -->
+        <section class="section">
+            <h2 class="section-title">設定方法</h2>
+
+            <div class="overview-card" style="margin-bottom: 16px;">
+                <h3 style="font-size: 15px; color: var(--aws-orange); margin-bottom: 10px;">前提条件</h3>
+                <ul class="merit-list">
+                    <li>Amazon Connect インスタンスが構築済み</li>
+                    <li>キュー、ルーティングプロファイルが設定済み</li>
+                    <li>エージェント能力設定が完成</li>
+                </ul>
+            </div>
+
+            <div class="flow-diagram">
+                <div class="flow-step">&#9881;&#65039; ルーティング基準で<br>待機時間ルール設定</div>
+                <span class="flow-arrow">&rarr;</span>
+                <div class="flow-step">&#128101; エージェント能力<br>との組み合わせ</div>
+                <span class="flow-arrow">&rarr;</span>
+                <div class="flow-step">&#128222; コールバック<br>オプション設定</div>
+            </div>
+
+            <h3 style="font-size: 16px; color: var(--text-primary); margin-top: 24px; margin-bottom: 12px;">ステップ 1: ルーティング基準での待機時間ルール設定</h3>
+            <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 8px;">AWS Management Console から Amazon Connect の「Routing」セクションでルーティング基準を設定します。</p>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">JSON</span>
+                    <span class="code-title">待機時間に基づくルーティングルール</span>
+                </div>
+                <pre><code class="language-json">{
+    "Name": "Intelligent Routing Based on Wait Time",
+    "Condition": {
+        "Type": "CompareEstimatedWaitTime",
+        "Queue1": "Billing Support",
+        "Queue2": "Cross-trained Team",
+        "Threshold": 15,
+        "Unit": "Minutes",
+        "Action": "RouteToBestQueue"
+    }
+}</code></pre>
+            </div>
+
+            <h3 style="font-size: 16px; color: var(--text-primary); margin-top: 24px; margin-bottom: 12px;">ステップ 2: エージェント能力との組み合わせ</h3>
+            <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 8px;">ルーティング基準でエージェント能力設定と組み合わせて、最適なエージェントのいるキューへ転送します。</p>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">JSON</span>
+                    <span class="code-title">マルチ条件ルーティング設定</span>
+                </div>
+                <pre><code class="language-json">{
+    "RoutingCriteria": [
+        {
+            "Priority": 1,
+            "Criteria": {
+                "WaitTime": "LessThan2Minutes",
+                "Skills": ["BillingSupport", "MultiLingual"]
+            },
+            "Destination": "Queue1"
+        },
+        {
+            "Priority": 2,
+            "Criteria": {
+                "WaitTime": "Any",
+                "Skills": ["Callback"]
+            },
+            "Destination": "CallbackOption"
+        }
+    ]
+}</code></pre>
+            </div>
+
+            <h3 style="font-size: 16px; color: var(--text-primary); margin-top: 24px; margin-bottom: 12px;">ステップ 3: コールバックオプションの設定</h3>
+            <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 8px;">待機時間が長い場合にコールバックオプションを提供する設定を行います。</p>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">JSON</span>
+                    <span class="code-title">コールバックポリシー設定</span>
+                </div>
+                <pre><code class="language-json">{
+    "CallbackPolicy": {
+        "EnableCallbackWhenWaitTimeExceeds": 10,
+        "Unit": "Minutes",
+        "Message": "お待たせしてしまい申し訳ございません。後ほどコールバック予定時間にお電話いたします。"
+    }
+}</code></pre>
+            </div>
+        </section>
+
+        <!-- Benefits -->
+        <section class="section">
+            <h2 class="section-title">メリット</h2>
+            <div class="merit-grid">
+                <div class="merit-section">
+                    <h3>&#128188; ビジネス面</h3>
+                    <ul class="merit-list">
+                        <li><strong style="color: var(--text-primary);">顧客満足度向上:</strong> 正確な待機時間情報で顧客期待値を管理</li>
+                        <li><strong style="color: var(--text-primary);">効率化:</strong> リソースを最適に配分し、待機時間を短縮</li>
+                        <li><strong style="color: var(--text-primary);">コスト削減:</strong> 不必要な人員配置が削減</li>
+                    </ul>
+                </div>
+                <div class="merit-section">
+                    <h3>&#128736;&#65039; 技術面</h3>
+                    <ul class="merit-list">
+                        <li><strong style="color: var(--text-primary);">予測精度向上:</strong> 機械学習アルゴリズムによる正確な推定</li>
+                        <li><strong style="color: var(--text-primary);">スケーラビリティ:</strong> 複数キュー、複数スキルへの対応</li>
+                        <li><strong style="color: var(--text-primary);">リアルタイム対応:</strong> ダイナミックなルーティング判断</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Limitations -->
+        <section class="section">
+            <h2 class="section-title">制約事項・注意点</h2>
+            <div class="constraint-card">
+                <div class="constraint-title">制限事項</div>
+                <ul class="constraint-list">
+                    <li>予測精度は過去データに依存するため、新規キュー開設時は精度が低い可能性がある</li>
+                    <li>極端な需要変動シナリオでは推定が外れる場合がある</li>
+                    <li>ルーティング設定の複雑さが増す可能性がある</li>
+                </ul>
+            </div>
+            <div class="constraint-card">
+                <div class="constraint-title">考慮すべき点</div>
+                <ul class="constraint-list">
+                    <li>待機時間メトリクスの定期的な監視と調整が必要</li>
+                    <li>エージェント配置とスキル設定を継続的に最適化</li>
+                    <li>顧客フィードバックに基づいた改善が重要</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Use Cases -->
+        <section class="section">
+            <h2 class="section-title">ユースケース</h2>
+
+            <div class="usecase-card">
+                <div class="usecase-header">
+                    <span style="font-size: 24px;">&#9200;</span>
+                    <div class="usecase-title">ユースケース 1: ピーク時間帯での効率的ルーティング</div>
+                </div>
+                <div class="usecase-scenario">
+                    <strong style="color: var(--text-primary);">シナリオ:</strong> 午前中のピーク時間に請求部門は 15 分待ち、クロストレーニング済みチームは 2 分待ちの場合、請求内容の問い合わせを適切にルーティング
+                </div>
+                <div class="usecase-impl">
+                    <strong style="color: var(--aws-teal);">実装例:</strong> 待機時間ベースのルーティング基準を設定し、2 分以下の待ちでエージェント確保可能なら転送
+                </div>
+                <div class="usecase-effect">
+                    同じスキルでカバー可能なコールは 15 分待ちから 2 分待ちへと改善
+                </div>
+            </div>
+
+            <div class="usecase-card">
+                <div class="usecase-header">
+                    <span style="font-size: 24px;">&#128222;</span>
+                    <div class="usecase-title">ユースケース 2: コールバック利用による顧客満足度向上</div>
+                </div>
+                <div class="usecase-scenario">
+                    <strong style="color: var(--text-primary);">シナリオ:</strong> 待機時間が 10 分を超えるピーク時間帯
+                </div>
+                <div class="usecase-impl">
+                    <strong style="color: var(--aws-teal);">実装例:</strong> 顧客に対して待機時間情報を提供し、コールバックオプションを自動提供
+                </div>
+                <div class="usecase-effect">
+                    顧客が電話を切らずに待つ必要がなくなり、満足度が向上
+                </div>
+            </div>
+
+            <div class="usecase-card">
+                <div class="usecase-header">
+                    <span style="font-size: 24px;">&#128200;</span>
+                    <div class="usecase-title">ユースケース 3: リソースプランニング</div>
+                </div>
+                <div class="usecase-scenario">
+                    <strong style="color: var(--text-primary);">シナリオ:</strong> 今後のピークシーズンに向けて人員配置計画を立案
+                </div>
+                <div class="usecase-impl">
+                    <strong style="color: var(--aws-teal);">実装例:</strong> 履歴的な待機時間メトリクス、キュー深さデータを分析してシフト計画を策定
+                </div>
+                <div class="usecase-effect">
+                    データドリブンなリソース計画が可能
+                </div>
+            </div>
+        </section>
+
+        <!-- Pricing -->
+        <section class="section">
+            <h2 class="section-title">料金</h2>
+            <div class="pricing-card">
+                <div class="pricing-highlight">追加料金なし</div>
+                <div class="pricing-detail">改善された推定待機時間機能は追加料金なしで利用可能です。Amazon Connect の標準料金のみで利用できます。</div>
+            </div>
+        </section>
+
+        <!-- Region -->
+        <section class="section">
+            <h2 class="section-title">利用可能リージョン</h2>
+            <div class="region-card">
+                <div style="font-size: 28px; margin-bottom: 8px;">&#127758;</div>
+                <div class="region-highlight">Amazon Connect が提供されているすべての AWS リージョンで利用可能</div>
+                <div class="region-note">追加のリージョン展開の待機は不要です。</div>
+            </div>
+        </section>
+
+        <!-- Related Services -->
+        <section class="section">
+            <h2 class="section-title">関連サービス・機能</h2>
+            <div class="related-grid">
+                <div class="related-card">
+                    <div style="font-size: 24px; margin-bottom: 8px;">&#128269;</div>
+                    <div class="related-name">Amazon Connect Contact Lens</div>
+                    <div class="related-desc">通話品質分析と顧客満足度計測</div>
+                </div>
+                <div class="related-card">
+                    <div style="font-size: 24px; margin-bottom: 8px;">&#129504;</div>
+                    <div class="related-name">Amazon Connect Wisdom</div>
+                    <div class="related-desc">AI エージェント支援</div>
+                </div>
+                <div class="related-card">
+                    <div style="font-size: 24px; margin-bottom: 8px;">&#128200;</div>
+                    <div class="related-name">Amazon CloudWatch</div>
+                    <div class="related-desc">メトリクス監視とアラート</div>
+                </div>
+                <div class="related-card">
+                    <div style="font-size: 24px; margin-bottom: 8px;">&#9889;</div>
+                    <div class="related-name">AWS Lambda</div>
+                    <div class="related-desc">カスタムルーティングロジック統合</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer>
+            <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 12px;">参考リンク</p>
+            <ul class="source-links">
+                <li><a href="https://aws.amazon.com/about-aws/whats-new/2026/01/amazon-connect-launches-improved-wait-time/" class="source-link" target="_blank">公式発表 - What's New</a></li>
+                <li><a href="https://docs.aws.amazon.com/connect/latest/adminguide/set-routing-criteria.html" class="source-link" target="_blank">Amazon Connect Administrator Guide - ルーティング基準設定</a></li>
+                <li><a href="https://aws.amazon.com/connect/" class="source-link" target="_blank">Amazon Connect ウェブサイト</a></li>
+                <li><a href="https://aws.amazon.com/about-aws/global-infrastructure/regional-product-services/" class="source-link" target="_blank">AWS リージョン別サービス</a></li>
+            </ul>
+            <p class="footer-note">Amazon Connect - 改善された推定待機時間機能 | 2026 年 1 月 30 日</p>
+        </footer>
+    </div>
+
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'base',
+            themeVariables: {
+                primaryColor: '#FF9900',
+                primaryTextColor: '#232F3E',
+                primaryBorderColor: '#FF9900',
+                lineColor: '#FF9900',
+                secondaryColor: '#F5F5F5',
+                tertiaryColor: '#FAFAFA',
+                background: '#FFFFFF',
+                mainBkg: '#FFF3E0',
+                nodeBorder: '#FF9900',
+                clusterBkg: '#FFF8E1',
+                clusterBorder: '#FF9900',
+                edgeLabelBackground: '#FFFFFF',
+                textColor: '#232F3E'
+            },
+            flowchart: {
+                curve: 'basis',
+                padding: 20
+            }
+        });
+        hljs.highlightAll();
+    </script>
+</body>
+</html>

@@ -1,0 +1,1173 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AWS Payment Cryptography - Cartes Bancaires (CB) 認定を取得</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/styles/atom-one-dark.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/highlight.min.js"></script>
+    <style>
+        :root {
+            --squid-ink: #232F3E;
+            --aws-orange: #FF9900;
+            --aws-smile-orange: #FFAD33;
+            --text-primary: #FFFFFF;
+            --text-secondary: #AAAAAA;
+            --light-gray: #D5DBDB;
+            --card-bg: #2D3A4A;
+            --dark-squid: #1A242F;
+            --border-color: #3D4A5A;
+            --aws-teal: #00A1C9;
+            --aws-green: #1D8102;
+            --aws-red: #D13212;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            background-color: var(--squid-ink);
+            color: var(--light-gray);
+            line-height: 1.8;
+            font-size: 16px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+            padding-bottom: 30px;
+            border-bottom: 3px solid var(--aws-orange);
+        }
+
+        .service-badge {
+            display: inline-block;
+            background-color: var(--aws-orange);
+            color: var(--squid-ink);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+        }
+
+        .release-date {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--aws-orange);
+            margin-bottom: 20px;
+            padding-left: 15px;
+            border-left: 4px solid var(--aws-orange);
+        }
+
+        .overview-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .overview-text {
+            font-size: 16px;
+            line-height: 1.9;
+        }
+
+        .highlight {
+            background-color: rgba(255, 153, 0, 0.2);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+            color: var(--aws-orange);
+        }
+
+        /* Stats grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, var(--card-bg) 0%, var(--dark-squid) 100%);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid rgba(255, 153, 0, 0.2);
+        }
+
+        .stat-icon {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--aws-orange);
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        /* Before/After comparison */
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .comparison-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .comparison-card.before {
+            border-top: 4px solid #E74C3C;
+        }
+
+        .comparison-card.after {
+            border-top: 4px solid #2ECC71;
+        }
+
+        .comparison-label {
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        .comparison-card.before .comparison-label {
+            color: #E74C3C;
+        }
+
+        .comparison-card.after .comparison-label {
+            color: #2ECC71;
+        }
+
+        .comparison-list {
+            list-style: none;
+        }
+
+        .comparison-list li {
+            padding: 8px 0;
+            padding-left: 25px;
+            position: relative;
+            font-size: 14px;
+        }
+
+        .comparison-card.before .comparison-list li::before {
+            content: "\2717";
+            position: absolute;
+            left: 0;
+            color: #E74C3C;
+            font-weight: bold;
+        }
+
+        .comparison-card.after .comparison-list li::before {
+            content: "\2713";
+            position: absolute;
+            left: 0;
+            color: #2ECC71;
+            font-weight: bold;
+        }
+
+        /* Mermaid diagram */
+        .diagram-container {
+            background-color: #FFFFFF;
+            border: 2px solid rgba(255, 153, 0, 0.3);
+            border-radius: 12px;
+            padding: 25px;
+            overflow-x: auto;
+        }
+
+        .mermaid {
+            display: flex;
+            justify-content: center;
+        }
+
+        .diagram-caption {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-top: 12px;
+            text-align: center;
+        }
+
+        /* Feature cards */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .feature-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            border-left: 3px solid var(--aws-orange);
+        }
+
+        .feature-icon {
+            font-size: 36px;
+            margin-bottom: 12px;
+        }
+
+        .feature-title {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--aws-orange);
+        }
+
+        .feature-description {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        /* Compliance table */
+        .api-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+        }
+
+        .api-table th {
+            background-color: var(--dark-squid);
+            color: var(--aws-orange);
+            padding: 10px 14px;
+            text-align: left;
+            font-size: 13px;
+            font-weight: 700;
+            border-bottom: 2px solid var(--aws-orange);
+        }
+
+        .api-table td {
+            padding: 10px 14px;
+            font-size: 13px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--light-gray);
+        }
+
+        .api-table tr:hover td {
+            background-color: rgba(255, 153, 0, 0.05);
+        }
+
+        .new-badge {
+            display: inline-block;
+            background-color: #2ECC71;
+            color: #FFFFFF;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 700;
+            margin-left: 6px;
+        }
+
+        /* Spec table */
+        .spec-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+        }
+
+        .spec-table th {
+            background-color: var(--dark-squid);
+            color: var(--aws-orange);
+            padding: 10px 14px;
+            text-align: left;
+            font-size: 13px;
+            font-weight: 700;
+            border-bottom: 2px solid var(--aws-orange);
+            width: 30%;
+        }
+
+        .spec-table td {
+            padding: 10px 14px;
+            font-size: 13px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--light-gray);
+        }
+
+        /* Crypto operations table */
+        .crypto-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+        }
+
+        .crypto-table th {
+            background-color: var(--dark-squid);
+            color: var(--aws-orange);
+            padding: 10px 14px;
+            text-align: left;
+            font-size: 13px;
+            font-weight: 700;
+            border-bottom: 2px solid var(--aws-orange);
+        }
+
+        .crypto-table td {
+            padding: 10px 14px;
+            font-size: 13px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--light-gray);
+        }
+
+        /* Code blocks */
+        .code-block {
+            background: #1a1a2e;
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 16px 0;
+        }
+
+        .code-header {
+            background: #16213e;
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+        }
+
+        .code-lang {
+            color: var(--aws-orange);
+            font-weight: bold;
+        }
+
+        .code-title {
+            color: var(--light-gray);
+        }
+
+        .code-block pre {
+            margin: 0;
+            padding: 0;
+            overflow-x: auto;
+        }
+
+        .code-block code {
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            padding: 16px !important;
+        }
+
+        /* Flow diagram */
+        .flow-diagram {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin: 24px 0;
+        }
+
+        .flow-step {
+            background: var(--dark-squid);
+            border: 2px solid var(--aws-orange);
+            border-radius: 8px;
+            padding: 12px 20px;
+            text-align: center;
+            min-width: 120px;
+            font-size: 14px;
+        }
+
+        .flow-arrow {
+            color: var(--aws-orange);
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        /* Use case cards */
+        .usecase-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 3px solid var(--aws-orange);
+        }
+
+        .usecase-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .usecase-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--aws-orange);
+        }
+
+        .usecase-scenario {
+            font-size: 14px;
+            color: var(--light-gray);
+            margin-bottom: 8px;
+        }
+
+        .usecase-impl {
+            font-size: 14px;
+            color: var(--light-gray);
+            margin-bottom: 12px;
+            padding: 10px;
+            background-color: rgba(0, 161, 201, 0.1);
+            border-radius: 8px;
+        }
+
+        .usecase-impl::before {
+            content: "\2699 ";
+            font-weight: bold;
+            color: var(--aws-teal);
+        }
+
+        .usecase-effect {
+            font-size: 14px;
+            color: #2ECC71;
+            padding: 10px;
+            background-color: rgba(46, 204, 113, 0.1);
+            border-radius: 8px;
+        }
+
+        .usecase-effect::before {
+            content: "\2713 ";
+            font-weight: bold;
+        }
+
+        /* Merit/Demerit */
+        .merit-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 20px;
+        }
+
+        .merit-section {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .merit-section h3 {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: var(--aws-orange);
+        }
+
+        .merit-list {
+            list-style: none;
+        }
+
+        .merit-list li {
+            padding: 6px 0;
+            padding-left: 22px;
+            position: relative;
+            font-size: 14px;
+            color: var(--light-gray);
+        }
+
+        .merit-list li::before {
+            content: "\2713";
+            position: absolute;
+            left: 0;
+            color: #2ECC71;
+            font-weight: bold;
+        }
+
+        /* Constraint/Limitation */
+        .constraint-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 3px solid #E74C3C;
+        }
+
+        .constraint-title {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #E74C3C;
+        }
+
+        .constraint-list {
+            list-style: none;
+        }
+
+        .constraint-list li {
+            padding: 6px 0;
+            padding-left: 22px;
+            position: relative;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .constraint-list li::before {
+            content: "\26A0";
+            position: absolute;
+            left: 0;
+            font-size: 12px;
+        }
+
+        /* Pricing card */
+        .pricing-card {
+            background: linear-gradient(135deg, rgba(29, 129, 2, 0.15) 0%, var(--card-bg) 100%);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid rgba(29, 129, 2, 0.3);
+            text-align: center;
+        }
+
+        .pricing-highlight {
+            font-size: 22px;
+            font-weight: 700;
+            color: #2ECC71;
+            margin-bottom: 8px;
+        }
+
+        .pricing-detail {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        /* Region */
+        .region-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .region-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+        }
+
+        .region-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .region-detail {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        /* Related services */
+        .related-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+        }
+
+        .related-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+        }
+
+        .related-name {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 6px;
+        }
+
+        .related-desc {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        /* Footer */
+        footer {
+            margin-top: 50px;
+            padding-top: 30px;
+            border-top: 1px solid var(--border-color);
+            text-align: center;
+        }
+
+        .source-links {
+            list-style: none;
+            margin-bottom: 16px;
+        }
+
+        .source-links li {
+            margin-bottom: 6px;
+        }
+
+        .source-link {
+            color: var(--aws-teal);
+            text-decoration: none;
+            font-size: 14px;
+            word-break: break-all;
+        }
+
+        .source-link:hover {
+            color: var(--aws-smile-orange);
+            text-decoration: underline;
+        }
+
+        .footer-note {
+            color: var(--text-secondary);
+            font-size: 12px;
+            margin-top: 10px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .comparison-grid,
+            .merit-grid {
+                grid-template-columns: 1fr;
+            }
+            .features-grid {
+                grid-template-columns: 1fr !important;
+            }
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr) !important;
+            }
+            .region-grid {
+                grid-template-columns: 1fr !important;
+            }
+            .related-grid {
+                grid-template-columns: 1fr 1fr !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <span class="service-badge">AWS Payment Cryptography</span>
+            <h1>Cartes Bancaires (CB) 認定を取得</h1>
+            <p style="color: var(--light-gray); font-size: 15px; margin-bottom: 8px;">クラウドベースの決済暗号化サービスとして CB 認定を取得した最初のサービスの 1 つ</p>
+            <p class="release-date">2026 年 2 月 11 日</p>
+        </header>
+
+        <!-- Overview -->
+        <section class="section">
+            <h2 class="section-title">概要</h2>
+            <div class="overview-card">
+                <p class="overview-text">
+                    AWS Payment Cryptography が、フランスの国内カード決済ネットワークである <span class="highlight">Groupement des Cartes Bancaires (CB)</span> の認定を取得しました。<span class="highlight">クラウドベースの決済暗号化サービスとして CB 認定を取得した最初のサービスの 1 つ</span>となります。既存のコンプライアンス認証と組み合わせることで、CB コンプライアンスを維持しながら AWS 上で決済ワークロードを実行できるようになります。
+                </p>
+            </div>
+
+            <!-- Stats -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">&#128272;</div>
+                    <div class="stat-value">8</div>
+                    <div class="stat-label">コンプライアンス認証数</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">&#127467;&#127479;</div>
+                    <div class="stat-value">CB</div>
+                    <div class="stat-label">新規追加認定</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">&#127758;</div>
+                    <div class="stat-value">14</div>
+                    <div class="stat-label">利用可能リージョン</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">&#128176;</div>
+                    <div class="stat-value">$0</div>
+                    <div class="stat-label">CB 認定に伴う追加料金</div>
+                </div>
+            </div>
+
+            <!-- Before/After -->
+            <div class="comparison-grid">
+                <div class="comparison-card before">
+                    <div class="comparison-label">Before - アップデート前の課題</div>
+                    <ul class="comparison-list">
+                        <li>CB ネットワークで決済処理を行う組織は、CB 認定を受けたスタンドアロンの決済 HSM を自社で調達・管理する必要があった</li>
+                        <li>専用 HSM の調達、キーマテリアルの安全な管理、緊急バックアップの維持など運用負担が大きかった</li>
+                        <li>クラウドベースの決済暗号化サービスで CB 認定を取得したものがなく、クラウド移行の障壁となっていた</li>
+                    </ul>
+                </div>
+                <div class="comparison-card after">
+                    <div class="comparison-label">After - アップデート後の改善</div>
+                    <ul class="comparison-list">
+                        <li>AWS Payment Cryptography が CB 認定を取得し、クラウド上で CB コンプライアンスに準拠した決済処理が可能に</li>
+                        <li>スタンドアロンの決済 HSM の調達・管理が不要になり、運用負担を大幅に削減</li>
+                        <li>PCI PIN、PCI P2PE、PCI 3DS、PCI DSS、SOC-2、CSA STAR、ISO27001 に CB 認定が追加され、包括的なコンプライアンスフレームワークを提供</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Architecture Diagram -->
+        <section class="section">
+            <h2 class="section-title">アーキテクチャ図</h2>
+            <div class="diagram-container">
+                <div class="mermaid">
+flowchart TD
+    subgraph Customers["&#128226; 決済事業者"]
+        direction LR
+        Acquirer["&#128179; アクワイアラー"]
+        Facilitator["&#129309; ペイメント&lt;br/&gt;ファシリテーター"]
+        Processor["&#9881;&#65039; プロセッサー"]
+        Issuer["&#127974; イシュイングバンク"]
+        Acquirer ~~~ Facilitator ~~~ Processor ~~~ Issuer
+    end
+
+    subgraph AWS["&#9729;&#65039; AWS Cloud"]
+        subgraph PayCrypt["&#128272; AWS Payment Cryptography"]
+            KeyMgmt["&#128273; キー管理&lt;br/&gt;Control Plane API"]
+            CryptoOps["&#9889; 暗号化操作&lt;br/&gt;Data Plane API"]
+            HSM["&#128737;&#65039; PCI PTS HSM V3&lt;br/&gt;FIPS 140-2 Level 3"]
+        end
+
+        subgraph Compliance["&#128203; コンプライアンス認証"]
+            direction LR
+            PCI["&#128274; PCI PIN / P2PE&lt;br/&gt;PCI 3DS / PCI DSS"]
+            SOC["&#128221; SOC-2 / CSA STAR&lt;br/&gt;ISO27001"]
+            CB["&#127467;&#127479; Cartes Bancaires&lt;br/&gt;CB 認定"]
+            PCI ~~~ SOC ~~~ CB
+        end
+    end
+
+    subgraph Network["&#127760; 決済ネットワーク"]
+        CBNetwork["&#127467;&#127479; Cartes Bancaires&lt;br/&gt;フランス国内ネットワーク"]
+        Other["&#127757; その他の&lt;br/&gt;カードネットワーク"]
+    end
+
+    Customers -->|"決済暗号化リクエスト"| PayCrypt
+    KeyMgmt --> HSM
+    CryptoOps --> HSM
+    PayCrypt -->|"トランザクション処理"| Network
+    PayCrypt -.->|"認証準拠"| Compliance
+
+    classDef cloud fill:none,stroke:#CCCCCC,stroke-width:2px,color:#666666
+    classDef customer fill:#E3F2FD,stroke:#BBDEFB,stroke-width:2px,color:#1565C0
+    classDef paycrypt fill:#FFE0B2,stroke:#FFCC80,stroke-width:2px,color:#5D4037
+    classDef compliance fill:#E9F7EC,stroke:#66BB6A,stroke-width:2px,color:#333333
+    classDef network fill:#F3E5F5,stroke:#7B61FF,stroke-width:2px,color:#333333
+    classDef hsm fill:#FFEBEE,stroke:#F44336,stroke-width:2px,color:#333333
+
+    class AWS cloud
+    class Acquirer,Facilitator,Processor,Issuer customer
+    class KeyMgmt,CryptoOps paycrypt
+    class HSM hsm
+    class PCI,SOC,CB compliance
+    class CBNetwork,Other network
+                </div>
+            </div>
+            <p class="diagram-caption">決済事業者が AWS Payment Cryptography を通じて CB 認定に準拠した決済暗号化処理を実行し、フランスの Cartes Bancaires ネットワークやその他のカードネットワークとトランザクションを処理する構成</p>
+        </section>
+
+        <!-- Key Features -->
+        <section class="section">
+            <h2 class="section-title">主要機能</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">&#127467;&#127479;</div>
+                    <div class="feature-title">Cartes Bancaires (CB) 認定の取得</div>
+                    <div class="feature-description">クラウドベースの決済暗号化サービスとして CB 認定を取得した最初のサービスの 1 つ。フランスの国内カード決済ネットワークのコンプライアンス要件に準拠し、既存認証と組み合わせた包括的なフレームワークを提供。</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#128737;&#65039;</div>
+                    <div class="feature-title">スタンドアロン決済 HSM の代替</div>
+                    <div class="feature-description">専用の決済 HSM を調達・管理する運用負担を排除。エラスティックでスケーラブルなサービスとして同等の暗号化機能を提供。PCI PTS HSM V3 および FIPS 140-2 Level 3 認定のハードウェアを使用。</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#128203;</div>
+                    <div class="feature-title">包括的なコンプライアンス認証</div>
+                    <div class="feature-description">PCI PIN、PCI P2PE、PCI 3DS、PCI DSS、SOC-2、CSA STAR、ISO27001 に加え CB 認定を新規追加。決済処理に必要な全てのコンプライアンス認証を網羅。</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#129309;</div>
+                    <div class="feature-title">共有責任モデル</div>
+                    <div class="feature-description">サービスのコンプライアンス認証をお客様のフレームワークの一部として活用可能。暗号化キー管理とトランザクション処理のセキュリティを AWS が担保し、お客様はアプリケーションロジックに集中可能。</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Technical Specifications -->
+        <section class="section">
+            <h2 class="section-title">技術仕様</h2>
+
+            <h3 style="font-size: 16px; color: var(--text-primary); margin-bottom: 12px;">AWS Payment Cryptography の概要</h3>
+            <table class="spec-table">
+                <tr><th>サービスタイプ</th><td>フルマネージド決済暗号化サービス</td></tr>
+                <tr><th>HSM 認定</th><td>PCI PTS HSM V3、FIPS 140-2 Level 3</td></tr>
+                <tr><th>API</th><td>Control Plane API (キー管理)、Data Plane API (暗号化操作)</td></tr>
+                <tr><th>対応キータイプ</th><td>TDES、AES、RSA (対称鍵・非対称鍵)</td></tr>
+                <tr><th>キーインポート/エクスポート</th><td>TR-31 (対称鍵)、TR-34 (非対称鍵による対称鍵配布)</td></tr>
+                <tr><th>スケーリング</th><td>フルエラスティック (自動スケーリング)</td></tr>
+            </table>
+
+            <h3 style="font-size: 16px; color: var(--text-primary); margin-top: 24px; margin-bottom: 12px;">コンプライアンス認証一覧</h3>
+            <table class="api-table">
+                <thead>
+                    <tr>
+                        <th>認証</th>
+                        <th>概要</th>
+                        <th>対象領域</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>PCI PIN</td><td>PIN 処理セキュリティ</td><td>PIN の暗号化・復号・変換</td></tr>
+                    <tr><td>PCI P2PE</td><td>ポイントツーポイント暗号化</td><td>決済端末からの暗号化データ保護</td></tr>
+                    <tr><td>PCI 3DS</td><td>3D セキュア認証</td><td>オンライン決済の認証</td></tr>
+                    <tr><td>PCI DSS</td><td>データセキュリティ基準</td><td>カード会員データの保護</td></tr>
+                    <tr><td>SOC-2</td><td>サービス統制基準</td><td>セキュリティ、可用性、処理の整合性</td></tr>
+                    <tr><td>CSA STAR</td><td>クラウドセキュリティ認証</td><td>クラウドサービスのセキュリティ</td></tr>
+                    <tr><td>ISO27001</td><td>情報セキュリティマネジメント</td><td>情報セキュリティ管理体制</td></tr>
+                    <tr><td>CB <span class="new-badge">NEW</span></td><td>Cartes Bancaires 認定</td><td>フランス国内カード決済ネットワーク</td></tr>
+                </tbody>
+            </table>
+
+            <h3 style="font-size: 16px; color: var(--text-primary); margin-top: 24px; margin-bottom: 12px;">主要な暗号化操作</h3>
+            <table class="crypto-table">
+                <thead>
+                    <tr>
+                        <th>操作</th>
+                        <th>説明</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>暗号化/復号</td><td>対称鍵・非対称鍵によるデータの暗号化・復号</td></tr>
+                    <tr><td>PIN 変換</td><td>クリアテキストを公開せずに暗号化キー間で PIN を安全に変換</td></tr>
+                    <tr><td>CVV/CVV2 生成・検証</td><td>カード検証値の生成と検証</td></tr>
+                    <tr><td>ARQC 検証</td><td>EMV トランザクションの暗号文検証</td></tr>
+                    <tr><td>MAC 署名</td><td>メッセージ認証コードの生成と検証</td></tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- Configuration -->
+        <section class="section">
+            <h2 class="section-title">設定方法</h2>
+
+            <div class="overview-card" style="margin-bottom: 16px;">
+                <h3 style="font-size: 15px; color: var(--aws-orange); margin-bottom: 10px;">前提条件</h3>
+                <ul class="merit-list">
+                    <li>AWS アカウントへのアクセス権限</li>
+                    <li>AWS Payment Cryptography へのアクセス権限</li>
+                    <li>最新の AWS CLI/SDK のインストール</li>
+                    <li>適切な IAM ポリシーの設定</li>
+                </ul>
+            </div>
+
+            <div class="flow-diagram">
+                <div class="flow-step">&#128268; CLI/SDK<br>更新</div>
+                <span class="flow-arrow">&rarr;</span>
+                <div class="flow-step">&#128273; 暗号化キー<br>作成</div>
+                <span class="flow-arrow">&rarr;</span>
+                <div class="flow-step">&#9889; 暗号化操作<br>実行</div>
+                <span class="flow-arrow">&rarr;</span>
+                <div class="flow-step">&#128203; コンプライアンス<br>確認</div>
+            </div>
+
+            <h3 style="font-size: 16px; color: var(--text-primary); margin-top: 24px; margin-bottom: 12px;">ステップ 1: AWS CLI/SDK の更新</h3>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Bash</span>
+                    <span class="code-title">AWS CLI の更新</span>
+                </div>
+                <pre><code class="language-bash"># AWS CLI の更新
+pip install --upgrade awscli
+
+# または AWS CLI v2 の更新
+curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+unzip awscliv2.zip
+sudo ./aws/install --update</code></pre>
+            </div>
+
+            <h3 style="font-size: 16px; color: var(--text-primary); margin-top: 24px; margin-bottom: 12px;">ステップ 2: 暗号化キーの作成</h3>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Bash</span>
+                    <span class="code-title">AES 256 ビットキーの作成例</span>
+                </div>
+                <pre><code class="language-bash"># AES 256 ビットキーの作成例
+aws payment-cryptography create-key \
+  --exportable \
+  --key-attributes '{
+    "KeyAlgorithm": "AES_256",
+    "KeyClass": "SYMMETRIC_KEY",
+    "KeyModesOfUse": {
+      "Encrypt": true,
+      "Decrypt": true
+    },
+    "KeyUsage": "TR31_D0_SYMMETRIC_DATA_ENCRYPTION_KEY"
+  }'</code></pre>
+            </div>
+
+            <h3 style="font-size: 16px; color: var(--text-primary); margin-top: 24px; margin-bottom: 12px;">ステップ 3: 暗号化操作の実行</h3>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Bash</span>
+                    <span class="code-title">PIN の暗号化変換の例</span>
+                </div>
+                <pre><code class="language-bash"># PIN の暗号化変換の例
+aws payment-cryptography-data translate-pin-data \
+  --encrypted-pin-block "ENCRYPTED_PIN_BLOCK" \
+  --incoming-key-identifier "arn:aws:payment-cryptography:eu-west-1:123456789012:key/incoming-key-id" \
+  --outgoing-key-identifier "arn:aws:payment-cryptography:eu-west-1:123456789012:key/outgoing-key-id" \
+  --incoming-translation-attributes '{"IsoFormat0": {"PrimaryAccountNumber": "1234567890123456"}}' \
+  --outgoing-translation-attributes '{"IsoFormat0": {"PrimaryAccountNumber": "1234567890123456"}}'</code></pre>
+            </div>
+            <p style="font-size: 14px; color: var(--text-secondary); margin-top: 8px;">CB ネットワーク向けの決済処理に必要な暗号化操作を、API 経由で安全に実行します。</p>
+        </section>
+
+        <!-- Benefits -->
+        <section class="section">
+            <h2 class="section-title">メリット</h2>
+            <div class="merit-grid">
+                <div class="merit-section">
+                    <h3>&#128188; ビジネス面</h3>
+                    <ul class="merit-list">
+                        <li><strong style="color: var(--text-primary);">CB コンプライアンスの簡素化:</strong> AWS の CB 認定を活用し、フランス市場での決済コンプライアンス対応を効率化</li>
+                        <li><strong style="color: var(--text-primary);">運用コストの削減:</strong> スタンドアロン HSM の調達・管理・保守コストを排除</li>
+                        <li><strong style="color: var(--text-primary);">市場参入の加速:</strong> クラウドベースのサービスで CB ネットワークへの接続を迅速に実現</li>
+                    </ul>
+                </div>
+                <div class="merit-section">
+                    <h3>&#128736;&#65039; 技術面</h3>
+                    <ul class="merit-list">
+                        <li><strong style="color: var(--text-primary);">エラスティックなスケーリング:</strong> ビジネスの成長に合わせて暗号化処理能力が自動的にスケール</li>
+                        <li><strong style="color: var(--text-primary);">高スループット・低レイテンシ:</strong> 決済処理に求められるパフォーマンス要件を満たす</li>
+                        <li><strong style="color: var(--text-primary);">包括的な API:</strong> Control Plane API と Data Plane API でキー管理とトランザクション処理を統合</li>
+                    </ul>
+                </div>
+                <div class="merit-section">
+                    <h3>&#9881;&#65039; 運用面</h3>
+                    <ul class="merit-list">
+                        <li><strong style="color: var(--text-primary);">HSM 運用の排除:</strong> ハードウェアプロビジョニング、キーマテリアル管理、緊急バックアップ維持が不要</li>
+                        <li><strong style="color: var(--text-primary);">共有責任モデル:</strong> セキュリティとコンプライアンスの責任を AWS と共有し運用負荷を軽減</li>
+                        <li><strong style="color: var(--text-primary);">電子的なキー共有:</strong> パートナーとの暗号化キー共有をペーパーレスで安全に実施</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Limitations -->
+        <section class="section">
+            <h2 class="section-title">制約事項・注意点</h2>
+            <div class="constraint-card">
+                <div class="constraint-title">制限事項</div>
+                <ul class="constraint-list">
+                    <li>CB 認定はフランスの Cartes Bancaires ネットワークに特化した認定であり、他の国固有の決済ネットワーク認定は別途確認が必要</li>
+                    <li>サービスの利用可能リージョンは限定されており、すべての AWS リージョンでは利用できない</li>
+                </ul>
+            </div>
+            <div class="constraint-card">
+                <div class="constraint-title">考慮すべき点</div>
+                <ul class="constraint-list">
+                    <li>既存のオンプレミス決済 HSM からの移行には、キーマテリアルの安全な移行計画が必要</li>
+                    <li>CB コンプライアンスの維持には、AWS Payment Cryptography の利用に加えて組織側の運用プロセスも適切に管理する必要がある</li>
+                    <li>決済アプリケーションのアーキテクチャ変更が伴う場合がある</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Use Cases -->
+        <section class="section">
+            <h2 class="section-title">ユースケース</h2>
+
+            <div class="usecase-card">
+                <div class="usecase-header">
+                    <span style="font-size: 24px;">&#127981;&#9729;&#65039;</span>
+                    <div class="usecase-title">ユースケース 1: フランス市場向け決済プロセッサーのクラウド移行</div>
+                </div>
+                <div class="usecase-scenario">
+                    <strong style="color: var(--text-primary);">シナリオ:</strong> フランスの CB ネットワークで決済処理を行うプロセッサーが、オンプレミスの決済 HSM からクラウドへの移行を検討している。
+                </div>
+                <div class="usecase-impl">
+                    <strong>実装:</strong> AWS Payment Cryptography を利用して、CB 認定に準拠した暗号化操作をクラウド上で実行。TR-31/TR-34 を使用して既存のキーマテリアルを安全に移行。
+                </div>
+                <div class="usecase-effect">
+                    スタンドアロン HSM の運用負担を排除し、エラスティックなスケーリングでトランザクション量の変動に対応。CB コンプライアンスを維持しながらクラウドの利点を活用。
+                </div>
+            </div>
+
+            <div class="usecase-card">
+                <div class="usecase-header">
+                    <span style="font-size: 24px;">&#127758;&#128179;</span>
+                    <div class="usecase-title">ユースケース 2: グローバル決済ファシリテーターの CB 対応</div>
+                </div>
+                <div class="usecase-scenario">
+                    <strong style="color: var(--text-primary);">シナリオ:</strong> 複数の国でサービスを展開するペイメントファシリテーターが、フランス市場への参入に際して CB コンプライアンスに対応する必要がある。
+                </div>
+                <div class="usecase-impl">
+                    <strong>実装:</strong> ヨーロッパリージョン (パリ) で AWS Payment Cryptography を利用し、CB 認定を含む包括的なコンプライアンスフレームワークを構築。
+                </div>
+                <div class="usecase-effect">
+                    新たに専用の決済 HSM を調達することなく、既存の AWS インフラストラクチャ上で CB 対応を迅速に実現し、フランス市場への参入を加速。
+                </div>
+            </div>
+
+            <div class="usecase-card">
+                <div class="usecase-header">
+                    <span style="font-size: 24px;">&#127974;&#128179;</span>
+                    <div class="usecase-title">ユースケース 3: イシュイングバンクの EMV カード発行</div>
+                </div>
+                <div class="usecase-scenario">
+                    <strong style="color: var(--text-primary);">シナリオ:</strong> フランスの銀行が CB ネットワーク向けの EMV カード発行処理で、PIN 管理や暗号文検証をクラウドで実行したい。
+                </div>
+                <div class="usecase-impl">
+                    <strong>実装:</strong> AWS Payment Cryptography の EMV PIN 変更、カードホルダー選択可能 PIN、PIN リビール機能を活用し、CB 認定に準拠したカード発行処理を実装。
+                </div>
+                <div class="usecase-effect">
+                    PCI 準拠のチャネルを通じて安全に PIN を管理し、オフライン PIN 検証が一般的なフランス市場の要件に対応。HSM の運用管理を AWS に委任し、銀行はコアビジネスに集中可能。
+                </div>
+            </div>
+        </section>
+
+        <!-- Pricing -->
+        <section class="section">
+            <h2 class="section-title">料金</h2>
+            <div class="pricing-card">
+                <div class="pricing-highlight">CB 認定に伴う追加料金なし</div>
+                <div class="pricing-detail">料金は暗号化キーの管理数と API リクエスト数に基づいて課金されます。詳細は <a href="https://aws.amazon.com/payment-cryptography/pricing/" target="_blank" style="color: var(--aws-teal); text-decoration: none;">AWS Payment Cryptography 料金ページ</a> を参照してください。</div>
+            </div>
+        </section>
+
+        <!-- Region -->
+        <section class="section">
+            <h2 class="section-title">利用可能リージョン</h2>
+            <div class="region-grid">
+                <div class="region-card">
+                    <div style="font-size: 20px; margin-bottom: 4px;">&#127464;&#127462;</div>
+                    <div class="region-name">カナダ</div>
+                    <div class="region-detail">モントリオール</div>
+                </div>
+                <div class="region-card">
+                    <div style="font-size: 20px; margin-bottom: 4px;">&#127482;&#127480;</div>
+                    <div class="region-name">米国東部</div>
+                    <div class="region-detail">オハイオ、バージニア北部</div>
+                </div>
+                <div class="region-card">
+                    <div style="font-size: 20px; margin-bottom: 4px;">&#127482;&#127480;</div>
+                    <div class="region-name">米国西部</div>
+                    <div class="region-detail">オレゴン</div>
+                </div>
+                <div class="region-card">
+                    <div style="font-size: 20px; margin-bottom: 4px;">&#127466;&#127482;</div>
+                    <div class="region-name">ヨーロッパ</div>
+                    <div class="region-detail">アイルランド、フランクフルト、ロンドン、パリ</div>
+                </div>
+                <div class="region-card">
+                    <div style="font-size: 20px; margin-bottom: 4px;">&#127487;&#127462;</div>
+                    <div class="region-name">アフリカ</div>
+                    <div class="region-detail">ケープタウン</div>
+                </div>
+                <div class="region-card">
+                    <div style="font-size: 20px; margin-bottom: 4px;">&#127470;&#127475;</div>
+                    <div class="region-name">アジアパシフィック</div>
+                    <div class="region-detail">シンガポール、東京、大阪、ムンバイ、ハイデラバード、シドニー</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Related Services -->
+        <section class="section">
+            <h2 class="section-title">関連サービス・機能</h2>
+            <div class="related-grid">
+                <div class="related-card">
+                    <div style="font-size: 24px; margin-bottom: 8px;">&#128273;</div>
+                    <div class="related-name">AWS KMS</div>
+                    <div class="related-desc">汎用暗号化キー管理</div>
+                </div>
+                <div class="related-card">
+                    <div style="font-size: 24px; margin-bottom: 8px;">&#128737;&#65039;</div>
+                    <div class="related-name">AWS CloudHSM</div>
+                    <div class="related-desc">専用 HSM クラスター</div>
+                </div>
+                <div class="related-card">
+                    <div style="font-size: 24px; margin-bottom: 8px;">&#128274;</div>
+                    <div class="related-name">AWS Secrets Manager</div>
+                    <div class="related-desc">シークレット管理</div>
+                </div>
+                <div class="related-card">
+                    <div style="font-size: 24px; margin-bottom: 8px;">&#128203;</div>
+                    <div class="related-name">AWS Artifact</div>
+                    <div class="related-desc">コンプライアンスレポートへのアクセス</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer>
+            <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 12px;">参考リンク</p>
+            <ul class="source-links">
+                <li><a href="https://aws.amazon.com/about-aws/whats-new/2026/02/payment-cryptography-cartes-bancaires/" class="source-link" target="_blank">公式発表 - What's New</a></li>
+                <li><a href="https://docs.aws.amazon.com/payment-cryptography/latest/userguide/what-is.html" class="source-link" target="_blank">AWS Payment Cryptography ユーザーガイド</a></li>
+                <li><a href="https://aws.amazon.com/payment-cryptography/" class="source-link" target="_blank">AWS Payment Cryptography 製品ページ</a></li>
+                <li><a href="https://aws.amazon.com/payment-cryptography/pricing/" class="source-link" target="_blank">AWS Payment Cryptography 料金ページ</a></li>
+                <li><a href="https://www.cartes-bancaires.com/" class="source-link" target="_blank">Cartes Bancaires 公式サイト</a></li>
+            </ul>
+            <p class="footer-note">AWS Payment Cryptography - Cartes Bancaires (CB) 認定を取得 | 2026 年 2 月 11 日</p>
+        </footer>
+    </div>
+
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'base',
+            themeVariables: {
+                primaryColor: '#FF9900',
+                primaryTextColor: '#232F3E',
+                primaryBorderColor: '#FF9900',
+                lineColor: '#FF9900',
+                secondaryColor: '#F5F5F5',
+                tertiaryColor: '#FAFAFA',
+                background: '#FFFFFF',
+                mainBkg: '#FFF3E0',
+                nodeBorder: '#FF9900',
+                clusterBkg: '#FFF8E1',
+                clusterBorder: '#FF9900',
+                edgeLabelBackground: '#FFFFFF',
+                textColor: '#232F3E'
+            },
+            flowchart: {
+                curve: 'basis',
+                padding: 20
+            }
+        });
+        hljs.highlightAll();
+    </script>
+</body>
+</html>

@@ -1,0 +1,1282 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AWS Elastic Beanstalk - GitHub Actions 自動デプロイメント</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/styles/atom-one-dark.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/highlight.min.js"></script>
+    <style>
+        :root {
+            --squid-ink: #232F3E;
+            --aws-orange: #FF9900;
+            --aws-smile-orange: #FFAD33;
+            --text-primary: #FFFFFF;
+            --text-secondary: #AAAAAA;
+            --light-gray: #D5DBDB;
+            --card-bg: #2D3A4A;
+            --dark-squid: #1A242F;
+            --border-color: #3D4A5A;
+            --aws-teal: #00A1C9;
+            --aws-green: #1D8102;
+            --aws-red: #D13212;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            background-color: var(--squid-ink);
+            color: var(--light-gray);
+            line-height: 1.8;
+            font-size: 16px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+            padding-bottom: 30px;
+            border-bottom: 3px solid var(--aws-orange);
+        }
+
+        .service-badge {
+            display: inline-block;
+            background-color: var(--aws-orange);
+            color: var(--squid-ink);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+        }
+
+        .release-date {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--aws-orange);
+            margin-bottom: 20px;
+            padding-left: 15px;
+            border-left: 4px solid var(--aws-orange);
+        }
+
+        .overview-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .overview-text {
+            font-size: 16px;
+            line-height: 1.9;
+        }
+
+        .highlight {
+            background-color: rgba(255, 153, 0, 0.2);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+            color: var(--aws-orange);
+        }
+
+        /* Before/After comparison */
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .comparison-grid {
+                grid-template-columns: 1fr;
+            }
+            .features-grid {
+                grid-template-columns: 1fr !important;
+            }
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr) !important;
+            }
+            .platform-grid {
+                grid-template-columns: repeat(2, 1fr) !important;
+            }
+            .related-grid {
+                grid-template-columns: 1fr !important;
+            }
+            .merit-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .comparison-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .comparison-card.before {
+            border-top: 4px solid #E74C3C;
+        }
+
+        .comparison-card.after {
+            border-top: 4px solid #2ECC71;
+        }
+
+        .comparison-label {
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        .comparison-card.before .comparison-label {
+            color: #E74C3C;
+        }
+
+        .comparison-card.after .comparison-label {
+            color: #2ECC71;
+        }
+
+        .comparison-list {
+            list-style: none;
+        }
+
+        .comparison-list li {
+            padding: 8px 0;
+            padding-left: 25px;
+            position: relative;
+            font-size: 14px;
+        }
+
+        .comparison-card.before .comparison-list li::before {
+            content: "\2717";
+            position: absolute;
+            left: 0;
+            color: #E74C3C;
+            font-weight: bold;
+        }
+
+        .comparison-card.after .comparison-list li::before {
+            content: "\2713";
+            position: absolute;
+            left: 0;
+            color: #2ECC71;
+            font-weight: bold;
+        }
+
+        /* Mermaid diagram */
+        .diagram-container {
+            background-color: #FFFFFF;
+            border: 2px solid rgba(255, 153, 0, 0.3);
+            border-radius: 12px;
+            padding: 25px;
+            overflow-x: auto;
+        }
+
+        .mermaid {
+            display: flex;
+            justify-content: center;
+        }
+
+        /* Stats grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, var(--card-bg) 0%, var(--dark-squid) 100%);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid rgba(255, 153, 0, 0.2);
+        }
+
+        .stat-icon {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--aws-orange);
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        /* Feature cards */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .feature-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            border-left: 3px solid var(--aws-orange);
+        }
+
+        .feature-icon {
+            font-size: 36px;
+            margin-bottom: 12px;
+        }
+
+        .feature-title {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--aws-orange);
+        }
+
+        .feature-description {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        /* Platform grid */
+        .platform-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin: 20px 0;
+        }
+
+        .platform-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+            border: 1px solid rgba(255, 153, 0, 0.15);
+            transition: border-color 0.2s;
+        }
+
+        .platform-card:hover {
+            border-color: var(--aws-orange);
+        }
+
+        .platform-icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+
+        .platform-name {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        /* Deploy flow table */
+        .deploy-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+        }
+
+        .deploy-table th {
+            background-color: var(--dark-squid);
+            color: var(--aws-orange);
+            padding: 10px 14px;
+            text-align: left;
+            font-size: 13px;
+            font-weight: 700;
+            border-bottom: 2px solid var(--aws-orange);
+        }
+
+        .deploy-table td {
+            padding: 10px 14px;
+            font-size: 13px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--light-gray);
+        }
+
+        .deploy-table td:first-child {
+            color: var(--aws-orange);
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        /* Config table */
+        .config-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+        }
+
+        .config-table th {
+            background-color: var(--dark-squid);
+            color: var(--aws-orange);
+            padding: 10px 14px;
+            text-align: left;
+            font-size: 13px;
+            font-weight: 700;
+            border-bottom: 2px solid var(--aws-orange);
+        }
+
+        .config-table td {
+            padding: 10px 14px;
+            font-size: 13px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--light-gray);
+        }
+
+        /* Flow diagram */
+        .flow-diagram {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin: 24px 0;
+        }
+
+        .flow-step {
+            background: var(--dark-squid);
+            border: 2px solid var(--aws-orange);
+            border-radius: 8px;
+            padding: 12px 20px;
+            text-align: center;
+            min-width: 120px;
+            font-size: 14px;
+        }
+
+        .flow-arrow {
+            color: var(--aws-orange);
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        /* Use case cards */
+        .usecase-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 3px solid var(--aws-orange);
+        }
+
+        .usecase-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .usecase-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--aws-orange);
+        }
+
+        .usecase-scenario {
+            font-size: 14px;
+            color: var(--light-gray);
+            margin-bottom: 12px;
+        }
+
+        .usecase-effect {
+            font-size: 14px;
+            color: #2ECC71;
+            padding: 10px;
+            background-color: rgba(46, 204, 113, 0.1);
+            border-radius: 8px;
+        }
+
+        .usecase-effect::before {
+            content: "\2713 ";
+            font-weight: bold;
+        }
+
+        /* Code blocks */
+        .code-block {
+            background: #1a1a2e;
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 16px 0;
+        }
+
+        .code-header {
+            background: #16213e;
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+        }
+
+        .code-lang {
+            color: var(--aws-orange);
+            font-weight: bold;
+        }
+
+        .code-title {
+            color: var(--light-gray);
+        }
+
+        .code-block pre {
+            margin: 0;
+            padding: 0;
+            overflow-x: auto;
+        }
+
+        .code-block code {
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            padding: 16px !important;
+        }
+
+        /* Merit/Demerit */
+        .merit-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .merit-section {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .merit-section h3 {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: var(--aws-orange);
+        }
+
+        .merit-list {
+            list-style: none;
+        }
+
+        .merit-list li {
+            padding: 6px 0;
+            padding-left: 22px;
+            position: relative;
+            font-size: 14px;
+            color: var(--light-gray);
+        }
+
+        .merit-list li::before {
+            content: "\2713";
+            position: absolute;
+            left: 0;
+            color: #2ECC71;
+            font-weight: bold;
+        }
+
+        /* Constraint/Limitation */
+        .constraint-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 3px solid #E74C3C;
+        }
+
+        .constraint-title {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #E74C3C;
+        }
+
+        .constraint-list {
+            list-style: none;
+        }
+
+        .constraint-list li {
+            padding: 6px 0;
+            padding-left: 22px;
+            position: relative;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .constraint-list li::before {
+            content: "\26A0";
+            position: absolute;
+            left: 0;
+            font-size: 12px;
+        }
+
+        /* Pricing */
+        .pricing-card {
+            background: linear-gradient(135deg, rgba(29, 129, 2, 0.15) 0%, var(--card-bg) 100%);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid rgba(29, 129, 2, 0.3);
+            margin-bottom: 16px;
+        }
+
+        .pricing-highlight {
+            font-size: 22px;
+            font-weight: 700;
+            color: #2ECC71;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+
+        .pricing-detail {
+            font-size: 14px;
+            color: var(--text-secondary);
+            text-align: center;
+            margin-bottom: 16px;
+        }
+
+        .pricing-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .pricing-table th {
+            background-color: var(--dark-squid);
+            color: var(--aws-orange);
+            padding: 10px 14px;
+            text-align: left;
+            font-size: 13px;
+            font-weight: 700;
+            border-bottom: 2px solid var(--aws-orange);
+        }
+
+        .pricing-table td {
+            padding: 10px 14px;
+            font-size: 13px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--light-gray);
+        }
+
+        /* Region */
+        .region-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .region-highlight {
+            font-size: 16px;
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .region-note {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-top: 8px;
+        }
+
+        /* Related services */
+        .related-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+
+        .related-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+        }
+
+        .related-name {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 6px;
+        }
+
+        .related-desc {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        /* Footer */
+        footer {
+            margin-top: 50px;
+            padding-top: 30px;
+            border-top: 1px solid var(--border-color);
+            text-align: center;
+        }
+
+        .source-links {
+            list-style: none;
+            margin-bottom: 16px;
+        }
+
+        .source-links li {
+            margin-bottom: 6px;
+        }
+
+        .source-link {
+            color: var(--aws-teal);
+            text-decoration: none;
+            font-size: 14px;
+            word-break: break-all;
+        }
+
+        .source-link:hover {
+            color: var(--aws-smile-orange);
+            text-decoration: underline;
+        }
+
+        .footer-note {
+            color: var(--text-secondary);
+            font-size: 12px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <span class="service-badge">AWS Elastic Beanstalk</span>
+            <h1>GitHub Actions による自動デプロイメント</h1>
+            <p style="color: var(--light-gray); font-size: 15px; margin-bottom: 8px;">GitHub リポジトリへのプッシュで Elastic Beanstalk 環境へ自動デプロイ</p>
+            <p class="release-date">2026 年 2 月 11 日</p>
+        </header>
+
+        <!-- Overview -->
+        <section class="section">
+            <h2 class="section-title">概要</h2>
+            <div class="overview-card">
+                <p class="overview-text">
+                    AWS Elastic Beanstalk が <span class="highlight">GitHub Actions</span> をサポートし、GitHub リポジトリへのコードやコンフィグレーション変更のプッシュ時に Web アプリケーションを<span class="highlight">自動デプロイ</span>できるようになりました。GitHub Actions ワークフローで宣言的な設定を使用し、デプロイメントパッケージの作成、S3 へのアップロード、バージョン管理、環境モニタリングなど、デプロイメントライフサイクル全体を包括的に自動化します。
+                </p>
+            </div>
+
+            <!-- Stats -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">&#128230;</div>
+                    <div class="stat-value">1</div>
+                    <div class="stat-label">YAML 設定のみ</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">&#128187;</div>
+                    <div class="stat-value">8</div>
+                    <div class="stat-label">対応プラットフォーム</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">&#128274;</div>
+                    <div class="stat-value">OIDC</div>
+                    <div class="stat-label">セキュア認証</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">&#128176;</div>
+                    <div class="stat-value">$0</div>
+                    <div class="stat-label">Action 追加料金</div>
+                </div>
+            </div>
+
+            <!-- Before/After -->
+            <div class="comparison-grid">
+                <div class="comparison-card before">
+                    <div class="comparison-label">Before - アップデート前の課題</div>
+                    <ul class="comparison-list">
+                        <li>Elastic Beanstalk へのデプロイに手動操作や別途 CI/CD ツールの設定が必要</li>
+                        <li>デプロイメントパッケージの作成、S3 アップロード、バージョン管理を個別に管理</li>
+                        <li>GitHub からの継続的デプロイにカスタムスクリプトや外部プラグインが必要</li>
+                    </ul>
+                </div>
+                <div class="comparison-card after">
+                    <div class="comparison-label">After - アップデート後の改善</div>
+                    <ul class="comparison-list">
+                        <li>GitHub Actions ワークフローファイルに宣言的設定を追加するだけでデプロイ可能</li>
+                        <li>パッケージ作成から環境モニタリングまで一貫して自動化</li>
+                        <li>IAM と OIDC 認証によるセキュアな連携を実現</li>
+                        <li>アプリケーションと環境の自動作成にも対応</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Architecture Diagram -->
+        <section class="section">
+            <h2 class="section-title">アーキテクチャ図</h2>
+            <div class="diagram-container">
+                <div class="mermaid">
+flowchart LR
+    subgraph GitHub["&#128025; GitHub"]
+        Repo["&#128194; リポジトリ"]
+        Actions["&#9881;&#65039; GitHub Actions&#60;br/&#62;ワークフロー"]
+    end
+
+    subgraph AWS["&#9729;&#65039; AWS Cloud"]
+        subgraph Auth["&#128274; 認証"]
+            OIDC["&#128273; IAM OIDC&#60;br/&#62;プロバイダー"]
+            Role["&#128100; IAM ロール"]
+        end
+
+        subgraph Deploy["&#128640; デプロイメント"]
+            S3["&#129717; Amazon S3&#60;br/&#62;デプロイパッケージ"]
+            EB["&#127793; Elastic Beanstalk"]
+        end
+
+        subgraph Infra["&#128421;&#65039; インフラストラクチャ"]
+            EC2["&#128187; Amazon EC2"]
+            ELB["&#9878;&#65039; ロードバランサー"]
+            Monitor["&#128200; ヘルスモニタリング"]
+        end
+    end
+
+    Repo -->|コードプッシュ| Actions
+    Actions -->|OIDC 認証| OIDC
+    OIDC --> Role
+    Role --> S3
+    S3 -->|パッケージ| EB
+    EB --> EC2
+    EB --> ELB
+    EB --> Monitor
+
+    classDef github fill:#E3F2FD,stroke:#BBDEFB,stroke-width:2px,color:#1565C0
+    classDef auth fill:#F3E5F5,stroke:#CE93D8,stroke-width:2px,color:#6A1B9A
+    classDef deploy fill:#FFE0B2,stroke:#FFCC80,stroke-width:2px,color:#5D4037
+    classDef infra fill:#DCEDC8,stroke:#C5E1A5,stroke-width:2px,color:#33691E
+    classDef container fill:none,stroke:#CCCCCC,stroke-width:2px,color:#666666
+
+    class Repo,Actions github
+    class OIDC,Role auth
+    class S3,EB deploy
+    class EC2,ELB,Monitor infra
+    class GitHub,AWS,Auth,Deploy,Infra container
+                </div>
+            </div>
+            <div class="overview-card" style="margin-top: 16px;">
+                <p style="font-size: 14px; color: var(--text-secondary);">GitHub リポジトリへのコードプッシュをトリガーに、GitHub Actions が OIDC 認証で AWS に接続し、デプロイメントパッケージを S3 にアップロードした後、Elastic Beanstalk 環境にデプロイします。</p>
+            </div>
+        </section>
+
+        <!-- Key Features -->
+        <section class="section">
+            <h2 class="section-title">主要機能</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">&#128220;</div>
+                    <div class="feature-title">宣言的<br>デプロイメント設定</div>
+                    <div class="feature-description">GitHub Actions ワークフローファイル YAML で設定を定義。aws-elasticbeanstalk-deploy アクションを追加するだけで利用可能。</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#128260;</div>
+                    <div class="feature-title">デプロイメント<br>ライフサイクル自動化</div>
+                    <div class="feature-description">パッケージ作成、S3 アップロード、バージョン管理、環境ヘルスモニタリングまで一貫して自動化。</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#9889;</div>
+                    <div class="feature-title">アプリケーション・<br>環境の自動作成</div>
+                    <div class="feature-description">指定されたアプリケーションや環境が存在しない場合は自動で作成。初回デプロイの手間を大幅に削減。</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#128230;</div>
+                    <div class="feature-title">デプロイメント<br>パッケージ管理</div>
+                    <div class="feature-description">除外ファイルの設定が可能。不要なファイルをパッケージから除外し、S3 バケットを自動管理。</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#128274;</div>
+                    <div class="feature-title">IAM と<br>OIDC 認証</div>
+                    <div class="feature-description">OpenID Connect による認証をサポート。長期的なアクセスキーの管理が不要で、セキュアな接続を実現。</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#128170;</div>
+                    <div class="feature-title">信頼性の高い<br>デプロイ</div>
+                    <div class="feature-description">インテリジェントなリトライロジック、デプロイメントの検証機能、環境ヘルスモニタリングとの統合。</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Technical Spec -->
+        <section class="section">
+            <h2 class="section-title">技術仕様</h2>
+
+            <h3 style="font-size: 16px; color: var(--text-primary); margin-bottom: 12px;">アクション設定パラメータ</h3>
+            <table class="config-table">
+                <thead>
+                    <tr>
+                        <th>パラメータ</th>
+                        <th>説明</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>アクション名</td>
+                        <td><code style="color: var(--aws-orange);">aws-elasticbeanstalk-deploy</code></td>
+                    </tr>
+                    <tr>
+                        <td>アプリケーション名</td>
+                        <td>デプロイ先の Elastic Beanstalk アプリケーション名</td>
+                    </tr>
+                    <tr>
+                        <td>環境名</td>
+                        <td>デプロイ先の環境名</td>
+                    </tr>
+                    <tr>
+                        <td>リージョン</td>
+                        <td>デプロイ先の AWS リージョン</td>
+                    </tr>
+                    <tr>
+                        <td>プラットフォームバージョン</td>
+                        <td>使用する Elastic Beanstalk プラットフォームバージョン</td>
+                    </tr>
+                    <tr>
+                        <td>環境設定</td>
+                        <td>環境変数やインスタンス設定</td>
+                    </tr>
+                    <tr>
+                        <td>除外パターン</td>
+                        <td>デプロイパッケージから除外するファイルパターン</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3 style="font-size: 16px; color: var(--text-primary); margin-top: 24px; margin-bottom: 12px;">デプロイメントフロー</h3>
+            <table class="deploy-table">
+                <thead>
+                    <tr>
+                        <th>ステップ</th>
+                        <th>説明</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>1. トリガー</td>
+                        <td>GitHub リポジトリへのコード/設定プッシュ</td>
+                    </tr>
+                    <tr>
+                        <td>2. 認証</td>
+                        <td>OIDC を使用した IAM ロールの引き受け</td>
+                    </tr>
+                    <tr>
+                        <td>3. パッケージ作成</td>
+                        <td>除外設定に基づくデプロイメントパッケージの作成</td>
+                    </tr>
+                    <tr>
+                        <td>4. S3 アップロード</td>
+                        <td>パッケージを S3 バケットにアップロード</td>
+                    </tr>
+                    <tr>
+                        <td>5. バージョン作成</td>
+                        <td>Elastic Beanstalk アプリケーションバージョンの作成</td>
+                    </tr>
+                    <tr>
+                        <td>6. デプロイ</td>
+                        <td>環境へのデプロイメント実行</td>
+                    </tr>
+                    <tr>
+                        <td>7. 検証</td>
+                        <td>ヘルスモニタリングによるデプロイメント検証</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- Supported Platforms -->
+        <section class="section">
+            <h2 class="section-title">対応プラットフォーム</h2>
+            <div class="platform-grid">
+                <div class="platform-card">
+                    <div class="platform-icon">&#128172;</div>
+                    <div class="platform-name">Go</div>
+                </div>
+                <div class="platform-card">
+                    <div class="platform-icon">&#9749;</div>
+                    <div class="platform-name">Java</div>
+                </div>
+                <div class="platform-card">
+                    <div class="platform-icon">&#128309;</div>
+                    <div class="platform-name">.NET</div>
+                </div>
+                <div class="platform-card">
+                    <div class="platform-icon">&#128154;</div>
+                    <div class="platform-name">Node.js</div>
+                </div>
+                <div class="platform-card">
+                    <div class="platform-icon">&#128036;</div>
+                    <div class="platform-name">PHP</div>
+                </div>
+                <div class="platform-card">
+                    <div class="platform-icon">&#128013;</div>
+                    <div class="platform-name">Python</div>
+                </div>
+                <div class="platform-card">
+                    <div class="platform-icon">&#128142;</div>
+                    <div class="platform-name">Ruby</div>
+                </div>
+                <div class="platform-card">
+                    <div class="platform-icon">&#128051;</div>
+                    <div class="platform-name">Docker</div>
+                </div>
+            </div>
+            <p style="font-size: 13px; color: var(--text-secondary); text-align: center;">Elastic Beanstalk がサポートするすべてのプラットフォームで利用可能です。</p>
+        </section>
+
+        <!-- Setup Guide -->
+        <section class="section">
+            <h2 class="section-title">設定方法</h2>
+
+            <div class="overview-card" style="margin-bottom: 16px;">
+                <h3 style="font-size: 15px; color: var(--aws-orange); margin-bottom: 10px;">前提条件</h3>
+                <ul class="merit-list">
+                    <li>GitHub リポジトリ</li>
+                    <li>AWS アカウントと適切な IAM 権限</li>
+                    <li>IAM OIDC プロバイダーの設定 (GitHub Actions 用)</li>
+                    <li>Elastic Beanstalk へのデプロイ権限を持つ IAM ロール</li>
+                </ul>
+            </div>
+
+            <div class="flow-diagram">
+                <div class="flow-step">&#128273; OIDC<br>プロバイダー設定</div>
+                <span class="flow-arrow">&rarr;</span>
+                <div class="flow-step">&#128100; IAM<br>ロール作成</div>
+                <span class="flow-arrow">&rarr;</span>
+                <div class="flow-step">&#128221; ワークフロー<br>ファイル作成</div>
+                <span class="flow-arrow">&rarr;</span>
+                <div class="flow-step">&#128640; コードプッシュ<br>で自動デプロイ</div>
+            </div>
+
+            <h3 style="font-size: 16px; color: var(--text-primary); margin-top: 24px; margin-bottom: 12px;">ステップ 1: IAM OIDC プロバイダーの設定</h3>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Bash</span>
+                    <span class="code-title">OIDC プロバイダーの作成</span>
+                </div>
+                <pre><code class="language-bash">aws iam create-open-id-connect-provider \
+    --url https://token.actions.githubusercontent.com \
+    --client-id-list sts.amazonaws.com \
+    --thumbprint-list 6938fd4d98bab03faadb97b34396831e3780aea1</code></pre>
+            </div>
+
+            <h3 style="font-size: 16px; color: var(--text-primary); margin-top: 24px; margin-bottom: 12px;">ステップ 2: IAM ロールの信頼ポリシー</h3>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">JSON</span>
+                    <span class="code-title">IAM ロール信頼ポリシー</span>
+                </div>
+                <pre><code class="language-json">{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "Federated": "arn:aws:iam::ACCOUNT_ID:oidc-provider/token.actions.githubusercontent.com"
+      },
+      "Action": "sts:AssumeRoleWithWebIdentity",
+      "Condition": {
+        "StringEquals": {
+          "token.actions.githubusercontent.com:aud": "sts.amazonaws.com"
+        },
+        "StringLike": {
+          "token.actions.githubusercontent.com:sub": "repo:OWNER/REPO:*"
+        }
+      }
+    }
+  ]
+}</code></pre>
+            </div>
+
+            <h3 style="font-size: 16px; color: var(--text-primary); margin-top: 24px; margin-bottom: 12px;">ステップ 3: GitHub Actions ワークフロー</h3>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">YAML</span>
+                    <span class="code-title">.github/workflows/deploy.yml</span>
+                </div>
+                <pre><code class="language-yaml">name: Deploy to Elastic Beanstalk
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::ACCOUNT_ID:role/github-actions-eb-deploy
+          aws-region: ap-northeast-1
+
+      - name: Deploy to Elastic Beanstalk
+        uses: aws-actions/aws-elasticbeanstalk-deploy@v1
+        with:
+          application-name: my-application
+          environment-name: my-app-env
+          region: ap-northeast-1</code></pre>
+            </div>
+
+            <p style="font-size: 14px; color: var(--text-secondary); margin-top: 12px;">コードを GitHub リポジトリにプッシュすると、ワークフローが自動的にトリガーされます。GitHub Actions のログと Elastic Beanstalk コンソールでデプロイメントの進捗を確認できます。</p>
+        </section>
+
+        <!-- Benefits -->
+        <section class="section">
+            <h2 class="section-title">メリット</h2>
+            <div class="merit-grid">
+                <div class="merit-section">
+                    <h3>&#128188; ビジネス面</h3>
+                    <ul class="merit-list">
+                        <li><strong style="color: var(--text-primary);">開発サイクルの短縮:</strong> コードプッシュから本番デプロイまで自動化</li>
+                        <li><strong style="color: var(--text-primary);">運用コストの削減:</strong> 手動デプロイ作業の排除によるヒューマンエラーの防止</li>
+                        <li><strong style="color: var(--text-primary);">迅速なフィードバック:</strong> デプロイメント検証とヘルスモニタリングによる素早い問題検出</li>
+                    </ul>
+                </div>
+                <div class="merit-section">
+                    <h3>&#128736;&#65039; 技術面</h3>
+                    <ul class="merit-list">
+                        <li><strong style="color: var(--text-primary);">セキュアな認証:</strong> OIDC による短期トークンベースの認証で長期的なアクセスキー管理が不要</li>
+                        <li><strong style="color: var(--text-primary);">宣言的設定:</strong> YAML でデプロイメントの全設定をコードとして管理</li>
+                        <li><strong style="color: var(--text-primary);">インテリジェントリトライ:</strong> 一時的な障害に対する自動リトライで信頼性を向上</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="merit-section" style="margin-top: 20px;">
+                <h3>&#128295; 運用面</h3>
+                <ul class="merit-list">
+                    <li><strong style="color: var(--text-primary);">完全自動化:</strong> デプロイメントパッケージ作成から環境モニタリングまで一貫した自動化</li>
+                    <li><strong style="color: var(--text-primary);">バージョン管理:</strong> デプロイメントとコードの変更履歴が GitHub で一元管理</li>
+                    <li><strong style="color: var(--text-primary);">環境の自動作成:</strong> アプリケーションや環境が存在しない場合の自動作成による初期セットアップの簡素化</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Limitations -->
+        <section class="section">
+            <h2 class="section-title">制約事項・注意点</h2>
+            <div class="constraint-card">
+                <div class="constraint-title">制限事項</div>
+                <ul class="constraint-list">
+                    <li>GitHub リポジトリでの使用に限定 -- GitLab や Bitbucket では利用不可</li>
+                    <li>GitHub Actions の実行時間制限やランナーの制約に依存</li>
+                    <li>OIDC 認証の設定には IAM の理解が必要</li>
+                </ul>
+            </div>
+            <div class="constraint-card">
+                <div class="constraint-title">考慮すべき点</div>
+                <ul class="constraint-list">
+                    <li>GitHub Actions の無料枠を超えた場合は GitHub 側の利用料金が発生</li>
+                    <li>Blue/Green デプロイメントなど複雑な要件には追加の設定が必要</li>
+                    <li>既存の CI/CD パイプラインからの移行には計画的なアプローチが推奨</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Use Cases -->
+        <section class="section">
+            <h2 class="section-title">ユースケース</h2>
+
+            <div class="usecase-card">
+                <div class="usecase-header">
+                    <span style="font-size: 24px;">&#128640;</span>
+                    <div class="usecase-title">Web アプリケーションの継続的デプロイメント</div>
+                </div>
+                <div class="usecase-scenario">
+                    <strong style="color: var(--text-primary);">シナリオ:</strong> 開発チームが GitHub で管理する Node.js Web アプリケーションを、コードプッシュのたびに自動的に Elastic Beanstalk 環境にデプロイしたい。
+                </div>
+                <div class="usecase-scenario">
+                    <strong style="color: var(--text-primary);">実装:</strong> aws-elasticbeanstalk-deploy アクションを main ブランチへのプッシュトリガーで設定し、OIDC 認証で AWS に接続。
+                </div>
+                <div class="usecase-effect">
+                    手動デプロイ作業が排除され、開発者がコードプッシュするだけで自動的にデプロイが完了し、開発サイクルが大幅に短縮
+                </div>
+            </div>
+
+            <div class="usecase-card">
+                <div class="usecase-header">
+                    <span style="font-size: 24px;">&#128256;</span>
+                    <div class="usecase-title">マルチ環境デプロイメント</div>
+                </div>
+                <div class="usecase-scenario">
+                    <strong style="color: var(--text-primary);">シナリオ:</strong> ステージング環境と本番環境を持つアプリケーションで、ブランチごとに異なる環境にデプロイしたい。
+                </div>
+                <div class="usecase-scenario">
+                    <strong style="color: var(--text-primary);">実装:</strong> ワークフローで条件分岐を使用し、develop ブランチでステージング環境、main ブランチで本番環境にデプロイするよう設定。
+                </div>
+                <div class="usecase-effect">
+                    ブランチ戦略に合わせた自動デプロイメントが実現し、環境間の一貫性が確保
+                </div>
+            </div>
+
+            <div class="usecase-card">
+                <div class="usecase-header">
+                    <span style="font-size: 24px;">&#9889;</span>
+                    <div class="usecase-title">新規プロジェクトの迅速なセットアップ</div>
+                </div>
+                <div class="usecase-scenario">
+                    <strong style="color: var(--text-primary);">シナリオ:</strong> 新しい Web アプリケーションプロジェクトの開始時に、Elastic Beanstalk のアプリケーションと環境の作成からデプロイまでを自動化したい。
+                </div>
+                <div class="usecase-scenario">
+                    <strong style="color: var(--text-primary);">実装:</strong> アプリケーション・環境自動作成機能を活用し、初回のコードプッシュで全リソースを自動作成。
+                </div>
+                <div class="usecase-effect">
+                    AWS コンソールでの手動操作なしに、GitHub リポジトリの作成とワークフロー設定だけでデプロイ環境が構築
+                </div>
+            </div>
+        </section>
+
+        <!-- Pricing -->
+        <section class="section">
+            <h2 class="section-title">料金</h2>
+            <div class="pricing-card">
+                <div class="pricing-highlight">GitHub Action 自体は追加料金なし</div>
+                <div class="pricing-detail">以下の関連サービスの料金が適用されます。</div>
+                <table class="pricing-table">
+                    <thead>
+                        <tr>
+                            <th>項目</th>
+                            <th>料金</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Elastic Beanstalk</td>
+                            <td>追加料金なし -- 基盤の AWS リソースに対してのみ課金</td>
+                        </tr>
+                        <tr>
+                            <td>Amazon EC2</td>
+                            <td>インスタンスタイプと実行時間に基づく料金</td>
+                        </tr>
+                        <tr>
+                            <td>Amazon S3</td>
+                            <td>デプロイメントパッケージのストレージ料金</td>
+                        </tr>
+                        <tr>
+                            <td>GitHub Actions</td>
+                            <td>パブリックリポジトリは無料、プライベートは月 2,000 分の無料枠あり</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Region -->
+        <section class="section">
+            <h2 class="section-title">利用可能リージョン</h2>
+            <div class="region-card">
+                <div style="font-size: 28px; margin-bottom: 8px;">&#127758;</div>
+                <div class="region-highlight">Elastic Beanstalk が利用可能なすべての商用 AWS リージョンで利用可能</div>
+                <div class="region-note">追加のリージョン展開の待機は不要です。</div>
+            </div>
+        </section>
+
+        <!-- Related Services -->
+        <section class="section">
+            <h2 class="section-title">関連サービス・機能</h2>
+            <div class="related-grid">
+                <div class="related-card">
+                    <div style="font-size: 24px; margin-bottom: 8px;">&#127793;</div>
+                    <div class="related-name">AWS Elastic Beanstalk</div>
+                    <div class="related-desc">スケーラブルな Web アプリケーションのデプロイと管理</div>
+                </div>
+                <div class="related-card">
+                    <div style="font-size: 24px; margin-bottom: 8px;">&#129717;</div>
+                    <div class="related-name">Amazon S3</div>
+                    <div class="related-desc">デプロイメントパッケージの保存</div>
+                </div>
+                <div class="related-card">
+                    <div style="font-size: 24px; margin-bottom: 8px;">&#128274;</div>
+                    <div class="related-name">AWS IAM</div>
+                    <div class="related-desc">OIDC プロバイダーとロールベースのアクセス制御</div>
+                </div>
+                <div class="related-card">
+                    <div style="font-size: 24px; margin-bottom: 8px;">&#9881;&#65039;</div>
+                    <div class="related-name">GitHub Actions</div>
+                    <div class="related-desc">CI/CD ワークフローの自動化プラットフォーム</div>
+                </div>
+                <div class="related-card">
+                    <div style="font-size: 24px; margin-bottom: 8px;">&#128295;</div>
+                    <div class="related-name">AWS CodePipeline</div>
+                    <div class="related-desc">代替の AWS ネイティブ CI/CD サービス</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer>
+            <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 12px;">参考リンク</p>
+            <ul class="source-links">
+                <li><a href="https://aws.amazon.com/about-aws/whats-new/2026/02/aws-elastic-beanstalk-github-action/" class="source-link" target="_blank">公式発表 - What's New</a></li>
+                <li><a href="https://github.com/aws-actions/aws-elasticbeanstalk-deploy/blob/main/README.md" class="source-link" target="_blank">aws-elasticbeanstalk-deploy GitHub Action README</a></li>
+                <li><a href="https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/deployments.cicd.html" class="source-link" target="_blank">Elastic Beanstalk CI/CD 統合ドキュメント</a></li>
+                <li><a href="https://aws.amazon.com/elasticbeanstalk/" class="source-link" target="_blank">AWS Elastic Beanstalk</a></li>
+                <li><a href="https://aws.amazon.com/elasticbeanstalk/pricing/" class="source-link" target="_blank">Elastic Beanstalk 料金ページ</a></li>
+            </ul>
+            <p class="footer-note">AWS Elastic Beanstalk - GitHub Actions 自動デプロイメント | 2026 年 2 月 11 日</p>
+        </footer>
+    </div>
+
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'base',
+            themeVariables: {
+                primaryColor: '#FF9900',
+                primaryTextColor: '#232F3E',
+                primaryBorderColor: '#FF9900',
+                lineColor: '#FF9900',
+                secondaryColor: '#F5F5F5',
+                tertiaryColor: '#FAFAFA',
+                background: '#FFFFFF',
+                mainBkg: '#FFF3E0',
+                nodeBorder: '#FF9900',
+                clusterBkg: '#FFF8E1',
+                clusterBorder: '#FF9900',
+                edgeLabelBackground: '#FFFFFF',
+                textColor: '#232F3E'
+            },
+            flowchart: {
+                curve: 'basis',
+                padding: 20
+            }
+        });
+        hljs.highlightAll();
+    </script>
+</body>
+</html>

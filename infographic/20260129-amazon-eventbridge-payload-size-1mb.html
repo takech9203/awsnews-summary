@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Amazon EventBridge - イベントペイロードサイズ 1 MB サポート</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --aws-squid-ink: #232F3E;
+            --aws-dark-squid: #1A242F;
+            --aws-orange: #FF9900;
+            --aws-smile-orange: #FFAD33;
+            --aws-white: #FFFFFF;
+            --aws-light-gray: #D5DBDB;
+            --aws-teal: #00A1C9;
+            --aws-purple: #8C4FFF;
+            --aws-green: #1D8102;
+            --aws-red: #D13212;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+            background: var(--aws-squid-ink);
+            color: var(--aws-light-gray);
+            line-height: 1.8;
+            padding: 40px 20px;
+        }
+        .container { max-width: 1000px; margin: 0 auto; }
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 40px 24px;
+            background: linear-gradient(135deg, var(--aws-dark-squid) 0%, var(--aws-squid-ink) 100%);
+            border-radius: 12px;
+            border: 3px solid var(--aws-orange);
+        }
+        .service-badge {
+            display: inline-block;
+            background: var(--aws-orange);
+            color: var(--aws-squid-ink);
+            padding: 8px 24px;
+            border-radius: 24px;
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 16px;
+        }
+        .header h1 {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--aws-white);
+            margin-bottom: 12px;
+            line-height: 1.4;
+        }
+        .header .subtitle { font-size: 16px; color: var(--aws-light-gray); }
+        .release-date {
+            font-size: 14px;
+            color: var(--aws-orange);
+            margin-top: 16px;
+            font-weight: 600;
+        }
+        .section {
+            background: var(--aws-dark-squid);
+            padding: 24px;
+            border-radius: 8px;
+            margin-bottom: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .section h2 {
+            font-size: 22px;
+            font-weight: 600;
+            color: var(--aws-orange);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        @media (max-width: 768px) { .comparison { grid-template-columns: 1fr; } }
+        .comparison-card {
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 5px solid;
+        }
+        .comparison-card.before {
+            background: rgba(209, 50, 18, 0.15);
+            border-left-color: var(--aws-red);
+        }
+        .comparison-card.after {
+            background: rgba(29, 129, 2, 0.15);
+            border-left-color: var(--aws-green);
+        }
+        .comparison-card h4 { font-size: 16px; margin-bottom: 12px; font-weight: 600; }
+        .comparison-card.before h4 { color: var(--aws-red); }
+        .comparison-card.after h4 { color: var(--aws-green); }
+        .comparison-card ul { list-style: none; padding-left: 0; }
+        .comparison-card li {
+            margin-bottom: 8px;
+            padding-left: 20px;
+            position: relative;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        .comparison-card.before li::before { content: "✕"; position: absolute; left: 0; color: var(--aws-red); font-weight: bold; }
+        .comparison-card.after li::before { content: "✓"; position: absolute; left: 0; color: var(--aws-green); font-weight: bold; }
+        .card {
+            background: var(--aws-dark-squid);
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 153, 0, 0.3);
+            margin-bottom: 16px;
+        }
+        .card h3 {
+            font-size: 18px;
+            color: var(--aws-orange);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .card p { font-size: 15px; color: var(--aws-light-gray); }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-top: 16px;
+        }
+        @media (max-width: 768px) { .stats-grid { grid-template-columns: 1fr; } }
+        .stats-card {
+            background: linear-gradient(135deg, var(--aws-orange) 0%, #FF6B00 100%);
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            color: var(--aws-white);
+        }
+        .stats-card .number { font-size: 36px; font-weight: bold; line-height: 1; }
+        .stats-card .label { font-size: 13px; margin-top: 8px; }
+        .usecase {
+            background: linear-gradient(135deg, rgba(255, 153, 0, 0.15) 0%, rgba(255, 153, 0, 0.05) 100%);
+            padding: 20px;
+            border-radius: 8px;
+            border: 2px solid rgba(255, 153, 0, 0.3);
+            margin-bottom: 16px;
+        }
+        .usecase h3 { font-size: 18px; color: var(--aws-orange); margin-bottom: 8px; }
+        .usecase p { font-size: 15px; color: #EEEEEE; }
+        .highlight {
+            background: rgba(255, 153, 0, 0.2);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+            color: var(--aws-orange);
+        }
+        a { color: var(--aws-teal); text-decoration: none; }
+        a:hover { color: var(--aws-smile-orange); text-decoration: underline; }
+        footer {
+            margin-top: 32px;
+            padding: 24px;
+            background: var(--aws-dark-squid);
+            border-radius: 8px;
+            border-top: 3px solid var(--aws-orange);
+        }
+        footer h3 { font-size: 18px; color: var(--aws-orange); margin-bottom: 16px; }
+        footer a {
+            display: block;
+            margin-bottom: 10px;
+            padding: 8px 12px;
+            background: rgba(255, 153, 0, 0.1);
+            border-radius: 6px;
+        }
+        .footer-note {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid #333;
+            font-size: 12px;
+            color: #888;
+        }
+        .architecture-section {
+            margin: 24px 0;
+        }
+        .arch-comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+        @media (max-width: 768px) { .arch-comparison { grid-template-columns: 1fr; } }
+        .arch-box {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            padding: 20px;
+        }
+        .arch-box.before { border: 2px solid var(--aws-red); }
+        .arch-box.after { border: 2px solid var(--aws-green); }
+        .arch-box h4 {
+            text-align: center;
+            margin-bottom: 16px;
+            font-size: 16px;
+        }
+        .arch-box.before h4 { color: var(--aws-red); }
+        .arch-box.after h4 { color: var(--aws-green); }
+        .arch-flow {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+        .arch-step {
+            background: var(--aws-dark-squid);
+            border: 2px solid var(--aws-orange);
+            border-radius: 8px;
+            padding: 10px 16px;
+            text-align: center;
+            width: 100%;
+            font-size: 13px;
+        }
+        .arch-arrow {
+            color: var(--aws-orange);
+            font-size: 20px;
+        }
+        .code-block {
+            background: #1a1a2e;
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 16px 0;
+        }
+        .code-header {
+            background: #16213e;
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+        }
+        .code-lang {
+            color: var(--aws-orange);
+            font-weight: bold;
+        }
+        .code-title {
+            color: var(--aws-light-gray);
+        }
+        .code-block pre {
+            margin: 0;
+            padding: 16px;
+            overflow-x: auto;
+        }
+        .code-block code {
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            color: #e0e0e0;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="service-badge">Amazon EventBridge</div>
+            <h1>📮 イベントペイロードサイズ<br/>256 KB → 1 MB に拡大</h1>
+            <div class="subtitle">LLM プロンプト、テレメトリデータ、ML 出力を 1 つのイベントで処理</div>
+            <div class="release-date">📅 リリース日: 2026年01月29日</div>
+        </div>
+
+        <div class="section">
+            <h2>📊 概要</h2>
+            <p>Amazon EventBridge のイベントペイロードサイズ上限が<span class="highlight">256 KB から 1 MB に拡大</span>。データの分割、圧縮、外部ストレージへの保存が不要になり、LLM プロンプトや複雑な JSON 構造を 1 つのイベントで処理できるようになりました。</p>
+            <div class="comparison">
+                <div class="comparison-card before">
+                    <h4>⚠️ アップデート前 (256 KB)</h4>
+                    <ul>
+                        <li>大きなペイロードはデータ分割が必要</li>
+                        <li>S3 に保存し参照のみをイベントに含める</li>
+                        <li>圧縮処理の実装が必要</li>
+                        <li>アーキテクチャが複雑化</li>
+                    </ul>
+                </div>
+                <div class="comparison-card after">
+                    <h4>✨ アップデート後 (1 MB)</h4>
+                    <ul>
+                        <li>1 MB までのペイロードを直接送信</li>
+                        <li>外部ストレージへの保存が不要</li>
+                        <li>アーキテクチャが大幅に簡素化</li>
+                        <li>レイテンシが改善</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🏗️ アーキテクチャ比較</h2>
+            <div class="architecture-section">
+                <div class="arch-comparison">
+                    <div class="arch-box before">
+                        <h4>⚠️ 従来 (256 KB 制限)</h4>
+                        <div class="arch-flow">
+                            <div class="arch-step">📱 アプリケーション</div>
+                            <span class="arch-arrow">↓</span>
+                            <div class="arch-step">🪣 S3 に大きなデータを保存</div>
+                            <span class="arch-arrow">↓</span>
+                            <div class="arch-step">📮 EventBridge (参照のみ)</div>
+                            <span class="arch-arrow">↓</span>
+                            <div class="arch-step">⚡ Lambda</div>
+                            <span class="arch-arrow">↓</span>
+                            <div class="arch-step">🪣 S3 からデータ取得</div>
+                        </div>
+                    </div>
+                    <div class="arch-box after">
+                        <h4>✅ 新しいアーキテクチャ (1 MB)</h4>
+                        <div class="arch-flow">
+                            <div class="arch-step">📱 アプリケーション</div>
+                            <span class="arch-arrow">↓</span>
+                            <div class="arch-step">📮 EventBridge<br/>(完全なデータ 1 MB)</div>
+                            <span class="arch-arrow">↓</span>
+                            <div class="arch-step">⚡ Lambda (直接処理)</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>📈 技術仕様</h2>
+            <div class="stats-grid">
+                <div class="stats-card">
+                    <div class="number">1 MB</div>
+                    <div class="label">最大ペイロードサイズ</div>
+                </div>
+                <div class="stats-card">
+                    <div class="number">4x</div>
+                    <div class="label">サイズ拡大 (256KB→1MB)</div>
+                </div>
+                <div class="stats-card">
+                    <div class="number">$1.00</div>
+                    <div class="label">100 万イベント (料金変更なし)</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>💻 コードサンプル</h2>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">JSON</span>
+                    <span class="code-title">LLM プロンプト/レスポンスのイベント例</span>
+                </div>
+                <pre><code>{
+  "Source": "ai.application",
+  "DetailType": "LLM Completion",
+  "Detail": {
+    "prompt": "大規模なプロンプトテキスト...",
+    "response": "モデルからの詳細なレスポンス...",
+    "metadata": {
+      "model": "claude-3-5-sonnet",
+      "tokens": 50000
+    }
+  }
+}</code></pre>
+            </div>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Bash</span>
+                    <span class="code-title">AWS CLI でイベント送信</span>
+                </div>
+                <pre><code>aws events put-events --entries '[
+  {
+    "Source": "my.application",
+    "DetailType": "Large Payload Event",
+    "Detail": "{\"data\": \"... up to 1 MB ...\"}"
+  }
+]'</code></pre>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>💡 ユースケース</h2>
+            <div class="usecase">
+                <h3>🤖 LLM プロンプトとレスポンスの処理</h3>
+                <p>生成 AI アプリケーションで、ユーザープロンプトとモデルのレスポンスを 1 つのイベントに含めることで、S3 への保存・取得が不要になり、処理レイテンシが削減されます。</p>
+            </div>
+            <div class="usecase">
+                <h3>📡 IoT テレメトリデータの集約</h3>
+                <p>IoT デバイスから大量のセンサー読み取り値を 1 つのイベントにまとめることで、イベント数が削減され、処理効率が向上します。</p>
+            </div>
+            <div class="usecase">
+                <h3>🧠 機械学習モデルの推論結果</h3>
+                <p>ML モデルの推論結果 (特徴ベクトル、検出結果など) を 1 つのイベントに含めることで、結果の分割・結合が不要になり、下流処理が簡素化されます。</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🌏 利用可能リージョン</h2>
+            <p>EventBridge が提供されているすべての商用 AWS リージョンで利用可能です。ただし、Asia Pacific (New Zealand, Thailand, Malaysia, Taipei)、Mexico (Central) は除外されます。</p>
+        </div>
+
+        <footer>
+            <h3>📎 出典・参考リンク</h3>
+            <a href="https://aws.amazon.com/about-aws/whats-new/2026/01/amazon-eventbridge-increases-event-payload-size-256-kb-1-mb/" target="_blank">🔗 公式発表 (What's New)</a>
+            <a href="https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-event-bus.html" target="_blank">📖 EventBridge ドキュメント</a>
+            <a href="https://aws.amazon.com/eventbridge/pricing/" target="_blank">💰 料金ページ</a>
+            <p class="footer-note">🤖 Generated with Kiro | 📅 2026-02-05</p>
+        </footer>
+    </div>
+</body>
+</html>

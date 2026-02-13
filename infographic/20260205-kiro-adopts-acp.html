@@ -1,0 +1,1205 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kiro - Agent Client Protocol (ACP) サポート</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      mermaid.initialize({
+        startOnLoad: true,
+        theme: 'base',
+        themeVariables: {
+          primaryColor: '#FF9900',
+          primaryTextColor: '#232F3E',
+          primaryBorderColor: '#FF9900',
+          lineColor: '#FF9900',
+          secondaryColor: '#F5F5F5',
+          tertiaryColor: '#FAFAFA',
+          background: '#FFFFFF',
+          mainBkg: '#FFF3E0',
+          nodeBorder: '#FF9900',
+          clusterBkg: '#FFF8E1',
+          clusterBorder: '#FF9900',
+          edgeLabelBackground: '#FFFFFF',
+          textColor: '#232F3E'
+        }
+      });
+    });
+  </script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap');
+
+    :root {
+      --aws-squid-ink: #232F3E;
+      --aws-dark-squid: #1A242F;
+      --aws-orange: #FF9900;
+      --aws-smile-orange: #FFAD33;
+      --aws-white: #FFFFFF;
+      --aws-light-gray: #D5DBDB;
+      --aws-teal: #00A1C9;
+      --aws-purple: #8C4FFF;
+      --aws-green: #1D8102;
+      --aws-red: #D13212;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      background-color: var(--aws-squid-ink);
+      font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+      color: var(--aws-light-gray);
+      font-size: 16px;
+      line-height: 1.6;
+      padding: 20px;
+      margin: 0;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 32px;
+      padding-bottom: 24px;
+      border-bottom: 2px solid var(--aws-orange);
+    }
+
+    .service-badge {
+      display: inline-block;
+      background: var(--aws-orange);
+      color: var(--aws-squid-ink);
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-weight: 600;
+      font-size: 14px;
+      margin-bottom: 16px;
+    }
+
+    h1 {
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--aws-white);
+      margin: 0 0 12px 0;
+    }
+
+    .subtitle {
+      font-size: 16px;
+      color: var(--aws-light-gray);
+    }
+
+    .date {
+      color: var(--aws-orange);
+      font-weight: 500;
+    }
+
+    h2 {
+      font-size: 22px;
+      font-weight: 600;
+      color: var(--aws-orange);
+      margin: 0 0 16px 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .section {
+      background: var(--aws-dark-squid);
+      border-radius: 8px;
+      padding: 24px;
+      margin-bottom: 24px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .overview-text {
+      font-size: 17px;
+      line-height: 1.8;
+      margin-bottom: 20px;
+    }
+
+    .highlight {
+      background-color: rgba(255, 153, 0, 0.2);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 600;
+      color: var(--aws-orange);
+    }
+
+    /* Before/After */
+    .comparison-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-top: 20px;
+    }
+
+    @media (max-width: 600px) {
+      .comparison-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .comparison-card {
+      padding: 16px;
+      border-radius: 8px;
+    }
+
+    .comparison-card.before {
+      background: rgba(209, 50, 18, 0.15);
+      border: 2px solid var(--aws-red);
+    }
+
+    .comparison-card.after {
+      background: rgba(29, 129, 2, 0.15);
+      border: 2px solid var(--aws-green);
+    }
+
+    .comparison-title {
+      font-weight: 700;
+      font-size: 14px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .comparison-card.before .comparison-title {
+      color: var(--aws-red);
+    }
+
+    .comparison-card.after .comparison-title {
+      color: var(--aws-green);
+    }
+
+    .comparison-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .comparison-list li {
+      padding: 6px 0;
+      font-size: 14px;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    /* 統計カード */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    @media (max-width: 700px) {
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .stat-card {
+      background: linear-gradient(135deg, rgba(255, 153, 0, 0.2) 0%, rgba(140, 79, 255, 0.15) 100%);
+      border: 1px solid rgba(255, 153, 0, 0.3);
+      border-radius: 8px;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--aws-orange);
+      margin-bottom: 4px;
+    }
+
+    .stat-label {
+      font-size: 13px;
+      color: var(--aws-light-gray);
+    }
+
+    /* Mermaid コンテナ */
+    .mermaid-container {
+      background: #FFFFFF;
+      border-radius: 12px;
+      padding: 24px;
+      margin: 20px 0;
+      border: 2px solid rgba(255, 153, 0, 0.3);
+      overflow-x: auto;
+    }
+    .mermaid {
+      display: flex;
+      justify-content: center;
+    }
+
+    /* 機能カード */
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+    }
+
+    @media (max-width: 700px) {
+      .feature-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .feature-card {
+      background: var(--aws-squid-ink);
+      border-left: 4px solid var(--aws-orange);
+      border-radius: 0 8px 8px 0;
+      padding: 16px;
+    }
+
+    .feature-card-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .feature-icon {
+      font-size: 24px;
+    }
+
+    .feature-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--aws-white);
+    }
+
+    .feature-desc {
+      font-size: 14px;
+      color: var(--aws-light-gray);
+    }
+
+    .feature-list {
+      list-style: none;
+      padding: 0;
+      margin: 8px 0 0 0;
+    }
+
+    .feature-list li {
+      padding: 4px 0;
+      font-size: 14px;
+      display: flex;
+      align-items: flex-start;
+      gap: 6px;
+      color: var(--aws-light-gray);
+    }
+
+    /* 比較テーブル */
+    .spec-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0;
+      font-size: 14px;
+    }
+
+    .spec-table th {
+      background: rgba(255, 153, 0, 0.2);
+      color: var(--aws-orange);
+      padding: 12px 16px;
+      text-align: left;
+      font-weight: 600;
+      border-bottom: 2px solid var(--aws-orange);
+    }
+
+    .spec-table td {
+      padding: 10px 16px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      color: var(--aws-light-gray);
+    }
+
+    .spec-table tr:hover td {
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    /* IDE グリッド */
+    .ide-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin: 16px 0;
+    }
+
+    @media (max-width: 700px) {
+      .ide-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    .ide-card {
+      background: var(--aws-squid-ink);
+      border: 1px solid rgba(255, 153, 0, 0.3);
+      border-radius: 8px;
+      padding: 14px;
+      text-align: center;
+    }
+
+    .ide-icon {
+      font-size: 28px;
+      margin-bottom: 8px;
+    }
+
+    .ide-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--aws-white);
+      margin-bottom: 4px;
+    }
+
+    .ide-category {
+      font-size: 12px;
+      color: var(--aws-light-gray);
+    }
+
+    /* ユースケース */
+    .usecase-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    @media (max-width: 800px) {
+      .usecase-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .usecase-card {
+      background: linear-gradient(135deg, rgba(255, 153, 0, 0.1) 0%, rgba(255, 173, 51, 0.05) 100%);
+      border: 1px solid rgba(255, 153, 0, 0.3);
+      border-radius: 8px;
+      padding: 20px;
+    }
+
+    .usecase-icon {
+      font-size: 32px;
+      margin-bottom: 12px;
+    }
+
+    .usecase-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--aws-white);
+      margin-bottom: 8px;
+    }
+
+    .usecase-desc {
+      font-size: 14px;
+      color: var(--aws-light-gray);
+      margin-bottom: 8px;
+    }
+
+    .usecase-effect {
+      font-size: 13px;
+      color: var(--aws-green);
+      padding-top: 8px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    /* コードブロック */
+    .code-block {
+      background: #0d1117;
+      border-radius: 8px;
+      overflow: hidden;
+      margin: 16px 0;
+    }
+
+    .code-header {
+      background: #161b22;
+      padding: 8px 16px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+    }
+
+    .code-lang {
+      color: var(--aws-orange);
+      font-weight: 600;
+    }
+
+    .code-title {
+      color: var(--aws-light-gray);
+    }
+
+    .code-block pre {
+      margin: 0;
+      padding: 16px;
+      overflow-x: auto;
+    }
+
+    .code-block code {
+      font-family: 'Courier New', Consolas, monospace;
+      font-size: 13px;
+      color: #e6edf3;
+      line-height: 1.5;
+    }
+
+    /* フロー図 */
+    .flow-diagram {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin: 24px 0;
+    }
+
+    .flow-step {
+      background: var(--aws-dark-squid);
+      border: 2px solid var(--aws-orange);
+      border-radius: 8px;
+      padding: 16px 24px;
+      text-align: center;
+      min-width: 120px;
+    }
+
+    .flow-step-icon {
+      font-size: 28px;
+      margin-bottom: 8px;
+    }
+
+    .flow-step-text {
+      font-size: 13px;
+      color: var(--aws-white);
+    }
+
+    .flow-arrow {
+      color: var(--aws-orange);
+      font-size: 28px;
+      font-weight: bold;
+    }
+
+    /* メリット・デメリット */
+    .merit-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    @media (max-width: 600px) {
+      .merit-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .merit-column {
+      padding: 16px;
+      border-radius: 8px;
+    }
+
+    .merit-column.business {
+      background: rgba(0, 161, 201, 0.1);
+      border: 1px solid rgba(0, 161, 201, 0.3);
+    }
+
+    .merit-column.tech {
+      background: rgba(140, 79, 255, 0.1);
+      border: 1px solid rgba(140, 79, 255, 0.3);
+    }
+
+    .merit-title {
+      font-weight: 700;
+      font-size: 16px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .merit-column.business .merit-title {
+      color: var(--aws-teal);
+    }
+
+    .merit-column.tech .merit-title {
+      color: var(--aws-purple);
+    }
+
+    .merit-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .merit-list li {
+      padding: 6px 0;
+      font-size: 14px;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .merit-list li strong {
+      color: var(--aws-white);
+    }
+
+    /* 注意事項 */
+    .caution-card {
+      background: rgba(209, 50, 18, 0.08);
+      border: 1px solid rgba(209, 50, 18, 0.3);
+      border-radius: 8px;
+      padding: 16px;
+      margin-top: 16px;
+    }
+
+    .caution-title {
+      font-weight: 700;
+      font-size: 14px;
+      color: var(--aws-red);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .caution-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .caution-list li {
+      padding: 4px 0;
+      font-size: 14px;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    /* リージョン */
+    .region-badge {
+      display: inline-block;
+      background: rgba(0, 161, 201, 0.2);
+      border: 1px solid var(--aws-teal);
+      color: var(--aws-teal);
+      padding: 6px 16px;
+      border-radius: 4px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    /* 関連サービス */
+    .related-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+
+    @media (max-width: 700px) {
+      .related-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .related-card {
+      background: var(--aws-squid-ink);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 8px;
+      padding: 16px;
+      text-align: center;
+    }
+
+    .related-icon {
+      font-size: 24px;
+      margin-bottom: 8px;
+    }
+
+    .related-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--aws-white);
+      margin-bottom: 4px;
+    }
+
+    .related-desc {
+      font-size: 12px;
+      color: var(--aws-light-gray);
+    }
+
+    /* フッター */
+    footer {
+      margin-top: 24px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(255, 255, 255, 0.2);
+      font-size: 12px;
+      color: var(--aws-light-gray);
+    }
+
+    footer a {
+      color: var(--aws-teal);
+      text-decoration: none;
+      word-break: break-all;
+    }
+
+    footer a:hover {
+      color: var(--aws-smile-orange);
+    }
+
+    .footer-links {
+      list-style: none;
+      padding: 0;
+      margin: 8px 0 0 0;
+    }
+
+    .footer-links li {
+      padding: 4px 0;
+    }
+
+    /* LSP/ACP 比較の概念図 */
+    .concept-diagram {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      margin: 20px 0;
+      flex-wrap: wrap;
+    }
+
+    .concept-box {
+      background: var(--aws-squid-ink);
+      border: 2px solid var(--aws-orange);
+      border-radius: 12px;
+      padding: 16px 24px;
+      text-align: center;
+      min-width: 140px;
+    }
+
+    .concept-box-icon {
+      font-size: 32px;
+      margin-bottom: 8px;
+    }
+
+    .concept-box-label {
+      font-size: 14px;
+      color: var(--aws-white);
+      font-weight: 600;
+    }
+
+    .concept-connector {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .concept-connector-line {
+      color: var(--aws-orange);
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    .concept-connector-label {
+      background: rgba(255, 153, 0, 0.2);
+      color: var(--aws-orange);
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    /* 設定手順ステップ */
+    .step-card {
+      background: var(--aws-squid-ink);
+      border-left: 4px solid var(--aws-teal);
+      border-radius: 0 8px 8px 0;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+
+    .step-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .step-number {
+      background: var(--aws-teal);
+      color: var(--aws-white);
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .step-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--aws-white);
+    }
+
+    .step-desc {
+      font-size: 14px;
+      color: var(--aws-light-gray);
+      margin-bottom: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- ヘッダー -->
+    <div class="header">
+      <div class="service-badge">Kiro</div>
+      <h1>🔌 Agent Client Protocol (ACP) サポート</h1>
+      <div class="subtitle">AI コーディングエージェントと IDE の通信を標準化するプロトコルを Kiro CLI がサポート</div>
+      <div class="date" style="margin-top: 8px;">📅 2026 年 2 月 5 日</div>
+    </div>
+
+    <!-- 概要セクション -->
+    <div class="section">
+      <h2>📋 概要</h2>
+      <div class="overview-text">
+        Kiro CLI が <span class="highlight">Agent Client Protocol (ACP)</span> をサポートしました。ACP は、コードエディタと AI コーディングエージェント間の通信を標準化するプロトコルです。これにより、Kiro のエージェント型 AI 機能を、<span class="highlight">JetBrains IDE</span>、<span class="highlight">Eclipse</span>、<span class="highlight">Emacs</span>、<span class="highlight">Zed</span>、<span class="highlight">Neovim</span> など、ACP 対応のさまざまな IDE から直接利用できるようになりました。
+      </div>
+      <div class="overview-text" style="font-size: 15px;">
+        ACP は、<span class="highlight">Language Server Protocol (LSP)</span> が言語サーバーとエディタの通信を標準化したのと同様に、AI エージェントとエディタの通信を標準化するプロトコルです。ACP 以前は、エージェントとエディタの組み合わせごとにカスタム統合が必要でしたが、ACP により 1 つのプロトコルで複数の IDE と連携できるようになります。
+      </div>
+
+      <!-- 統計カード -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-value">6+</div>
+          <div class="stat-label">対応 IDE 数</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">1</div>
+          <div class="stat-label">標準プロトコル</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">N+M</div>
+          <div class="stat-label">統合コスト削減<br/>N×M → N+M</div>
+        </div>
+      </div>
+
+      <!-- Before/After 比較 -->
+      <div class="comparison-grid">
+        <div class="comparison-card before">
+          <div class="comparison-title">❌ BEFORE: アップデート前の課題</div>
+          <ul class="comparison-list">
+            <li><span>✗</span> AI エージェントと各エディタの統合にはそれぞれカスタムの実装が必要だった</li>
+            <li><span>✗</span> 専門特化型 IDE で Kiro の機能を利用できなかった</li>
+            <li><span>✗</span> エージェントとエディタの組み合わせが増えるたびに統合コストが増大していた</li>
+          </ul>
+        </div>
+        <div class="comparison-card after">
+          <div class="comparison-title">✅ AFTER: アップデート後の改善</div>
+          <ul class="comparison-list">
+            <li><span>✓</span> ACP 標準プロトコルにより、対応 IDE から Kiro をカスタムエージェントとして利用可能</li>
+            <li><span>✓</span> 専門特化型 IDE のドメイン知識と Kiro のエージェント機能を組み合わせて活用可能</li>
+            <li><span>✓</span> 1 つのプロトコルで複数の IDE との統合が実現</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- LSP と ACP の概念比較図 -->
+    <div class="section">
+      <h2>💡 LSP と ACP: 同じアプローチで異なる対象</h2>
+      <div class="concept-diagram">
+        <div class="concept-box">
+          <div class="concept-box-icon">🖥️</div>
+          <div class="concept-box-label">IDE / エディタ</div>
+        </div>
+        <div class="concept-connector">
+          <div class="concept-connector-label">LSP</div>
+          <div class="concept-connector-line">⟷</div>
+        </div>
+        <div class="concept-box">
+          <div class="concept-box-icon">📝</div>
+          <div class="concept-box-label">言語サーバー</div>
+        </div>
+      </div>
+      <div class="concept-diagram">
+        <div class="concept-box">
+          <div class="concept-box-icon">🖥️</div>
+          <div class="concept-box-label">IDE / エディタ</div>
+        </div>
+        <div class="concept-connector">
+          <div class="concept-connector-label">ACP</div>
+          <div class="concept-connector-line">⟷</div>
+        </div>
+        <div class="concept-box">
+          <div class="concept-box-icon">🤖</div>
+          <div class="concept-box-label">AI エージェント</div>
+        </div>
+      </div>
+      <p style="text-align: center; font-size: 14px; color: var(--aws-light-gray); margin-top: 8px;">LSP が言語サーバーとエディタの通信を標準化したように、ACP は AI エージェントとエディタの通信を標準化</p>
+    </div>
+
+    <!-- アーキテクチャ図 -->
+    <div class="section">
+      <h2>🏗️ アーキテクチャ図</h2>
+      <p style="font-size: 14px; margin-bottom: 16px;">ACP 対応 IDE が標準プロトコルを介して Kiro CLI と通信し、各 IDE のドメイン知識と Kiro のエージェント機能を組み合わせて活用する構成を示しています。</p>
+      <div class="mermaid-container">
+        <pre class="mermaid">
+flowchart TD
+    subgraph IDEs["🖥️ ACP 対応 IDE"]
+        direction LR
+        JB["☕ JetBrains IDE<br/>DataGrip, IntelliJ 等"]
+        EC["📝 Eclipse"]
+        EM["⌨️ Emacs"]
+        ZD["⚡ Zed"]
+        NV["🟢 Neovim"]
+        JB ~~~ EC ~~~ EM ~~~ ZD ~~~ NV
+    end
+
+    subgraph ACP["🔌 Agent Client Protocol"]
+        direction LR
+        Proto["📡 ACP 標準通信"]
+    end
+
+    subgraph KiroCLI["🤖 Kiro CLI"]
+        direction LR
+        Agent["🧠 AI エージェント"]
+        Spec["📋 スペック駆動開発"]
+        CodeGen["⚙️ コード生成"]
+        Shell["💻 シェルコマンド実行"]
+        Agent ~~~ Spec ~~~ CodeGen ~~~ Shell
+    end
+
+    IDEs --> ACP
+    ACP --> KiroCLI
+
+    classDef cloud fill:none,stroke:#CCCCCC,stroke-width:2px,color:#666666
+    classDef layer fill:none,stroke:#E1BEE7,stroke-width:2px,color:#666666
+    classDef compute fill:#FFE0B2,stroke:#FFCC80,stroke-width:2px,color:#5D4037
+    classDef user fill:#E3F2FD,stroke:#BBDEFB,stroke-width:2px,color:#1565C0
+    classDef process fill:#FFFFFF,stroke:#4A90E2,stroke-width:2px,color:#333333
+    classDef internal fill:#E8F1FF,stroke:#4A90E2,stroke-width:2px,color:#333333
+    classDef input fill:#E9F7EC,stroke:#66BB6A,stroke-width:2px,color:#333333
+
+    class IDEs cloud
+    class ACP layer
+    class KiroCLI cloud
+    class JB,EC,EM,ZD,NV user
+    class Proto input
+    class Agent,Spec,CodeGen,Shell compute
+        </pre>
+      </div>
+    </div>
+
+    <!-- 主要機能 -->
+    <div class="section">
+      <h2>⚙️ 主要機能</h2>
+      <div class="feature-grid">
+        <div class="feature-card">
+          <div class="feature-card-header">
+            <span class="feature-icon">🔌</span>
+            <span class="feature-title">ACP プロトコルサポート</span>
+          </div>
+          <ul class="feature-list">
+            <li><span style="color: var(--aws-orange);">→</span> <code>--acp</code> フラグで ACP モードを起動</li>
+            <li><span style="color: var(--aws-orange);">→</span> LSP と同様のアーキテクチャで標準通信を実現</li>
+            <li><span style="color: var(--aws-orange);">→</span> 1 つのプロトコル実装で複数の IDE に対応</li>
+          </ul>
+        </div>
+        <div class="feature-card">
+          <div class="feature-card-header">
+            <span class="feature-icon">🖥️</span>
+            <span class="feature-title">マルチ IDE 対応</span>
+          </div>
+          <ul class="feature-list">
+            <li><span style="color: var(--aws-orange);">→</span> JetBrains、Eclipse、Emacs、Zed、Neovim、Toad に対応</li>
+            <li><span style="color: var(--aws-orange);">→</span> 各 IDE の AI Chat からカスタムエージェントとして追加可能</li>
+            <li><span style="color: var(--aws-orange);">→</span> 将来: Xcode、Android Studio、RStudio、Jupyter も対象</li>
+          </ul>
+        </div>
+        <div class="feature-card" style="grid-column: 1 / -1;">
+          <div class="feature-card-header">
+            <span class="feature-icon">🧠</span>
+            <span class="feature-title">IDE ドメイン知識との統合</span>
+          </div>
+          <ul class="feature-list">
+            <li><span style="color: var(--aws-orange);">→</span> 専門特化型 IDE のドメインインテリジェンスと Kiro のエージェント機能を組み合わせ (例: DataGrip のスキーマ情報)</li>
+            <li><span style="color: var(--aws-orange);">→</span> SQL クエリ生成、デバッグ、マイグレーションスクリプト作成など IDE 固有のユースケースに対応</li>
+            <li><span style="color: var(--aws-orange);">→</span> チャットインターフェースからシェルコマンドの実行も可能</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- 技術仕様 -->
+    <div class="section">
+      <h2>📐 技術仕様</h2>
+
+      <h3 style="color: var(--aws-white); font-size: 18px; margin-bottom: 12px;">ACP と LSP の比較</h3>
+      <table class="spec-table">
+        <thead>
+          <tr>
+            <th>項目</th>
+            <th>LSP</th>
+            <th>ACP</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>対象</td>
+            <td>言語サーバー</td>
+            <td>AI コーディングエージェント</td>
+          </tr>
+          <tr>
+            <td>目的</td>
+            <td>エディタと言語サーバー間の通信標準化</td>
+            <td>エディタと AI エージェント間の通信標準化</td>
+          </tr>
+          <tr>
+            <td>効果</td>
+            <td>N × M の統合を N + M に削減</td>
+            <td>エージェントと IDE の統合を標準化</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3 style="color: var(--aws-white); font-size: 18px; margin: 24px 0 12px;">対応 IDE 一覧</h3>
+      <div class="ide-grid">
+        <div class="ide-card">
+          <div class="ide-icon">☕</div>
+          <div class="ide-name">JetBrains IDE</div>
+          <div class="ide-category">汎用・専門特化型</div>
+        </div>
+        <div class="ide-card">
+          <div class="ide-icon">📝</div>
+          <div class="ide-name">Eclipse</div>
+          <div class="ide-category">Java 開発</div>
+        </div>
+        <div class="ide-card">
+          <div class="ide-icon">⌨️</div>
+          <div class="ide-name">Emacs</div>
+          <div class="ide-category">テキストエディタ</div>
+        </div>
+        <div class="ide-card">
+          <div class="ide-icon">🟢</div>
+          <div class="ide-name">Neovim</div>
+          <div class="ide-category">テキストエディタ</div>
+        </div>
+        <div class="ide-card">
+          <div class="ide-icon">⚡</div>
+          <div class="ide-name">Zed</div>
+          <div class="ide-category">モダンエディタ</div>
+        </div>
+        <div class="ide-card">
+          <div class="ide-icon">🐸</div>
+          <div class="ide-name">Toad</div>
+          <div class="ide-category">データベース管理</div>
+        </div>
+      </div>
+
+      <h3 style="color: var(--aws-white); font-size: 18px; margin: 24px 0 12px;">ACP 設定ファイル</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">JSON</span>
+          <span class="code-title">acp.json</span>
+        </div>
+        <pre><code>{
+  "mcpServers": {
+    "kiro": {
+      "command": "/path/to/kiro",
+      "args": ["--acp"]
+    }
+  }
+}</code></pre>
+      </div>
+      <p style="font-size: 13px; color: var(--aws-light-gray);">JetBrains IDE の場合、<code style="background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 3px;">~/.jetbrains/acp.json</code> にこの設定を配置します。</p>
+    </div>
+
+    <!-- 設定方法 -->
+    <div class="section">
+      <h2>🛠️ 設定方法</h2>
+
+      <p style="font-size: 14px; margin-bottom: 16px; color: var(--aws-light-gray);"><strong style="color: var(--aws-white);">前提条件:</strong> Kiro CLI がインストール済み / Kiro CLI で認証が完了 / ACP 対応 IDE がインストール済み</p>
+
+      <div class="step-card">
+        <div class="step-header">
+          <span class="step-number">1</span>
+          <span class="step-title">Kiro CLI のインストールと認証</span>
+        </div>
+        <div class="step-desc">Kiro CLI をインストールし、認証を完了させます。</div>
+        <div class="code-block">
+          <div class="code-header">
+            <span class="code-lang">Bash</span>
+            <span class="code-title">認証コマンド</span>
+          </div>
+          <pre><code># Kiro CLI のインストール後、認証を実行
+kiro auth login</code></pre>
+        </div>
+      </div>
+
+      <div class="step-card">
+        <div class="step-header">
+          <span class="step-number">2</span>
+          <span class="step-title">ACP 設定ファイルの作成</span>
+        </div>
+        <div class="step-desc">JetBrains IDE の場合、以下の設定ファイルを作成します。</div>
+        <div class="code-block">
+          <div class="code-header">
+            <span class="code-lang">Bash</span>
+            <span class="code-title">設定ファイル作成</span>
+          </div>
+          <pre><code>mkdir -p ~/.jetbrains
+cat > ~/.jetbrains/acp.json << 'EOF'
+{
+  "mcpServers": {
+    "kiro": {
+      "command": "/path/to/kiro",
+      "args": ["--acp"]
+    }
+  }
+}
+EOF</code></pre>
+        </div>
+        <p style="font-size: 13px; color: var(--aws-light-gray);"><code style="background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 3px;">/path/to/kiro</code> を実際の Kiro CLI のパスに置き換えてください。</p>
+      </div>
+
+      <div class="step-card">
+        <div class="step-header">
+          <span class="step-number">3</span>
+          <span class="step-title">IDE でカスタムエージェントを追加</span>
+        </div>
+        <div class="step-desc">設定完了後、AI Chat のドロップダウンに Kiro が表示されます。</div>
+        <ul class="feature-list" style="margin-top: 8px;">
+          <li><span style="color: var(--aws-teal);">1.</span> DataGrip (または対応する JetBrains IDE) を開く</li>
+          <li><span style="color: var(--aws-teal);">2.</span> AI Chat パネルを開く</li>
+          <li><span style="color: var(--aws-teal);">3.</span> メニューから "Add Custom Agent" を選択</li>
+          <li><span style="color: var(--aws-teal);">4.</span> ACP 設定ファイルのパスを指定</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- メリット -->
+    <div class="section">
+      <h2>✅ メリット</h2>
+      <div class="merit-grid">
+        <div class="merit-column business">
+          <div class="merit-title">💼 ビジネス面</div>
+          <ul class="merit-list">
+            <li><span style="color: var(--aws-teal);">✓</span> <span><strong>開発環境の選択肢拡大:</strong> 開発者が使い慣れた IDE で Kiro のエージェント機能を活用可能</span></li>
+            <li><span style="color: var(--aws-teal);">✓</span> <span><strong>統合コストの削減:</strong> ACP 標準プロトコルにより個別のカスタム統合が不要</span></li>
+            <li><span style="color: var(--aws-teal);">✓</span> <span><strong>専門チームの生産性向上:</strong> DBA、モバイル開発者など専門特化型 IDE ユーザーも Kiro を利用可能</span></li>
+          </ul>
+        </div>
+        <div class="merit-column tech">
+          <div class="merit-title">🔧 技術面</div>
+          <ul class="merit-list">
+            <li><span style="color: var(--aws-purple);">✓</span> <span><strong>プロトコル標準化:</strong> LSP と同様のアーキテクチャで信頼性の高い通信を実現</span></li>
+            <li><span style="color: var(--aws-purple);">✓</span> <span><strong>ドメイン知識の活用:</strong> IDE 固有の情報と AI エージェントの組み合わせ</span></li>
+            <li><span style="color: var(--aws-purple);">✓</span> <span><strong>拡張性:</strong> ACP 対応 IDE が増えるたびに自動的に Kiro の利用範囲が拡大</span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- デメリット・制約事項 -->
+    <div class="section">
+      <h2>⚠️ デメリット・制約事項</h2>
+      <div class="caution-card">
+        <div class="caution-title">🚧 制限事項</div>
+        <ul class="caution-list">
+          <li><span>⚠️</span> ACP 対応 IDE のみで利用可能 (非対応 IDE では Kiro IDE または CLI を直接使用)</li>
+          <li><span>⚠️</span> IDE ごとの ACP 設定方法が異なる場合がある</li>
+          <li><span>⚠️</span> ACP はまだ新しいプロトコルであり、IDE ごとの実装成熟度に差がある可能性がある</li>
+        </ul>
+      </div>
+      <div class="caution-card" style="background: rgba(255, 153, 0, 0.08); border-color: rgba(255, 153, 0, 0.3); margin-top: 12px;">
+        <div class="caution-title" style="color: var(--aws-orange);">💡 考慮すべき点</div>
+        <ul class="caution-list">
+          <li><span>📌</span> Kiro CLI のパスを環境に合わせて正しく設定する必要がある</li>
+          <li><span>📌</span> IDE のバージョンが ACP に対応しているか事前に確認が必要</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- ユースケース -->
+    <div class="section">
+      <h2>🎯 ユースケース</h2>
+      <div class="usecase-grid">
+        <div class="usecase-card">
+          <div class="usecase-icon">🗄️</div>
+          <div class="usecase-title">DataGrip でのデータベース開発</div>
+          <div class="usecase-desc">DBA が DataGrip を使用して SQL クエリの生成やパフォーマンスチューニングを行う</div>
+          <div class="usecase-effect">✅ DataGrip のスキーマ情報と Kiro のエージェント機能を組み合わせ、SQL クエリ生成・スロークエリのデバッグ・マイグレーションスクリプト作成を効率化</div>
+        </div>
+        <div class="usecase-card">
+          <div class="usecase-icon">🟢</div>
+          <div class="usecase-title">Neovim でのフルスタック開発</div>
+          <div class="usecase-desc">Neovim を常用する開発者が、ターミナル環境を離れずに AI エージェント機能を活用する</div>
+          <div class="usecase-effect">✅ 使い慣れたエディタ環境を維持しながら、Kiro のスペック駆動開発やコード生成機能を利用可能</div>
+        </div>
+        <div class="usecase-card">
+          <div class="usecase-icon">☕</div>
+          <div class="usecase-title">JetBrains IDE でのエンタープライズ開発</div>
+          <div class="usecase-desc">IntelliJ IDEA を使用する Java 開発チームが、既存の開発フローに AI エージェントを統合する</div>
+          <div class="usecase-effect">✅ IntelliJ IDEA の強力な Java サポートと Kiro のエージェント機能を組み合わせ、テストデータ生成・リファクタリング提案を実現</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 利用可能リージョン -->
+    <div class="section">
+      <h2>🌍 利用可能リージョン</h2>
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <span class="region-badge">🌐 グローバル</span>
+        <span style="font-size: 14px;">全リージョンで利用可能</span>
+      </div>
+    </div>
+
+    <!-- 関連サービス -->
+    <div class="section">
+      <h2>🔗 関連サービス・機能</h2>
+      <div class="related-grid">
+        <div class="related-card">
+          <div class="related-icon">🚀</div>
+          <div class="related-name">Kiro 0.9</div>
+          <div class="related-desc">カスタムサブエージェント、Agent Skills、エンタープライズ制御の同時リリース</div>
+        </div>
+        <div class="related-card">
+          <div class="related-icon">🔧</div>
+          <div class="related-name">MCP</div>
+          <div class="related-desc">Model Context Protocol - 外部ツールとの統合プロトコル</div>
+        </div>
+        <div class="related-card">
+          <div class="related-icon">📡</div>
+          <div class="related-name">LSP</div>
+          <div class="related-desc">Language Server Protocol - ACP の設計思想の基盤</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- まとめ -->
+    <div class="section" style="border: 1px solid var(--aws-orange); background: linear-gradient(135deg, rgba(255, 153, 0, 0.08) 0%, var(--aws-dark-squid) 100%);">
+      <h2>📝 まとめ</h2>
+      <div class="overview-text" style="font-size: 15px;">
+        Kiro CLI の ACP サポートにより、JetBrains IDE、Eclipse、Emacs、Zed、Neovim など多様な IDE から Kiro のエージェント機能を利用できるようになりました。ACP は LSP と同様にエディタとエージェント間の通信を標準化するプロトコルであり、<span class="highlight">専門特化型 IDE のドメイン知識と AI エージェントの組み合わせ</span>という新しい開発体験を提供します。
+      </div>
+      <div style="background: rgba(255, 153, 0, 0.15); border-radius: 8px; padding: 16px; text-align: center;">
+        <p style="font-size: 16px; color: var(--aws-white); margin: 0;">🚀 使い慣れた IDE で AI エージェント機能を活用したい開発者は、<br/>Kiro CLI の ACP モードをぜひお試しください</p>
+      </div>
+    </div>
+
+    <!-- フッター -->
+    <footer>
+      <p>📎 出典:</p>
+      <ul class="footer-links">
+        <li>📄 <a href="https://kiro.dev/blog/kiro-adopts-acp/" target="_blank" rel="noopener noreferrer">公式ブログ - Kiro Adopts ACP</a></li>
+        <li>📋 <a href="https://kiro.dev/changelog/" target="_blank" rel="noopener noreferrer">Kiro Changelog</a></li>
+        <li>📖 <a href="https://kiro.dev/docs/cli/" target="_blank" rel="noopener noreferrer">Kiro CLI ドキュメント</a></li>
+        <li>🌐 <a href="https://kiro.dev/" target="_blank" rel="noopener noreferrer">Kiro 公式サイト</a></li>
+      </ul>
+    </footer>
+  </div>
+</body>
+</html>

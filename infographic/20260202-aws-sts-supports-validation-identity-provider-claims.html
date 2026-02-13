@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AWS STS - アイデンティティプロバイダー固有クレームの検証サポート</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/styles/atom-one-dark.min.css">
+    <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/highlight.min.js"></script>
+    <script>hljs.highlightAll();</script>
+    <style>
+        :root {
+            --aws-squid-ink: #232F3E;
+            --aws-dark-squid: #1A242F;
+            --aws-orange: #FF9900;
+            --aws-smile-orange: #FFAD33;
+            --aws-white: #FFFFFF;
+            --aws-light-gray: #D5DBDB;
+            --aws-teal: #00A1C9;
+            --aws-purple: #8C4FFF;
+            --aws-green: #1D8102;
+            --aws-red: #D13212;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            background: var(--aws-squid-ink);
+            color: var(--aws-light-gray);
+            line-height: 1.8;
+            padding: 40px 20px;
+        }
+        .container { max-width: 1000px; margin: 0 auto; }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 40px 24px;
+            background: linear-gradient(135deg, var(--aws-dark-squid) 0%, var(--aws-squid-ink) 100%);
+            border-radius: 12px;
+            border: 3px solid var(--aws-orange);
+        }
+        .service-badge {
+            display: inline-block;
+            background: var(--aws-orange);
+            color: var(--aws-squid-ink);
+            padding: 8px 24px;
+            border-radius: 24px;
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 16px;
+        }
+        .header h1 {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--aws-white);
+            margin-bottom: 12px;
+            line-height: 1.4;
+        }
+        .header .subtitle { font-size: 16px; color: var(--aws-light-gray); line-height: 1.7; }
+        .release-date {
+            font-size: 14px;
+            color: var(--aws-orange);
+            margin-top: 16px;
+            font-weight: 600;
+        }
+
+        /* Sections */
+        .section {
+            background: var(--aws-dark-squid);
+            padding: 24px;
+            border-radius: 8px;
+            margin-bottom: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .section h2 {
+            font-size: 22px;
+            font-weight: 600;
+            color: var(--aws-orange);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Before/After Comparison */
+        .comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        @media (max-width: 768px) { .comparison { grid-template-columns: 1fr; } }
+        .comparison-card {
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 5px solid;
+        }
+        .comparison-card.before {
+            background: rgba(209, 50, 18, 0.15);
+            border-left-color: var(--aws-red);
+        }
+        .comparison-card.after {
+            background: rgba(29, 129, 2, 0.15);
+            border-left-color: var(--aws-green);
+        }
+        .comparison-card h4 { font-size: 16px; margin-bottom: 12px; font-weight: 600; }
+        .comparison-card.before h4 { color: var(--aws-red); }
+        .comparison-card.after h4 { color: var(--aws-green); }
+        .comparison-card ul { list-style: none; padding-left: 0; }
+        .comparison-card li {
+            margin-bottom: 8px;
+            padding-left: 20px;
+            position: relative;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        .comparison-card.before li::before { content: "\2715"; position: absolute; left: 0; color: var(--aws-red); font-weight: bold; }
+        .comparison-card.after li::before { content: "\2713"; position: absolute; left: 0; color: var(--aws-green); font-weight: bold; }
+
+        /* Cards */
+        .card {
+            background: var(--aws-dark-squid);
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 153, 0, 0.3);
+            margin-bottom: 16px;
+        }
+        .card h3 {
+            font-size: 18px;
+            color: var(--aws-orange);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .card p { font-size: 15px; color: var(--aws-light-gray); }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-top: 16px;
+        }
+        @media (max-width: 768px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
+        .stats-card {
+            background: linear-gradient(135deg, var(--aws-orange) 0%, #FF6B00 100%);
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            color: var(--aws-white);
+        }
+        .stats-card .number { font-size: 26px; font-weight: bold; line-height: 1; }
+        .stats-card .label { font-size: 13px; margin-top: 8px; }
+
+        /* Use Case */
+        .usecase {
+            background: linear-gradient(135deg, rgba(255, 153, 0, 0.15) 0%, rgba(255, 153, 0, 0.05) 100%);
+            padding: 20px;
+            border-radius: 8px;
+            border: 2px solid rgba(255, 153, 0, 0.3);
+            margin-bottom: 16px;
+        }
+        .usecase h3 { font-size: 18px; color: var(--aws-orange); margin-bottom: 8px; }
+        .usecase p { font-size: 15px; color: #EEEEEE; }
+
+        /* Highlight */
+        .highlight {
+            background: rgba(255, 153, 0, 0.2);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+            color: var(--aws-orange);
+        }
+
+        /* Links */
+        a { color: var(--aws-teal); text-decoration: none; }
+        a:hover { color: var(--aws-smile-orange); text-decoration: underline; }
+
+        /* Mermaid */
+        .mermaid-container {
+            background: #FFFFFF;
+            border-radius: 12px;
+            padding: 24px;
+            margin: 20px 0;
+            border: 2px solid rgba(255, 153, 0, 0.3);
+            overflow-x: auto;
+        }
+        .mermaid {
+            display: flex;
+            justify-content: center;
+        }
+
+        /* Table */
+        .spec-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 16px;
+            font-size: 14px;
+        }
+        .spec-table th {
+            background: rgba(255, 153, 0, 0.2);
+            color: var(--aws-orange);
+            padding: 12px 16px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid var(--aws-orange);
+        }
+        .spec-table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--aws-light-gray);
+        }
+        .spec-table tr:hover td {
+            background: rgba(255, 153, 0, 0.05);
+        }
+        .spec-table code {
+            background: rgba(255, 153, 0, 0.15);
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 12px;
+            color: var(--aws-smile-orange);
+            font-family: 'Courier New', monospace;
+        }
+
+        /* Code Block */
+        .code-block {
+            background: #1a1a2e;
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 16px 0;
+        }
+        .code-header {
+            background: #16213e;
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+        }
+        .code-lang {
+            color: var(--aws-orange);
+            font-weight: bold;
+        }
+        .code-title {
+            color: var(--aws-light-gray);
+        }
+        .code-block pre {
+            margin: 0;
+            padding: 0;
+            overflow-x: auto;
+        }
+        .code-block code {
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            padding: 16px !important;
+        }
+
+        /* Flow Diagram */
+        .flow-diagram {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin: 24px 0;
+        }
+        .flow-step {
+            background: var(--aws-dark-squid);
+            border: 2px solid var(--aws-orange);
+            border-radius: 8px;
+            padding: 12px 20px;
+            text-align: center;
+            min-width: 120px;
+        }
+        .flow-arrow { color: var(--aws-orange); font-size: 24px; font-weight: bold; }
+
+        /* Provider Grid */
+        .provider-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            margin-top: 16px;
+        }
+        @media (max-width: 768px) { .provider-grid { grid-template-columns: 1fr; } }
+        .provider-card {
+            background: rgba(0, 161, 201, 0.1);
+            border: 2px solid var(--aws-teal);
+            border-radius: 8px;
+            padding: 16px;
+        }
+        .provider-card h4 {
+            color: var(--aws-teal);
+            font-size: 16px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .provider-card p {
+            font-size: 14px;
+            color: var(--aws-light-gray);
+        }
+        .provider-card .claims {
+            margin-top: 8px;
+            font-size: 13px;
+        }
+        .provider-card .claims code {
+            background: rgba(255, 153, 0, 0.15);
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 12px;
+            color: var(--aws-smile-orange);
+            font-family: 'Courier New', monospace;
+        }
+
+        /* Limitation */
+        .limitation-list {
+            list-style: none;
+            padding-left: 0;
+        }
+        .limitation-list li {
+            padding: 8px 0 8px 24px;
+            position: relative;
+            font-size: 14px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .limitation-list li::before {
+            position: absolute;
+            left: 0;
+            font-weight: bold;
+        }
+        .limitation-list.warn li::before {
+            content: "\26A0";
+            color: var(--aws-orange);
+        }
+        .limitation-list.note li::before {
+            content: "\1F4DD";
+        }
+
+        /* Pricing Badge */
+        .pricing-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--aws-green), #2ecc71);
+            color: var(--aws-white);
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 700;
+            margin-top: 8px;
+        }
+
+        /* Region Badge */
+        .region-badge {
+            display: inline-block;
+            background: rgba(0, 161, 201, 0.15);
+            border: 2px solid var(--aws-teal);
+            color: var(--aws-teal);
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            margin-top: 8px;
+        }
+
+        /* Related Services */
+        .related-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-top: 16px;
+        }
+        @media (max-width: 768px) { .related-grid { grid-template-columns: 1fr; } }
+        .related-card {
+            background: rgba(140, 79, 255, 0.1);
+            border: 1px solid rgba(140, 79, 255, 0.3);
+            border-radius: 8px;
+            padding: 16px;
+            text-align: center;
+        }
+        .related-card h4 {
+            color: var(--aws-purple);
+            font-size: 15px;
+            margin-bottom: 6px;
+        }
+        .related-card p {
+            font-size: 13px;
+            color: var(--aws-light-gray);
+        }
+
+        /* Footer */
+        footer {
+            margin-top: 32px;
+            padding: 24px;
+            background: var(--aws-dark-squid);
+            border-radius: 8px;
+            border-top: 3px solid var(--aws-orange);
+        }
+        footer h3 { font-size: 18px; color: var(--aws-orange); margin-bottom: 16px; }
+        footer a {
+            display: block;
+            margin-bottom: 10px;
+            padding: 8px 12px;
+            background: rgba(255, 153, 0, 0.1);
+            border-radius: 6px;
+            word-break: break-all;
+        }
+        .footer-note {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid #333;
+            font-size: 12px;
+            color: #888;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'base',
+            themeVariables: {
+                primaryColor: '#FF9900',
+                primaryTextColor: '#232F3E',
+                primaryBorderColor: '#FF9900',
+                lineColor: '#FF9900',
+                secondaryColor: '#F5F5F5',
+                tertiaryColor: '#FAFAFA',
+                background: '#FFFFFF',
+                mainBkg: '#FFF3E0',
+                nodeBorder: '#FF9900',
+                clusterBkg: '#FFF8E1',
+                clusterBorder: '#FF9900',
+                edgeLabelBackground: '#FFFFFF',
+                textColor: '#232F3E'
+            }
+        });
+    </script>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="service-badge">AWS Security Token Service</div>
+            <h1>🔐 アイデンティティプロバイダー固有クレームの検証サポート</h1>
+            <div class="subtitle">OIDC フェデレーションで GitHub、Google、CircleCI、OCI のカスタムクレームを<br>IAM ポリシーの条件キーとして活用し、きめ細かなアクセス制御を実現</div>
+            <div class="release-date">📅 リリース日: 2026 年 2 月 2 日</div>
+        </div>
+
+        <!-- Overview -->
+        <div class="section">
+            <h2>📊 概要</h2>
+            <p>AWS STS が、<span class="highlight">Google、GitHub、CircleCI、OCI</span> からの特定のアイデンティティプロバイダー固有クレームの検証をサポート。OIDC フェデレーションを使用した <span class="highlight">AssumeRoleWithWebIdentity</span> API 呼び出しにおいて、IAM ロール信頼ポリシーとリソースコントロールポリシーでカスタムクレームを条件キーとして参照できるようになりました。</p>
+
+            <div class="comparison">
+                <div class="comparison-card before">
+                    <h4>⚠️ アップデート前</h4>
+                    <ul>
+                        <li>標準的な OIDC クレームのみが条件キーとして使用可能</li>
+                        <li>プロバイダー固有のカスタムクレームを信頼ポリシーで参照不可</li>
+                        <li>GitHub Actions や CircleCI からのアクセス制御が制限的</li>
+                    </ul>
+                </div>
+                <div class="comparison-card after">
+                    <h4>✨ アップデート後</h4>
+                    <ul>
+                        <li>Google、GitHub、CircleCI、OCI の特定クレームを条件キーとして使用可能</li>
+                        <li>より詳細なアクセス制御ポリシーを実装可能</li>
+                        <li>CI/CD パイプラインからの AWS アクセスをより安全に制御</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Architecture Diagram -->
+        <div class="section">
+            <h2>🏗️ アーキテクチャ図</h2>
+            <p>外部 IdP から発行された OIDC トークンのプロバイダー固有クレームを AWS STS が検証し、IAM ロールの信頼ポリシーで条件として使用できます。</p>
+            <div class="mermaid-container">
+                <pre class="mermaid">
+flowchart TD
+    subgraph IdP["🔐 アイデンティティプロバイダー"]
+        direction LR
+        GitHub["🐙 GitHub"]
+        Google["🔵 Google"]
+        CircleCI["⚪ CircleCI"]
+        OCI["🟠 OCI"]
+        GitHub ~~~ Google ~~~ CircleCI ~~~ OCI
+    end
+
+    subgraph Token["📜 OIDC トークン"]
+        Claims["クレーム:<br/>- sub<br/>- aud<br/>- repository<br/>- workflow 等"]
+    end
+
+    subgraph AWS["☁️ AWS"]
+        STS["🔑 AWS STS<br/>AssumeRoleWithWebIdentity"]
+
+        subgraph Policy["📋 信頼ポリシー"]
+            Condition["条件キー:<br/>- token.actions.githubusercontent.com:repository<br/>- accounts.google.com:email<br/>等"]
+        end
+
+        Role["👤 IAM ロール"]
+    end
+
+    IdP --> |OIDC トークン発行| Token
+    Token --> |トークン提示| STS
+    STS --> |クレーム検証| Policy
+    Policy --> |条件一致| Role
+
+    classDef idp fill:#E8F5E9,stroke:#66BB6A,stroke-width:2px,color:#2E7D32
+    classDef token fill:#FFF3E0,stroke:#FF9800,stroke-width:2px,color:#E65100
+    classDef aws fill:none,stroke:#FF9900,stroke-width:2px,color:#232F3E
+    classDef service fill:#FFE0B2,stroke:#FFCC80,stroke-width:2px,color:#5D4037
+
+    class IdP,GitHub,Google,CircleCI,OCI idp
+    class Token,Claims token
+    class AWS aws
+    class STS,Policy,Condition,Role service
+                </pre>
+            </div>
+        </div>
+
+        <!-- Key Features -->
+        <div class="section">
+            <h2>🎯 主要機能</h2>
+            <div class="card">
+                <h3>🔍 プロバイダー固有クレームの検証</h3>
+                <p>GitHub のリポジトリ・ワークフロー・ブランチ、Google のメールアドレス・ドメイン、CircleCI のプロジェクト・ジョブ、OCI のコンパートメント・テナンシーなど、各プロバイダー固有のクレームを検証できます。</p>
+            </div>
+            <div class="card">
+                <h3>📋 IAM ポリシーでの条件キー使用</h3>
+                <p>IAM ロール信頼ポリシーでカスタムクレームを条件として指定可能。リソースコントロールポリシー (RCP) でも使用でき、きめ細かなアクセス制御を実装できます。</p>
+            </div>
+            <div class="card">
+                <h3>🛡️ データ境界の強化</h3>
+                <p>特定のリポジトリ、ワークフロー、環境からのみアクセスを許可し、不正なアクセス試行をブロック。最小権限の原則を IdP レベルで適用できます。</p>
+            </div>
+        </div>
+
+        <!-- Supported Providers -->
+        <div class="section">
+            <h2>🔧 サポートされるプロバイダーとクレーム</h2>
+            <div class="provider-grid">
+                <div class="provider-card">
+                    <h4>🐙 GitHub</h4>
+                    <p>条件キープレフィックス:<br><code>token.actions.githubusercontent.com</code></p>
+                    <div class="claims">主なクレーム: <code>repository</code>, <code>workflow</code>, <code>ref</code>, <code>environment</code></div>
+                </div>
+                <div class="provider-card">
+                    <h4>🔵 Google</h4>
+                    <p>条件キープレフィックス:<br><code>accounts.google.com</code></p>
+                    <div class="claims">主なクレーム: <code>email</code>, <code>email_verified</code>, <code>hd</code></div>
+                </div>
+                <div class="provider-card">
+                    <h4>⚪ CircleCI</h4>
+                    <p>条件キープレフィックス:<br><code>oidc.circleci.com</code></p>
+                    <div class="claims">主なクレーム: <code>project_id</code>, <code>vcs_url</code></div>
+                </div>
+                <div class="provider-card">
+                    <h4>🟠 OCI</h4>
+                    <p>条件キープレフィックス:<br><code>identity.oraclecloud.com</code></p>
+                    <div class="claims">主なクレーム: <code>tenancy_id</code>, <code>compartment_id</code></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="section">
+            <h2>📈 数字で見るアップデート</h2>
+            <div class="stats-grid">
+                <div class="stats-card">
+                    <div class="number">4</div>
+                    <div class="label">対応 IdP 数</div>
+                </div>
+                <div class="stats-card">
+                    <div class="number">OIDC</div>
+                    <div class="label">標準準拠</div>
+                </div>
+                <div class="stats-card">
+                    <div class="number">無料</div>
+                    <div class="label">追加料金なし</div>
+                </div>
+                <div class="stats-card">
+                    <div class="number">全リージョン</div>
+                    <div class="label">利用可能</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Setup Guide -->
+        <div class="section">
+            <h2>⚙️ 設定方法</h2>
+            <p style="margin-bottom: 16px;">3 ステップで設定できます。</p>
+
+            <div class="flow-diagram">
+                <div class="flow-step">🔧 OIDC プロバイダー<br>作成</div>
+                <span class="flow-arrow">&rarr;</span>
+                <div class="flow-step">📋 IAM ロール<br>+ 信頼ポリシー</div>
+                <span class="flow-arrow">&rarr;</span>
+                <div class="flow-step">🚀 ワークフローで<br>使用</div>
+            </div>
+
+            <h3 style="color: var(--aws-orange); margin: 20px 0 12px; font-size: 16px;">ステップ 1: OIDC プロバイダーの作成</h3>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Bash</span>
+                    <span class="code-title">GitHub Actions 用 OIDC プロバイダーを作成</span>
+                </div>
+                <pre><code class="language-bash">aws iam create-open-id-connect-provider \
+    --url https://token.actions.githubusercontent.com \
+    --client-id-list sts.amazonaws.com \
+    --thumbprint-list 6938fd4d98bab03faadb97b34396831e3780aea1</code></pre>
+            </div>
+
+            <h3 style="color: var(--aws-orange); margin: 20px 0 12px; font-size: 16px;">ステップ 2: IAM ロールと信頼ポリシーの作成</h3>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Bash</span>
+                    <span class="code-title">信頼ポリシーを含む IAM ロールを作成</span>
+                </div>
+                <pre><code class="language-bash">aws iam create-role \
+    --role-name GitHubActionsRole \
+    --assume-role-policy-document file://trust-policy.json</code></pre>
+            </div>
+
+            <h3 style="color: var(--aws-orange); margin: 20px 0 12px; font-size: 16px;">ステップ 3: GitHub Actions ワークフローでの使用</h3>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">YAML</span>
+                    <span class="code-title">.github/workflows/deploy.yml</span>
+                </div>
+                <pre><code class="language-yaml">jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::123456789012:role/GitHubActionsRole
+          aws-region: us-east-1</code></pre>
+            </div>
+        </div>
+
+        <!-- Trust Policy Examples -->
+        <div class="section">
+            <h2>📝 信頼ポリシー例</h2>
+            <h3 style="color: var(--aws-orange); margin-bottom: 12px; font-size: 16px;">🐙 GitHub Actions 用</h3>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">JSON</span>
+                    <span class="code-title">リポジトリとブランチを条件に指定</span>
+                </div>
+                <pre><code class="language-json">{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Principal": {
+                "Federated": "arn:aws:iam::123456789012:oidc-provider/token.actions.githubusercontent.com"
+            },
+            "Action": "sts:AssumeRoleWithWebIdentity",
+            "Condition": {
+                "StringEquals": {
+                    "token.actions.githubusercontent.com:aud": "sts.amazonaws.com"
+                },
+                "StringLike": {
+                    "token.actions.githubusercontent.com:sub": "repo:my-org/my-repo:*",
+                    "token.actions.githubusercontent.com:repository": "my-org/my-repo"
+                }
+            }
+        }
+    ]
+}</code></pre>
+            </div>
+
+            <h3 style="color: var(--aws-orange); margin: 20px 0 12px; font-size: 16px;">⚪ CircleCI 用</h3>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">JSON</span>
+                    <span class="code-title">プロジェクト ID を条件に指定</span>
+                </div>
+                <pre><code class="language-json">{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Principal": {
+                "Federated": "arn:aws:iam::123456789012:oidc-provider/oidc.circleci.com/org/my-org-id"
+            },
+            "Action": "sts:AssumeRoleWithWebIdentity",
+            "Condition": {
+                "StringEquals": {
+                    "oidc.circleci.com/org/my-org-id:aud": "my-org-id",
+                    "oidc.circleci.com/org/my-org-id:project_id": "my-project-uuid"
+                }
+            }
+        }
+    ]
+}</code></pre>
+            </div>
+        </div>
+
+        <!-- Use Cases -->
+        <div class="section">
+            <h2>💡 ユースケース</h2>
+            <div class="usecase">
+                <h3>🚀 GitHub Actions からの安全なデプロイ</h3>
+                <p>特定のリポジトリの main ブランチからのみ本番環境にデプロイを許可。<code>repository</code> と <code>ref</code> クレームで制御します。</p>
+                <div class="code-block" style="margin-top: 12px;">
+                    <div class="code-header">
+                        <span class="code-lang">JSON</span>
+                        <span class="code-title">条件例</span>
+                    </div>
+                    <pre><code class="language-json">{
+    "Condition": {
+        "StringEquals": {
+            "token.actions.githubusercontent.com:repository": "my-org/my-app",
+            "token.actions.githubusercontent.com:ref": "refs/heads/main"
+        }
+    }
+}</code></pre>
+                </div>
+            </div>
+            <div class="usecase">
+                <h3>👤 Google Workspace ユーザーのアクセス制御</h3>
+                <p>特定のドメインの Google アカウントからのみ AWS リソースへのアクセスを許可。<code>hd</code> と <code>email_verified</code> クレームで制御します。</p>
+                <div class="code-block" style="margin-top: 12px;">
+                    <div class="code-header">
+                        <span class="code-lang">JSON</span>
+                        <span class="code-title">条件例</span>
+                    </div>
+                    <pre><code class="language-json">{
+    "Condition": {
+        "StringEquals": {
+            "accounts.google.com:hd": "mycompany.com",
+            "accounts.google.com:email_verified": "true"
+        }
+    }
+}</code></pre>
+                </div>
+            </div>
+            <div class="usecase">
+                <h3>🔄 CircleCI パイプラインの分離</h3>
+                <p>各プロジェクトの CircleCI パイプラインを専用の IAM ロールに制限。<code>project_id</code> クレームで制御します。</p>
+                <div class="code-block" style="margin-top: 12px;">
+                    <div class="code-header">
+                        <span class="code-lang">JSON</span>
+                        <span class="code-title">条件例</span>
+                    </div>
+                    <pre><code class="language-json">{
+    "Condition": {
+        "StringEquals": {
+            "oidc.circleci.com/org/my-org-id:project_id": "project-uuid-123"
+        }
+    }
+}</code></pre>
+                </div>
+            </div>
+        </div>
+
+        <!-- Benefits -->
+        <div class="section">
+            <h2>✅ メリット</h2>
+            <div class="comparison">
+                <div class="comparison-card after" style="border-left-color: var(--aws-teal); background: rgba(0, 161, 201, 0.1);">
+                    <h4 style="color: var(--aws-teal);">💼 ビジネス面</h4>
+                    <ul>
+                        <li><strong>セキュリティ強化</strong>: 特定のリポジトリやプロジェクトからのみアクセスを許可</li>
+                        <li><strong>コンプライアンス対応</strong>: データ境界の確立と監査証跡の改善</li>
+                        <li><strong>運用効率</strong>: 長期認証情報の管理が不要</li>
+                    </ul>
+                </div>
+                <div class="comparison-card after" style="border-left-color: var(--aws-purple); background: rgba(140, 79, 255, 0.1);">
+                    <h4 style="color: var(--aws-purple);">🔧 技術面</h4>
+                    <ul>
+                        <li><strong>きめ細かな制御</strong>: プロバイダー固有の属性に基づくアクセス制御</li>
+                        <li><strong>標準準拠</strong>: OIDC 標準に基づく安全なフェデレーション</li>
+                        <li><strong>柔軟性</strong>: 複数の IdP と条件を組み合わせた複雑なポリシーが可能</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Limitations -->
+        <div class="section">
+            <h2>⚠️ 制限事項・注意点</h2>
+            <div class="comparison">
+                <div class="comparison-card before" style="background: rgba(255, 153, 0, 0.1); border-left-color: var(--aws-orange);">
+                    <h4 style="color: var(--aws-orange);">📌 制限事項</h4>
+                    <ul>
+                        <li>サポートされる IdP は Google、GitHub、CircleCI、OCI に限定</li>
+                        <li>すべてのプロバイダー固有クレームがサポートされているわけではない</li>
+                        <li>IAM OIDC プロバイダーの事前設定が必要</li>
+                    </ul>
+                </div>
+                <div class="comparison-card before" style="background: rgba(255, 153, 0, 0.1); border-left-color: var(--aws-orange);">
+                    <h4 style="color: var(--aws-orange);">💭 考慮すべき点</h4>
+                    <ul>
+                        <li>クレーム値の変更に注意が必要 (リポジトリ名の変更など)</li>
+                        <li>条件キーの正確な構文を確認すること</li>
+                        <li>IdP 側の設定も適切に行う必要がある</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pricing -->
+        <div class="section">
+            <h2>💰 料金</h2>
+            <p>この機能に追加料金はありません。</p>
+            <div style="margin-top: 12px;">
+                <span class="pricing-badge">追加料金なし</span>
+            </div>
+            <p style="margin-top: 12px; font-size: 14px;">AWS STS の標準料金が適用されます。AssumeRoleWithWebIdentity は無料です。</p>
+        </div>
+
+        <!-- Region -->
+        <div class="section">
+            <h2>🌏 利用可能リージョン</h2>
+            <p>この機能は、AWS STS が利用可能なすべての AWS リージョンで利用可能です。</p>
+            <div style="margin-top: 12px;">
+                <span class="region-badge">🌐 全 AWS リージョンで利用可能</span>
+            </div>
+        </div>
+
+        <!-- Related Services -->
+        <div class="section">
+            <h2>🔗 関連サービス</h2>
+            <div class="related-grid">
+                <div class="related-card">
+                    <h4>🔐 IAM Identity Center</h4>
+                    <p>組織全体のアイデンティティ管理</p>
+                </div>
+                <div class="related-card">
+                    <h4>📜 IAM Roles Anywhere</h4>
+                    <p>X.509 証明書ベースのフェデレーション</p>
+                </div>
+                <div class="related-card">
+                    <h4>🏢 Organizations SCP</h4>
+                    <p>サービスコントロールポリシーとの連携</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer>
+            <h3>📎 出典・参考リンク</h3>
+            <a href="https://aws.amazon.com/about-aws/whats-new/2026/01/aws-sts-supports-validation-identity-provider-claims" target="_blank">🔗 公式発表 (What's New)</a>
+            <a href="https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_providers_oidc.html" target="_blank">📖 IAM OIDC フェデレーション ドキュメント</a>
+            <a href="https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/configuring-openid-connect-in-amazon-web-services" target="_blank">🐙 GitHub Actions OIDC 設定ガイド</a>
+            <p class="footer-note">🤖 Generated with Claude Code | 📅 2026-02-13</p>
+        </footer>
+    </div>
+</body>
+</html>
