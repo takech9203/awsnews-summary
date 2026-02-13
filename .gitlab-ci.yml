@@ -1,0 +1,165 @@
+# GitLab CI Configuration for AWS News Summary Automation
+#
+# This pipeline runs the awsnews-summary skill daily to fetch and summarize
+# the latest AWS news updates using Claude model from Amazon Bedrock.
+#
+# Required GitLab CI/CD Variables:
+# - AWS_ROLE_ARN: ARN of the IAM role to assume (requires Bedrock access)
+# - CI_PUSH_TOKEN: GitLab token with write access to repository
+# - INFOGRAPHIC_BASE_URL: Base URL for infographic pages (e.g. https://your-user.github.io/your-repo, without trailing slash)
+#
+# IAM Role Permissions Required:
+# - bedrock:InvokeModel (for Claude models via global.* inference profiles)
+# - Inference profile access: arn:aws:bedrock:*:*:inference-profile/global.anthropic.claude-*
+# - Regional FM access: arn:aws:bedrock:*::foundation-model/anthropic.claude-*
+# - Global FM access: arn:aws:bedrock:::foundation-model/anthropic.claude-*
+# - Trust policy must allow the GitLab runner IAM role to assume this role
+#   with appropriate GitLab:Group and GitLab:Project condition tags
+#
+# Setup Guide: docs/SETUP.md (日本語) / docs/SETUP-en.md (English)
+#
+# NOTE: This pipeline is currently disabled. To enable, remove the
+# workflow section below and uncomment the rules in each job.
+
+workflow:
+  rules:
+    - when: never
+
+stages:
+  - report
+  - deploy
+
+variables:
+  PYTHON_VERSION: "3.12"
+  GIT_STRATEGY: clone
+  GIT_DEPTH: 0
+  AWS_DEFAULT_REGION: "us-east-1"
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.pip-cache"
+  # INFOGRAPHIC_BASE_URL: GitLab CI/CD Variables で設定すること
+  #   Settings > CI/CD > Variables > INFOGRAPHIC_BASE_URL
+  #   例: https://your-user.gitlab.io/your-repo (末尾スラッシュなし)
+
+# Daily scheduled job (also supports manual trigger)
+aws_news_summary:
+  stage: report
+  image: public.ecr.aws/docker/library/python:${PYTHON_VERSION}-slim
+
+  cache:
+    key: pip-${PYTHON_VERSION}
+    paths:
+      - .pip-cache/
+
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule" && $AWS_ROLE_ARN
+    - if: $CI_PIPELINE_SOURCE == "web" && $AWS_ROLE_ARN
+    - if: $CI_PIPELINE_SOURCE == "api" && $AWS_ROLE_ARN
+    - when: manual
+      allow_failure: true
+
+  variables:
+    AWS_CREDS_TARGET_ROLE: ${AWS_ROLE_ARN}
+    DEBUG: "1"
+    USE_BEDROCK: "1"
+    INFOGRAPHIC_BACKFILL_MAX: "32"
+
+  before_script:
+    - echo "Setting up Python environment..."
+    - python --version
+    - pip --version
+    - echo "Installing system dependencies..."
+    - apt-get update -qq
+    - apt-get install -y -qq curl wget git
+    - pip install --upgrade pip
+    - pip install -r requirements.txt
+    - echo "Installing AWS CLI..."
+    - pip install awscli
+    - echo "Verifying AWS credentials..."
+    - aws sts get-caller-identity
+    - git config --global user.name "AWS News Bot"
+    - git config --global user.email "awsnews-bot@noreply.gitlab.com"
+
+  script:
+    # 1. レポート・インフォグラフィック生成
+    - echo "Starting AWS News Summary generation..."
+    - mkdir -p artifacts/new_reports artifacts/new_infographics
+    - python run.py --debug || true
+
+    # 2. インデックスファイル更新
+    - echo "Updating index files..."
+    - python -c "from run import generate_reports_index; from pathlib import Path; generate_reports_index(Path('reports'))"
+    - python -c "from run import generate_infographic_index; from pathlib import Path; generate_infographic_index(Path('infographic'))"
+
+    # 3. アーティファクト収集
+    - |
+      git status --porcelain reports/ | while IFS= read -r line; do
+        [ -z "$line" ] && continue
+        file="${line:3}"
+        [ -f "$file" ] && mkdir -p "artifacts/new_reports/$(dirname "$file")" && cp "$file" "artifacts/new_reports/$file"
+      done
+      git status --porcelain infographic/ | while IFS= read -r line; do
+        [ -z "$line" ] && continue
+        file="${line:3}"
+        [ -f "$file" ] && cp "$file" "artifacts/new_infographics/"
+      done
+
+    # 4. 一括 commit & push
+    - |
+      if [ -n "$(git status --porcelain reports/ infographic/)" ]; then
+        echo "Committing all new reports and infographics..."
+        git add reports/ infographic/
+        git commit -m "docs(reports): add reports for $(date -u +"%Y-%m-%d")" -m "[skip ci]" || true
+        REMOTE_URL="https://oauth2:${CI_PUSH_TOKEN}@${CI_SERVER_HOST}/${CI_PROJECT_PATH}.git"
+        git fetch "$REMOTE_URL" ${CI_COMMIT_REF_NAME} 2>/dev/null || true
+        git rebase FETCH_HEAD 2>/dev/null || git rebase --abort 2>/dev/null || true
+        git push "$REMOTE_URL" HEAD:${CI_COMMIT_REF_NAME} || true
+      else
+        echo "No new reports or infographics to commit."
+      fi
+
+  artifacts:
+    paths:
+      - artifacts/new_reports/
+      - artifacts/new_infographics/
+    expire_in: 30 days
+    when: always
+
+  timeout: 60m
+
+  retry:
+    max: 2
+    when:
+      - runner_system_failure
+      - stuck_or_timeout_failure
+
+# GitLab Pages deployment for infographic HTML files
+pages:
+  stage: deploy
+  image: public.ecr.aws/docker/library/python:${PYTHON_VERSION}-slim
+
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+    - if: $CI_PIPELINE_SOURCE == "web"
+    - if: $CI_PIPELINE_SOURCE == "api"
+    - when: manual
+      allow_failure: true
+
+  dependencies:
+    - aws_news_summary
+
+  script:
+    - pip install -r requirements.txt -q
+    - mkdir -p public
+    # Copy infographics from repo (already in checkout)
+    - cp infographic/*.html public/ 2>/dev/null || true
+    # Overlay any new infographics from report job artifacts
+    - cp artifacts/new_infographics/*.html public/ 2>/dev/null || true
+    # Regenerate index from public/ contents
+    - python -c "from run import generate_infographic_index; from pathlib import Path; generate_infographic_index(Path('public'))"
+    - echo "Total HTML files in public/:" && ls public/*.html 2>/dev/null | wc -l
+
+  artifacts:
+    paths:
+      - public
+    expire_in: 30 days
+
+  timeout: 15m
