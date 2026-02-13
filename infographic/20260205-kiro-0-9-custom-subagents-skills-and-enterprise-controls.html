@@ -1,0 +1,1109 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kiro 0.9 - カスタムサブエージェント・スキル・エンタープライズ制御</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/styles/atom-one-dark.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap');
+
+        :root {
+            --aws-squid-ink: #232F3E;
+            --aws-dark-squid: #1A242F;
+            --aws-orange: #FF9900;
+            --aws-smile-orange: #FFAD33;
+            --aws-white: #FFFFFF;
+            --aws-light-gray: #D5DBDB;
+            --aws-teal: #00A1C9;
+            --aws-purple: #8C4FFF;
+            --aws-green: #1D8102;
+            --aws-red: #D13212;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background-color: var(--aws-squid-ink);
+            font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            color: var(--aws-light-gray);
+            font-size: 16px;
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 32px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .header-left { flex: 1; min-width: 280px; }
+
+        .service-badge {
+            display: inline-block;
+            background: var(--aws-orange);
+            color: var(--aws-squid-ink);
+            padding: 4px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        h1 {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--aws-white);
+            line-height: 1.3;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            font-size: 16px;
+            color: var(--aws-light-gray);
+        }
+
+        .header-right {
+            text-align: right;
+            font-size: 14px;
+            color: var(--aws-light-gray);
+        }
+
+        .date-badge {
+            background: rgba(255, 153, 0, 0.15);
+            border: 1px solid rgba(255, 153, 0, 0.3);
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-size: 14px;
+            color: var(--aws-orange);
+            font-weight: 600;
+        }
+
+        /* Section */
+        .section {
+            background: var(--aws-dark-squid);
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        h2 {
+            font-size: 22px;
+            font-weight: 600;
+            color: var(--aws-orange);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        h3 {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--aws-white);
+            margin-bottom: 12px;
+            margin-top: 20px;
+        }
+
+        p { margin-bottom: 12px; }
+
+        .highlight {
+            background-color: rgba(255, 153, 0, 0.2);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+            color: var(--aws-orange);
+        }
+
+        /* Before/After */
+        .before-after-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin: 16px 0;
+        }
+
+        .before-card {
+            background: rgba(209, 50, 18, 0.1);
+            border: 1px solid rgba(209, 50, 18, 0.4);
+            border-radius: 8px;
+            padding: 16px;
+        }
+
+        .before-card .card-label {
+            color: var(--aws-red);
+            font-weight: 700;
+            font-size: 14px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .after-card {
+            background: rgba(29, 129, 2, 0.1);
+            border: 1px solid rgba(29, 129, 2, 0.4);
+            border-radius: 8px;
+            padding: 16px;
+        }
+
+        .after-card .card-label {
+            color: var(--aws-green);
+            font-weight: 700;
+            font-size: 14px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .before-card ul, .after-card ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .before-card li, .after-card li {
+            padding: 4px 0;
+            font-size: 14px;
+            display: flex;
+            align-items: flex-start;
+            gap: 6px;
+        }
+
+        .before-card li::before { content: "✗"; color: var(--aws-red); font-weight: bold; }
+        .after-card li::before { content: "✓"; color: var(--aws-green); font-weight: bold; }
+
+        /* Feature Cards */
+        .feature-card {
+            background: rgba(255, 153, 0, 0.05);
+            border-left: 4px solid var(--aws-orange);
+            border-radius: 0 8px 8px 0;
+            padding: 16px 20px;
+            margin: 12px 0;
+        }
+
+        .feature-card-title {
+            font-weight: 700;
+            color: var(--aws-white);
+            font-size: 16px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .feature-card p, .feature-card ul {
+            font-size: 14px;
+            color: var(--aws-light-gray);
+        }
+
+        .feature-card ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .feature-card li {
+            padding: 3px 0;
+            padding-left: 18px;
+            position: relative;
+        }
+
+        .feature-card li::before {
+            content: "→";
+            color: var(--aws-orange);
+            position: absolute;
+            left: 0;
+        }
+
+        /* Tables */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+            font-size: 14px;
+        }
+
+        .data-table th {
+            background: rgba(255, 153, 0, 0.2);
+            color: var(--aws-orange);
+            padding: 10px 12px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid rgba(255, 153, 0, 0.3);
+        }
+
+        .data-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            color: var(--aws-light-gray);
+        }
+
+        .data-table tr:hover td {
+            background: rgba(255, 153, 0, 0.05);
+        }
+
+        /* Use Cases */
+        .usecase-card {
+            background: rgba(255, 153, 0, 0.08);
+            border: 1px solid rgba(255, 153, 0, 0.2);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 12px 0;
+        }
+
+        .usecase-card-title {
+            font-weight: 700;
+            color: var(--aws-orange);
+            font-size: 16px;
+            margin-bottom: 4px;
+        }
+
+        .usecase-scenario {
+            font-size: 14px;
+            color: var(--aws-light-gray);
+            margin-bottom: 12px;
+            font-style: italic;
+        }
+
+        .usecase-effect {
+            font-size: 14px;
+            color: var(--aws-green);
+            font-weight: 500;
+            margin-top: 8px;
+        }
+
+        /* Mermaid */
+        .mermaid-container {
+            background: #FFFFFF;
+            border-radius: 12px;
+            padding: 24px;
+            margin: 20px 0;
+            border: 2px solid rgba(255, 153, 0, 0.3);
+            overflow-x: auto;
+        }
+
+        .mermaid {
+            display: flex;
+            justify-content: center;
+        }
+
+        /* Flow Diagram */
+        .flow-diagram {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin: 24px 0;
+        }
+
+        .flow-step {
+            background: var(--aws-dark-squid);
+            border: 2px solid var(--aws-orange);
+            border-radius: 8px;
+            padding: 12px 20px;
+            text-align: center;
+            min-width: 100px;
+        }
+
+        .flow-arrow {
+            color: var(--aws-orange);
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        /* Merit/Demerit */
+        .merit-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin: 16px 0;
+        }
+
+        .merit-card {
+            background: rgba(29, 129, 2, 0.08);
+            border: 1px solid rgba(29, 129, 2, 0.3);
+            border-radius: 8px;
+            padding: 16px;
+        }
+
+        .merit-card h4 {
+            color: var(--aws-green);
+            font-size: 15px;
+            margin-bottom: 8px;
+        }
+
+        .merit-card li {
+            font-size: 14px;
+            padding: 3px 0;
+        }
+
+        .demerit-card {
+            background: rgba(255, 153, 0, 0.08);
+            border: 1px solid rgba(255, 153, 0, 0.3);
+            border-radius: 8px;
+            padding: 16px;
+        }
+
+        .demerit-card h4 {
+            color: var(--aws-orange);
+            font-size: 15px;
+            margin-bottom: 8px;
+        }
+
+        .demerit-card li {
+            font-size: 14px;
+            padding: 3px 0;
+        }
+
+        .merit-card ul, .demerit-card ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .merit-card li::before { content: "✅ "; }
+        .demerit-card li::before { content: "⚠️ "; }
+
+        /* Stats */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin: 16px 0;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, rgba(255, 153, 0, 0.15), rgba(255, 153, 0, 0.05));
+            border: 1px solid rgba(255, 153, 0, 0.3);
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--aws-orange);
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: var(--aws-light-gray);
+            margin-top: 4px;
+        }
+
+        /* Impact List */
+        .impact-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .impact-list li {
+            padding: 6px 0;
+            padding-left: 24px;
+            position: relative;
+            font-size: 14px;
+        }
+
+        .impact-list li::before {
+            content: "•";
+            color: var(--aws-orange);
+            position: absolute;
+            left: 8px;
+            font-weight: bold;
+        }
+
+        /* Code Block */
+        .code-block {
+            background: #1a1a2e;
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 16px 0;
+        }
+
+        .code-header {
+            background: #16213e;
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+        }
+
+        .code-lang {
+            color: var(--aws-orange);
+            font-weight: bold;
+        }
+
+        .code-title {
+            color: var(--aws-light-gray);
+        }
+
+        .code-block pre {
+            margin: 0;
+            padding: 0;
+            overflow-x: auto;
+        }
+
+        .code-block code {
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            padding: 16px !important;
+        }
+
+        /* Directory Tree */
+        .dir-tree {
+            background: rgba(26, 36, 47, 0.8);
+            border-radius: 6px;
+            padding: 16px 20px;
+            margin: 12px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            color: var(--aws-light-gray);
+            line-height: 1.8;
+        }
+
+        .dir-tree .folder { color: var(--aws-orange); }
+        .dir-tree .file { color: var(--aws-teal); }
+
+        /* Related Services */
+        .related-service {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .related-service:last-child { border-bottom: none; }
+
+        .related-service-name {
+            font-weight: 600;
+            color: var(--aws-teal);
+            font-size: 14px;
+            min-width: 180px;
+        }
+
+        .related-service-desc {
+            font-size: 14px;
+            color: var(--aws-light-gray);
+        }
+
+        /* Region */
+        .region-badge {
+            display: inline-block;
+            background: rgba(0, 161, 201, 0.15);
+            border: 1px solid rgba(0, 161, 201, 0.3);
+            color: var(--aws-teal);
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        /* Summary Box */
+        .summary-box {
+            background: linear-gradient(135deg, rgba(255, 153, 0, 0.12), rgba(140, 79, 255, 0.08));
+            border: 1px solid rgba(255, 153, 0, 0.3);
+            border-radius: 8px;
+            padding: 20px;
+            font-size: 15px;
+            line-height: 1.7;
+        }
+
+        /* Footer */
+        footer {
+            margin-top: 24px;
+            padding-top: 16px;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            font-size: 12px;
+            color: var(--aws-light-gray);
+        }
+
+        footer a {
+            color: var(--aws-teal);
+            text-decoration: none;
+            word-break: break-all;
+        }
+
+        footer a:hover { color: var(--aws-smile-orange); }
+
+        footer ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        footer li {
+            padding: 3px 0;
+        }
+
+        /* Responsive */
+        @media (max-width: 700px) {
+            h1 { font-size: 24px; }
+            .before-after-grid, .merit-grid { grid-template-columns: 1fr; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .header { flex-direction: column; }
+            .header-right { text-align: left; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+
+        <!-- Header -->
+        <div class="header">
+            <div class="header-left">
+                <span class="service-badge">Kiro 0.9</span>
+                <h1>🤖 カスタムサブエージェント・スキル・エンタープライズ制御</h1>
+                <p class="subtitle">開発者の生産性とエンタープライズガバナンスを両立する包括的アップデート</p>
+            </div>
+            <div class="header-right">
+                <span class="date-badge">📅 2026 年 2 月 5 日</span>
+            </div>
+        </div>
+
+        <!-- 概要 -->
+        <div class="section">
+            <h2>📋 概要</h2>
+            <p>Kiro 0.9 がリリースされ、開発者とエンタープライズチーム向けの大幅な機能強化が行われました。<span class="highlight">カスタムサブエージェント</span>により特定タスクに特化した独自のエージェントを定義でき、<span class="highlight">Agent Skills</span> はエージェントに新しい機能を教えるモジュラーな指示パッケージとして必要な時にのみコンテキストに読み込まれます。</p>
+            <p>さらに、言語サーバーを活用した<span class="highlight">スマートリファクタリングツール</span>によりリファクタリング操作がより確実かつ高速になり、<span class="highlight">エンタープライズ制御</span>で拡張機能レジストリや Web ツールのガバナンスが可能になりました。</p>
+
+            <div class="before-after-grid">
+                <div class="before-card">
+                    <div class="card-label">❌ アップデート前の課題</div>
+                    <ul>
+                        <li>サブエージェントは汎用的で、特定のユースケースにカスタマイズできなかった</li>
+                        <li>専門知識がコンテキストウィンドウを常に占有し、関係ないタスクでも消費されていた</li>
+                        <li>リファクタリング操作でシンボル参照の更新漏れやターン数の増加が発生していた</li>
+                    </ul>
+                </div>
+                <div class="after-card">
+                    <div class="card-label">✅ アップデート後の改善</div>
+                    <ul>
+                        <li>カスタムサブエージェントで特定タスクに特化したエージェントを作成可能</li>
+                        <li>Agent Skills により専門知識が必要な時にのみコンテキストに読み込まれる</li>
+                        <li>スマートリファクタリングで確実かつ高速なコード変更が可能</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- アーキテクチャ図 -->
+        <div class="section">
+            <h2>🏗️ アーキテクチャ図</h2>
+            <p>Kiro 0.9 では、カスタムサブエージェントと Agent Skills がどのように連携し、コンテキスト管理を最適化するかを示します。各サブエージェントは独自のコンテキストを持ち、スキルは必要時にのみロードされるプログレッシブディスクロージャーモデルを採用しています。</p>
+            <div class="mermaid-container">
+                <pre class="mermaid">
+flowchart TD
+    subgraph Developer["👤 開発者"]
+        direction LR
+        D_Input(["💬 指示入力"])
+    end
+
+    subgraph KiroCore["⚙️ Kiro コア"]
+        direction TB
+        Router["🔀 タスクルーター"]
+        Steering["📋 Steering<br/>常時読み込み"]
+    end
+
+    subgraph Agents["🤖 カスタムサブエージェント"]
+        direction LR
+        FE["🎨 フロントエンド<br/>エージェント"]
+        BE["🔧 バックエンド<br/>エージェント"]
+        SEC["🔒 セキュリティ<br/>エージェント"]
+        FE ~~~ BE ~~~ SEC
+    end
+
+    subgraph Skills["📚 Agent Skills"]
+        direction LR
+        S1["🧩 Terraform<br/>Skill"]
+        S2["🔐 Security<br/>Review Skill"]
+        S3["📏 Conventions<br/>Skill"]
+        S1 ~~~ S2 ~~~ S3
+    end
+
+    subgraph Tools["🔌 ツール・MCP サーバー"]
+        direction LR
+        T1["🗄️ Database<br/>MCP"]
+        T2["🌐 Web<br/>Tools"]
+        T3["📁 File<br/>System"]
+        T1 ~~~ T2 ~~~ T3
+    end
+
+    D_Input --> Router
+    Router --> Steering
+    Router --> FE
+    Router --> BE
+    Router --> SEC
+    FE -.->|必要時ロード| S3
+    BE -.->|必要時ロード| S1
+    SEC -.->|必要時ロード| S2
+    FE --> T3
+    BE --> T1
+    SEC --> T2
+
+    classDef cloud fill:none,stroke:#CCCCCC,stroke-width:2px,color:#666666
+    classDef process fill:#FFFFFF,stroke:#4A90E2,stroke-width:2px,color:#333333
+    classDef internal fill:#E8F1FF,stroke:#4A90E2,stroke-width:2px,color:#333333
+    classDef input fill:#E9F7EC,stroke:#66BB6A,stroke-width:2px,color:#333333
+    classDef decision fill:#F3E5F5,stroke:#7B61FF,stroke-width:2px,color:#333333
+    classDef user fill:#E3F2FD,stroke:#BBDEFB,stroke-width:2px,color:#1565C0
+
+    class Developer,KiroCore,Agents,Skills,Tools cloud
+    class Router decision
+    class Steering internal
+    class FE,BE,SEC process
+    class S1,S2,S3 input
+    class T1,T2,T3 internal
+    class D_Input user
+                </pre>
+            </div>
+        </div>
+
+        <!-- 統計情報 -->
+        <div class="section">
+            <h2>📊 数字で見る Kiro 0.9</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <span class="stat-value">4</span>
+                    <span class="stat-label">主要新機能</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-value">2</span>
+                    <span class="stat-label">スキルインストールレベル</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-value">3</span>
+                    <span class="stat-label">コンテキスト管理モデル</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-value">🌐</span>
+                    <span class="stat-label">グローバル利用可能</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 主要機能 -->
+        <div class="section">
+            <h2>⚡ 主要機能</h2>
+
+            <div class="feature-card">
+                <div class="feature-card-title">🤖 カスタムサブエージェント</div>
+                <p>特定タスクに特化したサブエージェントを <code>.kiro/agents/</code> ディレクトリに定義できます。</p>
+                <ul>
+                    <li>フロントエンド用、バックエンド用など用途別にエージェントを分離</li>
+                    <li>各サブエージェントが独自のコンテキストを管理し、オーバーフローを防止</li>
+                    <li>不要なツールやドキュメントの読み込みを除外してパフォーマンス向上</li>
+                </ul>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-card-title">📚 Agent Skills</div>
+                <p><a href="https://agentskills.io" style="color: var(--aws-teal);">agentskills.io</a> 標準に基づくモジュラーな指示パッケージです。</p>
+                <ul>
+                    <li>プログレッシブディスクロージャーで必要時のみコンテキストにロード</li>
+                    <li>ユーザーレベル (~/.kiro/skills/) またはワークスペースレベルでインストール</li>
+                    <li>起動時は名前と説明のみ読み込み、関連性判断後に詳細をロード</li>
+                </ul>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-card-title">🔧 スマートリファクタリング</div>
+                <p>言語サーバーを活用した IDE リファクタリング機能をエージェントに公開します。</p>
+                <ul>
+                    <li>シンボル名変更やファイル移動をコードベース全体で確実に実行</li>
+                    <li>ビルド・コンパイル・ランタイムエラーの削減</li>
+                    <li>パターンマッチングではなくプログラム解析に基づく変更</li>
+                </ul>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-card-title">🏢 エンタープライズ制御</div>
+                <p>組織管理者向けのガバナンス機能を提供します。</p>
+                <ul>
+                    <li>拡張機能レジストリガバナンス: 独自の VS Code 拡張機能レジストリを指定可能</li>
+                    <li>Web ツールトグル: Web 検索・フェッチの有効/無効を制御</li>
+                    <li>セキュリティチームが事前承認した拡張機能のみに限定可能</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 技術仕様 -->
+        <div class="section">
+            <h2>📐 技術仕様</h2>
+
+            <h3>🤖 カスタムサブエージェントの定義</h3>
+            <p><code>.kiro/agents/</code> ディレクトリにマークダウンファイルとしてサブエージェントを定義します。</p>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Markdown</span>
+                    <span class="code-title">.kiro/agents/frontend-agent.md</span>
+                </div>
+                <pre><code class="language-markdown"># Frontend Agent
+
+フロントエンド開発に特化したサブエージェント。
+
+## 使用ツール
+- Chrome DevTools
+- Component libraries
+- CSS frameworks
+
+## 除外ツール
+- Database MCP servers
+- Backend API docs</code></pre>
+            </div>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Bash</span>
+                    <span class="code-title">バックエンドエージェントの作成</span>
+                </div>
+                <pre><code class="language-bash">mkdir -p .kiro/agents
+cat > .kiro/agents/backend-agent.md << EOF
+# Backend Agent
+
+Python バックエンドに特化したサブエージェント。
+
+## コンテキスト
+- Database MCP server
+- API documentation
+- Python type hints
+
+## 除外
+- Frontend frameworks
+- CSS tools
+EOF</code></pre>
+            </div>
+
+            <h3>📚 Agent Skills の構造</h3>
+            <p>スキルは SKILL.md ファイルと関連スクリプトで構成されます。</p>
+
+            <div class="dir-tree">
+                <span class="folder">~/.kiro/skills/</span><br/>
+                └── <span class="folder">terraform-skill/</span><br/>
+                &nbsp;&nbsp;&nbsp;&nbsp;├── <span class="file">SKILL.md</span><br/>
+                &nbsp;&nbsp;&nbsp;&nbsp;└── <span class="folder">scripts/</span><br/>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└── <span class="file">validate.sh</span>
+            </div>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Bash</span>
+                    <span class="code-title">セキュリティレビュースキルのインストール</span>
+                </div>
+                <pre><code class="language-bash"># グローバルスキル
+mkdir -p ~/.kiro/skills/security-review
+cat > ~/.kiro/skills/security-review/SKILL.md << EOF
+# Security Review Skill
+
+コードのセキュリティレビューを実行する専門スキル。
+
+## トリガー
+- "security review" と言及された時
+- セキュリティ関連のファイル変更時
+EOF
+
+# プロジェクトスキル
+mkdir -p .kiro/skills/project-conventions
+cat > .kiro/skills/project-conventions/SKILL.md << EOF
+# Project Conventions Skill
+
+このプロジェクト固有のコーディング規約。
+EOF</code></pre>
+            </div>
+
+            <h3>📊 Steering vs Skills vs Powers</h3>
+            <p>Kiro のコンテキスト管理は 3 つのモデルで構成されます。それぞれの目的とロードタイミングが異なります。</p>
+
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>機能</th>
+                        <th>目的</th>
+                        <th>ロードタイミング</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Steering</strong></td>
+                        <td>常時適用される指針</td>
+                        <td>常に読み込み</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Skills</strong></td>
+                        <td>専門知識・能力</td>
+                        <td>必要時のみ</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Powers</strong></td>
+                        <td>MCP サーバー + ルール</td>
+                        <td>設定時</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>🏢 エンタープライズ設定</h3>
+            <p>組織管理者は設定ファイルでガバナンス制御を行います。</p>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">JSON</span>
+                    <span class="code-title">エンタープライズ設定例</span>
+                </div>
+                <pre><code class="language-json">{
+  "enterprise": {
+    "extensionRegistry": "https://internal-registry.company.com",
+    "webTools": {
+      "webSearch": false,
+      "webFetch": true
+    }
+  }
+}</code></pre>
+            </div>
+        </div>
+
+        <!-- コンテキスト管理フロー -->
+        <div class="section">
+            <h2>🔄 コンテキスト管理のフロー</h2>
+            <p>Agent Skills のプログレッシブディスクロージャーモデルにより、コンテキストウィンドウの効率的な使用が実現されます。スキルは名前と説明のみが起動時に読み込まれ、関連性が判断された時に詳細がロードされます。</p>
+            <div class="flow-diagram">
+                <div class="flow-step">🚀 起動<br/>名前・説明のみ</div>
+                <span class="flow-arrow">→</span>
+                <div class="flow-step">🔍 関連性<br/>判断</div>
+                <span class="flow-arrow">→</span>
+                <div class="flow-step">📥 詳細<br/>ロード</div>
+                <span class="flow-arrow">→</span>
+                <div class="flow-step">⚡ スキル<br/>実行</div>
+            </div>
+
+            <div class="mermaid-container">
+                <pre class="mermaid">
+sequenceDiagram
+    participant U as 👤 開発者
+    participant K as ⚙️ Kiro コア
+    participant A as 🤖 サブエージェント
+    participant S as 📚 Skills
+
+    U->>K: タスク指示
+    K->>K: Steering 読み込み 常時
+    K->>A: 適切なサブエージェントを選択
+    A->>S: スキル関連性チェック
+    Note over S: 名前・説明のみ参照
+    alt 関連スキルあり
+        S-->>A: スキル詳細をロード
+        A->>A: スキル適用してタスク実行
+    else 関連スキルなし
+        A->>A: 基本コンテキストで実行
+    end
+    A-->>K: 実行結果
+    K-->>U: 結果出力
+                </pre>
+            </div>
+        </div>
+
+        <!-- メリット・デメリット -->
+        <div class="section">
+            <h2>⚖️ メリット・デメリット</h2>
+
+            <div class="merit-grid">
+                <div class="merit-card">
+                    <h4>💼 ビジネス面のメリット</h4>
+                    <ul>
+                        <li>特化したサブエージェントで開発効率が向上</li>
+                        <li>エンタープライズ向けのガバナンス機能で組織管理を強化</li>
+                        <li>コンテキストウィンドウの効率的な使用でコスト最適化</li>
+                    </ul>
+                </div>
+                <div class="merit-card">
+                    <h4>🔧 技術面のメリット</h4>
+                    <ul>
+                        <li>必要な情報のみをロードしてコンテキスト管理を効率化</li>
+                        <li>言語サーバー連携でリファクタリング品質が向上</li>
+                        <li>モジュラーなスキルシステムで柔軟な機能拡張</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="demerit-card" style="margin-top: 16px;">
+                <h4>⚠️ 制限事項・考慮点</h4>
+                <ul>
+                    <li>カスタムサブエージェントの設定には学習コストがある</li>
+                    <li>スキルの作成にはマークダウン形式の理解が必要</li>
+                    <li>エンタープライズ機能は組織管理者権限が必要</li>
+                    <li>サブエージェント間の責任分担の設計が必要</li>
+                    <li>スキルの粒度と再利用性のバランスの検討が必要</li>
+                    <li>組織全体でのスキル標準化にはコーディネーションが必要</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- ユースケース -->
+        <div class="section">
+            <h2>🎯 ユースケース</h2>
+
+            <div class="usecase-card">
+                <div class="usecase-card-title">🏗️ ユースケース 1: フルスタック開発のコンテキスト分離</div>
+                <p class="usecase-scenario">React フロントエンドと Python バックエンドを持つプロジェクトで、各領域に特化したエージェントが必要</p>
+
+                <div class="dir-tree">
+                    <span class="folder">.kiro/agents/</span><br/>
+                    ├── <span class="file">frontend-agent.md</span> &nbsp; # React, Chrome DevTools<br/>
+                    └── <span class="file">backend-agent.md</span> &nbsp;&nbsp; # Python, Database
+                </div>
+                <p class="usecase-effect">✅ 効果: 各サブエージェントが専門分野に集中し、コンテキストオーバーフローを防止</p>
+            </div>
+
+            <div class="usecase-card">
+                <div class="usecase-card-title">🔐 ユースケース 2: セキュリティレビューの自動化</div>
+                <p class="usecase-scenario">コード変更時に自動でセキュリティレビューを実行する Agent Skill を設定</p>
+
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">Markdown</span>
+                        <span class="code-title">Security Review Skill</span>
+                    </div>
+                    <pre><code class="language-markdown"># Security Review Skill
+
+## トリガー条件
+- authentication, authorization に関連するファイル変更
+- .env, credentials に関連するファイル変更
+
+## レビュー項目
+- SQL インジェクション
+- XSS 脆弱性
+- 認証情報のハードコーディング</code></pre>
+                </div>
+                <p class="usecase-effect">✅ 効果: セキュリティ専門知識が必要な時のみスキルがアクティブになり、効率的にレビュー</p>
+            </div>
+
+            <div class="usecase-card">
+                <div class="usecase-card-title">🏢 ユースケース 3: エンタープライズ拡張機能管理</div>
+                <p class="usecase-scenario">承認済み拡張機能のみを開発者に提供する管理ポリシーを適用</p>
+
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">JSON</span>
+                        <span class="code-title">拡張機能レジストリ設定</span>
+                    </div>
+                    <pre><code class="language-json">{
+  "enterprise": {
+    "extensionRegistry": "https://approved-extensions.company.com"
+  }
+}</code></pre>
+                </div>
+                <p class="usecase-effect">✅ 効果: セキュリティチームが事前承認した拡張機能のみが利用可能になり、ガバナンスを強化</p>
+            </div>
+        </div>
+
+        <!-- 設定手順 -->
+        <div class="section">
+            <h2>🛠️ セットアップ手順</h2>
+
+            <h3>📋 前提条件</h3>
+            <ul class="impact-list">
+                <li>Kiro IDE または CLI のバージョン 0.9 以上</li>
+                <li>必要に応じて ~/.kiro/skills/ ディレクトリ</li>
+            </ul>
+
+            <h3>ステップ 1: カスタムサブエージェントの作成</h3>
+            <p><code>.kiro/agents/</code> ディレクトリにマークダウンファイルを作成し、プロジェクトに合わせたサブエージェントを定義します。</p>
+
+            <h3>ステップ 2: Agent Skills のインストール</h3>
+            <p>グローバルスキルは <code>~/.kiro/skills/</code> に、プロジェクトスキルは <code>.kiro/skills/</code> に配置します。スキルは名前と説明のみが起動時に読み込まれ、関連性が判断された時に詳細がロードされます。</p>
+
+            <h3>ステップ 3: エンタープライズ設定</h3>
+            <p>組織管理者は設定ファイルで拡張機能レジストリと Web ツールのガバナンス制御を行います。</p>
+        </div>
+
+        <!-- 料金 -->
+        <div class="section">
+            <h2>💰 料金</h2>
+            <p>Kiro の料金については <a href="https://kiro.dev/pricing/" style="color: var(--aws-teal);">Kiro 料金ページ</a>を参照してください。</p>
+        </div>
+
+        <!-- 利用可能リージョン -->
+        <div class="section">
+            <h2>🌍 利用可能リージョン</h2>
+            <p><span class="region-badge">🌐 グローバル</span></p>
+        </div>
+
+        <!-- 関連サービス -->
+        <div class="section">
+            <h2>🔗 関連サービス・機能</h2>
+            <div class="related-service">
+                <span class="related-service-name">🧠 Claude Opus 4.6</span>
+                <span class="related-service-desc">Kiro 0.9 と同時にサポート開始された最新 AI モデル</span>
+            </div>
+            <div class="related-service">
+                <span class="related-service-name">📡 ACP</span>
+                <span class="related-service-desc">Agent Client Protocol - JetBrains IDE や Zed との連携を実現</span>
+            </div>
+            <div class="related-service">
+                <span class="related-service-name">🔌 MCP</span>
+                <span class="related-service-desc">Model Context Protocol - 外部ツールとの統合基盤</span>
+            </div>
+        </div>
+
+        <!-- まとめ -->
+        <div class="section">
+            <h2>📝 まとめ</h2>
+            <div class="summary-box">
+                <p>Kiro 0.9 は、開発者の生産性とエンタープライズのガバナンス要件の両方を満たす重要なアップデートです。<span class="highlight">カスタムサブエージェント</span>と <span class="highlight">Agent Skills</span> によりコンテキスト管理が大幅に改善され、<span class="highlight">スマートリファクタリング</span>でコード変更の品質が向上します。</p>
+                <p>大規模なコードベースを扱う開発チームや、ガバナンス要件の厳しいエンタープライズ環境では、ぜひこれらの新機能を活用してください。</p>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer>
+            <p><strong>📎 出典:</strong></p>
+            <ul>
+                <li>📊 <a href="https://takech9203.github.io/awsnews-summary/20260205-kiro-0-9-custom-subagents-skills-and-enterprise-controls.html" target="_blank" rel="noopener noreferrer">インフォグラフィック</a></li>
+                <li>📝 <a href="https://kiro.dev/blog/custom-subagents-skills-and-enterprise-controls/" target="_blank" rel="noopener noreferrer">公式ブログ: Custom Subagents, Skills, and Enterprise Controls</a></li>
+                <li>📖 <a href="https://kiro.dev/changelog/" target="_blank" rel="noopener noreferrer">Changelog</a></li>
+                <li>📚 <a href="https://kiro.dev/docs/" target="_blank" rel="noopener noreferrer">ドキュメント</a></li>
+                <li>🔧 <a href="https://kiro.dev/blog/refactoring-made-right/" target="_blank" rel="noopener noreferrer">リファクタリングの詳細</a></li>
+            </ul>
+        </footer>
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'base',
+            themeVariables: {
+                primaryColor: '#FF9900',
+                primaryTextColor: '#232F3E',
+                primaryBorderColor: '#FF9900',
+                lineColor: '#FF9900',
+                secondaryColor: '#F5F5F5',
+                tertiaryColor: '#FAFAFA',
+                background: '#FFFFFF',
+                mainBkg: '#FFF3E0',
+                nodeBorder: '#FF9900',
+                clusterBkg: '#FFF8E1',
+                clusterBorder: '#FF9900',
+                edgeLabelBackground: '#FFFFFF',
+                textColor: '#232F3E'
+            }
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/highlight.min.js"></script>
+    <script>hljs.highlightAll();</script>
+</body>
+</html>

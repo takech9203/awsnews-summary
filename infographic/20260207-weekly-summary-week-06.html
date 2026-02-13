@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AWS アップデート週次サマリー - 2026 年第 6 週</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap');
+
+    :root {
+      --aws-squid-ink: #232F3E;
+      --aws-dark-squid: #1A242F;
+      --aws-orange: #FF9900;
+      --aws-smile-orange: #FFAD33;
+      --aws-white: #FFFFFF;
+      --aws-light-gray: #D5DBDB;
+      --aws-teal: #00A1C9;
+      --aws-purple: #8C4FFF;
+      --aws-green: #1D8102;
+      --aws-red: #D13212;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background-color: var(--aws-squid-ink);
+      font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+      color: var(--aws-light-gray);
+      font-size: 16px;
+      line-height: 1.6;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 40px;
+      padding: 32px;
+      background: linear-gradient(135deg, var(--aws-dark-squid) 0%, rgba(255, 153, 0, 0.1) 100%);
+      border-radius: 16px;
+      border: 1px solid rgba(255, 153, 0, 0.3);
+    }
+
+    .header-badge {
+      display: inline-block;
+      background: var(--aws-orange);
+      color: var(--aws-squid-ink);
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 16px;
+    }
+
+    h1 {
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--aws-white);
+      margin-bottom: 12px;
+    }
+
+    .subtitle {
+      font-size: 16px;
+      color: var(--aws-light-gray);
+    }
+
+    .stats-row {
+      display: flex;
+      justify-content: center;
+      gap: 32px;
+      margin-top: 24px;
+      flex-wrap: wrap;
+    }
+
+    .stat-item {
+      text-align: center;
+    }
+
+    .stat-number {
+      font-size: 48px;
+      font-weight: 700;
+      color: var(--aws-orange);
+      display: block;
+    }
+
+    .stat-label {
+      font-size: 14px;
+      color: var(--aws-light-gray);
+    }
+
+    h2 {
+      font-size: 22px;
+      font-weight: 600;
+      color: var(--aws-orange);
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .section {
+      background: var(--aws-dark-squid);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 24px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .top-updates {
+      display: grid;
+      gap: 16px;
+    }
+
+    .top-update-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      padding: 16px;
+      background: rgba(255, 153, 0, 0.05);
+      border-radius: 8px;
+      border-left: 4px solid var(--aws-orange);
+    }
+
+    .rank-badge {
+      background: var(--aws-orange);
+      color: var(--aws-squid-ink);
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+
+    .top-update-content h3 {
+      color: var(--aws-white);
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .top-update-content p {
+      font-size: 14px;
+      color: var(--aws-light-gray);
+    }
+
+    .category-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+    }
+
+    .category-card {
+      background: var(--aws-dark-squid);
+      border-radius: 12px;
+      padding: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .category-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid rgba(255, 153, 0, 0.3);
+    }
+
+    .category-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--aws-white);
+    }
+
+    .category-count {
+      background: var(--aws-orange);
+      color: var(--aws-squid-ink);
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .update-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .update-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      font-size: 14px;
+    }
+
+    .update-item .icon {
+      color: var(--aws-orange);
+      flex-shrink: 0;
+    }
+
+    .update-item.hot::before {
+      content: '🔥';
+      margin-right: 4px;
+    }
+
+    .trend-section {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+    }
+
+    .trend-card {
+      background: linear-gradient(135deg, rgba(255, 153, 0, 0.1) 0%, var(--aws-dark-squid) 100%);
+      border-radius: 12px;
+      padding: 20px;
+      border: 1px solid rgba(255, 153, 0, 0.2);
+    }
+
+    .trend-card h3 {
+      color: var(--aws-white);
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .trend-card p {
+      font-size: 14px;
+      color: var(--aws-light-gray);
+    }
+
+    .usecase-grid {
+      display: grid;
+      gap: 16px;
+    }
+
+    .usecase-card {
+      background: rgba(255, 153, 0, 0.08);
+      border-radius: 12px;
+      padding: 20px;
+      border: 1px solid rgba(255, 153, 0, 0.2);
+    }
+
+    .usecase-card h3 {
+      color: var(--aws-orange);
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .usecase-card p {
+      font-size: 14px;
+      color: var(--aws-light-gray);
+    }
+
+    .next-week {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .next-week-item {
+      background: var(--aws-dark-squid);
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 14px;
+      border: 1px solid rgba(255, 153, 0, 0.3);
+      color: var(--aws-light-gray);
+    }
+
+    .summary-box {
+      background: linear-gradient(135deg, rgba(255, 153, 0, 0.15) 0%, var(--aws-dark-squid) 100%);
+      border-radius: 12px;
+      padding: 24px;
+      border: 2px solid var(--aws-orange);
+    }
+
+    .summary-box p {
+      font-size: 15px;
+      line-height: 1.8;
+    }
+
+    footer {
+      margin-top: 32px;
+      padding-top: 20px;
+      border-top: 1px solid rgba(255, 255, 255, 0.2);
+      font-size: 12px;
+      color: var(--aws-light-gray);
+      text-align: center;
+    }
+
+    .aws-link {
+      color: var(--aws-teal);
+      text-decoration: none;
+    }
+
+    .aws-link:hover {
+      color: var(--aws-smile-orange);
+    }
+
+    .highlight {
+      background-color: rgba(255, 153, 0, 0.2);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 600;
+      color: var(--aws-orange);
+    }
+
+    @media (max-width: 768px) {
+      h1 {
+        font-size: 24px;
+      }
+
+      .stat-number {
+        font-size: 36px;
+      }
+
+      .category-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .trend-section {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <div class="header-badge">📊 週次サマリー</div>
+      <h1>☁️ AWS アップデート - 2026 年第 6 週</h1>
+      <div class="subtitle">期間: 2026 年 2 月 2 日 - 2 月 7 日</div>
+
+      <div class="stats-row">
+        <div class="stat-item">
+          <span class="stat-number">43</span>
+          <span class="stat-label">件のアップデート</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-number">10</span>
+          <span class="stat-label">カテゴリ</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-number">5</span>
+          <span class="stat-label">注目アップデート</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Top Updates -->
+    <div class="section">
+      <h2>🏆 今週のトップアップデート</h2>
+      <div class="top-updates">
+        <div class="top-update-item">
+          <div class="rank-badge">1</div>
+          <div class="top-update-content">
+            <h3>Claude Opus 4.6 が Amazon Bedrock で利用可能に</h3>
+            <p>Anthropic の最新・最高知性モデルが Bedrock に登場。業界トップのエージェンティック性能、200K コンテキストトークン (1M プレビュー)</p>
+          </div>
+        </div>
+        <div class="top-update-item">
+          <div class="rank-badge">2</div>
+          <div class="top-update-content">
+            <h3>Amazon Bedrock Structured Outputs GA</h3>
+            <p>JSON スキーマ準拠の出力を 100% 保証。カスタムパーサーやバリデーションロジックが不要に</p>
+          </div>
+        </div>
+        <div class="top-update-item">
+          <div class="rank-badge">3</div>
+          <div class="top-update-content">
+            <h3>EC2 C8id/M8id/R8id インスタンス GA</h3>
+            <p>Intel Xeon 6 搭載、前世代比最大 43% 性能向上、3.3 倍のメモリ帯域幅</p>
+          </div>
+        </div>
+        <div class="top-update-item">
+          <div class="rank-badge">4</div>
+          <div class="top-update-content">
+            <h3>DynamoDB マルチアカウントグローバルテーブル</h3>
+            <p>複数 AWS アカウント間での自動レプリケーション、アカウントレベルでの障害分離</p>
+          </div>
+        </div>
+        <div class="top-update-item">
+          <div class="rank-badge">5</div>
+          <div class="top-update-content">
+            <h3>AWS Glue ネイティブ REST API コネクタ</h3>
+            <p>任意の REST API からのデータ統合が簡素化、カスタム JAR 不要</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Category Updates -->
+    <h2 style="margin-bottom: 20px;">📂 カテゴリ別アップデート</h2>
+    <div class="category-grid">
+      <!-- AI/ML -->
+      <div class="category-card">
+        <div class="category-header">
+          <div class="category-title">🤖 AI/ML</div>
+          <div class="category-count">6 件</div>
+        </div>
+        <div class="update-list">
+          <div class="update-item hot">
+            <span class="icon">→</span>
+            <span>Claude Opus 4.6 - 最高知性モデル</span>
+          </div>
+          <div class="update-item hot">
+            <span class="icon">→</span>
+            <span>Structured Outputs GA</span>
+          </div>
+          <div class="update-item">
+            <span class="icon">→</span>
+            <span>AgentCore Browser プロファイル</span>
+          </div>
+          <div class="update-item">
+            <span class="icon">→</span>
+            <span>SageMaker JumpStart 新モデル</span>
+          </div>
+          <div class="update-item">
+            <span class="icon">→</span>
+            <span>NVIDIA NIMs モデル追加</span>
+          </div>
+          <div class="update-item">
+            <span class="icon">→</span>
+            <span>Cartesia Sonic 3 TTS</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Compute -->
+      <div class="category-card">
+        <div class="category-header">
+          <div class="category-title">☁️ コンピュート</div>
+          <div class="category-count">10 件</div>
+        </div>
+        <div class="update-list">
+          <div class="update-item hot">
+            <span class="icon">→</span>
+            <span>C8id/M8id/R8id GA (43% 高速)</span>
+          </div>
+          <div class="update-item">
+            <span class="icon">→</span>
+            <span>G6e - UAE リージョン</span>
+          </div>
+          <div class="update-item">
+            <span class="icon">→</span>
+            <span>G7e - Oregon リージョン</span>
+          </div>
+          <div class="update-item">
+            <span class="icon">→</span>
+            <span>EC2 capacity blocks マルチアカウント</span>
+          </div>
+          <div class="update-item">
+            <span class="icon">→</span>
+            <span>ECS NLB Linear/Canary デプロイ</span>
+          </div>
+          <div class="update-item">
+            <span class="icon">→</span>
+            <span>Batch EKS Unmanaged CE</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Database -->
+      <div class="category-card">
+        <div class="category-header">
+          <div class="category-title">🗄️ データベース</div>
+          <div class="category-count">5 件</div>
+        </div>
+        <div class="update-list">
+          <div class="update-item hot">
+            <span class="icon">→</span>
+            <span>DynamoDB マルチアカウント GT</span>
+          </div>
+          <div class="update-item">
+            <span class="icon">→</span>
+            <span>Aurora DSQL NUMERIC インデックス</span>
+          </div>
+          <div class="update-item">
+            <span class="icon">→</span>
+            <span>RDS 接続 UX 強化</span>
+          </div>
+          <div class="update-item">
+            <span class="icon">→</span>
+            <span>RDS MySQL 8.0.45/8.4.8</span>
+          </div>
+          <div class="update-item">
+            <span class="icon">→</span>
+            <span>Oracle@AWS 新リージョン</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Data Integration -->
+      <div class="category-card">
+        <div class="category-header">
+          <div class="category-title">📊 データ統合・分析</div>
+          <div class="category-count">4 件</div>
+        </div>
+        <div class="update-list">
+          <div class="update-item hot">
+            <span class="icon">→</span>
+            <span>Glue REST API コネクタ</span>
+          </div>
+          <div class="update-item">
+            <span class="icon">→</span>
+            <span>Spark lineage - SageMaker Studio</span>
+          </div>
+          <div class="update-item">
+            <span class="icon">→</span>
+            <span>Redshift Autonomics</span>
+          </div>
+          <div class="update-item">
+            <span class="icon">→</span>
+            <span>Lake Formation NZ リージョン</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Security -->
+      <div class="category-card">
+        <div class="category-header">
+          <div class="category-title">🔐 セキュリティ</div>
+          <div class="category-count">5 件</div>
+        </div>
+        <div class="update-list">
+          <div class="update-item hot">
+            <span class="icon">→</span>
+            <span>IAM Identity Center マルチリージョン</span>
+          </div>
+          <div class="update-item">
+            <span class="icon">→</span>
+            <span>Builder ID - Apple サインイン</span>
+          </div>
+          <div class="update-item">
+            <span class="icon">→</span>
+            <span>STS クレーム検証</span>
+          </div>
+          <div class="update-item">
+            <span class="icon">→</span>
+            <span>Multi-party Approval OTP</span>
+          </div>
+          <div class="update-item">
+            <span class="icon">→</span>
+            <span>CloudFront オリジン mTLS</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Management -->
+      <div class="category-card">
+        <div class="category-header">
+          <div class="category-title">🔧 管理・その他</div>
+          <div class="category-count">13 件</div>
+        </div>
+        <div class="update-list">
+          <div class="update-item">
+            <span class="icon">→</span>
+            <span>Config 30 新リソースタイプ</span>
+          </div>
+          <div class="update-item">
+            <span class="icon">→</span>
+            <span>Network Firewall 価格引き下げ</span>
+          </div>
+          <div class="update-item">
+            <span class="icon">→</span>
+            <span>Console アカウント名表示</span>
+          </div>
+          <div class="update-item">
+            <span class="icon">→</span>
+            <span>Connect 評価異議申立て</span>
+          </div>
+          <div class="update-item">
+            <span class="icon">→</span>
+            <span>WorkSpaces カスタムドメイン</span>
+          </div>
+          <div class="update-item">
+            <span class="icon">→</span>
+            <span>HealthImaging JPEG XL</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Trends -->
+    <div class="section">
+      <h2>📈 今週の傾向</h2>
+      <div class="trend-section">
+        <div class="trend-card">
+          <h3>🤖 AI/ML 機能の成熟化</h3>
+          <p>Claude Opus 4.6 と Structured Outputs GA で本番環境の信頼性が向上</p>
+        </div>
+        <div class="trend-card">
+          <h3>💻 第 8 世代 Intel インスタンス</h3>
+          <p>C8id/M8id/R8id で I/O 集約型ワークロードの性能が大幅向上</p>
+        </div>
+        <div class="trend-card">
+          <h3>🔄 マルチアカウント強化</h3>
+          <p>DynamoDB と IAM Identity Center でエンタープライズ展開が容易に</p>
+        </div>
+        <div class="trend-card">
+          <h3>🔌 データ統合の簡素化</h3>
+          <p>Glue REST API コネクタでカスタム開発が不要に</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Use Cases -->
+    <div class="section">
+      <h2>💡 注目のユースケース</h2>
+      <div class="usecase-grid">
+        <div class="usecase-card">
+          <h3>🤖 エージェンティック AI アプリケーション</h3>
+          <p>Claude Opus 4.6 + Structured Outputs で信頼性の高いエージェンティックワークフローを構築。複雑な自動化が本番環境で実現</p>
+        </div>
+        <div class="usecase-card">
+          <h3>🗄️ 高性能データベースワークロード</h3>
+          <p>C8id/M8id/R8id + DynamoDB マルチアカウント GT で I/O 集約型 DB とグローバルレプリケーションを最適化</p>
+        </div>
+        <div class="usecase-card">
+          <h3>🔌 ユニバーサルデータ統合</h3>
+          <p>Glue REST API コネクタで任意の SaaS やマイクロサービスからデータレイク/DWH への包括的パイプラインを構築</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Next Week -->
+    <div class="section">
+      <h2>👀 次週の注目ポイント</h2>
+      <div class="next-week">
+        <div class="next-week-item">📘 Claude Opus 4.6 ベストプラクティス</div>
+        <div class="next-week-item">🔧 Structured Outputs 活用パターン</div>
+        <div class="next-week-item">📊 C8id/M8id/R8id ベンチマーク</div>
+        <div class="next-week-item">🔌 Glue REST API 統合事例</div>
+      </div>
+    </div>
+
+    <!-- Summary -->
+    <div class="section">
+      <h2>📝 まとめ</h2>
+      <div class="summary-box">
+        <p>今週は、<span class="highlight">AI/ML 機能の成熟化</span>、<span class="highlight">高性能インスタンスの GA</span>、<span class="highlight">データ統合機能の拡張</span>が目立ちました。特に Claude Opus 4.6 と Structured Outputs の組み合わせは、本番環境での AI アプリケーション開発を大きく前進させます。また、C8id/M8id/R8id インスタンスと AWS Glue REST API コネクタは、それぞれコンピューティング性能とデータ統合の柔軟性を大幅に向上させます。</p>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+      <p>📅 レポート作成日: 2026 年 2 月 7 日</p>
+      <p style="margin-top: 8px;">
+        📎 出典:
+        <a href="https://aws.amazon.com/new/" target="_blank" class="aws-link">AWS What's New</a> |
+        <a href="https://awsapichanges.com/" target="_blank" class="aws-link">AWS API Changes</a> |
+        <a href="https://aws.amazon.com/blogs/aws/" target="_blank" class="aws-link">AWS Blog</a>
+      </p>
+    </footer>
+  </div>
+</body>
+</html>

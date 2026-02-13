@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AWS Lambda - .NET 10 サポート</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <style>
+        :root {
+            --aws-squid-ink: #232F3E;
+            --aws-dark-squid: #1A242F;
+            --aws-orange: #FF9900;
+            --aws-smile-orange: #FFAD33;
+            --aws-white: #FFFFFF;
+            --aws-light-gray: #D5DBDB;
+            --aws-teal: #00A1C9;
+            --aws-purple: #8C4FFF;
+            --aws-green: #1D8102;
+            --aws-red: #D13212;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+            background: var(--aws-squid-ink);
+            color: var(--aws-light-gray);
+            line-height: 1.8;
+            padding: 40px 20px;
+        }
+        .container { max-width: 1000px; margin: 0 auto; }
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 40px 24px;
+            background: linear-gradient(135deg, var(--aws-dark-squid) 0%, var(--aws-squid-ink) 100%);
+            border-radius: 12px;
+            border: 3px solid var(--aws-orange);
+        }
+        .service-badge {
+            display: inline-block;
+            background: var(--aws-orange);
+            color: var(--aws-squid-ink);
+            padding: 8px 24px;
+            border-radius: 24px;
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 16px;
+        }
+        .header h1 {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--aws-white);
+            margin-bottom: 12px;
+            line-height: 1.4;
+        }
+        .header .subtitle { font-size: 16px; color: var(--aws-light-gray); }
+        .release-date {
+            font-size: 14px;
+            color: var(--aws-orange);
+            margin-top: 16px;
+            font-weight: 600;
+        }
+        .section {
+            background: var(--aws-dark-squid);
+            padding: 24px;
+            border-radius: 8px;
+            margin-bottom: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .section h2 {
+            font-size: 22px;
+            font-weight: 600;
+            color: var(--aws-orange);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        @media (max-width: 768px) { .comparison { grid-template-columns: 1fr; } }
+        .comparison-card {
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 5px solid;
+        }
+        .comparison-card.before {
+            background: rgba(209, 50, 18, 0.15);
+            border-left-color: var(--aws-red);
+        }
+        .comparison-card.after {
+            background: rgba(29, 129, 2, 0.15);
+            border-left-color: var(--aws-green);
+        }
+        .comparison-card h4 { font-size: 16px; margin-bottom: 12px; font-weight: 600; }
+        .comparison-card.before h4 { color: var(--aws-red); }
+        .comparison-card.after h4 { color: var(--aws-green); }
+        .comparison-card ul { list-style: none; padding-left: 0; }
+        .comparison-card li {
+            margin-bottom: 8px;
+            padding-left: 20px;
+            position: relative;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        .comparison-card.before li::before { content: "✕"; position: absolute; left: 0; color: var(--aws-red); font-weight: bold; }
+        .comparison-card.after li::before { content: "✓"; position: absolute; left: 0; color: var(--aws-green); font-weight: bold; }
+        .card {
+            background: var(--aws-dark-squid);
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 153, 0, 0.3);
+            margin-bottom: 16px;
+        }
+        .card h3 {
+            font-size: 18px;
+            color: var(--aws-orange);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .card p { font-size: 15px; color: var(--aws-light-gray); }
+        .flow-diagram {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin: 24px 0;
+        }
+        .flow-step {
+            background: var(--aws-dark-squid);
+            border: 2px solid var(--aws-orange);
+            border-radius: 8px;
+            padding: 12px 20px;
+            text-align: center;
+            min-width: 120px;
+        }
+        .flow-arrow { color: var(--aws-orange); font-size: 24px; font-weight: bold; }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-top: 16px;
+        }
+        @media (max-width: 768px) { .stats-grid { grid-template-columns: 1fr; } }
+        .stats-card {
+            background: linear-gradient(135deg, var(--aws-orange) 0%, #FF6B00 100%);
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            color: var(--aws-white);
+        }
+        .stats-card .number { font-size: 36px; font-weight: bold; line-height: 1; }
+        .stats-card .label { font-size: 13px; margin-top: 8px; }
+        .usecase {
+            background: linear-gradient(135deg, rgba(255, 153, 0, 0.15) 0%, rgba(255, 153, 0, 0.05) 100%);
+            padding: 20px;
+            border-radius: 8px;
+            border: 2px solid rgba(255, 153, 0, 0.3);
+            margin-bottom: 16px;
+        }
+        .usecase h3 { font-size: 18px; color: var(--aws-orange); margin-bottom: 8px; }
+        .usecase p { font-size: 15px; color: #EEEEEE; }
+        .highlight {
+            background: rgba(255, 153, 0, 0.2);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+            color: var(--aws-orange);
+        }
+        a { color: var(--aws-teal); text-decoration: none; }
+        a:hover { color: var(--aws-smile-orange); text-decoration: underline; }
+        footer {
+            margin-top: 32px;
+            padding: 24px;
+            background: var(--aws-dark-squid);
+            border-radius: 8px;
+            border-top: 3px solid var(--aws-orange);
+        }
+        footer h3 { font-size: 18px; color: var(--aws-orange); margin-bottom: 16px; }
+        footer a {
+            display: block;
+            margin-bottom: 10px;
+            padding: 8px 12px;
+            background: rgba(255, 153, 0, 0.1);
+            border-radius: 6px;
+        }
+        .footer-note {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid #333;
+            font-size: 12px;
+            color: #888;
+        }
+        .mermaid-container {
+            background: #FFFFFF;
+            border-radius: 12px;
+            padding: 24px;
+            margin: 20px 0;
+            border: 2px solid rgba(255, 153, 0, 0.3);
+            overflow-x: auto;
+        }
+        .mermaid {
+            display: flex;
+            justify-content: center;
+        }
+    </style>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            mermaid.initialize({
+                startOnLoad: true,
+                theme: 'base',
+                themeVariables: {
+                    primaryColor: '#FF9900',
+                    primaryTextColor: '#232F3E',
+                    primaryBorderColor: '#FF9900',
+                    lineColor: '#FF9900',
+                    secondaryColor: '#F5F5F5',
+                    tertiaryColor: '#FAFAFA',
+                    background: '#FFFFFF',
+                    mainBkg: '#FFF3E0',
+                    nodeBorder: '#FF9900',
+                    clusterBkg: '#FFF8E1',
+                    clusterBorder: '#FF9900',
+                    edgeLabelBackground: '#FFFFFF',
+                    textColor: '#232F3E'
+                }
+            });
+        });
+    </script>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="service-badge">AWS Lambda</div>
+            <h1>⚡ .NET 10 ランタイムサポート</h1>
+            <div class="subtitle">最新の LTS リリースでサーバーレス .NET アプリケーションを構築</div>
+            <div class="release-date">📅 リリース日: 2026年01月08日</div>
+        </div>
+
+        <div class="section">
+            <h2>📊 概要</h2>
+            <p>AWS Lambda が .NET 10 をサポート開始。マネージドランタイムとコンテナベースイメージの両方で利用可能になり、<span class="highlight">2028 年 11 月まで LTS サポート</span>が保証されます。ファイルベースアプリや Lambda Managed Instances など新機能も利用可能です。</p>
+            <div class="comparison">
+                <div class="comparison-card before">
+                    <h4>⚠️ アップデート前</h4>
+                    <ul>
+                        <li>.NET 10 の最新機能が利用不可</li>
+                        <li>ファイルベースアプリ非対応</li>
+                        <li>.NET 8 のサポート期限を考慮した移行計画が必要</li>
+                    </ul>
+                </div>
+                <div class="comparison-card after">
+                    <h4>✨ アップデート後</h4>
+                    <ul>
+                        <li>.NET 10 の最新機能をフル活用</li>
+                        <li>ファイルベースアプリで迅速な開発</li>
+                        <li>2028 年 11 月まで LTS 保証</li>
+                        <li>Lambda Managed Instances で柔軟な実行</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🎯 主要機能</h2>
+            <div class="card">
+                <h3>📦 マネージドランタイム & コンテナイメージ</h3>
+                <p>dotnet10 ランタイムまたは amazon/aws-lambda-dotnet:10 コンテナイメージで利用可能。AWS が自動的にセキュリティパッチを適用します。</p>
+            </div>
+            <div class="card">
+                <h3>📄 ファイルベースアプリ</h3>
+                <p>単一の .cs ファイルで Lambda 関数を記述可能。.csproj ファイルや複雑なフォルダ構造が不要になり、小規模な関数の開発が迅速化します。</p>
+            </div>
+            <div class="card">
+                <h3>🖥️ Lambda Managed Instances</h3>
+                <p>Lambda 関数を EC2 インスタンス上で実行可能。サーバーレスの運用シンプルさを維持しながら、コスト効率と専用コンピュートを提供します。</p>
+            </div>
+            <div class="card">
+                <h3>🔧 Powertools for Lambda (.NET)</h3>
+                <p>構造化ログ、メトリクス、トレーシングなどのベストプラクティスを簡単に実装できる開発者ツールキットが .NET 10 をサポート。</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🏗️ アーキテクチャ図</h2>
+            <p>.NET 10 を使用した Lambda 開発のワークフローと、マネージドランタイムとコンテナイメージの 2 つのデプロイオプション、そして標準 Lambda と Lambda Managed Instances の実行環境を示しています。</p>
+            <div class="mermaid-container">
+                <pre class="mermaid">
+flowchart TD
+    Developer["👨‍💻 開発者"]
+
+    subgraph DevelopmentTools["🛠️ 開発ツール"]
+        DotnetCLI["dotnet CLI"]
+        VSToolkit["AWS Toolkit for<br/>Visual Studio"]
+        SAM["AWS SAM"]
+    end
+
+    subgraph DeploymentOptions[".NET 10 デプロイオプション"]
+        ManagedRuntime["📦 マネージドランタイム<br/>(aws/lambda/dotnet:10)"]
+        ContainerImage["🐳 コンテナイメージ<br/>(amazon/aws-lambda-dotnet:10)"]
+    end
+
+    subgraph LambdaExecution["⚡ Lambda 実行環境"]
+        Standard["🚀 標準 Lambda<br/>(マネージド環境)"]
+        ManagedInstances["🖥️ Lambda Managed<br/>Instances (EC2)"]
+    end
+
+    subgraph Features[".NET 10 機能"]
+        FileBasedApps["📄 ファイルベースアプリ"]
+        Performance["⚡ パフォーマンス向上"]
+        Powertools["🔧 Powertools for<br/>Lambda (.NET)"]
+    end
+
+    Developer --> DevelopmentTools
+    DevelopmentTools --> DeploymentOptions
+    DeploymentOptions --> LambdaExecution
+    LambdaExecution --> Features
+
+    style ManagedRuntime fill:#E8F1FF,stroke:#4A90E2
+    style ContainerImage fill:#E8F1FF,stroke:#4A90E2
+    style DevelopmentTools fill:none,stroke:#CCCCCC
+    style DeploymentOptions fill:none,stroke:#CCCCCC
+    style LambdaExecution fill:none,stroke:#CCCCCC
+    style Features fill:none,stroke:#CCCCCC
+                </pre>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>📈 技術仕様</h2>
+            <div class="stats-grid">
+                <div class="stats-card">
+                    <div class="number">2028</div>
+                    <div class="label">LTS サポート期限 (11月)</div>
+                </div>
+                <div class="stats-card">
+                    <div class="number">dotnet10</div>
+                    <div class="label">ランタイム識別子</div>
+                </div>
+                <div class="stats-card">
+                    <div class="number">AL2023</div>
+                    <div class="label">サポート OS</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🚀 デプロイフロー</h2>
+            <div class="flow-diagram">
+                <div class="flow-step">📝 .NET 10 SDK<br/>インストール</div>
+                <span class="flow-arrow">→</span>
+                <div class="flow-step">🔧 Lambda<br/>プロジェクト作成</div>
+                <span class="flow-arrow">→</span>
+                <div class="flow-step">📦 SAM/CDK で<br/>デプロイ</div>
+                <span class="flow-arrow">→</span>
+                <div class="flow-step">⚡ Lambda<br/>実行</div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>💡 ユースケース</h2>
+            <div class="usecase">
+                <h3>🔌 シンプルな API バックエンド</h3>
+                <p>ファイルベースアプリで REST API のバックエンドを迅速に実装。単純なデータ変換や検証を行う Lambda 関数を最小限のコードで作成できます。</p>
+            </div>
+            <div class="usecase">
+                <h3>📊 バッチ処理</h3>
+                <p>S3 にアップロードされたファイルを処理し、DynamoDB に保存。Powertools for Lambda で構造化ログとトレーシングを簡単に実装できます。</p>
+            </div>
+            <div class="usecase">
+                <h3>⏱️ 長時間実行処理</h3>
+                <p>Lambda Managed Instances で標準 Lambda の 15 分制限を超える処理を実行。大量データ処理や複雑な計算に最適です。</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🌏 利用可能リージョン</h2>
+            <p>AWS GovCloud (US) リージョンと中国リージョンを含む、<span class="highlight">すべての AWS リージョン</span>で利用可能です。</p>
+        </div>
+
+        <footer>
+            <h3>📎 出典・参考リンク</h3>
+            <a href="https://aws.amazon.com/about-aws/whats-new/2026/01/aws-lambda-dot-net-10/" target="_blank">🔗 公式発表 (What's New)</a>
+            <a href="https://aws.amazon.com/blogs/compute/net-10-runtime-now-available-in-aws-lambda/" target="_blank">📝 AWS Compute Blog</a>
+            <a href="https://docs.aws.amazon.com/lambda/latest/dg/lambda-managed-instances.html" target="_blank">📖 Lambda Managed Instances ドキュメント</a>
+            <p class="footer-note">🤖 Generated with Kiro | 📅 2026-02-05</p>
+        </footer>
+    </div>
+</body>
+</html>

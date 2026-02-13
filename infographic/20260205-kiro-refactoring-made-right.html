@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kiro - プログラム解析によるリファクタリングツール</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap');
+
+        :root {
+            --aws-squid-ink: #232F3E;
+            --aws-dark-squid: #1A242F;
+            --aws-orange: #FF9900;
+            --aws-smile-orange: #FFAD33;
+            --aws-white: #FFFFFF;
+            --aws-light-gray: #D5DBDB;
+            --aws-teal: #00A1C9;
+            --aws-purple: #8C4FFF;
+            --aws-green: #1D8102;
+            --aws-red: #D13212;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background-color: var(--aws-squid-ink);
+            font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            color: var(--aws-light-gray);
+            font-size: 16px;
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 32px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .header-left { flex: 1; min-width: 280px; }
+
+        .service-badge {
+            display: inline-block;
+            background: var(--aws-orange);
+            color: var(--aws-squid-ink);
+            padding: 4px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        h1 {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--aws-white);
+            line-height: 1.3;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            font-size: 16px;
+            color: var(--aws-light-gray);
+        }
+
+        .header-right {
+            text-align: right;
+            font-size: 14px;
+            color: var(--aws-light-gray);
+        }
+
+        .date-badge {
+            background: rgba(255, 153, 0, 0.15);
+            border: 1px solid rgba(255, 153, 0, 0.3);
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-size: 14px;
+            color: var(--aws-orange);
+            font-weight: 600;
+        }
+
+        /* Section */
+        .section {
+            background: var(--aws-dark-squid);
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        h2 {
+            font-size: 22px;
+            font-weight: 600;
+            color: var(--aws-orange);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        h3 {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--aws-white);
+            margin-bottom: 12px;
+            margin-top: 20px;
+        }
+
+        p { margin-bottom: 12px; }
+
+        .highlight {
+            background-color: rgba(255, 153, 0, 0.2);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+            color: var(--aws-orange);
+        }
+
+        /* Before/After */
+        .before-after-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin: 16px 0;
+        }
+
+        .before-card {
+            background: rgba(209, 50, 18, 0.1);
+            border: 1px solid rgba(209, 50, 18, 0.4);
+            border-radius: 8px;
+            padding: 16px;
+        }
+
+        .before-card .card-label {
+            color: var(--aws-red);
+            font-weight: 700;
+            font-size: 14px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .after-card {
+            background: rgba(29, 129, 2, 0.1);
+            border: 1px solid rgba(29, 129, 2, 0.4);
+            border-radius: 8px;
+            padding: 16px;
+        }
+
+        .after-card .card-label {
+            color: var(--aws-green);
+            font-weight: 700;
+            font-size: 14px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .before-card ul, .after-card ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .before-card li, .after-card li {
+            padding: 4px 0;
+            font-size: 14px;
+            display: flex;
+            align-items: flex-start;
+            gap: 6px;
+        }
+
+        .before-card li::before { content: "✗"; color: var(--aws-red); font-weight: bold; }
+        .after-card li::before { content: "✓"; color: var(--aws-green); font-weight: bold; }
+
+        /* Feature Cards */
+        .feature-card {
+            background: rgba(255, 153, 0, 0.05);
+            border-left: 4px solid var(--aws-orange);
+            border-radius: 0 8px 8px 0;
+            padding: 16px 20px;
+            margin: 12px 0;
+        }
+
+        .feature-card-title {
+            font-weight: 700;
+            color: var(--aws-white);
+            font-size: 16px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .feature-card p, .feature-card ul {
+            font-size: 14px;
+            color: var(--aws-light-gray);
+        }
+
+        .feature-card ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .feature-card li {
+            padding: 3px 0;
+            padding-left: 18px;
+            position: relative;
+        }
+
+        .feature-card li::before {
+            content: "→";
+            color: var(--aws-orange);
+            position: absolute;
+            left: 0;
+        }
+
+        /* Tables */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+            font-size: 14px;
+        }
+
+        .data-table th {
+            background: rgba(255, 153, 0, 0.2);
+            color: var(--aws-orange);
+            padding: 10px 12px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid rgba(255, 153, 0, 0.3);
+        }
+
+        .data-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            color: var(--aws-light-gray);
+        }
+
+        .data-table tr:hover td {
+            background: rgba(255, 153, 0, 0.05);
+        }
+
+        .badge-native {
+            display: inline-block;
+            background: rgba(29, 129, 2, 0.2);
+            color: var(--aws-green);
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .badge-extension {
+            display: inline-block;
+            background: rgba(140, 79, 255, 0.2);
+            color: var(--aws-purple);
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        /* Use Cases */
+        .usecase-card {
+            background: rgba(255, 153, 0, 0.08);
+            border: 1px solid rgba(255, 153, 0, 0.2);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 12px 0;
+        }
+
+        .usecase-card-title {
+            font-weight: 700;
+            color: var(--aws-orange);
+            font-size: 16px;
+            margin-bottom: 4px;
+        }
+
+        .usecase-scenario {
+            font-size: 14px;
+            color: var(--aws-light-gray);
+            margin-bottom: 12px;
+            font-style: italic;
+        }
+
+        .usecase-steps {
+            background: rgba(26, 36, 47, 0.8);
+            border-radius: 6px;
+            padding: 12px 16px;
+            margin: 10px 0;
+            font-size: 13px;
+            font-family: 'Courier New', monospace;
+            color: var(--aws-light-gray);
+            line-height: 1.7;
+        }
+
+        .usecase-steps .cmd {
+            color: var(--aws-teal);
+        }
+
+        .usecase-effect {
+            font-size: 14px;
+            color: var(--aws-green);
+            font-weight: 500;
+            margin-top: 8px;
+        }
+
+        /* Mermaid */
+        .mermaid-container {
+            background: #FFFFFF;
+            border-radius: 12px;
+            padding: 24px;
+            margin: 20px 0;
+            border: 2px solid rgba(255, 153, 0, 0.3);
+            overflow-x: auto;
+        }
+
+        .mermaid {
+            display: flex;
+            justify-content: center;
+        }
+
+        /* Flow Diagram */
+        .flow-diagram {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin: 24px 0;
+        }
+
+        .flow-step {
+            background: var(--aws-dark-squid);
+            border: 2px solid var(--aws-orange);
+            border-radius: 8px;
+            padding: 12px 20px;
+            text-align: center;
+            min-width: 100px;
+        }
+
+        .flow-arrow {
+            color: var(--aws-orange);
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        /* Merit/Demerit */
+        .merit-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin: 16px 0;
+        }
+
+        .merit-card {
+            background: rgba(29, 129, 2, 0.08);
+            border: 1px solid rgba(29, 129, 2, 0.3);
+            border-radius: 8px;
+            padding: 16px;
+        }
+
+        .merit-card h4 {
+            color: var(--aws-green);
+            font-size: 15px;
+            margin-bottom: 8px;
+        }
+
+        .merit-card li {
+            font-size: 14px;
+            padding: 3px 0;
+        }
+
+        .demerit-card {
+            background: rgba(255, 153, 0, 0.08);
+            border: 1px solid rgba(255, 153, 0, 0.3);
+            border-radius: 8px;
+            padding: 16px;
+        }
+
+        .demerit-card h4 {
+            color: var(--aws-orange);
+            font-size: 15px;
+            margin-bottom: 8px;
+        }
+
+        .demerit-card li {
+            font-size: 14px;
+            padding: 3px 0;
+        }
+
+        .merit-card ul, .demerit-card ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .merit-card li::before { content: "✅ "; }
+        .demerit-card li::before { content: "⚠️ "; }
+
+        /* Stats */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin: 16px 0;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, rgba(255, 153, 0, 0.15), rgba(255, 153, 0, 0.05));
+            border: 1px solid rgba(255, 153, 0, 0.3);
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--aws-orange);
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: var(--aws-light-gray);
+            margin-top: 4px;
+        }
+
+        /* Impact List */
+        .impact-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .impact-list li {
+            padding: 6px 0;
+            padding-left: 24px;
+            position: relative;
+            font-size: 14px;
+        }
+
+        .impact-list li::before {
+            content: "•";
+            color: var(--aws-orange);
+            position: absolute;
+            left: 8px;
+            font-weight: bold;
+        }
+
+        /* Related Services */
+        .related-service {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .related-service:last-child { border-bottom: none; }
+
+        .related-service-name {
+            font-weight: 600;
+            color: var(--aws-teal);
+            font-size: 14px;
+            min-width: 180px;
+        }
+
+        .related-service-desc {
+            font-size: 14px;
+            color: var(--aws-light-gray);
+        }
+
+        /* Region */
+        .region-badge {
+            display: inline-block;
+            background: rgba(0, 161, 201, 0.15);
+            border: 1px solid rgba(0, 161, 201, 0.3);
+            color: var(--aws-teal);
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        /* Summary Box */
+        .summary-box {
+            background: linear-gradient(135deg, rgba(255, 153, 0, 0.12), rgba(140, 79, 255, 0.08));
+            border: 1px solid rgba(255, 153, 0, 0.3);
+            border-radius: 8px;
+            padding: 20px;
+            font-size: 15px;
+            line-height: 1.7;
+        }
+
+        /* Footer */
+        footer {
+            margin-top: 24px;
+            padding-top: 16px;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            font-size: 12px;
+            color: var(--aws-light-gray);
+        }
+
+        footer a {
+            color: var(--aws-teal);
+            text-decoration: none;
+            word-break: break-all;
+        }
+
+        footer a:hover { color: var(--aws-smile-orange); }
+
+        footer ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        footer li {
+            padding: 3px 0;
+        }
+
+        /* Responsive */
+        @media (max-width: 700px) {
+            h1 { font-size: 24px; }
+            .before-after-grid, .merit-grid { grid-template-columns: 1fr; }
+            .stats-grid { grid-template-columns: 1fr; }
+            .header { flex-direction: column; }
+            .header-right { text-align: left; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+
+        <!-- Header -->
+        <div class="header">
+            <div class="header-left">
+                <span class="service-badge">Kiro</span>
+                <h1>🔧 プログラム解析によるリファクタリングツール</h1>
+                <p class="subtitle">セマンティックリファクタリングで AI コーディングの弱点を克服</p>
+            </div>
+            <div class="header-right">
+                <span class="date-badge">📅 2026 年 2 月 5 日</span>
+            </div>
+        </div>
+
+        <!-- 概要 -->
+        <div class="section">
+            <h2>📋 概要</h2>
+            <p>Kiro に 2 つのセマンティックリファクタリングツールが追加されました。AI コーディングアシスタントはコード生成には優れていますが、リファクタリングではテキストベースの編集として扱うため、参照の更新漏れやビルドエラーが頻繁に発生していました。</p>
+            <p>今回のアップデートでは、IDE の言語サーバーが持つ<span class="highlight">プログラム解析能力</span>をエージェントに公開することで、構造的に正確なリファクタリングを実現します。<span class="highlight">Semantic Rename Tool</span> と <span class="highlight">Smart Relocate Tool</span> の 2 つのツールにより、シンボル名の変更やファイルの移動がコードベース全体で安全に実行されます。</p>
+
+            <div class="before-after-grid">
+                <div class="before-card">
+                    <div class="card-label">❌ アップデート前の課題</div>
+                    <ul>
+                        <li>LLM はリファクタリングをテキスト編集として扱い、セマンティック構造を理解できなかった</li>
+                        <li>関数名変更時に呼び出し元、型定義、インポート文、テストの更新が漏れていた</li>
+                        <li>ファイル移動時にインポートパス、バレルファイル、モジュール解決の設定が壊れていた</li>
+                        <li>手動での検索・置換はエラーが発生しやすく時間がかかっていた</li>
+                    </ul>
+                </div>
+                <div class="after-card">
+                    <div class="card-label">✅ アップデート後の改善</div>
+                    <ul>
+                        <li>言語サーバーのシンボル解析により、コードベース全体でリネームが確実に実行</li>
+                        <li>ファイル移動時にすべての参照パスが自動的に更新</li>
+                        <li>パスエイリアスやモノレポなどのエッジケースにも対応</li>
+                        <li>エージェントが指示し、IDE の言語サーバーが正確性を検証する分業を実現</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- アーキテクチャ図 -->
+        <div class="section">
+            <h2>🏗️ アーキテクチャ図</h2>
+            <p>従来のアプローチでは LLM がテキストパターンマッチングでリネームを試みるため参照の更新漏れが発生するのに対し、Kiro のアプローチでは言語サーバーのシンボル解析を活用してコードベース全体の参照を自動的に更新します。</p>
+            <div class="mermaid-container">
+                <pre class="mermaid">
+flowchart TD
+    subgraph Traditional["❌ 従来のアプローチ"]
+        direction TB
+        T_Agent(["🤖 AI エージェント"])
+        T_LLM["📝 テキストベース編集"]
+        T_Def["📄 関数定義を変更"]
+        T_Miss["⚠️ 呼び出し元の更新漏れ"]
+        T_Err["💥 ビルドエラー発生"]
+
+        T_Agent --> T_LLM
+        T_LLM --> T_Def
+        T_Def --> T_Miss
+        T_Miss --> T_Err
+    end
+
+    subgraph Kiro["✅ Kiro のアプローチ"]
+        direction TB
+        K_Agent(["🤖 AI エージェント"])
+        K_Tool["🔧 Semantic Rename Tool"]
+        K_LS["⚙️ 言語サーバー シンボル解析"]
+        K_All["📄 全参照を自動検出 定義・呼び出し・型・テスト"]
+        K_OK["✅ 安全なリファクタリング完了"]
+
+        K_Agent --> K_Tool
+        K_Tool --> K_LS
+        K_LS --> K_All
+        K_All --> K_OK
+    end
+
+    classDef cloud fill:none,stroke:#CCCCCC,stroke-width:2px,color:#666666
+    classDef process fill:#FFFFFF,stroke:#4A90E2,stroke-width:2px,color:#333333
+    classDef warning fill:#FFF3E0,stroke:#FF9800,stroke-width:2px,color:#333333
+    classDef error fill:#FFEBEE,stroke:#F44336,stroke-width:2px,color:#333333
+    classDef success fill:#E9F7EC,stroke:#66BB6A,stroke-width:2px,color:#333333
+    classDef user fill:#E3F2FD,stroke:#BBDEFB,stroke-width:2px,color:#1565C0
+
+    class Traditional,Kiro cloud
+    class T_LLM,T_Def,K_Tool,K_LS,K_All process
+    class T_Miss warning
+    class T_Err error
+    class K_OK success
+    class T_Agent,K_Agent user
+                </pre>
+            </div>
+        </div>
+
+        <!-- 主要機能 -->
+        <div class="section">
+            <h2>⚡ 主要機能</h2>
+
+            <div class="feature-card">
+                <div class="feature-card-title">🔤 Semantic Rename Tool</div>
+                <ul>
+                    <li>VSCode のシンボルリネーム API (F2 キーと同等) をプログラム的に公開</li>
+                    <li><code>vscode.prepareRename</code> でリネームの妥当性を事前検証</li>
+                    <li><code>vscode.executeDocumentRenameProvider</code> でワークスペース全体の編集を生成</li>
+                    <li>関数定義、呼び出し元、型定義、インポート/エクスポート文、テスト、ドキュメントを一括更新</li>
+                </ul>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-card-title">📁 Smart Relocate Tool</div>
+                <ul>
+                    <li>VSCode のファイル移動機能 (<code>vscode.WorkspaceEdit.renameFile</code>) を活用</li>
+                    <li>ファイル移動時にすべてのインポートパスを自動更新</li>
+                    <li>VSCode エクスプローラーでのドラッグアンドドロップと同等の機能をプログラム的に提供</li>
+                    <li>バレルファイル、モジュール解決の前提、設定ファイルも含めて更新</li>
+                </ul>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-card-title">🤝 IDE とエージェントの分業モデル</div>
+                <ul>
+                    <li>エージェントがリファクタリングの意図を判断し、ツールを選択</li>
+                    <li>IDE の言語サーバーがセマンティック解析と正確性の検証を担当</li>
+                    <li>パターンマッチングではなくプログラム解析に基づく確実な変更</li>
+                </ul>
+            </div>
+
+            <!-- IDE-Agent 分業フロー図 -->
+            <h3>🔄 IDE とエージェントの分業フロー</h3>
+            <div class="flow-diagram">
+                <div class="flow-step">🤖 エージェント<br/>意図を判断</div>
+                <span class="flow-arrow">→</span>
+                <div class="flow-step">🔧 ツール選択<br/>Rename / Relocate</div>
+                <span class="flow-arrow">→</span>
+                <div class="flow-step">⚙️ 言語サーバー<br/>セマンティック解析</div>
+                <span class="flow-arrow">→</span>
+                <div class="flow-step">✅ 安全な<br/>リファクタリング</div>
+            </div>
+        </div>
+
+        <!-- 技術仕様 -->
+        <div class="section">
+            <h2>📐 技術仕様</h2>
+
+            <h3>🌐 対応言語</h3>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>言語</th>
+                        <th>サポート方式</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>TypeScript</td><td><span class="badge-native">ネイティブサポート</span></td></tr>
+                    <tr><td>JavaScript</td><td><span class="badge-native">ネイティブサポート</span></td></tr>
+                    <tr><td>TSX</td><td><span class="badge-native">ネイティブサポート</span></td></tr>
+                    <tr><td>JSX</td><td><span class="badge-native">ネイティブサポート</span></td></tr>
+                    <tr><td>Python</td><td><span class="badge-extension">言語拡張機能経由</span></td></tr>
+                    <tr><td>Go</td><td><span class="badge-extension">言語拡張機能経由</span></td></tr>
+                    <tr><td>Java</td><td><span class="badge-extension">言語拡張機能経由</span></td></tr>
+                </tbody>
+            </table>
+
+            <h3>🔍 従来の失敗パターンと解決</h3>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>従来の操作</th>
+                        <th>失敗パターン</th>
+                        <th>Kiro での解決</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>メソッド名の変更</td>
+                        <td>定義は更新されるが呼び出し元が未更新</td>
+                        <td>Semantic Rename で全参照を一括更新</td>
+                    </tr>
+                    <tr>
+                        <td>Lint エラー修正</td>
+                        <td>関数名を変更しても全ての使用箇所に伝播されない</td>
+                        <td>言語サーバーが全使用箇所を検出して更新</td>
+                    </tr>
+                    <tr>
+                        <td>ファイル移動</td>
+                        <td>インポート文が旧パスのまま壊れる</td>
+                        <td>Smart Relocate で全インポートパスを自動更新</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>🧩 リファクタリングが難しい理由</h3>
+            <p>リファクタリングはコードベースのセマンティック構造に対する<span class="highlight">グラフ探索問題</span>です。</p>
+
+            <div class="before-after-grid">
+                <div style="background: rgba(140, 79, 255, 0.08); border: 1px solid rgba(140, 79, 255, 0.3); border-radius: 8px; padding: 16px;">
+                    <div style="color: var(--aws-purple); font-weight: 700; font-size: 14px; margin-bottom: 10px;">🔤 関数名変更の影響範囲</div>
+                    <ul class="impact-list">
+                        <li>すべての呼び出し元</li>
+                        <li>型定義</li>
+                        <li>インポート/エクスポート文</li>
+                        <li>テストコード</li>
+                        <li>ドキュメント</li>
+                    </ul>
+                </div>
+                <div style="background: rgba(0, 161, 201, 0.08); border: 1px solid rgba(0, 161, 201, 0.3); border-radius: 8px; padding: 16px;">
+                    <div style="color: var(--aws-teal); font-weight: 700; font-size: 14px; margin-bottom: 10px;">📁 ファイル移動の影響範囲</div>
+                    <ul class="impact-list">
+                        <li>インポートパス</li>
+                        <li>バレルファイル</li>
+                        <li>モジュール解決の前提</li>
+                        <li>設定ファイル</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- 統計情報 -->
+        <div class="section">
+            <h2>📊 数字で見るアップデート効果</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <span class="stat-value">4</span>
+                    <span class="stat-label">ネイティブサポート言語</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-value">7</span>
+                    <span class="stat-label">合計対応言語</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-value">2</span>
+                    <span class="stat-label">セマンティックリファクタリングツール</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- メリット・デメリット -->
+        <div class="section">
+            <h2>⚖️ メリット・デメリット</h2>
+
+            <div class="merit-grid">
+                <div class="merit-card">
+                    <h4>💼 ビジネス面のメリット</h4>
+                    <ul>
+                        <li>手動検索・置換が不要になりリファクタリング作業が高速化</li>
+                        <li>参照の更新漏れによるビルドエラーやランタイムエラーが削減</li>
+                        <li>モノレポやパスエイリアスを含む複雑なプロジェクトでも安全にリファクタリング可能</li>
+                    </ul>
+                </div>
+                <div class="merit-card">
+                    <h4>🔧 技術面のメリット</h4>
+                    <ul>
+                        <li>モジュール解決の仕組みを理解した上でリファクタリングを実行</li>
+                        <li>動作中のコードを壊す可能性が大幅に低減</li>
+                        <li>パスエイリアス、モノレポ、バレルファイルなどのエッジケースに対応</li>
+                        <li>言語サーバーの成熟した解析能力をエージェントが活用</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="demerit-card" style="margin-top: 16px;">
+                <h4>⚠️ 制限事項・考慮点</h4>
+                <ul>
+                    <li>ネイティブサポートは TypeScript、JavaScript、TSX、JSX に限定</li>
+                    <li>Python、Go、Java は対応する言語拡張機能のインストールが必要</li>
+                    <li>言語サーバーが対応していない言語ではセマンティックリファクタリングが利用できない</li>
+                    <li>言語拡張機能の品質がリファクタリングの精度に影響する</li>
+                    <li>動的に生成されるコードや文字列内のシンボル参照は検出対象外の場合がある</li>
+                    <li>大規模なコードベースでは言語サーバーのインデックス作成に時間がかかる場合がある</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- ユースケース -->
+        <div class="section">
+            <h2>🎯 ユースケース</h2>
+
+            <div class="usecase-card">
+                <div class="usecase-card-title">🏢 ユースケース 1: 大規模コードベースでの関数リネーム</div>
+                <p class="usecase-scenario">数百のファイルから参照される共通ユーティリティ関数の名前を変更する必要がある</p>
+                <div class="usecase-steps">
+                    <span class="cmd">エージェントへの指示:</span> "getUserData 関数を fetchUserProfile にリネームしてください"<br/><br/>
+                    <strong>Kiro の処理:</strong><br/>
+                    1. Semantic Rename Tool が vscode.prepareRename で妥当性を検証<br/>
+                    2. vscode.executeDocumentRenameProvider で全参照を検出<br/>
+                    3. 関数定義、全呼び出し元、型定義、テストを一括更新
+                </div>
+                <p class="usecase-effect">✅ 効果: 手動での grep 検索や置換が不要になり、参照漏れのリスクがゼロに</p>
+            </div>
+
+            <div class="usecase-card">
+                <div class="usecase-card-title">📦 ユースケース 2: モノレポでのファイルリストラクチャリング</div>
+                <p class="usecase-scenario">モノレポ内でモジュールのディレクトリ構造を再編成する</p>
+                <div class="usecase-steps">
+                    <span class="cmd">エージェントへの指示:</span> "src/utils/auth.ts を src/modules/auth/utils.ts に移動してください"<br/><br/>
+                    <strong>Kiro の処理:</strong><br/>
+                    1. Smart Relocate Tool が vscode.WorkspaceEdit.renameFile を実行<br/>
+                    2. モノレポ内の全パッケージのインポートパスを自動更新<br/>
+                    3. バレルファイルのエクスポートパスも更新
+                </div>
+                <p class="usecase-effect">✅ 効果: 複数パッケージにまたがるインポートパスの更新が自動化され、ビルドエラーを防止</p>
+            </div>
+
+            <div class="usecase-card">
+                <div class="usecase-card-title">🧹 ユースケース 3: Lint エラーの安全な修正</div>
+                <p class="usecase-scenario">Lint ルール変更により命名規則に違反する関数名を一括修正する</p>
+                <div class="usecase-steps">
+                    <span class="cmd">エージェントへの指示:</span> "camelCase の命名規則に従って get_user_data を getUserData にリネームしてください"<br/><br/>
+                    <strong>Kiro の処理:</strong><br/>
+                    1. Semantic Rename Tool がシンボルの全使用箇所を解析<br/>
+                    2. 関数定義と全呼び出し元を一括でリネーム<br/>
+                    3. テストファイルの参照も自動更新
+                </div>
+                <p class="usecase-effect">✅ 効果: Lint エラー修正が安全に完了し、修正に伴う新たなエラーの発生を防止</p>
+            </div>
+        </div>
+
+        <!-- 利用可能リージョン -->
+        <div class="section">
+            <h2>🌍 利用可能リージョン</h2>
+            <p><span class="region-badge">🌐 グローバル</span></p>
+        </div>
+
+        <!-- 関連サービス -->
+        <div class="section">
+            <h2>🔗 関連サービス・機能</h2>
+            <div class="related-service">
+                <span class="related-service-name">🚀 Kiro 0.9</span>
+                <span class="related-service-desc">カスタムサブエージェント、Agent Skills、エンタープライズ制御を含む同時リリース</span>
+            </div>
+            <div class="related-service">
+                <span class="related-service-name">📡 VSCode Language Server Protocol</span>
+                <span class="related-service-desc">セマンティックリファクタリングの基盤となる言語サーバー機能</span>
+            </div>
+            <div class="related-service">
+                <span class="related-service-name">🔌 MCP</span>
+                <span class="related-service-desc">Kiro がツールを公開するための Model Context Protocol 基盤</span>
+            </div>
+        </div>
+
+        <!-- まとめ -->
+        <div class="section">
+            <h2>📝 まとめ</h2>
+            <div class="summary-box">
+                <p>Kiro のセマンティックリファクタリングツールは、AI コーディングアシスタントの最大の弱点の 1 つであるリファクタリングの不正確さを、IDE の言語サーバー連携により解決する重要なアップデートです。</p>
+                <p><span class="highlight">テキストベースの編集</span>から<span class="highlight">プログラム解析ベースの編集</span>へ移行することで、大規模コードベースでのリファクタリングの安全性と効率が大幅に向上します。</p>
+                <p>TypeScript や JavaScript を主要言語とするプロジェクトでは、即座にこの機能を活用してリファクタリング作業の品質向上を図ることを推奨します。</p>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer>
+            <p><strong>📎 出典:</strong></p>
+            <ul>
+                <li>📊 <a href="https://takech9203.github.io/awsnews-summary/20260205-kiro-refactoring-made-right.html" target="_blank" rel="noopener noreferrer">インフォグラフィック</a></li>
+                <li>📝 <a href="https://kiro.dev/blog/refactoring-made-right/" target="_blank" rel="noopener noreferrer">公式ブログ: Refactoring Made Right</a></li>
+                <li>🏠 <a href="https://kiro.dev/" target="_blank" rel="noopener noreferrer">Kiro</a></li>
+                <li>📖 <a href="https://kiro.dev/docs/" target="_blank" rel="noopener noreferrer">ドキュメント</a></li>
+            </ul>
+        </footer>
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'base',
+            themeVariables: {
+                primaryColor: '#FF9900',
+                primaryTextColor: '#232F3E',
+                primaryBorderColor: '#FF9900',
+                lineColor: '#FF9900',
+                secondaryColor: '#F5F5F5',
+                tertiaryColor: '#FAFAFA',
+                background: '#FFFFFF',
+                mainBkg: '#FFF3E0',
+                nodeBorder: '#FF9900',
+                clusterBkg: '#FFF8E1',
+                clusterBorder: '#FF9900',
+                edgeLabelBackground: '#FFFFFF',
+                textColor: '#232F3E'
+            }
+        });
+    </script>
+</body>
+</html>

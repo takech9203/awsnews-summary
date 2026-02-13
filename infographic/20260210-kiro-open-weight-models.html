@@ -1,0 +1,1172 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kiro - オープンウェイトモデルのサポート開始</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap');
+
+    :root {
+      --aws-squid-ink: #232F3E;
+      --aws-dark-squid: #1A242F;
+      --aws-orange: #FF9900;
+      --aws-smile-orange: #FFAD33;
+      --aws-white: #FFFFFF;
+      --aws-light-gray: #D5DBDB;
+      --aws-teal: #00A1C9;
+      --aws-purple: #8C4FFF;
+      --aws-green: #1D8102;
+      --aws-red: #D13212;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--aws-squid-ink);
+      font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+      color: var(--aws-light-gray);
+      font-size: 16px;
+      line-height: 1.6;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    /* ===== Header ===== */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 32px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .header-left { flex: 1; }
+
+    .service-badge {
+      display: inline-block;
+      background: var(--aws-orange);
+      color: var(--aws-squid-ink);
+      font-size: 13px;
+      font-weight: 700;
+      padding: 4px 14px;
+      border-radius: 20px;
+      margin-bottom: 12px;
+      letter-spacing: 0.5px;
+    }
+
+    h1 {
+      font-size: 36px;
+      font-weight: 700;
+      color: var(--aws-white);
+      line-height: 1.3;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      font-size: 16px;
+      color: var(--aws-light-gray);
+    }
+
+    .header-right {
+      text-align: right;
+      font-size: 14px;
+      color: var(--aws-light-gray);
+      flex-shrink: 0;
+    }
+
+    .date-label {
+      color: var(--aws-orange);
+      font-weight: 600;
+    }
+
+    /* ===== Sections ===== */
+    h2 {
+      font-size: 24px;
+      font-weight: 600;
+      color: var(--aws-orange);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .section {
+      background: var(--aws-dark-squid);
+      border-radius: 8px;
+      padding: 24px;
+      margin-bottom: 24px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .highlight {
+      background-color: rgba(255, 153, 0, 0.2);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 600;
+      color: var(--aws-orange);
+    }
+
+    /* ===== Overview Text ===== */
+    .overview-text {
+      font-size: 16px;
+      color: var(--aws-light-gray);
+      line-height: 1.8;
+      margin-bottom: 20px;
+    }
+
+    /* ===== Before/After ===== */
+    .before-after {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-top: 16px;
+    }
+
+    @media (max-width: 640px) {
+      .before-after { grid-template-columns: 1fr; }
+    }
+
+    .before-card, .after-card {
+      border-radius: 8px;
+      padding: 20px;
+    }
+
+    .before-card {
+      background: rgba(209, 50, 18, 0.1);
+      border: 1px solid rgba(209, 50, 18, 0.3);
+    }
+
+    .after-card {
+      background: rgba(29, 129, 2, 0.1);
+      border: 1px solid rgba(29, 129, 2, 0.3);
+    }
+
+    .ba-label {
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .before-card .ba-label { color: var(--aws-red); }
+    .after-card .ba-label { color: var(--aws-green); }
+
+    .ba-list {
+      list-style: none;
+      padding: 0;
+    }
+
+    .ba-list li {
+      padding: 6px 0;
+      font-size: 14px;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .ba-list li::before { flex-shrink: 0; }
+    .before-card .ba-list li::before { content: "✗"; color: var(--aws-red); font-weight: bold; }
+    .after-card .ba-list li::before { content: "✓"; color: var(--aws-green); font-weight: bold; }
+
+    /* ===== Stats Cards ===== */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    @media (max-width: 640px) {
+      .stats-grid { grid-template-columns: 1fr; }
+    }
+
+    .stat-card {
+      background: linear-gradient(135deg, rgba(255, 153, 0, 0.15), rgba(140, 79, 255, 0.1));
+      border: 1px solid rgba(255, 153, 0, 0.3);
+      border-radius: 8px;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .stat-number {
+      font-size: 36px;
+      font-weight: 700;
+      color: var(--aws-orange);
+      line-height: 1.2;
+    }
+
+    .stat-label {
+      font-size: 13px;
+      color: var(--aws-light-gray);
+      margin-top: 4px;
+    }
+
+    /* ===== Model Feature Cards ===== */
+    .model-card {
+      background: var(--aws-dark-squid);
+      border-radius: 8px;
+      padding: 24px;
+      margin-bottom: 16px;
+      border-left: 4px solid var(--aws-orange);
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      border-right: 1px solid rgba(255, 255, 255, 0.08);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .model-card.deepseek { border-left-color: var(--aws-teal); }
+    .model-card.minimax { border-left-color: var(--aws-purple); }
+    .model-card.qwen { border-left-color: var(--aws-green); }
+
+    .model-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .model-name {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--aws-white);
+    }
+
+    .credit-badge {
+      font-size: 14px;
+      font-weight: 700;
+      padding: 4px 12px;
+      border-radius: 20px;
+      display: inline-block;
+    }
+
+    .model-card.deepseek .credit-badge {
+      background: rgba(0, 161, 201, 0.2);
+      color: var(--aws-teal);
+      border: 1px solid rgba(0, 161, 201, 0.4);
+    }
+
+    .model-card.minimax .credit-badge {
+      background: rgba(140, 79, 255, 0.2);
+      color: var(--aws-purple);
+      border: 1px solid rgba(140, 79, 255, 0.4);
+    }
+
+    .model-card.qwen .credit-badge {
+      background: rgba(29, 129, 2, 0.2);
+      color: var(--aws-green);
+      border: 1px solid rgba(29, 129, 2, 0.4);
+    }
+
+    .model-desc {
+      font-size: 14px;
+      color: var(--aws-light-gray);
+      margin-bottom: 12px;
+      line-height: 1.7;
+    }
+
+    .model-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .model-tag {
+      font-size: 12px;
+      padding: 3px 10px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: var(--aws-light-gray);
+    }
+
+    .model-best-for {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--aws-orange);
+      margin-top: 12px;
+    }
+
+    /* ===== Comparison Table ===== */
+    .table-wrapper {
+      overflow-x: auto;
+      margin: 16px 0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    th {
+      background: rgba(255, 153, 0, 0.15);
+      color: var(--aws-orange);
+      font-weight: 600;
+      padding: 12px 16px;
+      text-align: left;
+      border-bottom: 2px solid rgba(255, 153, 0, 0.3);
+      white-space: nowrap;
+    }
+
+    td {
+      padding: 10px 16px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      color: var(--aws-light-gray);
+    }
+
+    tr:hover td {
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    /* ===== Use Case Cards ===== */
+    .usecase-card {
+      background: linear-gradient(135deg, rgba(255, 153, 0, 0.08), rgba(255, 153, 0, 0.03));
+      border: 1px solid rgba(255, 153, 0, 0.2);
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+
+    .usecase-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--aws-white);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .usecase-scenario {
+      font-size: 14px;
+      color: var(--aws-light-gray);
+      margin-bottom: 8px;
+    }
+
+    .usecase-effect {
+      font-size: 14px;
+      color: var(--aws-smile-orange);
+      font-weight: 500;
+    }
+
+    /* ===== Merits/Demerits ===== */
+    .merit-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    @media (max-width: 640px) {
+      .merit-grid { grid-template-columns: 1fr; }
+    }
+
+    .merit-box {
+      border-radius: 8px;
+      padding: 20px;
+    }
+
+    .merit-box.business {
+      background: rgba(255, 153, 0, 0.08);
+      border: 1px solid rgba(255, 153, 0, 0.2);
+    }
+
+    .merit-box.technical {
+      background: rgba(0, 161, 201, 0.08);
+      border: 1px solid rgba(0, 161, 201, 0.2);
+    }
+
+    .merit-box h3 {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+
+    .merit-box.business h3 { color: var(--aws-orange); }
+    .merit-box.technical h3 { color: var(--aws-teal); }
+
+    .merit-list {
+      list-style: none;
+      padding: 0;
+    }
+
+    .merit-list li {
+      padding: 6px 0;
+      font-size: 14px;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .merit-list li strong {
+      color: var(--aws-white);
+    }
+
+    /* ===== Caution / Limitations ===== */
+    .caution-card {
+      background: rgba(209, 50, 18, 0.06);
+      border: 1px solid rgba(209, 50, 18, 0.2);
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+
+    .caution-card h3 {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--aws-red);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .caution-list {
+      list-style: none;
+      padding: 0;
+    }
+
+    .caution-list li {
+      padding: 5px 0;
+      font-size: 14px;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      color: var(--aws-light-gray);
+    }
+
+    .caution-list li::before {
+      content: "⚠";
+      flex-shrink: 0;
+    }
+
+    /* ===== Code Block ===== */
+    .code-block {
+      background: #1a1a2e;
+      border-radius: 8px;
+      overflow: hidden;
+      margin: 16px 0;
+    }
+
+    .code-header {
+      background: #16213e;
+      padding: 8px 16px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+    }
+
+    .code-lang {
+      color: var(--aws-orange);
+      font-weight: bold;
+    }
+
+    .code-title {
+      color: var(--aws-light-gray);
+    }
+
+    .code-block pre {
+      margin: 0;
+      padding: 16px;
+      overflow-x: auto;
+    }
+
+    .code-block code {
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      color: #e0e0e0;
+      line-height: 1.5;
+    }
+
+    /* ===== Flow Diagram ===== */
+    .flow-diagram {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin: 24px 0;
+    }
+
+    .flow-step {
+      background: var(--aws-dark-squid);
+      border: 2px solid var(--aws-orange);
+      border-radius: 8px;
+      padding: 12px 20px;
+      text-align: center;
+      min-width: 120px;
+      color: var(--aws-white);
+      font-size: 14px;
+    }
+
+    .flow-arrow {
+      color: var(--aws-orange);
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    /* ===== Pricing Table ===== */
+    .pricing-highlight {
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    .pricing-highlight.low { color: var(--aws-green); }
+    .pricing-highlight.mid { color: var(--aws-teal); }
+    .pricing-highlight.high { color: var(--aws-orange); }
+
+    /* ===== Region Badge ===== */
+    .region-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(0, 161, 201, 0.1);
+      border: 1px solid rgba(0, 161, 201, 0.3);
+      border-radius: 8px;
+      padding: 12px 20px;
+      font-size: 15px;
+      color: var(--aws-teal);
+      font-weight: 500;
+    }
+
+    /* ===== Related Services ===== */
+    .related-service {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .related-service:last-child { border-bottom: none; }
+
+    .related-service-icon {
+      font-size: 24px;
+      flex-shrink: 0;
+    }
+
+    .related-service-name {
+      font-weight: 600;
+      color: var(--aws-white);
+      font-size: 15px;
+    }
+
+    .related-service-desc {
+      font-size: 13px;
+      color: var(--aws-light-gray);
+    }
+
+    /* ===== Mermaid ===== */
+    .mermaid-container {
+      background: #FFFFFF;
+      border-radius: 12px;
+      padding: 24px;
+      margin: 20px 0;
+      border: 2px solid rgba(255, 153, 0, 0.3);
+      overflow-x: auto;
+    }
+
+    .mermaid {
+      display: flex;
+      justify-content: center;
+    }
+
+    /* ===== Summary Box ===== */
+    .summary-box {
+      background: linear-gradient(135deg, rgba(255, 153, 0, 0.12), rgba(140, 79, 255, 0.08));
+      border: 2px solid rgba(255, 153, 0, 0.3);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+
+    .summary-box p {
+      font-size: 15px;
+      line-height: 1.8;
+      color: var(--aws-light-gray);
+    }
+
+    /* ===== Footer ===== */
+    footer {
+      margin-top: 24px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(255, 255, 255, 0.2);
+      font-size: 12px;
+      color: var(--aws-light-gray);
+    }
+
+    footer a {
+      color: var(--aws-teal);
+      text-decoration: none;
+      word-break: break-all;
+    }
+
+    footer a:hover { color: var(--aws-smile-orange); }
+
+    .footer-links {
+      list-style: none;
+      padding: 0;
+    }
+
+    .footer-links li {
+      padding: 3px 0;
+    }
+
+    /* ===== Credit Bar Visual ===== */
+    .credit-bar-container {
+      margin: 16px 0;
+    }
+
+    .credit-bar-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .credit-bar-label {
+      width: 160px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--aws-white);
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    .credit-bar-track {
+      flex: 1;
+      height: 28px;
+      background: rgba(255, 255, 255, 0.06);
+      border-radius: 14px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .credit-bar-fill {
+      height: 100%;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      padding-right: 10px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--aws-squid-ink);
+      transition: width 0.6s ease;
+    }
+
+    .credit-bar-fill.opus { background: linear-gradient(90deg, #FF9900, #FFAD33); width: 100%; }
+    .credit-bar-fill.deepseek-bar { background: linear-gradient(90deg, #00A1C9, #33B5D1); width: 11.4%; }
+    .credit-bar-fill.minimax-bar { background: linear-gradient(90deg, #8C4FFF, #A875FF); width: 6.8%; }
+    .credit-bar-fill.qwen-bar { background: linear-gradient(90deg, #1D8102, #3BA52B); width: 2.3%; }
+
+    .credit-bar-value {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--aws-light-gray);
+      width: 50px;
+      flex-shrink: 0;
+    }
+
+    @media (max-width: 640px) {
+      h1 { font-size: 26px; }
+      .header { flex-direction: column; }
+      .header-right { text-align: left; }
+      .credit-bar-label { width: 120px; font-size: 11px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <!-- ===== Header ===== -->
+    <div class="header">
+      <div class="header-left">
+        <div class="service-badge">Kiro</div>
+        <h1>🧠 オープンウェイトモデルのサポート開始</h1>
+        <div class="subtitle">DeepSeek v3.2 / MiniMax 2.1 / Qwen3 Coder Next が Kiro IDE &amp; CLI で利用可能に</div>
+      </div>
+      <div class="header-right">
+        <div><span class="date-label">📅 リリース日:</span> 2026 年 2 月 10 日</div>
+      </div>
+    </div>
+
+    <!-- ===== Stats ===== -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-number">3</div>
+        <div class="stat-label">新規オープンウェイトモデル</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">最大 95%</div>
+        <div class="stat-label">コスト削減率 (フロンティアモデル比)</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">0.05x〜</div>
+        <div class="stat-label">クレジット乗数 (最小)</div>
+      </div>
+    </div>
+
+    <!-- ===== 概要 ===== -->
+    <div class="section">
+      <h2>📋 概要</h2>
+      <p class="overview-text">
+        Kiro IDE および CLI で<span class="highlight">オープンウェイトモデル</span>が利用可能になった。<strong style="color: var(--aws-white);">DeepSeek v3.2</strong>、<strong style="color: var(--aws-white);">MiniMax 2.1</strong>、<strong style="color: var(--aws-white);">Qwen3 Coder Next</strong> の 3 つのモデルが新たに追加され、ユーザーはタスクの特性に応じて最適なモデルを選択できるようになった。これにより、速度・コスト・品質のバランスを柔軟にコントロールできる。
+      </p>
+      <p class="overview-text">
+        Kiro は当初からフロンティアモデルを中心に最高品質の AI コーディング体験を提供してきたが、オープンウェイトモデルの急速な進化により、多くの開発タスクでプロプライエタリモデルに匹敵する結果を出せるようになった。今回の対応により、すべてのタスクに最重量モデルを使用する必要がなくなり、ボイラープレート生成やシンプルなリファクタリングなどには高速・低コストのモデルを活用できる。
+      </p>
+
+      <!-- Before/After -->
+      <div class="before-after">
+        <div class="before-card">
+          <div class="ba-label">❌ Before</div>
+          <ul class="ba-list">
+            <li>Kiro で利用可能なモデルは Anthropic Claude シリーズに限定</li>
+            <li>軽量なタスクでもフロンティアモデルを使用する必要があり、クレジット消費が大きかった</li>
+            <li>オープンウェイトモデルを使いたいユーザーは別途自分で環境を構築する必要があった</li>
+          </ul>
+        </div>
+        <div class="after-card">
+          <div class="ba-label">✅ After</div>
+          <ul class="ba-list">
+            <li>3 つのオープンウェイトモデルが IDE と CLI の両方で利用可能に</li>
+            <li>クレジット乗数が 0.05x〜0.25x と低く、大幅なコスト削減が可能に</li>
+            <li>タスクの特性に合わせてモデルを切り替えることで、速度と品質のバランスを最適化</li>
+            <li>無料ユーザーを含むすべてのユーザーが利用可能</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== アーキテクチャ図: モデル選択フロー ===== -->
+    <div class="section">
+      <h2>🏗️ モデル選択フロー</h2>
+      <div class="mermaid-container">
+        <pre class="mermaid">
+flowchart TD
+    User(["👤 開発者"]) --> Selector["🔄 モデルセレクター"]
+
+    subgraph Kiro["☁️ Kiro IDE / CLI"]
+        direction LR
+        Selector --> DS["🧠 DeepSeek v3.2<br/>0.25x"]
+        Selector --> MM["🌐 MiniMax 2.1<br/>0.15x"]
+        Selector --> QW["⚡ Qwen3 Coder Next<br/>0.05x"]
+        DS ~~~ MM ~~~ QW
+    end
+
+    subgraph Bedrock["☁️ Amazon Bedrock"]
+        Inference["🔧 モデル推論"]
+    end
+
+    DS --> Inference
+    MM --> Inference
+    QW --> Inference
+    Inference --> Result(["📤 コード生成結果"])
+
+    classDef cloud fill:none,stroke:#CCCCCC,stroke-width:2px,color:#666666
+    classDef layer fill:none,stroke:#E1BEE7,stroke-width:2px,color:#666666
+    classDef compute fill:#FFE0B2,stroke:#FFCC80,stroke-width:2px,color:#5D4037
+    classDef user fill:#E3F2FD,stroke:#BBDEFB,stroke-width:2px,color:#1565C0
+    classDef storage fill:#DCEDC8,stroke:#C5E1A5,stroke-width:2px,color:#33691E
+
+    class Kiro cloud
+    class Bedrock layer
+    class Selector,DS,MM,QW compute
+    class User user
+    class Inference,Result storage
+        </pre>
+      </div>
+    </div>
+
+    <!-- ===== 主要機能: モデルカード ===== -->
+    <div class="section">
+      <h2>🚀 主要機能 — 3 つのオープンウェイトモデル</h2>
+
+      <!-- DeepSeek v3.2 -->
+      <div class="model-card deepseek">
+        <div class="model-header">
+          <div class="model-name">🧠 DeepSeek v3.2</div>
+          <span class="credit-badge">0.25x クレジット</span>
+        </div>
+        <div class="model-desc">
+          スパース Mixture-of-Experts アーキテクチャを採用し、タスクごとに必要なパラメータのみをアクティベート。エージェンティックワークフローに優れ、マルチステップツールコール、長時間セッションでの状態維持、複雑な推論チェーンに対応。初期コード生成に強いが、複雑なデバッグやコードレビューの品質には課題がある場合がある。
+        </div>
+        <div class="model-best-for">🎯 推奨用途: エージェント構築・込み入ったデバッグセッション</div>
+        <div class="model-tags">
+          <span class="model-tag">スパース MoE</span>
+          <span class="model-tag">エージェンティック</span>
+          <span class="model-tag">推論チェーン</span>
+          <span class="model-tag">状態維持</span>
+        </div>
+      </div>
+
+      <!-- MiniMax 2.1 -->
+      <div class="model-card minimax">
+        <div class="model-header">
+          <div class="model-name">🌐 MiniMax 2.1</div>
+          <span class="credit-badge">0.15x クレジット</span>
+        </div>
+        <div class="model-desc">
+          多言語プログラミングに特化。Rust、Java、Go、C++、Kotlin、TypeScript、JavaScript など幅広い言語をサポート。Web、Android、iOS 向けの UI 生成能力が高い。フロンティアモデルと比較して複雑なリファクタリングタスクでは課題がある場合がある。
+        </div>
+        <div class="model-best-for">🎯 推奨用途: 多言語での開発・フロントエンド作業</div>
+        <div class="model-tags">
+          <span class="model-tag">多言語対応</span>
+          <span class="model-tag">UI 生成</span>
+          <span class="model-tag">Rust</span>
+          <span class="model-tag">TypeScript</span>
+          <span class="model-tag">Go</span>
+          <span class="model-tag">Kotlin</span>
+        </div>
+      </div>
+
+      <!-- Qwen3 Coder Next -->
+      <div class="model-card qwen">
+        <div class="model-header">
+          <div class="model-name">⚡ Qwen3 Coder Next</div>
+          <span class="credit-badge">0.05x クレジット</span>
+        </div>
+        <div class="model-desc">
+          80B スパース MoE モデルで、トークンあたり 3B パラメータのみをアクティベート。コーディングエージェント向けに設計。SWE-Bench Verified で 70% 以上のスコア。256K コンテキストをサポート。エラー検出・リカバリ・ツールコールに強い。互換性やインテグレーションの一部に慎重な設定が必要な場合がある。
+        </div>
+        <div class="model-best-for">🎯 推奨用途: CLI での長時間エージェンティックコーディングセッション</div>
+        <div class="model-tags">
+          <span class="model-tag">80B スパース MoE</span>
+          <span class="model-tag">3B アクティブ</span>
+          <span class="model-tag">256K コンテキスト</span>
+          <span class="model-tag">SWE-Bench 70%+</span>
+          <span class="model-tag">エラーリカバリ</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== 技術仕様: 比較テーブル ===== -->
+    <div class="section">
+      <h2>📊 技術仕様 — モデル比較</h2>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>項目</th>
+              <th>DeepSeek v3.2</th>
+              <th>MiniMax 2.1</th>
+              <th>Qwen3 Coder Next</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong style="color: var(--aws-white);">クレジット乗数</strong></td>
+              <td><span class="pricing-highlight high">0.25x</span></td>
+              <td><span class="pricing-highlight mid">0.15x</span></td>
+              <td><span class="pricing-highlight low">0.05x</span></td>
+            </tr>
+            <tr>
+              <td><strong style="color: var(--aws-white);">アーキテクチャ</strong></td>
+              <td>スパース MoE</td>
+              <td>—</td>
+              <td>80B スパース MoE<br/>(3B アクティブ)</td>
+            </tr>
+            <tr>
+              <td><strong style="color: var(--aws-white);">強み</strong></td>
+              <td>エージェンティック<br/>ワークフロー、推論</td>
+              <td>多言語対応、<br/>UI 生成</td>
+              <td>コーディングエージェント、<br/>長コンテキスト</td>
+            </tr>
+            <tr>
+              <td><strong style="color: var(--aws-white);">コンテキスト長</strong></td>
+              <td>—</td>
+              <td>—</td>
+              <td style="color: var(--aws-green); font-weight: 600;">256K</td>
+            </tr>
+            <tr>
+              <td><strong style="color: var(--aws-white);">SWE-Bench Verified</strong></td>
+              <td>—</td>
+              <td>—</td>
+              <td style="color: var(--aws-green); font-weight: 600;">70%+</td>
+            </tr>
+            <tr>
+              <td><strong style="color: var(--aws-white);">推奨用途</strong></td>
+              <td>エージェント構築、<br/>デバッグ</td>
+              <td>多言語開発、<br/>フロントエンド</td>
+              <td>CLI エージェンティック<br/>セッション</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p style="font-size: 13px; color: var(--aws-light-gray); margin-top: 12px;">
+        ※ 利用方法: IDE のモデルセレクターまたは Kiro CLI からモデルを切り替えて使用。Auto モードとの併用も可能。
+      </p>
+    </div>
+
+    <!-- ===== コスト比較ビジュアル ===== -->
+    <div class="section">
+      <h2>💰 クレジット乗数の比較</h2>
+      <p style="font-size: 14px; margin-bottom: 16px; color: var(--aws-light-gray);">Claude Opus 4.6 (2.2x) を基準にした場合のクレジット消費量</p>
+      <div class="credit-bar-container">
+        <div class="credit-bar-row">
+          <div class="credit-bar-label">Claude Opus 4.6</div>
+          <div class="credit-bar-track">
+            <div class="credit-bar-fill opus">2.2x</div>
+          </div>
+          <div class="credit-bar-value" style="color: var(--aws-orange);">2.2x</div>
+        </div>
+        <div class="credit-bar-row">
+          <div class="credit-bar-label">DeepSeek v3.2</div>
+          <div class="credit-bar-track">
+            <div class="credit-bar-fill deepseek-bar">0.25x</div>
+          </div>
+          <div class="credit-bar-value" style="color: var(--aws-teal);">0.25x</div>
+        </div>
+        <div class="credit-bar-row">
+          <div class="credit-bar-label">MiniMax 2.1</div>
+          <div class="credit-bar-track">
+            <div class="credit-bar-fill minimax-bar">0.15x</div>
+          </div>
+          <div class="credit-bar-value" style="color: var(--aws-purple);">0.15x</div>
+        </div>
+        <div class="credit-bar-row">
+          <div class="credit-bar-label">Qwen3 Coder Next</div>
+          <div class="credit-bar-track">
+            <div class="credit-bar-fill qwen-bar">0.05x</div>
+          </div>
+          <div class="credit-bar-value" style="color: var(--aws-green);">0.05x</div>
+        </div>
+      </div>
+      <p style="font-size: 13px; color: var(--aws-light-gray); margin-top: 8px;">※ Auto モードは使用するモデルの組み合わせに依存</p>
+    </div>
+
+    <!-- ===== 設定方法 ===== -->
+    <div class="section">
+      <h2>⚙️ 設定方法</h2>
+      <p style="font-size: 14px; color: var(--aws-light-gray); margin-bottom: 8px;"><strong style="color: var(--aws-white);">前提条件:</strong></p>
+      <ul style="list-style: none; padding: 0; margin-bottom: 20px;">
+        <li style="padding: 4px 0; font-size: 14px;">✓ Kiro IDE または Kiro CLI がインストールされていること</li>
+        <li style="padding: 4px 0; font-size: 14px;">✓ Google、GitHub、または AWS BuilderID でログイン済みであること</li>
+      </ul>
+
+      <p style="font-size: 14px; color: var(--aws-orange); font-weight: 600; margin-bottom: 8px;">ステップ 1: Kiro の更新</p>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash</span>
+          <span class="code-title">最新版に更新</span>
+        </div>
+        <pre><code># Kiro IDE の場合: アプリを再起動する
+# Kiro CLI の場合: 最新版にアップデート
+kiro --version</code></pre>
+      </div>
+
+      <p style="font-size: 14px; color: var(--aws-orange); font-weight: 600; margin-bottom: 8px; margin-top: 20px;">ステップ 2: モデルの選択</p>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">CLI</span>
+          <span class="code-title">モデル指定コマンド</span>
+        </div>
+        <pre><code># IDE の場合: モデルセレクターから選択
+# CLI の場合: --model フラグでモデルを指定
+kiro --model deepseek-v3.2
+kiro --model minimax-2.1
+kiro --model qwen3-coder-next</code></pre>
+      </div>
+
+      <div class="flow-diagram" style="margin-top: 24px;">
+        <div class="flow-step">🔄 Kiro を更新</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-step">🔧 モデルを選択</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-step">💻 コーディング開始</div>
+      </div>
+    </div>
+
+    <!-- ===== メリット ===== -->
+    <div class="section">
+      <h2>✅ メリット</h2>
+      <div class="merit-grid">
+        <div class="merit-box business">
+          <h3>💼 ビジネス面</h3>
+          <ul class="merit-list">
+            <li>→ <strong>大幅なコスト削減:</strong> クレジット乗数 0.05x〜0.25x でフロンティアモデル比最大 95% のコスト削減</li>
+            <li>→ <strong>チーム全体の生産性向上:</strong> 無料ユーザーを含むすべてのユーザーが利用可能、チーム全体での AI 活用を促進</li>
+            <li>→ <strong>柔軟なリソース配分:</strong> 軽量タスクにはオープンウェイトモデル、複雑なタスクにはフロンティアモデルという使い分け</li>
+          </ul>
+        </div>
+        <div class="merit-box technical">
+          <h3>🔧 技術面</h3>
+          <ul class="merit-list">
+            <li>→ <strong>タスク最適化:</strong> タスクの特性に合わせたモデル選択で速度と品質のバランスを最適化</li>
+            <li>→ <strong>多言語サポート:</strong> MiniMax 2.1 により多数のプログラミング言語で高品質な開発を支援</li>
+            <li>→ <strong>長コンテキスト対応:</strong> Qwen3 Coder Next の 256K コンテキストで大規模コードベースの作業が効率化</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== デメリット・制約事項 ===== -->
+    <div class="section">
+      <h2>⚠️ デメリット・制約事項</h2>
+      <div class="caution-card">
+        <h3>🚧 制限事項</h3>
+        <ul class="caution-list">
+          <li>推論は AWS US East (N. Virginia) リージョンのみで実行される</li>
+          <li>各モデルはフロンティアモデルと比較して特定のタスクで品質が劣る場合がある</li>
+          <li>現在は experimental サポートの位置付け</li>
+        </ul>
+      </div>
+      <div class="caution-card">
+        <h3>💡 考慮すべき点</h3>
+        <ul class="caution-list">
+          <li>DeepSeek v3.2 は複雑なデバッグやコードレビューで課題が生じる場合がある</li>
+          <li>MiniMax 2.1 は複雑なリファクタリングタスクでフロンティアモデルに劣る場合がある</li>
+          <li>Qwen3 Coder Next は互換性やインテグレーションで慎重な設定が必要な場合がある</li>
+          <li>モデルの特性を理解した上で適切な使い分けが重要</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- ===== ユースケース ===== -->
+    <div class="section">
+      <h2>💡 ユースケース</h2>
+
+      <div class="usecase-card">
+        <div class="usecase-title">📄 ユースケース 1: ボイラープレートコード生成</div>
+        <div class="usecase-scenario"><strong style="color: var(--aws-white);">シナリオ:</strong> 新規プロジェクトのスキャフォールディングや定型コードの生成</div>
+        <div class="usecase-effect">→ <strong>Qwen3 Coder Next (0.05x)</strong> を使用することで、フロンティアモデル比で 95% のコスト削減を実現しながら、十分な品質のボイラープレートコードを高速に生成可能</div>
+      </div>
+
+      <div class="usecase-card">
+        <div class="usecase-title">🌍 ユースケース 2: 多言語マイクロサービス開発</div>
+        <div class="usecase-scenario"><strong style="color: var(--aws-white);">シナリオ:</strong> Rust バックエンド + TypeScript フロントエンドなど、複数言語を使用するプロジェクト</div>
+        <div class="usecase-effect">→ <strong>MiniMax 2.1</strong> の多言語対応と UI 生成能力を活用し、言語を横断した開発を効率化。0.15x のクレジット乗数でコストを抑制</div>
+      </div>
+
+      <div class="usecase-card">
+        <div class="usecase-title">🤖 ユースケース 3: AI エージェント構築</div>
+        <div class="usecase-scenario"><strong style="color: var(--aws-white);">シナリオ:</strong> マルチステップのツールコールやロングランニングのエージェンティックセッション</div>
+        <div class="usecase-effect">→ <strong>DeepSeek v3.2</strong> のエージェンティックワークフロー性能を活用し、複雑なエージェント構築を 0.25x のクレジット乗数で実行可能</div>
+      </div>
+    </div>
+
+    <!-- ===== 料金情報 ===== -->
+    <div class="section">
+      <h2>💳 料金</h2>
+      <p style="font-size: 14px; color: var(--aws-light-gray); margin-bottom: 16px;">オープンウェイトモデルは既存の Kiro クレジットシステムで利用可能。各モデルのクレジット乗数は以下の通り。</p>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>モデル</th>
+              <th>クレジット乗数</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong style="color: var(--aws-white);">DeepSeek v3.2</strong></td>
+              <td><span class="pricing-highlight high">0.25x</span></td>
+            </tr>
+            <tr>
+              <td><strong style="color: var(--aws-white);">MiniMax 2.1</strong></td>
+              <td><span class="pricing-highlight mid">0.15x</span></td>
+            </tr>
+            <tr>
+              <td><strong style="color: var(--aws-white);">Qwen3 Coder Next</strong></td>
+              <td><span class="pricing-highlight low">0.05x</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p style="font-size: 13px; color: var(--aws-light-gray); margin-top: 12px;">参考: Claude Opus 4.6 は 2.2x、Auto モードは使用するモデルの組み合わせに依存。</p>
+    </div>
+
+    <!-- ===== 利用可能リージョン ===== -->
+    <div class="section">
+      <h2>🌍 利用可能リージョン</h2>
+      <div class="region-badge">
+        🌐 グローバル — 推論は AWS US East (N. Virginia) リージョンで実行
+      </div>
+    </div>
+
+    <!-- ===== 関連サービス ===== -->
+    <div class="section">
+      <h2>🔗 関連サービス・機能</h2>
+      <div class="related-service">
+        <div class="related-service-icon">🔄</div>
+        <div>
+          <div class="related-service-name">Kiro Auto モード</div>
+          <div class="related-service-desc">フロンティアモデルと特化モデルを自動的にブレンドするエージェントモード。オープンウェイトモデルとの併用が可能</div>
+        </div>
+      </div>
+      <div class="related-service">
+        <div class="related-service-icon">💻</div>
+        <div>
+          <div class="related-service-name">Kiro CLI</div>
+          <div class="related-service-desc">コマンドラインからオープンウェイトモデルを直接利用可能</div>
+        </div>
+      </div>
+      <div class="related-service">
+        <div class="related-service-icon">☁️</div>
+        <div>
+          <div class="related-service-name">Amazon Bedrock</div>
+          <div class="related-service-desc">Kiro のモデル推論インフラストラクチャとして AWS を活用</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== まとめ ===== -->
+    <div class="summary-box">
+      <h2>📝 まとめ</h2>
+      <p>
+        Kiro にオープンウェイトモデル (DeepSeek v3.2、MiniMax 2.1、Qwen3 Coder Next) が追加されたことで、開発者はタスクの特性に応じてモデルを柔軟に選択できるようになった。特にクレジット乗数が 0.05x〜0.25x と低く設定されており、日常的な開発タスクにおけるコスト効率が大幅に向上する。フロンティアモデルとオープンウェイトモデルを適材適所で使い分けることで、開発ワークフロー全体の最適化を推奨する。
+      </p>
+    </div>
+
+    <!-- ===== Footer ===== -->
+    <footer>
+      <p style="margin-bottom: 8px;"><strong style="color: var(--aws-orange);">📎 参考リンク</strong></p>
+      <ul class="footer-links">
+        <li>📄 <a href="https://kiro.dev/blog/open-weight-models/" target="_blank" rel="noopener noreferrer">Kiro Blog: Open weight models are here</a></li>
+        <li>📋 <a href="https://kiro.dev/changelog/" target="_blank" rel="noopener noreferrer">Kiro Changelog</a></li>
+        <li>⬇️ <a href="https://kiro.dev/downloads/" target="_blank" rel="noopener noreferrer">Kiro ダウンロード</a></li>
+        <li>📖 <a href="https://kiro.dev/docs/" target="_blank" rel="noopener noreferrer">Kiro ドキュメント</a></li>
+        <li>💰 <a href="https://kiro.dev/pricing/" target="_blank" rel="noopener noreferrer">Kiro 料金</a></li>
+      </ul>
+      <p style="margin-top: 12px; font-size: 11px; color: rgba(213, 219, 219, 0.5);">Generated from reports/2026/2026-02-10-kiro-open-weight-models.md</p>
+    </footer>
+
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'base',
+      themeVariables: {
+        primaryColor: '#FF9900',
+        primaryTextColor: '#232F3E',
+        primaryBorderColor: '#FF9900',
+        lineColor: '#FF9900',
+        secondaryColor: '#F5F5F5',
+        tertiaryColor: '#FAFAFA',
+        background: '#FFFFFF',
+        mainBkg: '#FFF3E0',
+        nodeBorder: '#FF9900',
+        clusterBkg: '#FFF8E1',
+        clusterBorder: '#FF9900',
+        edgeLabelBackground: '#FFFFFF',
+        textColor: '#232F3E'
+      }
+    });
+  </script>
+</body>
+</html>

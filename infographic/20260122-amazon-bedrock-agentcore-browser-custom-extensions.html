@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Amazon Bedrock AgentCore Browser - カスタム拡張機能サポート</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <style>
+        :root {
+            --aws-squid-ink: #232F3E;
+            --aws-dark-squid: #1A242F;
+            --aws-orange: #FF9900;
+            --aws-smile-orange: #FFAD33;
+            --aws-white: #FFFFFF;
+            --aws-light-gray: #D5DBDB;
+            --aws-teal: #00A1C9;
+            --aws-purple: #8C4FFF;
+            --aws-green: #1D8102;
+            --aws-red: #D13212;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+            background: var(--aws-squid-ink);
+            color: var(--aws-light-gray);
+            line-height: 1.8;
+            padding: 40px 20px;
+        }
+        .container { max-width: 1000px; margin: 0 auto; }
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 40px 24px;
+            background: linear-gradient(135deg, var(--aws-dark-squid) 0%, var(--aws-squid-ink) 100%);
+            border-radius: 12px;
+            border: 3px solid var(--aws-purple);
+        }
+        .service-badge {
+            display: inline-block;
+            background: var(--aws-purple);
+            color: var(--aws-white);
+            padding: 8px 24px;
+            border-radius: 24px;
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 16px;
+        }
+        .header h1 {
+            font-size: 30px;
+            font-weight: 700;
+            color: var(--aws-white);
+            margin-bottom: 12px;
+            line-height: 1.4;
+        }
+        .header .subtitle { font-size: 16px; color: var(--aws-light-gray); }
+        .release-date { font-size: 14px; color: var(--aws-purple); margin-top: 16px; font-weight: 600; }
+        .section {
+            background: var(--aws-dark-squid);
+            padding: 24px;
+            border-radius: 8px;
+            margin-bottom: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .section h2 {
+            font-size: 22px;
+            font-weight: 600;
+            color: var(--aws-orange);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        @media (max-width: 768px) { .comparison { grid-template-columns: 1fr; } }
+        .comparison-card {
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 5px solid;
+        }
+        .comparison-card.before { background: rgba(209, 50, 18, 0.15); border-left-color: var(--aws-red); }
+        .comparison-card.after { background: rgba(29, 129, 2, 0.15); border-left-color: var(--aws-green); }
+        .comparison-card h4 { font-size: 16px; margin-bottom: 12px; font-weight: 600; }
+        .comparison-card.before h4 { color: var(--aws-red); }
+        .comparison-card.after h4 { color: var(--aws-green); }
+        .comparison-card ul { list-style: none; padding-left: 0; }
+        .comparison-card li { margin-bottom: 8px; padding-left: 20px; position: relative; font-size: 14px; line-height: 1.6; }
+        .comparison-card.before li::before { content: "✕"; position: absolute; left: 0; color: var(--aws-red); font-weight: bold; }
+        .comparison-card.after li::before { content: "✓"; position: absolute; left: 0; color: var(--aws-green); font-weight: bold; }
+        .card {
+            background: var(--aws-dark-squid);
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid rgba(140, 79, 255, 0.3);
+            margin-bottom: 16px;
+        }
+        .card h3 { font-size: 18px; color: var(--aws-purple); margin-bottom: 8px; display: flex; align-items: center; gap: 10px; }
+        .card p { font-size: 15px; color: var(--aws-light-gray); }
+        .flow-diagram {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin: 24px 0;
+        }
+        .flow-step {
+            background: var(--aws-dark-squid);
+            border: 2px solid var(--aws-purple);
+            border-radius: 8px;
+            padding: 12px 16px;
+            text-align: center;
+            min-width: 100px;
+            font-size: 14px;
+        }
+        .flow-arrow { color: var(--aws-purple); font-size: 24px; font-weight: bold; }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-top: 16px;
+        }
+        @media (max-width: 768px) { .stats-grid { grid-template-columns: 1fr; } }
+        .stats-card {
+            background: linear-gradient(135deg, var(--aws-purple) 0%, #6B4FFF 100%);
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            color: var(--aws-white);
+        }
+        .stats-card .number { font-size: 36px; font-weight: bold; line-height: 1; }
+        .stats-card .label { font-size: 13px; margin-top: 8px; }
+        .usecase {
+            background: linear-gradient(135deg, rgba(140, 79, 255, 0.15) 0%, rgba(140, 79, 255, 0.05) 100%);
+            padding: 20px;
+            border-radius: 8px;
+            border: 2px solid rgba(140, 79, 255, 0.3);
+            margin-bottom: 16px;
+        }
+        .usecase h3 { font-size: 18px; color: var(--aws-purple); margin-bottom: 8px; }
+        .usecase p { font-size: 15px; color: #EEEEEE; }
+        .highlight {
+            background: rgba(140, 79, 255, 0.2);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+            color: var(--aws-purple);
+        }
+        a { color: var(--aws-teal); text-decoration: none; }
+        a:hover { color: var(--aws-smile-orange); text-decoration: underline; }
+        footer {
+            margin-top: 32px;
+            padding: 24px;
+            background: var(--aws-dark-squid);
+            border-radius: 8px;
+            border-top: 3px solid var(--aws-purple);
+        }
+        footer h3 { font-size: 18px; color: var(--aws-purple); margin-bottom: 16px; }
+        footer a { display: block; margin-bottom: 10px; padding: 8px 12px; background: rgba(140, 79, 255, 0.1); border-radius: 6px; }
+        .footer-note { margin-top: 16px; padding-top: 16px; border-top: 1px solid #333; font-size: 12px; color: #888; }
+        .mermaid-container {
+            background: #FFFFFF;
+            border-radius: 12px;
+            padding: 24px;
+            margin: 20px 0;
+            border: 2px solid rgba(140, 79, 255, 0.3);
+            overflow-x: auto;
+        }
+        .mermaid {
+            display: flex;
+            justify-content: center;
+        }
+    </style>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            mermaid.initialize({
+                startOnLoad: true,
+                theme: 'base',
+                themeVariables: {
+                    primaryColor: '#8C4FFF',
+                    primaryTextColor: '#232F3E',
+                    primaryBorderColor: '#8C4FFF',
+                    lineColor: '#8C4FFF',
+                    secondaryColor: '#F5F5F5',
+                    tertiaryColor: '#FAFAFA',
+                    background: '#FFFFFF',
+                    mainBkg: '#F3E5F5',
+                    nodeBorder: '#8C4FFF',
+                    clusterBkg: '#F3E5F5',
+                    clusterBorder: '#8C4FFF',
+                    edgeLabelBackground: '#FFFFFF',
+                    textColor: '#232F3E'
+                }
+            });
+        });
+    </script>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="service-badge">Amazon Bedrock AgentCore</div>
+            <h1>🌐 カスタム Chrome 拡張機能サポート</h1>
+            <div class="subtitle">セキュアなブラウザ自動化を拡張機能でさらに強化</div>
+            <div class="release-date">📅 リリース日: 2026年01月22日</div>
+        </div>
+
+        <div class="section">
+            <h2>📊 概要</h2>
+            <p>Amazon Bedrock AgentCore Browser が<span class="highlight">カスタム Chrome 拡張機能</span>をサポート開始。S3 にアップロードした拡張機能をブラウザセッション起動時に自動インストールし、カスタム認証フロー、自動テスト、パフォーマンス最適化など複雑なワークフローの自動化が可能になりました。</p>
+            <div class="comparison">
+                <div class="comparison-card before">
+                    <h4>⚠️ アップデート前の課題</h4>
+                    <ul>
+                        <li>標準ブラウザ自動化では対応できない複雑なワークフロー</li>
+                        <li>カスタム認証フローに独自ソリューションが必要</li>
+                        <li>サードパーティツールの統合が困難</li>
+                    </ul>
+                </div>
+                <div class="comparison-card after">
+                    <h4>✨ アップデート後の改善</h4>
+                    <ul>
+                        <li>カスタム拡張機能を S3 経由で自動インストール</li>
+                        <li>セキュアな環境でサードパーティツールを統合</li>
+                        <li>複雑な自動化ワークフローをセキュリティ維持で実行</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🚀 拡張機能ライフサイクル</h2>
+            <div class="flow-diagram">
+                <div class="flow-step">📤 S3 に<br>ZIP アップロード</div>
+                <span class="flow-arrow">→</span>
+                <div class="flow-step">🔐 IAM<br>権限検証</div>
+                <span class="flow-arrow">→</span>
+                <div class="flow-step">⬇️ 拡張機能<br>ダウンロード</div>
+                <span class="flow-arrow">→</span>
+                <div class="flow-step">📦 自動<br>インストール</div>
+                <span class="flow-arrow">→</span>
+                <div class="flow-step">🌐 ブラウザ<br>セッション開始</div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>📈 技術仕様</h2>
+            <div class="stats-grid">
+                <div class="stats-card">
+                    <div class="number">10</div>
+                    <div class="label">最大拡張機能数/セッション</div>
+                </div>
+                <div class="stats-card">
+                    <div class="number">10 MB</div>
+                    <div class="label">拡張機能サイズ上限</div>
+                </div>
+                <div class="stats-card">
+                    <div class="number">9</div>
+                    <div class="label">利用可能リージョン</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🎯 主要機能</h2>
+            <div class="card">
+                <h3>📦 カスタム拡張機能インストール</h3>
+                <p>Chrome 互換の拡張機能を ZIP ファイルとして S3 に保存し、ブラウザセッション作成時に最大 10 個まで自動インストール。</p>
+            </div>
+            <div class="card">
+                <h3>🔐 セキュアな拡張機能管理</h3>
+                <p>IAM ポリシーで S3 バケットへのアクセスを制御。セッション起動時にのみ拡張機能をダウンロード・インストールし、セキュリティを維持。</p>
+            </div>
+            <div class="card">
+                <h3>🔧 柔軟な統合オプション</h3>
+                <p>AWS CLI、SDK (Boto3)、API 経由でブラウザセッションを作成可能。S3 バージョニングもサポート。</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🏗️ アーキテクチャ図</h2>
+            <p>ブラウザ拡張機能のライフサイクル: S3 へのアップロード、IAM 権限検証、セッション起動時の自動インストールまでの流れを示しています。</p>
+            <div class="mermaid-container">
+                <pre class="mermaid">
+flowchart TD
+    User["👤 開発者"] --> S3Upload["📤 拡張機能を S3 に<br/>アップロード"]
+    S3Upload --> S3["🪣 S3 バケット<br/>拡張機能 ZIP ファイル"]
+
+    User --> StartSession["🚀 ブラウザセッション<br/>開始 API コール"]
+
+    StartSession --> AgentCore["🤖 AgentCore<br/>Browser サービス"]
+
+    AgentCore --> Validate["🔐 IAM 権限検証<br/>S3 アクセス確認"]
+    Validate --> Download["⬇️ 拡張機能<br/>ダウンロード"]
+    Download --> S3
+
+    Download --> Install["📦 ブラウザセッションに<br/>拡張機能インストール"]
+    Install --> BrowserSession["🌐 ブラウザセッション<br/>拡張機能付き"]
+
+    BrowserSession --> Automation["⚙️ 自動化タスク実行<br/>カスタム拡張機能活用"]
+
+    classDef user fill:#E3F2FD,stroke:#BBDEFB,stroke-width:2px,color:#1565C0
+    classDef storage fill:#DCEDC8,stroke:#C5E1A5,stroke-width:2px,color:#33691E
+    classDef process fill:#FFFFFF,stroke:#4A90E2,stroke-width:2px,color:#333333
+    classDef service fill:#FFE0B2,stroke:#FFCC80,stroke-width:2px,color:#5D4037
+    classDef security fill:#F3E5F5,stroke:#CE93D8,stroke-width:2px,color:#6A1B9A
+
+    class User user
+    class S3 storage
+    class S3Upload,Download,Install,Automation process
+    class AgentCore,BrowserSession service
+    class Validate security
+                </pre>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>💡 ユースケース</h2>
+            <div class="usecase">
+                <h3>🔑 カスタム認証フローの自動化</h3>
+                <p>複雑な多要素認証 (MFA) を持つ企業向け Web アプリケーションへの自動ログインを実現。特定の認証トークンを自動入力する拡張機能を活用。</p>
+            </div>
+            <div class="usecase">
+                <h3>⚡ Web スクレイピングのパフォーマンス最適化</h3>
+                <p>広告ブロッカーや不要なスクリプトをブロックする拡張機能でページ読み込み時間を最大 50% 削減。データ収集効率を向上。</p>
+            </div>
+            <div class="usecase">
+                <h3>🧪 自動テストの機能拡張</h3>
+                <p>スクリーンショット注釈付けやデバッグ情報追加の拡張機能でテスト結果の可視性を向上。バグ特定時間を短縮。</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🌏 利用可能リージョン</h2>
+            <p>US East (N. Virginia)、US East (Ohio)、US West (Oregon)、Asia Pacific (Tokyo)、Asia Pacific (Mumbai)、Asia Pacific (Singapore)、Asia Pacific (Sydney)、Europe (Frankfurt)、Europe (Ireland)</p>
+        </div>
+
+        <footer>
+            <h3>📎 出典・参考リンク</h3>
+            <a href="https://aws.amazon.com/about-aws/whats-new/2026/01/amazon-bedrock-agentcore-browser-custom-extensions/" target="_blank">🔗 公式発表 (What's New)</a>
+            <a href="https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/browser-extensions.html" target="_blank">📖 ブラウザ拡張機能ドキュメント</a>
+            <a href="https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/browser-tool.html" target="_blank">📖 AgentCore Browser ドキュメント</a>
+            <p class="footer-note">🤖 Generated with Kiro | 📅 2026-02-05</p>
+        </footer>
+    </div>
+</body>
+</html>

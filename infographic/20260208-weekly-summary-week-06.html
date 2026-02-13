@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AWS & Kiro 週次サマリー - 2026年 第6週</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap');
+    
+    :root {
+      --aws-squid-ink: #232F3E;
+      --aws-dark-squid: #1A242F;
+      --aws-orange: #FF9900;
+      --aws-smile-orange: #FFAD33;
+      --aws-white: #FFFFFF;
+      --aws-light-gray: #D5DBDB;
+      --aws-teal: #00A1C9;
+      --aws-purple: #8C4FFF;
+      --aws-green: #1D8102;
+      --aws-red: #D13212;
+    }
+
+    body {
+      background-color: var(--aws-squid-ink);
+      font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+      color: var(--aws-light-gray);
+      font-size: 16px;
+      line-height: 1.6;
+      padding: 20px;
+      margin: 0;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 40px;
+      padding: 30px;
+      background: linear-gradient(135deg, var(--aws-dark-squid) 0%, var(--aws-squid-ink) 100%);
+      border-radius: 16px;
+      border: 2px solid var(--aws-orange);
+    }
+
+    h1 {
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--aws-white);
+      margin: 0 0 10px 0;
+    }
+
+    .subtitle {
+      font-size: 18px;
+      color: var(--aws-orange);
+      margin-bottom: 15px;
+    }
+
+    .period {
+      font-size: 14px;
+      color: var(--aws-light-gray);
+    }
+
+    h2 {
+      font-size: 22px;
+      font-weight: 600;
+      color: var(--aws-orange);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .section {
+      background: var(--aws-dark-squid);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 24px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .highlight-section {
+      background: linear-gradient(135deg, rgba(255, 153, 0, 0.15) 0%, var(--aws-dark-squid) 100%);
+      border: 2px solid rgba(255, 153, 0, 0.4);
+    }
+
+    .highlight {
+      background-color: rgba(255, 153, 0, 0.2);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 600;
+      color: var(--aws-orange);
+    }
+
+    .top-updates {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+      margin-top: 20px;
+    }
+
+    .update-card {
+      background: var(--aws-squid-ink);
+      border-radius: 10px;
+      padding: 20px;
+      border-left: 4px solid var(--aws-orange);
+    }
+
+    .update-card.ai { border-left-color: var(--aws-purple); }
+    .update-card.compute { border-left-color: var(--aws-teal); }
+    .update-card.database { border-left-color: var(--aws-green); }
+    .update-card.security { border-left-color: var(--aws-red); }
+    .update-card.kiro { border-left-color: #00D4FF; }
+
+    .update-card h3 {
+      color: var(--aws-white);
+      font-size: 16px;
+      margin: 0 0 8px 0;
+    }
+
+    .update-card .service {
+      color: var(--aws-orange);
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .update-card .desc {
+      color: var(--aws-light-gray);
+      font-size: 14px;
+    }
+
+    .category-section {
+      margin-bottom: 30px;
+    }
+
+    .category-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .category-icon {
+      font-size: 24px;
+    }
+
+    .category-title {
+      color: var(--aws-white);
+      font-size: 20px;
+      font-weight: 600;
+    }
+
+    .update-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .update-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 12px;
+      background: var(--aws-squid-ink);
+      border-radius: 8px;
+    }
+
+    .update-date {
+      color: var(--aws-orange);
+      font-size: 13px;
+      font-weight: 600;
+      min-width: 40px;
+    }
+
+    .update-service {
+      color: var(--aws-teal);
+      font-size: 13px;
+      min-width: 140px;
+    }
+
+    .update-desc {
+      color: var(--aws-light-gray);
+      font-size: 14px;
+      flex: 1;
+    }
+
+    .stars {
+      color: var(--aws-orange);
+      font-size: 12px;
+      min-width: 50px;
+      text-align: right;
+    }
+
+    .trend-card {
+      background: var(--aws-squid-ink);
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 16px;
+      border: 1px solid rgba(255, 153, 0, 0.2);
+    }
+
+    .trend-card h3 {
+      color: var(--aws-orange);
+      font-size: 16px;
+      margin: 0 0 10px 0;
+    }
+
+    .trend-card p {
+      color: var(--aws-light-gray);
+      font-size: 14px;
+      margin: 0;
+    }
+
+    .action-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .action-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .action-list li:last-child {
+      border-bottom: none;
+    }
+
+    .action-number {
+      background: var(--aws-orange);
+      color: var(--aws-squid-ink);
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 13px;
+      flex-shrink: 0;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-top: 20px;
+    }
+
+    .stat-card {
+      background: linear-gradient(135deg, var(--aws-dark-squid) 0%, var(--aws-squid-ink) 100%);
+      border-radius: 10px;
+      padding: 20px;
+      text-align: center;
+      border: 1px solid rgba(255, 153, 0, 0.3);
+    }
+
+    .stat-number {
+      font-size: 36px;
+      font-weight: 700;
+      color: var(--aws-orange);
+    }
+
+    .stat-label {
+      font-size: 13px;
+      color: var(--aws-light-gray);
+      margin-top: 5px;
+    }
+
+    footer {
+      margin-top: 30px;
+      padding-top: 20px;
+      border-top: 1px solid rgba(255, 255, 255, 0.2);
+      font-size: 12px;
+      color: var(--aws-light-gray);
+      text-align: center;
+    }
+
+    footer a {
+      color: var(--aws-teal);
+      text-decoration: none;
+    }
+
+    footer a:hover {
+      color: var(--aws-smile-orange);
+    }
+
+    @media (max-width: 768px) {
+      .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .update-item {
+        flex-wrap: wrap;
+      }
+      .update-service {
+        min-width: 100%;
+        margin-bottom: 4px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>☁️ AWS & Kiro 週次サマリー</h1>
+      <div class="subtitle">2026年 第6週</div>
+      <div class="period">📅 2026年2月2日 〜 2026年2月8日</div>
+    </div>
+
+    <!-- 統計概要 -->
+    <div class="section highlight-section">
+      <h2>📊 今週の概要</h2>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-number">45+</div>
+          <div class="stat-label">AWS アップデート</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">3</div>
+          <div class="stat-label">Kiro アップデート</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">7</div>
+          <div class="stat-label">⭐⭐⭐ 重要度</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">8</div>
+          <div class="stat-label">カテゴリ</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- トップアップデート -->
+    <div class="section">
+      <h2>🏆 今週のトップアップデート</h2>
+      <div class="top-updates">
+        <div class="update-card ai">
+          <div class="service">🤖 Amazon Bedrock</div>
+          <h3>Structured Outputs GA</h3>
+          <div class="desc">JSON スキーマに準拠した構造化応答で AI アプリの信頼性向上</div>
+        </div>
+        <div class="update-card database">
+          <div class="service">🗄️ Amazon DynamoDB</div>
+          <h3>Global Tables マルチアカウント</h3>
+          <div class="desc">異なる AWS アカウント間でテーブルを自動レプリケート</div>
+        </div>
+        <div class="update-card compute">
+          <div class="service">💻 Amazon EC2</div>
+          <h3>C8id/M8id/R8id インスタンス</h3>
+          <div class="desc">Intel Xeon 6 搭載、最大 43% 性能向上</div>
+        </div>
+        <div class="update-card compute">
+          <div class="service">💻 Amazon ECS</div>
+          <h3>NLB Linear/Canary デプロイ</h3>
+          <div class="desc">TCP/UDP ワークロードで段階的デプロイが可能に</div>
+        </div>
+        <div class="update-card security">
+          <div class="service">🔒 IAM Identity Center</div>
+          <h3>マルチリージョンサポート</h3>
+          <div class="desc">複数リージョンでの ID レプリケーションで高可用性実現</div>
+        </div>
+        <div class="update-card kiro">
+          <div class="service">🔷 Kiro</div>
+          <h3>0.9: カスタムサブエージェント</h3>
+          <div class="desc">特化型エージェント、Agent Skills、エンタープライズ制御</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- カテゴリ別 -->
+    <div class="section">
+      <h2>📂 カテゴリ別アップデート</h2>
+      
+      <div class="category-section">
+        <div class="category-header">
+          <span class="category-icon">🤖</span>
+          <span class="category-title">AI/ML</span>
+        </div>
+        <div class="update-list">
+          <div class="update-item">
+            <span class="update-date">2/4</span>
+            <span class="update-service">Bedrock</span>
+            <span class="update-desc">Structured Outputs (構造化出力) GA</span>
+            <span class="stars">⭐⭐⭐</span>
+          </div>
+          <div class="update-item">
+            <span class="update-date">2/6</span>
+            <span class="update-service">AgentCore Browser</span>
+            <span class="update-desc">Browser Profiles サポート</span>
+            <span class="stars">⭐⭐</span>
+          </div>
+          <div class="update-item">
+            <span class="update-date">2/4</span>
+            <span class="update-service">Redshift</span>
+            <span class="update-desc">Autonomics for Multi-cluster</span>
+            <span class="stars">⭐⭐</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="category-section">
+        <div class="category-header">
+          <span class="category-icon">💻</span>
+          <span class="category-title">コンピュート</span>
+        </div>
+        <div class="update-list">
+          <div class="update-item">
+            <span class="update-date">2/4</span>
+            <span class="update-service">EC2</span>
+            <span class="update-desc">C8id, M8id, R8id インスタンス GA</span>
+            <span class="stars">⭐⭐⭐</span>
+          </div>
+          <div class="update-item">
+            <span class="update-date">2/4</span>
+            <span class="update-service">ECS</span>
+            <span class="update-desc">NLB 対応 Linear/Canary デプロイ</span>
+            <span class="stars">⭐⭐⭐</span>
+          </div>
+          <div class="update-item">
+            <span class="update-date">2/5</span>
+            <span class="update-service">WorkSpaces</span>
+            <span class="update-desc">Graphics G6, Gr6, G6f バンドル</span>
+            <span class="stars">⭐⭐</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="category-section">
+        <div class="category-header">
+          <span class="category-icon">🗄️</span>
+          <span class="category-title">データベース</span>
+        </div>
+        <div class="update-list">
+          <div class="update-item">
+            <span class="update-date">2/3</span>
+            <span class="update-service">DynamoDB</span>
+            <span class="update-desc">Global Tables マルチアカウントレプリケーション</span>
+            <span class="stars">⭐⭐⭐</span>
+          </div>
+          <div class="update-item">
+            <span class="update-date">2/3</span>
+            <span class="update-service">Aurora DSQL</span>
+            <span class="update-desc">NUMERIC データ型のインデックスサポート</span>
+            <span class="stars">⭐⭐</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="category-section">
+        <div class="category-header">
+          <span class="category-icon">🔒</span>
+          <span class="category-title">セキュリティ</span>
+        </div>
+        <div class="update-list">
+          <div class="update-item">
+            <span class="update-date">2/3</span>
+            <span class="update-service">IAM Identity Center</span>
+            <span class="update-desc">マルチリージョンサポート</span>
+            <span class="stars">⭐⭐⭐</span>
+          </div>
+          <div class="update-item">
+            <span class="update-date">2/2</span>
+            <span class="update-service">CloudFront</span>
+            <span class="update-desc">オリジン向け mTLS サポート</span>
+            <span class="stars">⭐⭐</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="category-section">
+        <div class="category-header">
+          <span class="category-icon">🔧</span>
+          <span class="category-title">開発者ツール</span>
+        </div>
+        <div class="update-list">
+          <div class="update-item">
+            <span class="update-date">2/5</span>
+            <span class="update-service">AWS Glue</span>
+            <span class="update-desc">ネイティブ REST API コネクタ</span>
+            <span class="stars">⭐⭐⭐</span>
+          </div>
+          <div class="update-item">
+            <span class="update-date">2/6</span>
+            <span class="update-service">AWS Config</span>
+            <span class="update-desc">30 の新リソースタイプサポート</span>
+            <span class="stars">⭐⭐</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="category-section">
+        <div class="category-header">
+          <span class="category-icon">🔷</span>
+          <span class="category-title">Kiro</span>
+        </div>
+        <div class="update-list">
+          <div class="update-item">
+            <span class="update-date">2/5</span>
+            <span class="update-service">Kiro 0.9</span>
+            <span class="update-desc">カスタムサブエージェント・スキル・エンタープライズ制御</span>
+            <span class="stars">⭐⭐⭐</span>
+          </div>
+          <div class="update-item">
+            <span class="update-date">2/5</span>
+            <span class="update-service">Kiro</span>
+            <span class="update-desc">Claude Opus 4.6 サポート</span>
+            <span class="stars">⭐⭐⭐</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 技術トレンド -->
+    <div class="section">
+      <h2>📈 注目すべき技術トレンド</h2>
+      <div class="trend-card">
+        <h3>1. 🤖 AI エージェントの進化</h3>
+        <p>Bedrock AgentCore Browser のブラウザプロファイルと Kiro のカスタムサブエージェントにより、AI エージェントの実用性が大幅に向上。認証状態の永続化やコンテキスト分離で複雑な自動化タスクがより効率的に。</p>
+      </div>
+      <div class="trend-card">
+        <h3>2. 🌐 マルチアカウント・マルチリージョン戦略の強化</h3>
+        <p>DynamoDB Global Tables のマルチアカウントレプリケーションと IAM Identity Center のマルチリージョンサポートにより、障害分離とガバナンスの両立が容易に。</p>
+      </div>
+      <div class="trend-card">
+        <h3>3. ✅ 構造化出力による AI アプリの信頼性向上</h3>
+        <p>Bedrock の Structured Outputs で生成 AI アプリの本番運用における信頼性が向上。JSON スキーマによる応答形式の保証で、AI エージェントやデータ抽出パイプラインの構築が容易に。</p>
+      </div>
+    </div>
+
+    <!-- おすすめアクション -->
+    <div class="section highlight-section">
+      <h2>🎯 今週のおすすめアクション</h2>
+      <ul class="action-list">
+        <li>
+          <span class="action-number">1</span>
+          <span><strong>Amazon Bedrock ユーザー</strong>: Structured Outputs を評価し、JSON 検証ロジックの簡素化を検討</span>
+        </li>
+        <li>
+          <span class="action-number">2</span>
+          <span><strong>マルチアカウント環境の運用者</strong>: DynamoDB Global Tables のマルチアカウントレプリケーションで DR 戦略を強化</span>
+        </li>
+        <li>
+          <span class="action-number">3</span>
+          <span><strong>NLB を使用する ECS ユーザー</strong>: Linear/Canary デプロイメントを導入し、デプロイリスクを軽減</span>
+        </li>
+        <li>
+          <span class="action-number">4</span>
+          <span><strong>Kiro ユーザー</strong>: 0.9 にアップデートし、カスタムサブエージェントとスキルを活用</span>
+        </li>
+      </ul>
+    </div>
+
+    <footer>
+      <p>📎 出典: <a href="https://aws.amazon.com/new/" target="_blank">AWS What's New</a> | <a href="https://kiro.dev/blog/" target="_blank">Kiro Blog</a> | <a href="https://kiro.dev/changelog/" target="_blank">Kiro Changelog</a></p>
+      <p>作成日: 2026年2月8日</p>
+    </footer>
+  </div>
+</body>
+</html>

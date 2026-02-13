@@ -1,0 +1,1362 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Amazon S3 Tables - CreateTable API でのパーティションおよびソートオーダー定義</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/styles/atom-one-dark.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/highlight.min.js"></script>
+    <style>
+        :root {
+            --squid-ink: #232F3E;
+            --aws-orange: #FF9900;
+            --aws-smile-orange: #FFAD33;
+            --text-primary: #FFFFFF;
+            --text-secondary: #AAAAAA;
+            --light-gray: #D5DBDB;
+            --card-bg: #2D3A4A;
+            --dark-squid: #1A242F;
+            --border-color: #3D4A5A;
+            --aws-teal: #00A1C9;
+            --aws-purple: #8C4FFF;
+            --aws-green: #1D8102;
+            --aws-red: #D13212;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            background-color: var(--squid-ink);
+            color: var(--light-gray);
+            line-height: 1.8;
+            font-size: 16px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+            padding-bottom: 30px;
+            border-bottom: 3px solid var(--aws-orange);
+        }
+
+        .service-badge {
+            display: inline-block;
+            background-color: var(--aws-orange);
+            color: var(--squid-ink);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+        }
+
+        .release-date {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--aws-orange);
+            margin-bottom: 20px;
+            padding-left: 15px;
+            border-left: 4px solid var(--aws-orange);
+        }
+
+        .overview-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .overview-text {
+            font-size: 16px;
+            line-height: 1.9;
+        }
+
+        .highlight {
+            background-color: rgba(255, 153, 0, 0.2);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+            color: var(--aws-orange);
+        }
+
+        /* Stats grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, var(--card-bg) 0%, var(--dark-squid) 100%);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid rgba(255, 153, 0, 0.2);
+        }
+
+        .stat-icon {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--aws-orange);
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        /* Before/After comparison */
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .comparison-grid {
+                grid-template-columns: 1fr;
+            }
+            .features-grid {
+                grid-template-columns: 1fr !important;
+            }
+            .transform-grid {
+                grid-template-columns: 1fr !important;
+            }
+            .related-grid {
+                grid-template-columns: 1fr !important;
+            }
+            .merit-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .comparison-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .comparison-card.before {
+            border-top: 4px solid #E74C3C;
+        }
+
+        .comparison-card.after {
+            border-top: 4px solid #2ECC71;
+        }
+
+        .comparison-label {
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        .comparison-card.before .comparison-label {
+            color: #E74C3C;
+        }
+
+        .comparison-card.after .comparison-label {
+            color: #2ECC71;
+        }
+
+        .comparison-list {
+            list-style: none;
+        }
+
+        .comparison-list li {
+            padding: 8px 0;
+            padding-left: 25px;
+            position: relative;
+            font-size: 14px;
+        }
+
+        .comparison-card.before .comparison-list li::before {
+            content: "\2717";
+            position: absolute;
+            left: 0;
+            color: #E74C3C;
+            font-weight: bold;
+        }
+
+        .comparison-card.after .comparison-list li::before {
+            content: "\2713";
+            position: absolute;
+            left: 0;
+            color: #2ECC71;
+            font-weight: bold;
+        }
+
+        /* Mermaid diagram */
+        .diagram-container {
+            background-color: #FFFFFF;
+            border: 2px solid rgba(255, 153, 0, 0.3);
+            border-radius: 12px;
+            padding: 25px;
+            overflow-x: auto;
+        }
+
+        .mermaid {
+            display: flex;
+            justify-content: center;
+        }
+
+        .diagram-caption {
+            font-size: 14px;
+            color: var(--text-secondary);
+            text-align: center;
+            margin-top: 12px;
+        }
+
+        /* Feature cards */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .feature-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            border-left: 3px solid var(--aws-orange);
+        }
+
+        .feature-icon {
+            font-size: 36px;
+            margin-bottom: 12px;
+        }
+
+        .feature-title {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--aws-orange);
+        }
+
+        .feature-description {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        /* Transform table */
+        .transform-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .transform-card {
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            padding: 14px 16px;
+            border-left: 3px solid var(--aws-teal);
+        }
+
+        .transform-name {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--aws-teal);
+            margin-bottom: 4px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .transform-desc {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .transform-usecase {
+            font-size: 12px;
+            color: var(--light-gray);
+            margin-top: 4px;
+            font-style: italic;
+        }
+
+        /* API table */
+        .api-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+        }
+
+        .api-table th {
+            background-color: var(--dark-squid);
+            color: var(--aws-orange);
+            padding: 10px 14px;
+            text-align: left;
+            font-size: 13px;
+            font-weight: 700;
+            border-bottom: 2px solid var(--aws-orange);
+        }
+
+        .api-table td {
+            padding: 10px 14px;
+            font-size: 13px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--light-gray);
+        }
+
+        .api-table a {
+            color: var(--aws-teal);
+            text-decoration: none;
+        }
+
+        .api-table a:hover {
+            color: var(--aws-smile-orange);
+        }
+
+        .api-table .required-yes {
+            color: var(--aws-orange);
+            font-weight: 600;
+        }
+
+        .api-table .required-no {
+            color: var(--text-secondary);
+        }
+
+        /* Code blocks */
+        .code-block {
+            background: #1a1a2e;
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 16px 0;
+        }
+
+        .code-header {
+            background: #16213e;
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+        }
+
+        .code-lang {
+            color: var(--aws-orange);
+            font-weight: bold;
+        }
+
+        .code-title {
+            color: var(--light-gray);
+        }
+
+        .code-block pre {
+            margin: 0;
+            padding: 0;
+            overflow-x: auto;
+        }
+
+        .code-block code {
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            padding: 16px !important;
+        }
+
+        /* Flow diagram */
+        .flow-diagram {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin: 24px 0;
+        }
+
+        .flow-step {
+            background: var(--dark-squid);
+            border: 2px solid var(--aws-orange);
+            border-radius: 8px;
+            padding: 12px 20px;
+            text-align: center;
+            min-width: 120px;
+            font-size: 14px;
+        }
+
+        .flow-arrow {
+            color: var(--aws-orange);
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        /* Use case cards */
+        .usecase-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 3px solid var(--aws-orange);
+        }
+
+        .usecase-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .usecase-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--aws-orange);
+        }
+
+        .usecase-scenario {
+            font-size: 14px;
+            color: var(--light-gray);
+            margin-bottom: 12px;
+        }
+
+        .usecase-effect {
+            font-size: 14px;
+            color: #2ECC71;
+            padding: 10px;
+            background-color: rgba(46, 204, 113, 0.1);
+            border-radius: 8px;
+        }
+
+        .usecase-effect::before {
+            content: "\2713 ";
+            font-weight: bold;
+        }
+
+        /* Merit/Demerit */
+        .merit-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .merit-section {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .merit-section h3 {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: var(--aws-orange);
+        }
+
+        .merit-list {
+            list-style: none;
+        }
+
+        .merit-list li {
+            padding: 6px 0;
+            padding-left: 22px;
+            position: relative;
+            font-size: 14px;
+            color: var(--light-gray);
+        }
+
+        .merit-list li::before {
+            content: "\2713";
+            position: absolute;
+            left: 0;
+            color: #2ECC71;
+            font-weight: bold;
+        }
+
+        /* Constraint/Limitation */
+        .constraint-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 3px solid #E74C3C;
+        }
+
+        .constraint-title {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #E74C3C;
+        }
+
+        .constraint-list {
+            list-style: none;
+        }
+
+        .constraint-list li {
+            padding: 6px 0;
+            padding-left: 22px;
+            position: relative;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .constraint-list li::before {
+            content: "\26A0";
+            position: absolute;
+            left: 0;
+            font-size: 12px;
+        }
+
+        /* Pricing card */
+        .pricing-card {
+            background: linear-gradient(135deg, rgba(29, 129, 2, 0.15) 0%, var(--card-bg) 100%);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid rgba(29, 129, 2, 0.3);
+            text-align: center;
+        }
+
+        .pricing-highlight {
+            font-size: 22px;
+            font-weight: 700;
+            color: #2ECC71;
+            margin-bottom: 8px;
+        }
+
+        .pricing-detail {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        /* Region */
+        .region-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .region-highlight {
+            font-size: 16px;
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .region-note {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-top: 8px;
+        }
+
+        /* Related services */
+        .related-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+        }
+
+        .related-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+        }
+
+        .related-name {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 6px;
+        }
+
+        .related-desc {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        /* Footer */
+        footer {
+            margin-top: 50px;
+            padding-top: 30px;
+            border-top: 1px solid var(--border-color);
+            text-align: center;
+        }
+
+        .source-links {
+            list-style: none;
+            margin-bottom: 16px;
+        }
+
+        .source-links li {
+            margin-bottom: 6px;
+        }
+
+        .source-link {
+            color: var(--aws-teal);
+            text-decoration: none;
+            font-size: 14px;
+            word-break: break-all;
+        }
+
+        .source-link:hover {
+            color: var(--aws-smile-orange);
+            text-decoration: underline;
+        }
+
+        .footer-note {
+            color: var(--text-secondary);
+            font-size: 12px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <span class="service-badge">Amazon S3 Tables</span>
+            <h1>CreateTable API でのパーティションおよびソートオーダー定義</h1>
+            <p style="color: var(--light-gray); font-size: 15px; margin-bottom: 8px;">Partition and Sort Order Definition in CreateTable API</p>
+            <p class="release-date">2026 年 2 月 12 日</p>
+        </header>
+
+        <!-- Overview -->
+        <section class="section">
+            <h2 class="section-title">概要</h2>
+            <div class="overview-card">
+                <p class="overview-text">
+                    Amazon S3 Tables の <span class="highlight">CreateTable API</span> で<span class="highlight">パーティション定義</span>と<span class="highlight">ソートオーダー定義</span>がサポートされました。テーブル作成時にこれらのプロパティをプログラムで設定することが簡素化され、データの管理と最適化が容易になります。
+                </p>
+                <p class="overview-text" style="margin-top: 12px;">
+                    CreateTable API 呼び出しでパーティショントランスフォームのフィールドとソートオーダーを指定でき、AWS CLI や AWS SDK を使用してテーブルを作成する際にもこれらのプロパティを定義可能です。
+                </p>
+            </div>
+
+            <!-- Stats -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">&#9889;</div>
+                    <div class="stat-value">1</div>
+                    <div class="stat-label">API 呼び出しで完了</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">&#128194;</div>
+                    <div class="stat-value">7</div>
+                    <div class="stat-label">パーティショントランスフォーム</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">&#128295;</div>
+                    <div class="stat-value">3</div>
+                    <div class="stat-label">設定方法 CLI/SDK/API</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">&#128176;</div>
+                    <div class="stat-value">$0</div>
+                    <div class="stat-label">追加料金</div>
+                </div>
+            </div>
+
+            <!-- Before/After -->
+            <div class="comparison-grid">
+                <div class="comparison-card before">
+                    <div class="comparison-label">Before - アップデート前の課題</div>
+                    <ul class="comparison-list">
+                        <li>CreateTable API ではスキーマ定義のみ指定可能で、パーティションやソートオーダーは別途設定が必要だった</li>
+                        <li>テーブル作成後にクエリエンジン (Apache Spark など) を使用してパーティションやソートオーダーを変更する必要があった</li>
+                        <li>プログラムによるテーブルプロビジョニングの自動化が煩雑だった</li>
+                    </ul>
+                </div>
+                <div class="comparison-card after">
+                    <div class="comparison-label">After - アップデート後の改善</div>
+                    <ul class="comparison-list">
+                        <li>CreateTable API の 1 回の呼び出しでスキーマ、パーティション、ソートオーダーを同時に定義可能</li>
+                        <li>AWS CLI や AWS SDK から直接パーティションとソートオーダーを設定できる</li>
+                        <li>テーブル作成の自動化ワークフローが簡素化される</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Architecture Diagram -->
+        <section class="section">
+            <h2 class="section-title">アーキテクチャ図</h2>
+            <div class="diagram-container">
+                <div class="mermaid">
+flowchart TD
+    subgraph Client["&#128421;&#65039; クライアント"]
+        CLI["&#9000;&#65039; AWS CLI"]
+        SDK["&#128230; AWS SDK"]
+        API["&#128268; REST API"]
+    end
+
+    subgraph S3Tables["&#9729;&#65039; Amazon S3 Tables"]
+        CreateAPI["&#9889; CreateTable API"]
+        subgraph TableDef["&#128203; テーブル定義"]
+            direction LR
+            Schema["&#128196; スキーマ"]
+            Partition["&#128194; パーティション"]
+            SortOrder["&#128290; ソートオーダー"]
+            Schema ~~~ Partition ~~~ SortOrder
+        end
+        Table[("&#128452;&#65039; Apache Iceberg テーブル")]
+    end
+
+    subgraph Query["&#128269; クエリエンジン"]
+        Athena["&#128202; Amazon Athena"]
+        Redshift["&#128202; Amazon Redshift"]
+        Spark["&#9881;&#65039; Apache Spark"]
+    end
+
+    CLI --> CreateAPI
+    SDK --> CreateAPI
+    API --> CreateAPI
+    CreateAPI --> TableDef
+    TableDef --> Table
+    Table --> Athena
+    Table --> Redshift
+    Table --> Spark
+
+    classDef client fill:#E3F2FD,stroke:#BBDEFB,stroke-width:2px,color:#1565C0
+    classDef s3tables fill:none,stroke:#CCCCCC,stroke-width:2px,color:#666666
+    classDef tabledef fill:#DCEDC8,stroke:#C5E1A5,stroke-width:2px,color:#33691E
+    classDef query fill:#FFE0B2,stroke:#FFCC80,stroke-width:2px,color:#5D4037
+    classDef api fill:#FFF3E0,stroke:#FFCC80,stroke-width:2px,color:#E65100
+    classDef storage fill:#E8EAF6,stroke:#C5CAE9,stroke-width:2px,color:#283593
+
+    class Client client
+    class S3Tables s3tables
+    class TableDef tabledef
+    class Query query
+    class CreateAPI api
+    class Table storage
+                </div>
+            </div>
+            <p class="diagram-caption">CreateTable API の 1 回の呼び出しで、スキーマ、パーティション仕様、ソートオーダーをすべて定義し、最適化された Apache Iceberg テーブルを作成できます。</p>
+        </section>
+
+        <!-- Key Features -->
+        <section class="section">
+            <h2 class="section-title">主要機能</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">&#128194;</div>
+                    <div class="feature-title">パーティション仕様の定義</div>
+                    <div class="feature-description">CreateTable API の <code style="color: var(--aws-teal); font-size: 12px;">metadata.iceberg.partitionSpec</code> で指定。ソースフィールドとトランスフォームを設定し、クエリ時のデータスキャン量を削減。</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#128290;</div>
+                    <div class="feature-title">ソートオーダーの定義</div>
+                    <div class="feature-description">CreateTable API の <code style="color: var(--aws-teal); font-size: 12px;">metadata.iceberg.writeOrder</code> で指定。ソート方向や NULL 値の順序を設定し、クエリパフォーマンスを向上。</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#128279;</div>
+                    <div class="feature-title">既存機能との統合</div>
+                    <div class="feature-description">スキーマ定義と組み合わせて 1 回の API 呼び出しで完全なテーブルを作成。暗号化設定、ストレージクラス、タグとも併用可能。</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Technical Spec -->
+        <section class="section">
+            <h2 class="section-title">技術仕様</h2>
+
+            <h3 style="font-size: 16px; color: var(--text-primary); margin-bottom: 12px;">API 変更履歴</h3>
+            <table class="api-table">
+                <thead>
+                    <tr>
+                        <th>日付</th>
+                        <th>サービス</th>
+                        <th>変更内容</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>2026/02/11</td>
+                        <td><a href="https://awsapichanges.com/archive/changes/b18289-s3tables.html" target="_blank">Amazon S3 Tables</a></td>
+                        <td>1 updated method - CreateTable でパーティション仕様とソートオーダーをサポート</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3 style="font-size: 16px; color: var(--text-primary); margin-top: 24px; margin-bottom: 12px;">IcebergMetadata オブジェクト構造</h3>
+            <table class="api-table">
+                <thead>
+                    <tr>
+                        <th>フィールド</th>
+                        <th>型</th>
+                        <th>必須</th>
+                        <th>説明</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code style="color: var(--aws-teal);">schema</code></td>
+                        <td>IcebergSchema</td>
+                        <td class="required-yes">はい</td>
+                        <td>テーブルスキーマ定義</td>
+                    </tr>
+                    <tr>
+                        <td><code style="color: var(--aws-teal);">partitionSpec</code></td>
+                        <td>IcebergPartitionSpec</td>
+                        <td class="required-no">いいえ</td>
+                        <td>パーティション仕様</td>
+                    </tr>
+                    <tr>
+                        <td><code style="color: var(--aws-teal);">writeOrder</code></td>
+                        <td>IcebergSortOrder</td>
+                        <td class="required-no">いいえ</td>
+                        <td>ソートオーダー</td>
+                    </tr>
+                    <tr>
+                        <td><code style="color: var(--aws-teal);">properties</code></td>
+                        <td>Map</td>
+                        <td class="required-no">いいえ</td>
+                        <td>カスタムプロパティ</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3 style="font-size: 16px; color: var(--text-primary); margin-top: 24px; margin-bottom: 12px;">IcebergPartitionField の構造</h3>
+            <table class="api-table">
+                <thead>
+                    <tr>
+                        <th>フィールド</th>
+                        <th>型</th>
+                        <th>必須</th>
+                        <th>説明</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code style="color: var(--aws-teal);">name</code></td>
+                        <td>String</td>
+                        <td class="required-yes">はい</td>
+                        <td>パーティションフィールド名</td>
+                    </tr>
+                    <tr>
+                        <td><code style="color: var(--aws-teal);">source-id</code></td>
+                        <td>Integer</td>
+                        <td class="required-yes">はい</td>
+                        <td>ソーススキーマフィールドの ID</td>
+                    </tr>
+                    <tr>
+                        <td><code style="color: var(--aws-teal);">transform</code></td>
+                        <td>String</td>
+                        <td class="required-yes">はい</td>
+                        <td>パーティショントランスフォーム</td>
+                    </tr>
+                    <tr>
+                        <td><code style="color: var(--aws-teal);">field-id</code></td>
+                        <td>Integer</td>
+                        <td class="required-no">いいえ</td>
+                        <td>フィールドの一意識別子</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3 style="font-size: 16px; color: var(--text-primary); margin-top: 24px; margin-bottom: 12px;">IcebergSortField の構造</h3>
+            <table class="api-table">
+                <thead>
+                    <tr>
+                        <th>フィールド</th>
+                        <th>型</th>
+                        <th>必須</th>
+                        <th>説明</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code style="color: var(--aws-teal);">source-id</code></td>
+                        <td>Integer</td>
+                        <td class="required-yes">はい</td>
+                        <td>ソーススキーマフィールドの ID</td>
+                    </tr>
+                    <tr>
+                        <td><code style="color: var(--aws-teal);">transform</code></td>
+                        <td>String</td>
+                        <td class="required-yes">はい</td>
+                        <td>ソート前に適用するトランスフォーム</td>
+                    </tr>
+                    <tr>
+                        <td><code style="color: var(--aws-teal);">direction</code></td>
+                        <td>String</td>
+                        <td class="required-yes">はい</td>
+                        <td>ソート方向: asc または desc</td>
+                    </tr>
+                    <tr>
+                        <td><code style="color: var(--aws-teal);">null-order</code></td>
+                        <td>String</td>
+                        <td class="required-yes">はい</td>
+                        <td>NULL 値の順序: nulls-first または nulls-last</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- Partition Transforms -->
+        <section class="section">
+            <h2 class="section-title">サポートされるパーティショントランスフォーム</h2>
+            <div class="transform-grid">
+                <div class="transform-card">
+                    <div class="transform-name">identity</div>
+                    <div class="transform-desc">フィールド値をそのまま使用</div>
+                    <div class="transform-usecase">カテゴリ、リージョンなど</div>
+                </div>
+                <div class="transform-card">
+                    <div class="transform-name">year</div>
+                    <div class="transform-desc">タイムスタンプから年を抽出</div>
+                    <div class="transform-usecase">年単位の時系列データ</div>
+                </div>
+                <div class="transform-card">
+                    <div class="transform-name">month</div>
+                    <div class="transform-desc">タイムスタンプから年月を抽出</div>
+                    <div class="transform-usecase">月単位の時系列データ</div>
+                </div>
+                <div class="transform-card">
+                    <div class="transform-name">day</div>
+                    <div class="transform-desc">タイムスタンプから日付を抽出</div>
+                    <div class="transform-usecase">日単位の時系列データ</div>
+                </div>
+                <div class="transform-card">
+                    <div class="transform-name">hour</div>
+                    <div class="transform-desc">タイムスタンプから時間を抽出</div>
+                    <div class="transform-usecase">時間単位の時系列データ</div>
+                </div>
+                <div class="transform-card">
+                    <div class="transform-name">bucket</div>
+                    <div class="transform-desc">ハッシュバケットに分割</div>
+                    <div class="transform-usecase">高カーディナリティフィールド</div>
+                </div>
+                <div class="transform-card" style="grid-column: span 2;">
+                    <div class="transform-name">truncate</div>
+                    <div class="transform-desc">値を切り捨て</div>
+                    <div class="transform-usecase">文字列や数値の範囲分割</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Configuration -->
+        <section class="section">
+            <h2 class="section-title">設定方法</h2>
+
+            <div class="overview-card" style="margin-bottom: 16px;">
+                <h3 style="font-size: 15px; color: var(--aws-orange); margin-bottom: 10px;">前提条件</h3>
+                <ul class="merit-list">
+                    <li>Amazon S3 Tables のテーブルバケットとネームスペースが作成済みであること</li>
+                    <li><code style="color: var(--aws-teal);">s3tables:CreateTable</code> および <code style="color: var(--aws-teal);">s3tables:PutTableData</code> の IAM 権限があること</li>
+                    <li>最新バージョンの AWS CLI または AWS SDK がインストールされていること</li>
+                </ul>
+            </div>
+
+            <div class="flow-diagram">
+                <div class="flow-step">&#128203; JSON で<br>テーブル定義作成</div>
+                <span class="flow-arrow">&rarr;</span>
+                <div class="flow-step">&#9000;&#65039; AWS CLI で<br>テーブル作成</div>
+                <span class="flow-arrow">&rarr;</span>
+                <div class="flow-step">&#128270; テーブルの<br>メタデータ確認</div>
+            </div>
+
+            <h3 style="font-size: 16px; color: var(--text-primary); margin-top: 20px; margin-bottom: 12px;">ステップ 1: テーブル定義 JSON の作成</h3>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">JSON</span>
+                    <span class="code-title">mytabledefinition.json</span>
+                </div>
+                <pre><code class="language-json">{
+    "tableBucketARN": "arn:aws:s3tables:us-east-1:123456789012:bucket/my-table-bucket",
+    "namespace": "my_namespace",
+    "name": "sales_data",
+    "format": "ICEBERG",
+    "metadata": {
+        "iceberg": {
+            "schema": {
+                "fields": [
+                    {"name": "order_id", "type": "long", "required": true},
+                    {"name": "order_date", "type": "timestamp", "required": true},
+                    {"name": "customer_id", "type": "long"},
+                    {"name": "region", "type": "string"},
+                    {"name": "amount", "type": "double"}
+                ]
+            },
+            "partitionSpec": {
+                "fields": [
+                    {
+                        "name": "order_month",
+                        "source-id": 2,
+                        "transform": "month"
+                    },
+                    {
+                        "name": "region_part",
+                        "source-id": 4,
+                        "transform": "identity"
+                    }
+                ]
+            },
+            "writeOrder": {
+                "order-id": 1,
+                "fields": [
+                    {
+                        "source-id": 2,
+                        "transform": "identity",
+                        "direction": "desc",
+                        "null-order": "nulls-last"
+                    },
+                    {
+                        "source-id": 1,
+                        "transform": "identity",
+                        "direction": "asc",
+                        "null-order": "nulls-last"
+                    }
+                ]
+            }
+        }
+    }
+}</code></pre>
+            </div>
+
+            <h3 style="font-size: 16px; color: var(--text-primary); margin-top: 20px; margin-bottom: 12px;">ステップ 2: AWS CLI でテーブルを作成</h3>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Bash</span>
+                    <span class="code-title">AWS CLI によるテーブル作成</span>
+                </div>
+                <pre><code class="language-bash">aws s3tables create-table \
+    --cli-input-json file://mytabledefinition.json</code></pre>
+            </div>
+
+            <h3 style="font-size: 16px; color: var(--text-primary); margin-top: 20px; margin-bottom: 12px;">ステップ 3: テーブルの確認</h3>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Bash</span>
+                    <span class="code-title">テーブルメタデータの確認</span>
+                </div>
+                <pre><code class="language-bash">aws s3tables get-table \
+    --table-bucket-arn arn:aws:s3tables:us-east-1:123456789012:bucket/my-table-bucket \
+    --namespace my_namespace \
+    --name sales_data</code></pre>
+            </div>
+
+            <h3 style="font-size: 16px; color: var(--text-primary); margin-top: 20px; margin-bottom: 12px;">ステップ 4: Python SDK での使用例</h3>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Python</span>
+                    <span class="code-title">boto3 によるテーブル作成</span>
+                </div>
+                <pre><code class="language-python">import boto3
+
+s3tables = boto3.client('s3tables')
+
+response = s3tables.create_table(
+    tableBucketARN='arn:aws:s3tables:us-east-1:123456789012:bucket/my-table-bucket',
+    namespace='my_namespace',
+    name='event_logs',
+    format='ICEBERG',
+    metadata={
+        'iceberg': {
+            'schema': {
+                'fields': [
+                    {'name': 'event_id', 'type': 'long', 'required': True},
+                    {'name': 'event_time', 'type': 'timestamp', 'required': True},
+                    {'name': 'event_type', 'type': 'string'},
+                    {'name': 'payload', 'type': 'string'}
+                ]
+            },
+            'partitionSpec': {
+                'fields': [
+                    {
+                        'name': 'event_day',
+                        'source-id': 2,
+                        'transform': 'day'
+                    }
+                ]
+            },
+            'writeOrder': {
+                'order-id': 1,
+                'fields': [
+                    {
+                        'source-id': 2,
+                        'transform': 'identity',
+                        'direction': 'desc',
+                        'null-order': 'nulls-last'
+                    }
+                ]
+            }
+        }
+    }
+)
+
+print(f"Table ARN: {response['tableARN']}")</code></pre>
+            </div>
+        </section>
+
+        <!-- Benefits -->
+        <section class="section">
+            <h2 class="section-title">メリット</h2>
+            <div class="merit-grid">
+                <div class="merit-section">
+                    <h3>&#128188; ビジネス面</h3>
+                    <ul class="merit-list">
+                        <li><strong style="color: var(--text-primary);">運用効率の向上:</strong> テーブル作成と最適化設定を 1 ステップで完了</li>
+                        <li><strong style="color: var(--text-primary);">自動化の簡素化:</strong> IaC ツールやプロビジョニングスクリプトでの設定が容易</li>
+                        <li><strong style="color: var(--text-primary);">コスト削減:</strong> 適切なパーティションとソートにより、クエリのスキャンデータ量を削減</li>
+                    </ul>
+                </div>
+                <div class="merit-section">
+                    <h3>&#128736;&#65039; 技術面</h3>
+                    <ul class="merit-list">
+                        <li><strong style="color: var(--text-primary);">クエリパフォーマンス向上:</strong> パーティションプルーニングとデータスキッピングの最適化</li>
+                        <li><strong style="color: var(--text-primary);">一貫性の確保:</strong> テーブル作成時から最適な構成を適用</li>
+                        <li><strong style="color: var(--text-primary);">API の統一:</strong> スキーマ、パーティション、ソートオーダーを 1 つの API で管理</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Limitations -->
+        <section class="section">
+            <h2 class="section-title">制約事項・注意点</h2>
+            <div class="constraint-card">
+                <div class="constraint-title">制限事項</div>
+                <ul class="constraint-list">
+                    <li>テーブル名とカラム名はすべて小文字である必要がある</li>
+                    <li>パーティション仕様の定義にはスキーマ定義 (schema) が必須</li>
+                    <li>テーブル作成後のパーティション仕様変更には別途クエリエンジンでの操作が必要</li>
+                </ul>
+            </div>
+            <div class="constraint-card">
+                <div class="constraint-title">考慮すべき点</div>
+                <ul class="constraint-list">
+                    <li>パーティショントランスフォームの選択はクエリパターンに基づいて慎重に行う</li>
+                    <li>過度なパーティション分割 (スモールファイル問題) に注意する</li>
+                    <li>ソートオーダーの設定は書き込みパフォーマンスに影響する可能性がある</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Use Cases -->
+        <section class="section">
+            <h2 class="section-title">ユースケース</h2>
+
+            <div class="usecase-card">
+                <div class="usecase-header">
+                    <span style="font-size: 24px;">&#128225;&#128200;</span>
+                    <div class="usecase-title">ユースケース 1: 時系列データの分析基盤</div>
+                </div>
+                <div class="usecase-scenario">
+                    IoT デバイスから収集されるセンサーデータを日単位でパーティション化し、タイムスタンプ降順でソートして格納
+                </div>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">JSON</span>
+                        <span class="code-title">実装例</span>
+                    </div>
+                    <pre><code class="language-json">{
+    "partitionSpec": {
+        "fields": [
+            {"name": "event_day", "source-id": 2, "transform": "day"}
+        ]
+    },
+    "writeOrder": {
+        "order-id": 1,
+        "fields": [
+            {"source-id": 2, "transform": "identity", "direction": "desc", "null-order": "nulls-last"}
+        ]
+    }
+}</code></pre>
+                </div>
+                <div class="usecase-effect">
+                    日付範囲クエリでのスキャンデータ量が削減され、最新データへのアクセスが高速化
+                </div>
+            </div>
+
+            <div class="usecase-card">
+                <div class="usecase-header">
+                    <span style="font-size: 24px;">&#127970;&#128100;</span>
+                    <div class="usecase-title">ユースケース 2: マルチテナント SaaS アプリケーション</div>
+                </div>
+                <div class="usecase-scenario">
+                    テナント ID でパーティション化し、作成日時でソートしてテナント間のデータ分離とクエリ効率を両立
+                </div>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">JSON</span>
+                        <span class="code-title">実装例</span>
+                    </div>
+                    <pre><code class="language-json">{
+    "partitionSpec": {
+        "fields": [
+            {"name": "tenant_bucket", "source-id": 1, "transform": "bucket[64]"}
+        ]
+    },
+    "writeOrder": {
+        "order-id": 1,
+        "fields": [
+            {"source-id": 3, "transform": "identity", "direction": "asc", "null-order": "nulls-last"}
+        ]
+    }
+}</code></pre>
+                </div>
+                <div class="usecase-effect">
+                    テナント固有クエリのパフォーマンスが向上し、自動化されたテーブルプロビジョニングが実現
+                </div>
+            </div>
+
+            <div class="usecase-card">
+                <div class="usecase-header">
+                    <span style="font-size: 24px;">&#9881;&#65039;&#128640;</span>
+                    <div class="usecase-title">ユースケース 3: データパイプラインの自動化</div>
+                </div>
+                <div class="usecase-scenario">
+                    ETL パイプラインでテーブルを自動作成し、最適なパーティションとソートオーダーを事前に設定
+                </div>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">Python</span>
+                        <span class="code-title">パイプライン内でのテーブル自動作成</span>
+                    </div>
+                    <pre><code class="language-python"># パイプライン内でテーブルを自動作成
+for table_config in pipeline_tables:
+    s3tables.create_table(
+        tableBucketARN=bucket_arn,
+        namespace=table_config['namespace'],
+        name=table_config['name'],
+        format='ICEBERG',
+        metadata={
+            'iceberg': {
+                'schema': table_config['schema'],
+                'partitionSpec': table_config['partition_spec'],
+                'writeOrder': table_config['sort_order']
+            }
+        }
+    )</code></pre>
+                </div>
+                <div class="usecase-effect">
+                    テーブル作成からデータ投入までの自動化が簡素化され、一貫した最適化設定を適用可能
+                </div>
+            </div>
+        </section>
+
+        <!-- Pricing -->
+        <section class="section">
+            <h2 class="section-title">料金</h2>
+            <div class="pricing-card">
+                <div class="pricing-highlight">追加料金なし</div>
+                <div class="pricing-detail">CreateTable API でのパーティションおよびソートオーダー定義に追加料金はありません。S3 Tables の標準料金が適用されます。詳細は <a href="https://aws.amazon.com/s3/pricing/" target="_blank" style="color: var(--aws-teal);">Amazon S3 料金ページ</a> を参照してください。</div>
+            </div>
+        </section>
+
+        <!-- Region -->
+        <section class="section">
+            <h2 class="section-title">利用可能リージョン</h2>
+            <div class="region-card">
+                <div style="font-size: 28px; margin-bottom: 8px;">&#127758;</div>
+                <div class="region-highlight">S3 Tables が利用可能なすべての AWS リージョンで利用可能</div>
+                <div class="region-note">詳細は <a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/s3-tables-regions-quotas.html#s3-tables-regions" target="_blank" style="color: var(--aws-teal);">S3 Tables リージョンとエンドポイント</a> を参照してください。</div>
+            </div>
+        </section>
+
+        <!-- Related Services -->
+        <section class="section">
+            <h2 class="section-title">関連サービス・機能</h2>
+            <div class="related-grid">
+                <div class="related-card">
+                    <div style="font-size: 24px; margin-bottom: 8px;">&#128451;</div>
+                    <div class="related-name">Amazon S3 Tables</div>
+                    <div class="related-desc">Apache Iceberg 形式のフルマネージドテーブルストレージ</div>
+                </div>
+                <div class="related-card">
+                    <div style="font-size: 24px; margin-bottom: 8px;">&#128202;</div>
+                    <div class="related-name">Amazon Athena</div>
+                    <div class="related-desc">S3 Tables のサーバーレスクエリ</div>
+                </div>
+                <div class="related-card">
+                    <div style="font-size: 24px; margin-bottom: 8px;">&#128202;</div>
+                    <div class="related-name">Amazon Redshift</div>
+                    <div class="related-desc">S3 Tables との統合分析</div>
+                </div>
+                <div class="related-card">
+                    <div style="font-size: 24px; margin-bottom: 8px;">&#128218;</div>
+                    <div class="related-name">AWS Glue Data Catalog</div>
+                    <div class="related-desc">テーブルメタデータの管理</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer>
+            <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 12px;">参考リンク</p>
+            <ul class="source-links">
+                <li><a href="https://aws.amazon.com/about-aws/whats-new/2026/02/s3-tables-partition-and-sort-order-createtable-api/" class="source-link" target="_blank">公式発表 - What's New</a></li>
+                <li><a href="https://aws.amazon.com/s3/features/tables/" class="source-link" target="_blank">S3 Tables 製品ページ</a></li>
+                <li><a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/s3-tables.html" class="source-link" target="_blank">S3 Tables ドキュメント</a></li>
+                <li><a href="https://docs.aws.amazon.com/AmazonS3/latest/API/API_s3Buckets_CreateTable.html" class="source-link" target="_blank">CreateTable API リファレンス</a></li>
+                <li><a href="https://docs.aws.amazon.com/AmazonS3/latest/API/API_s3Buckets_IcebergPartitionSpec.html" class="source-link" target="_blank">IcebergPartitionSpec リファレンス</a></li>
+                <li><a href="https://docs.aws.amazon.com/AmazonS3/latest/API/API_s3Buckets_IcebergSortOrder.html" class="source-link" target="_blank">IcebergSortOrder リファレンス</a></li>
+            </ul>
+            <p class="footer-note">Amazon S3 Tables - CreateTable API でのパーティションおよびソートオーダー定義 | 2026 年 2 月 12 日</p>
+        </footer>
+    </div>
+
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'base',
+            themeVariables: {
+                primaryColor: '#FF9900',
+                primaryTextColor: '#232F3E',
+                primaryBorderColor: '#FF9900',
+                lineColor: '#FF9900',
+                secondaryColor: '#F5F5F5',
+                tertiaryColor: '#FAFAFA',
+                background: '#FFFFFF',
+                mainBkg: '#FFF3E0',
+                nodeBorder: '#FF9900',
+                clusterBkg: '#FFF8E1',
+                clusterBorder: '#FF9900',
+                edgeLabelBackground: '#FFFFFF',
+                textColor: '#232F3E'
+            },
+            flowchart: {
+                curve: 'basis',
+                padding: 20
+            }
+        });
+        hljs.highlightAll();
+    </script>
+</body>
+</html>

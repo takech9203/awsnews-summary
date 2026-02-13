@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Claude Opus 4.6 が Amazon Bedrock で利用可能に</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      mermaid.initialize({
+        startOnLoad: true,
+        theme: 'base',
+        themeVariables: {
+          primaryColor: '#FF9900',
+          primaryTextColor: '#232F3E',
+          primaryBorderColor: '#FF9900',
+          lineColor: '#FF9900',
+          secondaryColor: '#F5F5F5',
+          tertiaryColor: '#FAFAFA',
+          background: '#FFFFFF',
+          mainBkg: '#FFF3E0',
+          nodeBorder: '#FF9900',
+          clusterBkg: '#FFF8E1',
+          clusterBorder: '#FF9900',
+          edgeLabelBackground: '#FFFFFF',
+          textColor: '#232F3E'
+        }
+      });
+    });
+  </script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap');
+
+    :root {
+      --aws-squid-ink: #232F3E;
+      --aws-dark-squid: #1A242F;
+      --aws-orange: #FF9900;
+      --aws-smile-orange: #FFAD33;
+      --aws-white: #FFFFFF;
+      --aws-light-gray: #D5DBDB;
+      --aws-teal: #00A1C9;
+      --aws-purple: #8C4FFF;
+      --aws-green: #1D8102;
+      --aws-red: #D13212;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      background-color: var(--aws-squid-ink);
+      font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+      color: var(--aws-light-gray);
+      font-size: 16px;
+      line-height: 1.6;
+      padding: 20px;
+      margin: 0;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 32px;
+      padding-bottom: 24px;
+      border-bottom: 2px solid var(--aws-orange);
+    }
+
+    .service-badge {
+      display: inline-block;
+      background: var(--aws-orange);
+      color: var(--aws-squid-ink);
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-weight: 600;
+      font-size: 14px;
+      margin-bottom: 16px;
+    }
+
+    h1 {
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--aws-white);
+      margin: 0 0 12px 0;
+    }
+
+    .subtitle {
+      font-size: 16px;
+      color: var(--aws-light-gray);
+    }
+
+    .date {
+      color: var(--aws-orange);
+      font-weight: 500;
+    }
+
+    h2 {
+      font-size: 22px;
+      font-weight: 600;
+      color: var(--aws-orange);
+      margin: 0 0 16px 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .section {
+      background: var(--aws-dark-squid);
+      border-radius: 8px;
+      padding: 24px;
+      margin-bottom: 24px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    /* 概要セクション */
+    .overview-text {
+      font-size: 17px;
+      line-height: 1.8;
+      margin-bottom: 20px;
+    }
+
+    .highlight {
+      background-color: rgba(255, 153, 0, 0.2);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 600;
+      color: var(--aws-orange);
+    }
+
+    /* Before/After */
+    .comparison-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-top: 20px;
+    }
+
+    @media (max-width: 600px) {
+      .comparison-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .comparison-card {
+      padding: 16px;
+      border-radius: 8px;
+    }
+
+    .comparison-card.before {
+      background: rgba(209, 50, 18, 0.15);
+      border: 2px solid var(--aws-red);
+    }
+
+    .comparison-card.after {
+      background: rgba(29, 129, 2, 0.15);
+      border: 2px solid var(--aws-green);
+    }
+
+    .comparison-title {
+      font-weight: 700;
+      font-size: 14px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .comparison-card.before .comparison-title {
+      color: var(--aws-red);
+    }
+
+    .comparison-card.after .comparison-title {
+      color: var(--aws-green);
+    }
+
+    .comparison-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .comparison-list li {
+      padding: 6px 0;
+      font-size: 14px;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    /* フロー図 */
+    .flow-diagram {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin: 24px 0;
+    }
+
+    .flow-step {
+      background: var(--aws-dark-squid);
+      border: 2px solid var(--aws-orange);
+      border-radius: 8px;
+      padding: 16px 24px;
+      text-align: center;
+      min-width: 120px;
+    }
+
+    .flow-step-icon {
+      font-size: 28px;
+      margin-bottom: 8px;
+    }
+
+    .flow-step-text {
+      font-size: 13px;
+      color: var(--aws-white);
+    }
+
+    .flow-arrow {
+      color: var(--aws-orange);
+      font-size: 28px;
+      font-weight: bold;
+    }
+
+    /* 機能カード */
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+    }
+
+    @media (max-width: 700px) {
+      .feature-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .feature-card {
+      background: var(--aws-squid-ink);
+      border-left: 4px solid var(--aws-orange);
+      border-radius: 0 8px 8px 0;
+      padding: 16px;
+    }
+
+    .feature-card-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .feature-icon {
+      font-size: 24px;
+    }
+
+    .feature-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--aws-white);
+    }
+
+    .feature-desc {
+      font-size: 14px;
+      color: var(--aws-light-gray);
+    }
+
+    /* 統計カード */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    @media (max-width: 700px) {
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .stat-card {
+      background: linear-gradient(135deg, rgba(255, 153, 0, 0.2) 0%, rgba(140, 79, 255, 0.15) 100%);
+      border: 1px solid rgba(255, 153, 0, 0.3);
+      border-radius: 8px;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--aws-orange);
+      margin-bottom: 4px;
+    }
+
+    .stat-label {
+      font-size: 13px;
+      color: var(--aws-light-gray);
+    }
+
+    /* ユースケース */
+    .usecase-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    @media (max-width: 800px) {
+      .usecase-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .usecase-card {
+      background: linear-gradient(135deg, rgba(255, 153, 0, 0.1) 0%, rgba(255, 173, 51, 0.05) 100%);
+      border: 1px solid rgba(255, 153, 0, 0.3);
+      border-radius: 8px;
+      padding: 20px;
+    }
+
+    .usecase-icon {
+      font-size: 32px;
+      margin-bottom: 12px;
+    }
+
+    .usecase-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--aws-white);
+      margin-bottom: 8px;
+    }
+
+    .usecase-desc {
+      font-size: 14px;
+      color: var(--aws-light-gray);
+    }
+
+    /* コードブロック */
+    .code-block {
+      background: #0d1117;
+      border-radius: 8px;
+      overflow: hidden;
+      margin: 16px 0;
+    }
+
+    .code-header {
+      background: #161b22;
+      padding: 8px 16px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+    }
+
+    .code-lang {
+      color: var(--aws-orange);
+      font-weight: 600;
+    }
+
+    .code-title {
+      color: var(--aws-light-gray);
+    }
+
+    .code-block pre {
+      margin: 0;
+      padding: 16px;
+      overflow-x: auto;
+    }
+
+    .code-block code {
+      font-family: 'Courier New', Consolas, monospace;
+      font-size: 13px;
+      color: #e6edf3;
+      line-height: 1.5;
+    }
+
+    /* リージョン情報 */
+    .region-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .region-badge {
+      background: rgba(0, 161, 201, 0.2);
+      border: 1px solid var(--aws-teal);
+      color: var(--aws-teal);
+      padding: 4px 12px;
+      border-radius: 4px;
+      font-size: 12px;
+    }
+
+    .region-badge.tokyo {
+      background: rgba(255, 153, 0, 0.2);
+      border-color: var(--aws-orange);
+      color: var(--aws-orange);
+      font-weight: 600;
+    }
+
+    .mermaid-container {
+      background: #FFFFFF;
+      border-radius: 12px;
+      padding: 24px;
+      margin: 20px 0;
+      border: 2px solid rgba(255, 153, 0, 0.3);
+      overflow-x: auto;
+    }
+    .mermaid {
+      display: flex;
+      justify-content: center;
+    }
+
+    /* フッター */
+    footer {
+      margin-top: 24px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(255, 255, 255, 0.2);
+      font-size: 12px;
+      color: var(--aws-light-gray);
+    }
+
+    footer a {
+      color: var(--aws-teal);
+      text-decoration: none;
+      word-break: break-all;
+    }
+
+    footer a:hover {
+      color: var(--aws-smile-orange);
+    }
+
+    .footer-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-top: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- ヘッダー -->
+    <div class="header">
+      <div class="service-badge">Amazon Bedrock</div>
+      <h1>🧠 Claude Opus 4.6 が利用可能に</h1>
+      <div class="subtitle">
+        Anthropic の最も知的なモデルが Amazon Bedrock で利用可能に<br>
+        <span class="date">📅 2026 年 2 月 5 日</span>
+      </div>
+    </div>
+
+    <!-- 概要セクション -->
+    <div class="section">
+      <h2>📋 概要</h2>
+      <p class="overview-text">
+        Amazon Bedrock で Anthropic の最新モデル <span class="highlight">Claude Opus 4.6</span> が利用可能になりました。
+        Anthropic によると、Opus 4.6 は同社で<span class="highlight">最も知的なモデル</span>であり、
+        <span class="highlight">コーディング</span>、<span class="highlight">エンタープライズエージェント</span>、
+        <span class="highlight">プロフェッショナルワーク</span>において世界最高のモデルとされています。
+      </p>
+
+      <div class="comparison-grid">
+        <div class="comparison-card before">
+          <div class="comparison-title">❌ Before - 以前の課題</div>
+          <ul class="comparison-list">
+            <li><span>•</span> 複雑なエージェンティックタスクの信頼性に限界</li>
+            <li><span>•</span> 長期間コーディングプロジェクトの一貫性維持が困難</li>
+            <li><span>•</span> 大規模コードベース管理に追加オーケストレーションが必要</li>
+          </ul>
+        </div>
+        <div class="comparison-card after">
+          <div class="comparison-title">✅ After - 今回の改善</div>
+          <ul class="comparison-list">
+            <li><span>•</span> 数十のツールを業界トップの信頼性で管理</li>
+            <li><span>•</span> サブエージェントを自律的に起動、少ない監視で作業</li>
+            <li><span>•</span> 要件収集から実装・メンテナンスまで一貫処理</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- 統計セクション -->
+    <div class="section">
+      <h2>📊 数字で見る Claude Opus 4.6</h2>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-value">200K</div>
+          <div class="stat-label">標準コンテキストトークン</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">1M</div>
+          <div class="stat-label">拡張コンテキスト (プレビュー)</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">30+</div>
+          <div class="stat-label">利用可能リージョン数</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- アーキテクチャ図 -->
+    <div class="section">
+      <h2>🏗️ アーキテクチャ</h2>
+      <p style="margin-bottom: 16px;">Claude Opus 4.6 は Amazon Bedrock を通じてアクセスし、エージェンティックワークフロー、複雑なコーディング、エンタープライズ分析など多様なユースケースに対応します。</p>
+      <div class="mermaid-container">
+        <pre class="mermaid">
+flowchart TD
+    subgraph Client["👤 クライアント"]
+        App["📱 アプリケーション"]
+    end
+
+    subgraph Bedrock["☁️ Amazon Bedrock"]
+        API["🔌 Bedrock API"]
+        subgraph Models["🤖 Claude モデル"]
+            direction LR
+            Opus46["⭐ Claude Opus 4.6<br/>最高知性モデル"]
+            Sonnet["Claude Sonnet 4.5"]
+            Haiku["Claude Haiku 4.5"]
+            Opus46 ~~~ Sonnet ~~~ Haiku
+        end
+    end
+
+    subgraph UseCases["💼 ユースケース"]
+        direction LR
+        Agent["🤖 エージェンティック<br/>ワークフロー"]
+        Code["💻 複雑な<br/>コーディング"]
+        Enterprise["🏢 エンタープライズ<br/>分析"]
+        Agent ~~~ Code ~~~ Enterprise
+    end
+
+    App --> API
+    API --> Opus46
+    Opus46 --> Agent
+    Opus46 --> Code
+    Opus46 --> Enterprise
+
+    classDef client fill:#E3F2FD,stroke:#BBDEFB,stroke-width:2px,color:#1565C0
+    classDef bedrock fill:none,stroke:#FF9800,stroke-width:2px,color:#666666
+    classDef model fill:#FFE0B2,stroke:#FFCC80,stroke-width:2px,color:#5D4037
+    classDef opus fill:#E8F5E9,stroke:#A5D6A7,stroke-width:2px,color:#2E7D32
+    classDef usecase fill:#F3E5F5,stroke:#CE93D8,stroke-width:2px,color:#6A1B9A
+
+    class Client client
+    class Bedrock bedrock
+    class Models model
+    class Opus46 opus
+    class App,API model
+    class Agent,Code,Enterprise usecase
+        </pre>
+      </div>
+    </div>
+
+    <!-- 主要機能 -->
+    <div class="section">
+      <h2>⚡ 主要機能</h2>
+      <div class="feature-grid">
+        <div class="feature-card">
+          <div class="feature-card-header">
+            <span class="feature-icon">🤖</span>
+            <span class="feature-title">エージェンティックワークフロー</span>
+          </div>
+          <div class="feature-desc">
+            数十のツールを使用した複雑なタスクを業界トップの信頼性で管理。サブエージェントを自律的に起動し、より少ない監視で作業可能。
+          </div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-card-header">
+            <span class="feature-icon">💻</span>
+            <span class="feature-title">コーディング能力の強化</span>
+          </div>
+          <div class="feature-desc">
+            長期的なプロジェクトや複雑な実装に対応。要件収集から実装・メンテナンスまでのフルライフサイクルを単一モデルで処理。
+          </div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-card-header">
+            <span class="feature-icon">🏢</span>
+            <span class="feature-title">エンタープライズワークフロー</span>
+          </div>
+          <div class="feature-desc">
+            財務分析、サイバーセキュリティ応用、アプリケーション間データ移動など、エンドツーエンドのワークフローを自動化。
+          </div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-card-header">
+            <span class="feature-icon">📄</span>
+            <span class="feature-title">拡張コンテキストウィンドウ</span>
+          </div>
+          <div class="feature-desc">
+            200K トークン (標準) と 1M トークン (プレビュー) をサポート。大規模なドキュメントやコードベースの処理が可能。
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- コードサンプル -->
+    <div class="section">
+      <h2>🔧 使用例</h2>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python</span>
+          <span class="code-title">Claude Opus 4.6 を使用した推論</span>
+        </div>
+        <pre><code>import boto3, json
+
+client = boto3.client('bedrock-runtime', region_name='us-east-1')
+
+response = client.invoke_model(
+    modelId='anthropic.claude-opus-4-6-v1',
+    body=json.dumps({
+        "anthropic_version": "bedrock-2023-05-31",
+        "max_tokens": 4096,
+        "messages": [
+            {"role": "user", "content": "複雑なコードベースの分析を行ってください。"}
+        ]
+    })
+)</code></pre>
+      </div>
+    </div>
+
+    <!-- ユースケース -->
+    <div class="section">
+      <h2>💡 ユースケース</h2>
+      <div class="usecase-grid">
+        <div class="usecase-card">
+          <div class="usecase-icon">🔍</div>
+          <div class="usecase-title">自律的コードレビュー</div>
+          <div class="usecase-desc">
+            大規模なプルリクエストを自動的にレビュー。セキュリティ問題、パフォーマンス改善、コーディング規約違反を検出。
+          </div>
+        </div>
+        <div class="usecase-card">
+          <div class="usecase-icon">📈</div>
+          <div class="usecase-title">財務分析ワークフロー</div>
+          <div class="usecase-desc">
+            複数の財務レポートを分析し、トレンド、異常、投資機会を自動的に特定。数日かかる分析を数時間に短縮。
+          </div>
+        </div>
+        <div class="usecase-card">
+          <div class="usecase-icon">🔗</div>
+          <div class="usecase-title">マルチエージェント<br>オーケストレーション</div>
+          <div class="usecase-desc">
+            複数の専門エージェントを調整し、複雑なビジネスプロセスを自動化。人間の介入を最小化。
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- リージョン情報 -->
+    <div class="section">
+      <h2>🌍 利用可能リージョン</h2>
+      <p style="margin-bottom: 16px;">クロスリージョン推論をサポート。30 以上のリージョンで利用可能:</p>
+      <div class="region-badges">
+        <span class="region-badge tokyo">ap-northeast-1 (東京) ✓</span>
+        <span class="region-badge">us-east-1</span>
+        <span class="region-badge">us-west-2</span>
+        <span class="region-badge">eu-central-1</span>
+        <span class="region-badge">eu-west-1</span>
+        <span class="region-badge">ap-southeast-1</span>
+        <span class="region-badge">ap-southeast-2</span>
+        <span class="region-badge">その他多数...</span>
+      </div>
+    </div>
+
+    <!-- フッター -->
+    <footer>
+      <p><strong>📎 出典:</strong></p>
+      <div class="footer-links">
+        <a href="https://aws.amazon.com/about-aws/whats-new/2026/2/claude-opus-4.6-available-amazon-bedrock/" target="_blank">AWS What's New</a>
+        <a href="https://docs.aws.amazon.com/bedrock/latest/userguide/models-supported.html" target="_blank">サポートされるモデル一覧</a>
+        <a href="https://aws.amazon.com/bedrock/pricing/" target="_blank">料金ページ</a>
+        <a href="https://console.aws.amazon.com/bedrock/" target="_blank">Amazon Bedrock コンソール</a>
+      </div>
+      <p style="margin-top: 16px; opacity: 0.7;">Generated by AWS News Summary • 2026-02-05</p>
+    </footer>
+  </div>
+</body>
+</html>

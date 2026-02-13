@@ -1,0 +1,1307 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Amazon EC2 C8gn インスタンス - 6 リージョン追加で利用可能に</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/styles/atom-one-dark.min.css">
+    <style>
+        :root {
+            --squid-ink: #232F3E;
+            --dark-squid: #1A242F;
+            --aws-orange: #FF9900;
+            --smile-orange: #FFAD33;
+            --text-primary: #FFFFFF;
+            --text-secondary: #D5DBDB;
+            --text-muted: #AAAAAA;
+            --card-bg: #2D3A4A;
+            --border-color: #3D4A5A;
+            --aws-teal: #00A1C9;
+            --aws-green: #1D8102;
+            --aws-red: #D13212;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            background-color: var(--squid-ink);
+            color: var(--text-secondary);
+            line-height: 1.8;
+            font-size: 16px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+            padding-bottom: 30px;
+            border-bottom: 3px solid var(--aws-orange);
+        }
+
+        .badge-row {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+
+        .service-badge {
+            display: inline-block;
+            background-color: var(--aws-orange);
+            color: var(--squid-ink);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .region-badge {
+            display: inline-block;
+            background-color: #2ECC71;
+            color: #FFFFFF;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .processor-badge {
+            display: inline-block;
+            background-color: var(--aws-teal);
+            color: #FFFFFF;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .network-badge {
+            display: inline-block;
+            background-color: #8C4FFF;
+            color: #FFFFFF;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+            line-height: 1.4;
+        }
+
+        .release-date {
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--aws-orange);
+            margin-bottom: 20px;
+            padding-left: 15px;
+            border-left: 4px solid var(--aws-orange);
+        }
+
+        .overview-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .overview-text {
+            font-size: 16px;
+            line-height: 1.9;
+        }
+
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .comparison-grid {
+                grid-template-columns: 1fr;
+            }
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr) !important;
+            }
+            .features-grid {
+                grid-template-columns: 1fr !important;
+            }
+            .instance-compare-grid {
+                grid-template-columns: 1fr !important;
+            }
+            .related-grid {
+                grid-template-columns: 1fr !important;
+            }
+            .flow-diagram {
+                flex-direction: column;
+            }
+            .flow-arrow {
+                transform: rotate(90deg);
+            }
+        }
+
+        .comparison-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .comparison-card.before {
+            border-top: 4px solid #E74C3C;
+        }
+
+        .comparison-card.after {
+            border-top: 4px solid #2ECC71;
+        }
+
+        .comparison-label {
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        .comparison-card.before .comparison-label {
+            color: #E74C3C;
+        }
+
+        .comparison-card.after .comparison-label {
+            color: #2ECC71;
+        }
+
+        .comparison-list {
+            list-style: none;
+        }
+
+        .comparison-list li {
+            padding: 8px 0;
+            padding-left: 25px;
+            position: relative;
+            font-size: 14px;
+        }
+
+        .comparison-card.before .comparison-list li::before {
+            content: "\2717";
+            position: absolute;
+            left: 0;
+            color: #E74C3C;
+            font-weight: bold;
+        }
+
+        .comparison-card.after .comparison-list li::before {
+            content: "\2713";
+            position: absolute;
+            left: 0;
+            color: #2ECC71;
+            font-weight: bold;
+        }
+
+        /* Statistics Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, var(--card-bg) 0%, var(--dark-squid) 100%);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid rgba(255, 153, 0, 0.2);
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--aws-orange);
+            line-height: 1.2;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 6px;
+        }
+
+        .stat-sublabel {
+            font-size: 11px;
+            color: var(--text-muted);
+            opacity: 0.7;
+        }
+
+        /* Mermaid */
+        .mermaid-container {
+            background: #FFFFFF;
+            border-radius: 12px;
+            padding: 24px;
+            margin: 20px 0;
+            border: 2px solid rgba(255, 153, 0, 0.3);
+            overflow-x: auto;
+        }
+        .mermaid {
+            display: flex;
+            justify-content: center;
+        }
+
+        /* Features Grid */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .feature-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            border-left: 4px solid var(--aws-orange);
+        }
+
+        .feature-icon {
+            font-size: 36px;
+            margin-bottom: 12px;
+        }
+
+        .feature-title {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--aws-orange);
+        }
+
+        .feature-description {
+            font-size: 14px;
+            color: var(--text-muted);
+            line-height: 1.7;
+        }
+
+        .feature-detail-list {
+            list-style: none;
+            margin-top: 10px;
+        }
+
+        .feature-detail-list li {
+            padding: 4px 0;
+            padding-left: 22px;
+            position: relative;
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .feature-detail-list li::before {
+            content: "\2713";
+            position: absolute;
+            left: 0;
+            color: var(--aws-orange);
+            font-weight: bold;
+        }
+
+        /* Spec Table */
+        .spec-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            font-size: 14px;
+        }
+
+        .spec-table th,
+        .spec-table td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .spec-table th {
+            color: var(--aws-orange);
+            font-weight: 700;
+            background-color: var(--dark-squid);
+            font-size: 13px;
+        }
+
+        .spec-table td {
+            color: var(--text-secondary);
+        }
+
+        .spec-table .spec-value {
+            color: var(--aws-orange);
+            font-weight: 700;
+        }
+
+        .spec-table tr:hover {
+            background-color: rgba(255, 153, 0, 0.05);
+        }
+
+        /* Instance Size Tags */
+        .size-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 15px;
+        }
+
+        .size-tag {
+            background-color: var(--dark-squid);
+            border: 1px solid var(--border-color);
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-family: 'Courier New', monospace;
+            color: var(--text-secondary);
+        }
+
+        .size-tag.efa {
+            border-color: var(--aws-teal);
+            color: var(--aws-teal);
+        }
+
+        /* Use Cases */
+        .usecase-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 3px solid var(--smile-orange);
+        }
+
+        .usecase-title {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: var(--aws-orange);
+        }
+
+        .usecase-scenario {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+            line-height: 1.7;
+        }
+
+        .usecase-effect {
+            font-size: 14px;
+            color: var(--text-muted);
+            line-height: 1.7;
+            padding-left: 15px;
+            border-left: 2px solid var(--aws-orange);
+        }
+
+        /* Benefits */
+        .benefits-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .benefits-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .benefit-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .benefit-icon {
+            font-size: 36px;
+            margin-bottom: 12px;
+        }
+
+        .benefit-title {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+
+        .benefit-desc {
+            font-size: 13px;
+            color: var(--text-muted);
+            line-height: 1.7;
+        }
+
+        /* Considerations */
+        .consideration-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+        }
+
+        .consideration-card.warning {
+            border-left: 4px solid #F39C12;
+        }
+
+        .consideration-card.info {
+            border-left: 4px solid var(--aws-teal);
+        }
+
+        .consideration-title {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+        }
+
+        .consideration-list {
+            list-style: none;
+        }
+
+        .consideration-list li {
+            padding: 6px 0;
+            padding-left: 22px;
+            position: relative;
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        .consideration-card.warning .consideration-list li::before {
+            content: "\26A0";
+            position: absolute;
+            left: 0;
+            color: #F39C12;
+        }
+
+        .consideration-card.info .consideration-list li::before {
+            content: "\2139";
+            position: absolute;
+            left: 0;
+            color: var(--aws-teal);
+            font-weight: bold;
+        }
+
+        /* Code Block */
+        .code-block {
+            background: #1a1a2e;
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 16px 0;
+        }
+
+        .code-header {
+            background: #16213e;
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+        }
+
+        .code-lang {
+            color: var(--aws-orange);
+            font-weight: bold;
+        }
+
+        .code-title {
+            color: var(--text-muted);
+        }
+
+        .code-block pre {
+            margin: 0;
+            padding: 0;
+            overflow-x: auto;
+        }
+
+        .code-block code {
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            padding: 16px !important;
+        }
+
+        .code-desc {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-top: 8px;
+            line-height: 1.6;
+        }
+
+        /* Pricing */
+        .pricing-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 25px;
+            text-align: center;
+        }
+
+        .pricing-options {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+
+        .pricing-tag {
+            background-color: var(--dark-squid);
+            border: 1px solid var(--aws-orange);
+            border-radius: 8px;
+            padding: 10px 20px;
+            font-size: 14px;
+            color: var(--text-primary);
+        }
+
+        .pricing-tag-icon {
+            display: block;
+            font-size: 22px;
+            margin-bottom: 4px;
+        }
+
+        /* Region List */
+        .region-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 15px;
+            justify-content: center;
+        }
+
+        .region-tag {
+            background-color: var(--card-bg);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .region-tag.new {
+            background-color: #2ECC71;
+            color: #FFFFFF;
+            font-weight: 700;
+        }
+
+        /* New Regions Highlight */
+        .new-regions-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-top: 15px;
+        }
+
+        @media (max-width: 768px) {
+            .new-regions-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .new-region-item {
+            background-color: var(--dark-squid);
+            border: 2px solid #2ECC71;
+            border-radius: 10px;
+            padding: 14px;
+            text-align: center;
+        }
+
+        .new-region-flag {
+            font-size: 28px;
+            margin-bottom: 6px;
+        }
+
+        .new-region-name {
+            font-size: 13px;
+            font-weight: 700;
+            color: #2ECC71;
+        }
+
+        .new-region-code {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        /* Related Services */
+        .related-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+        }
+
+        @media (max-width: 768px) {
+            .related-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .related-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 18px;
+            text-align: center;
+        }
+
+        .related-icon {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        .related-name {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .related-desc {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        /* Flow Diagram */
+        .flow-diagram {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin: 24px 0;
+        }
+
+        .flow-step {
+            background: var(--dark-squid);
+            border: 2px solid var(--aws-orange);
+            border-radius: 8px;
+            padding: 12px 20px;
+            text-align: center;
+            min-width: 100px;
+            font-size: 14px;
+        }
+
+        .flow-arrow {
+            color: var(--aws-orange);
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        /* Footer */
+        footer {
+            margin-top: 50px;
+            padding-top: 30px;
+            border-top: 1px solid var(--border-color);
+            text-align: center;
+        }
+
+        .source-link {
+            color: var(--aws-teal);
+            text-decoration: none;
+            font-size: 14px;
+            display: inline-block;
+            margin-bottom: 8px;
+        }
+
+        .source-link:hover {
+            color: var(--smile-orange);
+            text-decoration: underline;
+        }
+
+        .footer-note {
+            color: var(--text-muted);
+            font-size: 12px;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="badge-row">
+                <span class="service-badge">Amazon EC2</span>
+                <span class="processor-badge">AWS Graviton4</span>
+                <span class="network-badge">600 Gbps Network</span>
+                <span class="region-badge">6 Regions NEW</span>
+            </div>
+            <h1>Amazon EC2 C8gn インスタンス<br>6 つの追加リージョンで利用可能に</h1>
+            <p class="release-date">2026 年 2 月 9 日</p>
+        </header>
+
+        <!-- Overview Section -->
+        <section class="section">
+            <h2 class="section-title">概要</h2>
+            <div class="overview-card">
+                <p class="overview-text">
+                    Amazon EC2 C8gn インスタンスが <span style="color: var(--aws-orange); font-weight: 700;">Asia Pacific (Seoul、Melbourne)</span>、<span style="color: var(--aws-orange); font-weight: 700;">Canada (Central)</span>、<span style="color: var(--aws-orange); font-weight: 700;">Europe (Spain)</span>、<span style="color: var(--aws-orange); font-weight: 700;">AWS GovCloud (US-East、US-West)</span> の各リージョンで新たに利用可能になりました。C8gn インスタンスは AWS Graviton4 プロセッサを搭載し、Graviton3 ベースの C7gn インスタンスと比較して最大 <span style="color: #2ECC71; font-weight: 700;">30%</span> 優れたコンピューティングパフォーマンスを提供するネットワーク最適化インスタンスです。第 6 世代 AWS Nitro Card により、最大 <span style="color: #2ECC71; font-weight: 700;">600 Gbps</span> のネットワーク帯域幅を実現します。
+                </p>
+            </div>
+
+            <div class="comparison-grid">
+                <div class="comparison-card before">
+                    <div class="comparison-label">Before - アップデート前の課題</div>
+                    <ul class="comparison-list">
+                        <li>C8gn インスタンスが Seoul、Melbourne、Canada (Central)、Spain、GovCloud では利用できなかった</li>
+                        <li>GovCloud リージョンでは最新世代のネットワーク最適化 Graviton ベースインスタンスが利用できなかった</li>
+                        <li>データレジデンシーやコンプライアンス要件のあるワークロードで、特定のリージョンに C8gn をデプロイできなかった</li>
+                    </ul>
+                </div>
+                <div class="comparison-card after">
+                    <div class="comparison-label">After - アップデート後の改善</div>
+                    <ul class="comparison-list">
+                        <li>6 つの追加リージョンで C8gn が利用可能になり、合計 24 リージョンに拡大</li>
+                        <li>GovCloud (US-East、US-West) で Graviton4 ベースのネットワーク最適化インスタンスが利用可能に</li>
+                        <li>グローバルなワークロード展開で、より多くのリージョンで一貫したインスタンスタイプを選択可能に</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Stats Section -->
+        <section class="section">
+            <h2 class="section-title">数字で見る C8gn インスタンス</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value">30%</div>
+                    <div class="stat-label">コンピューティング向上</div>
+                    <div class="stat-sublabel">C7gn 比</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">600 Gbps</div>
+                    <div class="stat-label">最大ネットワーク帯域幅</div>
+                    <div class="stat-sublabel">EC2 ネットワーク最適化で最高</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">24</div>
+                    <div class="stat-label">利用可能リージョン</div>
+                    <div class="stat-sublabel">6 リージョン追加</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">384 GiB</div>
+                    <div class="stat-label">最大メモリ</div>
+                    <div class="stat-sublabel">48xlarge</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Architecture Diagram -->
+        <section class="section">
+            <h2 class="section-title">アーキテクチャ図</h2>
+            <div class="mermaid-container">
+                <pre class="mermaid">
+flowchart TD
+    subgraph NewRegions["&#127381; 新規対応リージョン"]
+        direction LR
+        Seoul["&#127758; AP Seoul"]
+        Melbourne["&#127758; AP Melbourne"]
+        CanadaCentral["&#127464;&#127462; Canada Central"]
+        Spain["&#127466;&#127482; Europe Spain"]
+        GovEast["&#127963; GovCloud US-East"]
+        GovWest["&#127963; GovCloud US-West"]
+        Seoul ~~~ Melbourne ~~~ CanadaCentral
+        Spain ~~~ GovEast ~~~ GovWest
+    end
+
+    subgraph C8gn["&#128187; EC2 C8gn インスタンス"]
+        direction LR
+        Graviton4["&#9889; AWS Graviton4 プロセッサ"]
+        Nitro["&#128295; 第 6 世代 AWS Nitro Card"]
+        Network["&#127760; 最大 600 Gbps ネットワーク帯域幅"]
+        Graviton4 ~~~ Nitro ~~~ Network
+    end
+
+    subgraph Workloads["&#128202; ユースケース"]
+        direction LR
+        NVA["&#128274; ネットワーク仮想アプライアンス"]
+        Analytics["&#128200; データ分析"]
+        AIML["&#129302; CPU ベース AI/ML 推論"]
+        NVA ~~~ Analytics ~~~ AIML
+    end
+
+    NewRegions --> C8gn
+    C8gn --> Workloads
+
+    classDef cloud fill:none,stroke:#CCCCCC,stroke-width:2px,color:#666666
+    classDef newRegion fill:#E9F7EC,stroke:#66BB6A,stroke-width:2px,color:#333333
+    classDef instance fill:#E8F1FF,stroke:#4A90E2,stroke-width:2px,color:#333333
+    classDef workload fill:#FFF3E0,stroke:#FF9900,stroke-width:2px,color:#333333
+
+    class NewRegions newRegion
+    class C8gn instance
+    class Workloads workload
+    class Seoul,Melbourne,CanadaCentral,Spain,GovEast,GovWest newRegion
+    class Graviton4,Nitro,Network instance
+    class NVA,Analytics,AIML workload
+                </pre>
+            </div>
+            <p style="font-size: 14px; color: var(--text-muted); text-align: center; margin-top: 10px;">
+                新たに対応した 6 リージョンと、C8gn インスタンスの主要コンポーネント、対象ワークロードの関係
+            </p>
+        </section>
+
+        <!-- New Regions Highlight -->
+        <section class="section">
+            <h2 class="section-title">新規利用可能リージョン</h2>
+            <div class="overview-card" style="border: 2px solid #2ECC71;">
+                <div class="new-regions-grid">
+                    <div class="new-region-item">
+                        <div class="new-region-flag">&#127472;&#127479;</div>
+                        <div class="new-region-name">Asia Pacific (Seoul)</div>
+                        <div class="new-region-code">ap-northeast-2</div>
+                    </div>
+                    <div class="new-region-item">
+                        <div class="new-region-flag">&#127462;&#127482;</div>
+                        <div class="new-region-name">Asia Pacific (Melbourne)</div>
+                        <div class="new-region-code">ap-southeast-4</div>
+                    </div>
+                    <div class="new-region-item">
+                        <div class="new-region-flag">&#127464;&#127462;</div>
+                        <div class="new-region-name">Canada (Central)</div>
+                        <div class="new-region-code">ca-central-1</div>
+                    </div>
+                    <div class="new-region-item">
+                        <div class="new-region-flag">&#127466;&#127480;</div>
+                        <div class="new-region-name">Europe (Spain)</div>
+                        <div class="new-region-code">eu-south-2</div>
+                    </div>
+                    <div class="new-region-item">
+                        <div class="new-region-flag">&#127482;&#127480;</div>
+                        <div class="new-region-name">GovCloud (US-East)</div>
+                        <div class="new-region-code">us-gov-east-1</div>
+                    </div>
+                    <div class="new-region-item">
+                        <div class="new-region-flag">&#127482;&#127480;</div>
+                        <div class="new-region-name">GovCloud (US-West)</div>
+                        <div class="new-region-code">us-gov-west-1</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Key Features Section -->
+        <section class="section">
+            <h2 class="section-title">主要機能</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">&#9889;</div>
+                    <div class="feature-title">AWS Graviton4 プロセッサ</div>
+                    <div class="feature-description">最新世代の Graviton4 プロセッサを搭載。C7gn と比較して最大 30% のコンピューティングパフォーマンス向上。</div>
+                    <ul class="feature-detail-list">
+                        <li>Arm ベースの高性能コンピューティング</li>
+                        <li>エネルギー効率の向上</li>
+                    </ul>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#128295;</div>
+                    <div class="feature-title">第 6 世代 AWS Nitro Card</div>
+                    <div class="feature-description">最新の Nitro Card により、ネットワーク最適化 EC2 インスタンスの中で最高となる最大 600 Gbps のネットワーク帯域幅を実現。</div>
+                    <ul class="feature-detail-list">
+                        <li>高スループットのネットワーク処理</li>
+                        <li>EC2 ネットワーク最適化で最高性能</li>
+                    </ul>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#128200;</div>
+                    <div class="feature-title">スケーラブルなインスタンスサイズ</div>
+                    <div class="feature-description">最大 48xlarge までのインスタンスサイズ、最大 384 GiB のメモリ、Amazon EBS への最大 60 Gbps の帯域幅。</div>
+                    <ul class="feature-detail-list">
+                        <li>medium から 48xlarge まで 12 サイズ展開</li>
+                        <li>ベアメタルオプションも提供</li>
+                    </ul>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#128279;</div>
+                    <div class="feature-title">Elastic Fabric Adapter (EFA) サポート</div>
+                    <div class="feature-description">16xlarge、24xlarge、48xlarge、metal-24xl、metal-48xl サイズで EFA ネットワーキングをサポート。</div>
+                    <ul class="feature-detail-list">
+                        <li>密結合クラスターでの低レイテンシー通信</li>
+                        <li>クラスター間の高スループット通信</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Technical Specs Section -->
+        <section class="section">
+            <h2 class="section-title">技術仕様</h2>
+            <div class="overview-card">
+                <table class="spec-table">
+                    <thead>
+                        <tr>
+                            <th>項目</th>
+                            <th>詳細</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>プロセッサ</td>
+                            <td class="spec-value">AWS Graviton4</td>
+                        </tr>
+                        <tr>
+                            <td>Nitro Card</td>
+                            <td class="spec-value">第 6 世代</td>
+                        </tr>
+                        <tr>
+                            <td>最大ネットワーク帯域幅</td>
+                            <td class="spec-value">600 Gbps</td>
+                        </tr>
+                        <tr>
+                            <td>最大 EBS 帯域幅</td>
+                            <td class="spec-value">60 Gbps</td>
+                        </tr>
+                        <tr>
+                            <td>最大インスタンスサイズ</td>
+                            <td class="spec-value">48xlarge</td>
+                        </tr>
+                        <tr>
+                            <td>最大メモリ</td>
+                            <td class="spec-value">384 GiB</td>
+                        </tr>
+                        <tr>
+                            <td>EFA サポート</td>
+                            <td class="spec-value">16xlarge、24xlarge、48xlarge、metal-24xl、metal-48xl</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="overview-card" style="margin-top: 20px;">
+                <div style="font-size: 15px; font-weight: 700; color: var(--text-primary); margin-bottom: 12px;">利用可能なインスタンスサイズ</div>
+                <div class="size-tags">
+                    <span class="size-tag">c8gn.medium</span>
+                    <span class="size-tag">c8gn.large</span>
+                    <span class="size-tag">c8gn.xlarge</span>
+                    <span class="size-tag">c8gn.2xlarge</span>
+                    <span class="size-tag">c8gn.4xlarge</span>
+                    <span class="size-tag">c8gn.8xlarge</span>
+                    <span class="size-tag">c8gn.12xlarge</span>
+                    <span class="size-tag efa">c8gn.16xlarge (EFA)</span>
+                    <span class="size-tag efa">c8gn.24xlarge (EFA)</span>
+                    <span class="size-tag efa">c8gn.metal-24xl (EFA)</span>
+                    <span class="size-tag efa">c8gn.48xlarge (EFA)</span>
+                    <span class="size-tag efa">c8gn.metal-48xl (EFA)</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Setup Section -->
+        <section class="section">
+            <h2 class="section-title">設定方法</h2>
+            <div class="overview-card">
+                <div style="font-size: 15px; font-weight: 700; color: var(--text-primary); margin-bottom: 12px;">前提条件</div>
+                <ul class="feature-detail-list" style="margin-bottom: 20px;">
+                    <li>AWS アカウントと適切な IAM 権限</li>
+                    <li>対象リージョンへのアクセス</li>
+                    <li>必要な VPC およびサブネット設定</li>
+                </ul>
+            </div>
+
+            <div class="overview-card">
+                <div style="font-size: 15px; font-weight: 700; color: var(--text-primary); margin-bottom: 12px;">Step 1: C8gn インスタンスの起動</div>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">Bash</span>
+                        <span class="code-title">Seoul リージョンで C8gn インスタンスを起動</span>
+                    </div>
+                    <pre><code class="language-bash"># AWS CLI を使用して C8gn インスタンスを起動
+aws ec2 run-instances \
+  --image-id ami-xxxxxxxxxxxxxxxxx \
+  --instance-type c8gn.16xlarge \
+  --region ap-northeast-2 \
+  --subnet-id subnet-xxxxxxxxxxxxxxxxx \
+  --security-group-ids sg-xxxxxxxxxxxxxxxxx \
+  --key-name my-key-pair</code></pre>
+                </div>
+                <p class="code-desc">Seoul リージョン (ap-northeast-2) で C8gn.16xlarge インスタンスを起動するコマンドです。EFA をサポートするサイズを選択しています。</p>
+            </div>
+
+            <div class="overview-card">
+                <div style="font-size: 15px; font-weight: 700; color: var(--text-primary); margin-bottom: 12px;">Step 2: 利用可能なインスタンスタイプの確認</div>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">Bash</span>
+                        <span class="code-title">C8gn インスタンスタイプ一覧</span>
+                    </div>
+                    <pre><code class="language-bash"># 利用可能な C8gn インスタンスタイプを確認
+aws ec2 describe-instance-types \
+  --filters "Name=instance-type,Values=c8gn.*" \
+  --region ap-northeast-2 \
+  --query "InstanceTypes[].{Type:InstanceType,vCPU:VCpuInfo.DefaultVCpus,Memory:MemoryInfo.SizeInMiB,Network:NetworkInfo.NetworkPerformance}" \
+  --output table</code></pre>
+                </div>
+                <p class="code-desc">対象リージョンで利用可能な C8gn インスタンスタイプとスペックを一覧表示するコマンドです。</p>
+            </div>
+
+            <div class="overview-card">
+                <div style="font-size: 15px; font-weight: 700; color: var(--text-primary); margin-bottom: 12px;">Step 3: EFA を有効にしたインスタンスの起動</div>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">Bash</span>
+                        <span class="code-title">EFA 有効化インスタンス起動</span>
+                    </div>
+                    <pre><code class="language-bash"># EFA を有効にして C8gn インスタンスを起動
+aws ec2 run-instances \
+  --image-id ami-xxxxxxxxxxxxxxxxx \
+  --instance-type c8gn.48xlarge \
+  --region ap-northeast-2 \
+  --network-interfaces "DeviceIndex=0,SubnetId=subnet-xxxxxxxxxxxxxxxxx,Groups=sg-xxxxxxxxxxxxxxxxx,InterfaceType=efa" \
+  --key-name my-key-pair</code></pre>
+                </div>
+                <p class="code-desc">EFA ネットワーキングを有効にして C8gn.48xlarge インスタンスを起動するコマンドです。EFA は 16xlarge 以上のサイズで利用可能です。</p>
+            </div>
+        </section>
+
+        <!-- Use Cases Section -->
+        <section class="section">
+            <h2 class="section-title">ユースケース</h2>
+            <div class="usecase-card">
+                <div class="usecase-title">&#128274; ネットワーク仮想アプライアンス</div>
+                <div class="usecase-scenario">
+                    ファイアウォール、ロードバランサー、IDS/IPS などのネットワークセキュリティアプライアンスを、Seoul リージョンで高スループットで実行する必要がある。
+                </div>
+                <div class="usecase-effect">
+                    600 Gbps のネットワーク帯域幅により、大規模なトラフィック処理が可能になり、セキュリティ機能を維持しながら高いスループットを実現できる。
+                </div>
+            </div>
+            <div class="usecase-card">
+                <div class="usecase-title">&#128200; データ分析</div>
+                <div class="usecase-scenario">
+                    大量のデータストリームをリアルタイムで処理し、分析する必要がある。Melbourne リージョンのデータソースに近い場所で処理したい。
+                </div>
+                <div class="usecase-effect">
+                    高いネットワーク帯域幅と Graviton4 の優れたコンピューティングパフォーマンスにより、データソースに近い場所で大量のデータを効率的に処理し、リアルタイム分析が可能になる。
+                </div>
+            </div>
+            <div class="usecase-card">
+                <div class="usecase-title">&#129302; GovCloud での CPU ベース AI/ML 推論</div>
+                <div class="usecase-scenario">
+                    米国政府機関が、FedRAMP 準拠の環境で大規模な AI/ML モデルの推論を CPU で実行し、低レイテンシーで結果を返す必要がある。
+                </div>
+                <div class="usecase-effect">
+                    GovCloud でコンプライアンス要件を満たしながら、Graviton4 の高いコンピューティングパフォーマンスと 600 Gbps のネットワーク帯域幅により、多数の推論リクエストを効率的に処理できる。
+                </div>
+            </div>
+        </section>
+
+        <!-- Benefits Section -->
+        <section class="section">
+            <h2 class="section-title">メリット</h2>
+            <div style="font-size: 15px; font-weight: 700; color: var(--text-primary); margin-bottom: 15px;">ビジネス面</div>
+            <div class="benefits-grid" style="margin-bottom: 25px;">
+                <div class="benefit-card">
+                    <div class="benefit-icon">&#127758;</div>
+                    <div class="benefit-title">グローバル展開の拡大</div>
+                    <div class="benefit-desc">6 つの追加リージョンで利用可能になり、データレジデンシーやレイテンシー要件に応じた柔軟なデプロイが可能に。</div>
+                </div>
+                <div class="benefit-card">
+                    <div class="benefit-icon">&#127963;</div>
+                    <div class="benefit-title">GovCloud 対応</div>
+                    <div class="benefit-desc">米国政府機関向けの厳格なコンプライアンス要件を満たしながら、最新のネットワーク最適化インスタンスを活用可能。</div>
+                </div>
+                <div class="benefit-card">
+                    <div class="benefit-icon">&#128176;</div>
+                    <div class="benefit-title">コスト最適化</div>
+                    <div class="benefit-desc">Graviton4 の優れた価格パフォーマンスにより、ネットワーク集約型ワークロードのコストを削減。</div>
+                </div>
+            </div>
+            <div style="font-size: 15px; font-weight: 700; color: var(--text-primary); margin-bottom: 15px;">技術面</div>
+            <div class="benefits-grid">
+                <div class="benefit-card">
+                    <div class="benefit-icon">&#128640;</div>
+                    <div class="benefit-title">高ネットワークスループット</div>
+                    <div class="benefit-desc">最大 600 Gbps のネットワーク帯域幅により、大量のデータ転送が可能。</div>
+                </div>
+                <div class="benefit-card">
+                    <div class="benefit-icon">&#9889;</div>
+                    <div class="benefit-title">低レイテンシー</div>
+                    <div class="benefit-desc">EFA サポートにより、密結合クラスターでの低レイテンシー通信を実現。</div>
+                </div>
+                <div class="benefit-card">
+                    <div class="benefit-icon">&#128200;</div>
+                    <div class="benefit-title">スケーラビリティ</div>
+                    <div class="benefit-desc">最大 48xlarge までの豊富なインスタンスサイズにより、ワークロードに応じた柔軟なスケーリングが可能。</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Considerations Section -->
+        <section class="section">
+            <h2 class="section-title">制約事項・考慮点</h2>
+            <div class="consideration-card warning">
+                <div class="consideration-title">&#9888; 制限事項</div>
+                <ul class="consideration-list">
+                    <li>EFA ネットワーキングは 16xlarge 以上のサイズでのみサポート</li>
+                    <li>Graviton4 は Arm ベースのプロセッサであり、x86 アーキテクチャ向けにコンパイルされたアプリケーションは再コンパイルまたは Arm 互換版への移行が必要</li>
+                    <li>一部のサードパーティソフトウェアが Arm アーキテクチャに対応していない場合がある</li>
+                </ul>
+            </div>
+            <div class="consideration-card info">
+                <div class="consideration-title">&#8505; 考慮すべき点</div>
+                <ul class="consideration-list">
+                    <li>x86 ベースのインスタンスから移行する場合、アプリケーションの Arm 互換性を事前に検証する必要がある</li>
+                    <li>ネットワーク帯域幅を最大限に活用するには、適切なインスタンスサイズの選択と Enhanced Networking の設定が重要</li>
+                    <li>既存の C7gn インスタンスからの移行時には、パフォーマンステストを実施して期待される改善を確認することを推奨</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Pricing Section -->
+        <section class="section">
+            <h2 class="section-title">料金</h2>
+            <div class="pricing-card">
+                <p style="font-size: 14px; margin-bottom: 15px;">C8gn インスタンスは以下の購入オプションで利用可能です。料金はリージョンとインスタンスサイズによって異なります。</p>
+                <div class="pricing-options">
+                    <div class="pricing-tag">
+                        <span class="pricing-tag-icon">&#128179;</span>
+                        Savings Plans
+                    </div>
+                    <div class="pricing-tag">
+                        <span class="pricing-tag-icon">&#128176;</span>
+                        オンデマンド
+                    </div>
+                    <div class="pricing-tag">
+                        <span class="pricing-tag-icon">&#128200;</span>
+                        スポット
+                    </div>
+                    <div class="pricing-tag">
+                        <span class="pricing-tag-icon">&#128187;</span>
+                        専用インスタンス
+                    </div>
+                    <div class="pricing-tag">
+                        <span class="pricing-tag-icon">&#127968;</span>
+                        専用ホスト
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Available Regions Section -->
+        <section class="section">
+            <h2 class="section-title">利用可能リージョン</h2>
+            <div class="overview-card" style="text-align: center;">
+                <p style="font-size: 14px; margin-bottom: 10px;">C8gn インスタンスの全利用可能リージョン (合計 24 リージョン)</p>
+                <div class="region-list">
+                    <span class="region-tag">US East (N. Virginia, Ohio)</span>
+                    <span class="region-tag">US West (Oregon, N. California)</span>
+                    <span class="region-tag">Europe (Frankfurt)</span>
+                    <span class="region-tag">Europe (Stockholm)</span>
+                    <span class="region-tag">Europe (Ireland)</span>
+                    <span class="region-tag">Europe (London)</span>
+                    <span class="region-tag new">Europe (Spain) NEW</span>
+                    <span class="region-tag">Asia Pacific (Singapore)</span>
+                    <span class="region-tag">Asia Pacific (Malaysia)</span>
+                    <span class="region-tag">Asia Pacific (Sydney)</span>
+                    <span class="region-tag">Asia Pacific (Thailand)</span>
+                    <span class="region-tag">Asia Pacific (Mumbai)</span>
+                    <span class="region-tag new">Asia Pacific (Seoul) NEW</span>
+                    <span class="region-tag new">Asia Pacific (Melbourne) NEW</span>
+                    <span class="region-tag">Middle East (UAE)</span>
+                    <span class="region-tag">Africa (Cape Town)</span>
+                    <span class="region-tag">Canada West (Calgary)</span>
+                    <span class="region-tag new">Canada (Central) NEW</span>
+                    <span class="region-tag new">GovCloud (US-East) NEW</span>
+                    <span class="region-tag new">GovCloud (US-West) NEW</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Related Services Section -->
+        <section class="section">
+            <h2 class="section-title">関連サービス</h2>
+            <div class="related-grid">
+                <div class="related-card">
+                    <div class="related-icon">&#9889;</div>
+                    <div class="related-name">AWS Graviton4</div>
+                    <div class="related-desc">AWS 設計の Arm ベースプロセッサ</div>
+                </div>
+                <div class="related-card">
+                    <div class="related-icon">&#128295;</div>
+                    <div class="related-name">AWS Nitro System</div>
+                    <div class="related-desc">高パフォーマンス、高セキュリティ基盤</div>
+                </div>
+                <div class="related-card">
+                    <div class="related-icon">&#128279;</div>
+                    <div class="related-name">Elastic Fabric Adapter</div>
+                    <div class="related-desc">HPC/ML 向け高スループットインターフェース</div>
+                </div>
+                <div class="related-card">
+                    <div class="related-icon">&#128190;</div>
+                    <div class="related-name">Amazon EBS</div>
+                    <div class="related-desc">高性能ブロックストレージ</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer>
+            <div>
+                <a href="https://aws.amazon.com/about-aws/whats-new/2026/02/amazon-ec2-c8gn-instances-additional-regions/" class="source-link" target="_blank" rel="noopener noreferrer">
+                    &#128279; 公式発表 (What's New) を見る
+                </a>
+            </div>
+            <div>
+                <a href="https://aws.amazon.com/blogs/aws/new-amazon-ec2-c8gn-instances-powered-by-aws-graviton4-offering-up-to-600gbps-network-bandwidth/" class="source-link" target="_blank" rel="noopener noreferrer">
+                    &#128221; AWS Blog - New Amazon EC2 C8gn instances
+                </a>
+            </div>
+            <div>
+                <a href="https://aws.amazon.com/ec2/instance-types/c8g/" class="source-link" target="_blank" rel="noopener noreferrer">
+                    &#128196; Amazon C8gn Instances
+                </a>
+            </div>
+            <div>
+                <a href="https://aws.amazon.com/ec2/graviton/level-up-with-graviton/" class="source-link" target="_blank" rel="noopener noreferrer">
+                    &#128640; Level up your compute with AWS Graviton
+                </a>
+            </div>
+            <div>
+                <a href="https://aws.amazon.com/ec2/pricing/" class="source-link" target="_blank" rel="noopener noreferrer">
+                    &#128176; Amazon EC2 料金ページ
+                </a>
+            </div>
+            <p class="footer-note">C8gn インスタンスは AWS Graviton4 プロセッサと第 6 世代 Nitro Card を搭載し、最大 600 Gbps のネットワーク帯域幅を提供するネットワーク最適化インスタンスです。</p>
+        </footer>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'base',
+            themeVariables: {
+                primaryColor: '#FF9900',
+                primaryTextColor: '#232F3E',
+                primaryBorderColor: '#FF9900',
+                lineColor: '#FF9900',
+                secondaryColor: '#F5F5F5',
+                tertiaryColor: '#FAFAFA',
+                background: '#FFFFFF',
+                mainBkg: '#FFF3E0',
+                nodeBorder: '#FF9900',
+                clusterBkg: '#FFF8E1',
+                clusterBorder: '#FF9900',
+                edgeLabelBackground: '#FFFFFF',
+                textColor: '#232F3E'
+            }
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/highlight.min.js"></script>
+    <script>hljs.highlightAll();</script>
+</body>
+</html>

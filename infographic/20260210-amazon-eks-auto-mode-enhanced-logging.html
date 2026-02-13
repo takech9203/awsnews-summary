@@ -1,0 +1,1148 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Amazon EKS Auto Mode - マネージド Kubernetes 機能の拡張ロギング</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/styles/atom-one-dark.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap');
+
+    :root {
+      --aws-squid-ink: #232F3E;
+      --aws-dark-squid: #1A242F;
+      --aws-orange: #FF9900;
+      --aws-smile-orange: #FFAD33;
+      --aws-white: #FFFFFF;
+      --aws-light-gray: #D5DBDB;
+      --aws-teal: #00A1C9;
+      --aws-purple: #8C4FFF;
+      --aws-green: #1D8102;
+      --aws-red: #D13212;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--aws-squid-ink);
+      font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+      color: var(--aws-light-gray);
+      font-size: 16px;
+      line-height: 1.6;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    /* ===== Header ===== */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 32px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .header-left { flex: 1; }
+
+    .service-badge {
+      display: inline-block;
+      background: var(--aws-orange);
+      color: var(--aws-squid-ink);
+      font-size: 13px;
+      font-weight: 700;
+      padding: 4px 14px;
+      border-radius: 20px;
+      margin-bottom: 12px;
+      letter-spacing: 0.5px;
+    }
+
+    h1 {
+      font-size: 36px;
+      font-weight: 700;
+      color: var(--aws-white);
+      line-height: 1.3;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      font-size: 16px;
+      color: var(--aws-light-gray);
+    }
+
+    .header-right {
+      text-align: right;
+      font-size: 14px;
+      color: var(--aws-light-gray);
+      flex-shrink: 0;
+    }
+
+    .date-label {
+      color: var(--aws-orange);
+      font-weight: 600;
+    }
+
+    /* ===== Sections ===== */
+    h2 {
+      font-size: 24px;
+      font-weight: 600;
+      color: var(--aws-orange);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .section {
+      background: var(--aws-dark-squid);
+      border-radius: 8px;
+      padding: 24px;
+      margin-bottom: 24px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .highlight {
+      background-color: rgba(255, 153, 0, 0.2);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 600;
+      color: var(--aws-orange);
+    }
+
+    /* ===== Overview Text ===== */
+    .overview-text {
+      font-size: 16px;
+      color: var(--aws-light-gray);
+      line-height: 1.8;
+      margin-bottom: 20px;
+    }
+
+    /* ===== Before/After ===== */
+    .before-after {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-top: 16px;
+    }
+
+    @media (max-width: 640px) {
+      .before-after { grid-template-columns: 1fr; }
+    }
+
+    .before-card, .after-card {
+      border-radius: 8px;
+      padding: 20px;
+    }
+
+    .before-card {
+      background: rgba(209, 50, 18, 0.1);
+      border: 1px solid rgba(209, 50, 18, 0.3);
+    }
+
+    .after-card {
+      background: rgba(29, 129, 2, 0.1);
+      border: 1px solid rgba(29, 129, 2, 0.3);
+    }
+
+    .ba-label {
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .before-card .ba-label { color: var(--aws-red); }
+    .after-card .ba-label { color: var(--aws-green); }
+
+    .ba-list {
+      list-style: none;
+      padding: 0;
+    }
+
+    .ba-list li {
+      padding: 6px 0;
+      font-size: 14px;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .ba-list li::before { flex-shrink: 0; }
+    .before-card .ba-list li::before { content: "\2717"; color: var(--aws-red); font-weight: bold; }
+    .after-card .ba-list li::before { content: "\2713"; color: var(--aws-green); font-weight: bold; }
+
+    /* ===== Stats Cards ===== */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    @media (max-width: 640px) {
+      .stats-grid { grid-template-columns: 1fr; }
+    }
+
+    .stat-card {
+      background: linear-gradient(135deg, rgba(255, 153, 0, 0.15), rgba(140, 79, 255, 0.1));
+      border: 1px solid rgba(255, 153, 0, 0.3);
+      border-radius: 8px;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .stat-number {
+      font-size: 36px;
+      font-weight: 700;
+      color: var(--aws-orange);
+      line-height: 1.2;
+    }
+
+    .stat-label {
+      font-size: 13px;
+      color: var(--aws-light-gray);
+      margin-top: 4px;
+    }
+
+    /* ===== Feature Cards ===== */
+    .feature-card {
+      background: var(--aws-dark-squid);
+      border-radius: 8px;
+      padding: 24px;
+      margin-bottom: 16px;
+      border-left: 4px solid var(--aws-orange);
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      border-right: 1px solid rgba(255, 255, 255, 0.08);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .feature-card.teal { border-left-color: var(--aws-teal); }
+    .feature-card.purple { border-left-color: var(--aws-purple); }
+    .feature-card.green { border-left-color: var(--aws-green); }
+
+    .feature-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--aws-white);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .feature-desc {
+      font-size: 14px;
+      color: var(--aws-light-gray);
+      line-height: 1.7;
+    }
+
+    .feature-desc ul {
+      list-style: none;
+      padding: 0;
+      margin-top: 8px;
+    }
+
+    .feature-desc ul li {
+      padding: 4px 0;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .feature-desc ul li::before {
+      content: "\2192";
+      color: var(--aws-orange);
+      font-weight: bold;
+      flex-shrink: 0;
+    }
+
+    /* ===== Comparison Table ===== */
+    .table-wrapper {
+      overflow-x: auto;
+      margin: 16px 0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    th {
+      background: rgba(255, 153, 0, 0.15);
+      color: var(--aws-orange);
+      font-weight: 600;
+      padding: 12px 16px;
+      text-align: left;
+      border-bottom: 2px solid rgba(255, 153, 0, 0.3);
+      white-space: nowrap;
+    }
+
+    td {
+      padding: 10px 16px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      color: var(--aws-light-gray);
+    }
+
+    tr:hover td {
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    /* ===== Use Case Cards ===== */
+    .usecase-card {
+      background: linear-gradient(135deg, rgba(255, 153, 0, 0.08), rgba(255, 153, 0, 0.03));
+      border: 1px solid rgba(255, 153, 0, 0.2);
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+
+    .usecase-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--aws-white);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .usecase-scenario {
+      font-size: 14px;
+      color: var(--aws-light-gray);
+      margin-bottom: 8px;
+    }
+
+    .usecase-effect {
+      font-size: 14px;
+      color: var(--aws-smile-orange);
+      font-weight: 500;
+    }
+
+    /* ===== Merits/Demerits ===== */
+    .merit-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    @media (max-width: 640px) {
+      .merit-grid { grid-template-columns: 1fr; }
+    }
+
+    .merit-box {
+      border-radius: 8px;
+      padding: 20px;
+    }
+
+    .merit-box.business {
+      background: rgba(255, 153, 0, 0.08);
+      border: 1px solid rgba(255, 153, 0, 0.2);
+    }
+
+    .merit-box.technical {
+      background: rgba(0, 161, 201, 0.08);
+      border: 1px solid rgba(0, 161, 201, 0.2);
+    }
+
+    .merit-box h3 {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+
+    .merit-box.business h3 { color: var(--aws-orange); }
+    .merit-box.technical h3 { color: var(--aws-teal); }
+
+    .merit-list {
+      list-style: none;
+      padding: 0;
+    }
+
+    .merit-list li {
+      padding: 6px 0;
+      font-size: 14px;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .merit-list li strong {
+      color: var(--aws-white);
+    }
+
+    /* ===== Caution / Limitations ===== */
+    .caution-card {
+      background: rgba(209, 50, 18, 0.06);
+      border: 1px solid rgba(209, 50, 18, 0.2);
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+
+    .caution-card h3 {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--aws-red);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .caution-list {
+      list-style: none;
+      padding: 0;
+    }
+
+    .caution-list li {
+      padding: 5px 0;
+      font-size: 14px;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      color: var(--aws-light-gray);
+    }
+
+    .caution-list li::before {
+      content: "\26A0";
+      flex-shrink: 0;
+    }
+
+    /* ===== Code Block ===== */
+    .code-block {
+      background: #1a1a2e;
+      border-radius: 8px;
+      overflow: hidden;
+      margin: 16px 0;
+    }
+
+    .code-header {
+      background: #16213e;
+      padding: 8px 16px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+    }
+
+    .code-lang {
+      color: var(--aws-orange);
+      font-weight: bold;
+    }
+
+    .code-title {
+      color: var(--aws-light-gray);
+    }
+
+    .code-block pre {
+      margin: 0;
+      padding: 0;
+      overflow-x: auto;
+    }
+
+    .code-block code {
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      line-height: 1.5;
+      padding: 16px !important;
+    }
+
+    /* ===== Flow Diagram ===== */
+    .flow-diagram {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin: 24px 0;
+    }
+
+    .flow-step {
+      background: var(--aws-dark-squid);
+      border: 2px solid var(--aws-orange);
+      border-radius: 8px;
+      padding: 12px 20px;
+      text-align: center;
+      min-width: 120px;
+      color: var(--aws-white);
+      font-size: 14px;
+    }
+
+    .flow-arrow {
+      color: var(--aws-orange);
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    /* ===== Pricing ===== */
+    .pricing-highlight {
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .pricing-highlight.low { color: var(--aws-green); }
+    .pricing-highlight.mid { color: var(--aws-teal); }
+    .pricing-highlight.high { color: var(--aws-orange); }
+
+    /* ===== Region Badge ===== */
+    .region-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(0, 161, 201, 0.1);
+      border: 1px solid rgba(0, 161, 201, 0.3);
+      border-radius: 8px;
+      padding: 12px 20px;
+      font-size: 15px;
+      color: var(--aws-teal);
+      font-weight: 500;
+    }
+
+    /* ===== Related Services ===== */
+    .related-service {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .related-service:last-child { border-bottom: none; }
+
+    .related-service-icon {
+      font-size: 24px;
+      flex-shrink: 0;
+    }
+
+    .related-service-name {
+      font-weight: 600;
+      color: var(--aws-white);
+      font-size: 15px;
+    }
+
+    .related-service-desc {
+      font-size: 13px;
+      color: var(--aws-light-gray);
+    }
+
+    /* ===== Mermaid ===== */
+    .mermaid-container {
+      background: #FFFFFF;
+      border-radius: 12px;
+      padding: 24px;
+      margin: 20px 0;
+      border: 2px solid rgba(255, 153, 0, 0.3);
+      overflow-x: auto;
+    }
+
+    .mermaid {
+      display: flex;
+      justify-content: center;
+    }
+
+    /* ===== Summary Box ===== */
+    .summary-box {
+      background: linear-gradient(135deg, rgba(255, 153, 0, 0.12), rgba(140, 79, 255, 0.08));
+      border: 2px solid rgba(255, 153, 0, 0.3);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+
+    .summary-box p {
+      font-size: 15px;
+      line-height: 1.8;
+      color: var(--aws-light-gray);
+    }
+
+    /* ===== Footer ===== */
+    footer {
+      margin-top: 24px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(255, 255, 255, 0.2);
+      font-size: 12px;
+      color: var(--aws-light-gray);
+    }
+
+    footer a {
+      color: var(--aws-teal);
+      text-decoration: none;
+      word-break: break-all;
+    }
+
+    footer a:hover { color: var(--aws-smile-orange); }
+
+    .footer-links {
+      list-style: none;
+      padding: 0;
+    }
+
+    .footer-links li {
+      padding: 3px 0;
+    }
+
+    /* ===== Responsive ===== */
+    @media (max-width: 640px) {
+      h1 { font-size: 26px; }
+      .header { flex-direction: column; }
+      .header-right { text-align: left; }
+      .stats-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <!-- ===== Header ===== -->
+    <div class="header">
+      <div class="header-left">
+        <div class="service-badge">Amazon EKS</div>
+        <h1>&#9881;&#65039; Auto Mode - マネージド Kubernetes 機能の拡張ロギング</h1>
+        <div class="subtitle">Auto Mode マネージドコンポーネントの CloudWatch Vended Logs 対応</div>
+      </div>
+      <div class="header-right">
+        <div><span class="date-label">&#128197; リリース日:</span> 2026 年 2 月 10 日</div>
+      </div>
+    </div>
+
+    <!-- ===== Stats ===== -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-number">4</div>
+        <div class="stat-label">マネージドコンポーネントのログタイプ</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">3</div>
+        <div class="stat-label">配信先の選択肢</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">低価格</div>
+        <div class="stat-label">Vended Logs 料金体系</div>
+      </div>
+    </div>
+
+    <!-- ===== 概要 ===== -->
+    <div class="section">
+      <h2>&#128203; 概要</h2>
+      <p class="overview-text">
+        Amazon EKS Auto Mode が、マネージド Kubernetes 機能の<span class="highlight">拡張ロギング</span>をサポートしました。Auto Mode が管理する<strong style="color: var(--aws-white);">コンピュートオートスケーリング</strong> (Karpenter)、<strong style="color: var(--aws-white);">ブロックストレージ</strong> (EBS CSI)、<strong style="color: var(--aws-white);">ロードバランシング</strong> (AWS Load Balancer Controller)、<strong style="color: var(--aws-white);">Pod ネットワーキング</strong> (VPC CNI IP Address Management) の各機能を、Amazon CloudWatch Vended Logs のログ配信ソースとして構成できるようになりました。
+      </p>
+      <p class="overview-text">
+        CloudWatch API または AWS コンソールを使用して設定でき、収集したログは <span class="highlight">CloudWatch Logs</span>、<span class="highlight">Amazon S3</span>、<span class="highlight">Amazon Kinesis Data Firehose</span> に配信できます。CloudWatch Vended Logs は、標準の CloudWatch Logs と比較して低価格で、AWS の組み込み認証・認可によるセキュアなログ配信を提供します。
+      </p>
+
+      <!-- Before/After -->
+      <div class="before-after">
+        <div class="before-card">
+          <div class="ba-label">&#10060; Before</div>
+          <ul class="ba-list">
+            <li>EKS Auto Mode が管理するコンポーネントのログに直接アクセスする方法がなかった</li>
+            <li>マネージドコンポーネントで問題が発生した場合、トラブルシューティングのための可観測性が限定的だった</li>
+            <li>コンピュートオートスケーリングやストレージの動作を詳細に把握することが困難だった</li>
+          </ul>
+        </div>
+        <div class="after-card">
+          <div class="ba-label">&#9989; After</div>
+          <ul class="ba-list">
+            <li>各 Auto Mode マネージド機能のログを CloudWatch Vended Logs として収集・配信可能</li>
+            <li>CloudWatch Logs、S3、Kinesis Data Firehose の 3 つの配信先に柔軟にログを送信</li>
+            <li>標準の CloudWatch Logs より低価格な Vended Logs 料金体系で利用可能</li>
+            <li>組み込みの AWS 認証・認可によるセキュアなログ配信</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== アーキテクチャ図 ===== -->
+    <div class="section">
+      <h2>&#127959;&#65039; アーキテクチャ図</h2>
+      <div class="mermaid-container">
+        <pre class="mermaid">
+flowchart TD
+    subgraph EKS["&#9729;&#65039; Amazon EKS Auto Mode クラスター"]
+        subgraph Managed["&#9881;&#65039; マネージドコンポーネント"]
+            direction LR
+            Compute["&#128421;&#65039; コンピュート&lt;br/&gt;オートスケーリング&lt;br/&gt;Karpenter"]
+            Storage["&#128190; ブロック&lt;br/&gt;ストレージ&lt;br/&gt;EBS CSI"]
+            LB["&#128268; ロード&lt;br/&gt;バランシング&lt;br/&gt;LB Controller"]
+            Network["&#127760; Pod&lt;br/&gt;ネットワーキング&lt;br/&gt;VPC CNI IPAM"]
+            Compute ~~~ Storage ~~~ LB ~~~ Network
+        end
+    end
+
+    subgraph CWVended["&#128202; CloudWatch Vended Logs"]
+        Source1["&#128203; AUTO_MODE&lt;br/&gt;_COMPUTE_LOGS"]
+        Source2["&#128203; AUTO_MODE&lt;br/&gt;_BLOCK_STORAGE_LOGS"]
+        Source3["&#128203; AUTO_MODE&lt;br/&gt;_LOAD_BALANCING_LOGS"]
+        Source4["&#128203; AUTO_MODE&lt;br/&gt;_IPAM_LOGS"]
+    end
+
+    subgraph Destinations["&#127919; 配信先"]
+        direction LR
+        CWLogs["&#128221; CloudWatch Logs"]
+        S3["&#129707; Amazon S3"]
+        Firehose["&#128293; Kinesis Data&lt;br/&gt;Firehose"]
+        CWLogs ~~~ S3 ~~~ Firehose
+    end
+
+    Compute --> Source1
+    Storage --> Source2
+    LB --> Source3
+    Network --> Source4
+
+    Source1 --> Destinations
+    Source2 --> Destinations
+    Source3 --> Destinations
+    Source4 --> Destinations
+
+    classDef eks fill:none,stroke:#CCCCCC,stroke-width:2px,color:#666666
+    classDef managed fill:#FFE0B2,stroke:#FFCC80,stroke-width:2px,color:#5D4037
+    classDef component fill:#FFF3E0,stroke:#FFCC80,stroke-width:2px,color:#E65100
+    classDef vended fill:#E8F1FF,stroke:#4A90E2,stroke-width:2px,color:#283593
+    classDef source fill:#E3F2FD,stroke:#BBDEFB,stroke-width:2px,color:#1565C0
+    classDef dest fill:#E9F7EC,stroke:#66BB6A,stroke-width:2px,color:#333333
+    classDef destItem fill:#DCEDC8,stroke:#C5E1A5,stroke-width:2px,color:#33691E
+
+    class EKS eks
+    class Managed managed
+    class Compute,Storage,LB,Network component
+    class CWVended vended
+    class Source1,Source2,Source3,Source4 source
+    class Destinations dest
+    class CWLogs,S3,Firehose destItem
+        </pre>
+      </div>
+      <p style="font-size: 13px; color: var(--aws-light-gray); margin-top: 8px;">
+        EKS Auto Mode の 4 つのマネージドコンポーネントが CloudWatch Vended Logs の配信ソースとして構成され、3 つの配信先にログを送信する構成を示しています。
+      </p>
+    </div>
+
+    <!-- ===== 主要機能 ===== -->
+    <div class="section">
+      <h2>&#128640; 主要機能</h2>
+
+      <div class="feature-card">
+        <div class="feature-title">&#128203; マネージドコンポーネントログの収集</div>
+        <div class="feature-desc">
+          <ul>
+            <li>コンピュートオートスケーリング (Karpenter) のログ</li>
+            <li>ブロックストレージ (EBS CSI) のログ</li>
+            <li>ロードバランシング (AWS Load Balancer Controller) のログ</li>
+            <li>Pod ネットワーキング (VPC CNI IP Address Management) のログ</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="feature-card teal">
+        <div class="feature-title">&#128230; CloudWatch Vended Logs としての配信</div>
+        <div class="feature-desc">
+          <ul>
+            <li>各コンポーネントが個別の配信ソースとして構成可能</li>
+            <li>1 つの配信ソースから複数の配信先にログを送信可能</li>
+            <li>複数の配信ソースから同じ配信先にログを集約可能</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="feature-card purple">
+        <div class="feature-title">&#127919; 柔軟な配信先</div>
+        <div class="feature-desc">
+          <ul>
+            <li><strong style="color: var(--aws-white);">CloudWatch Logs:</strong> コンソール、CLI、CloudWatch Logs Insights でクエリ可能</li>
+            <li><strong style="color: var(--aws-white);">Amazon S3:</strong> バケットにオブジェクトとして保存、Amazon Athena で分析可能</li>
+            <li><strong style="color: var(--aws-white);">Amazon Kinesis Data Firehose:</strong> OpenSearch Service、Redshift などにストリーミング</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="feature-card green">
+        <div class="feature-title">&#128274; 組み込みセキュリティ</div>
+        <div class="feature-desc">
+          <ul>
+            <li>AWS の認証・認可が組み込み</li>
+            <li>クロスアカウントのログ配信にも対応 (PutDeliveryDestinationPolicy API を使用)</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== 技術仕様 ===== -->
+    <div class="section">
+      <h2>&#128202; 技術仕様</h2>
+
+      <p style="font-size: 15px; font-weight: 600; color: var(--aws-white); margin-bottom: 12px;">ログタイプ</p>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>ログタイプ</th>
+              <th>コンポーネント</th>
+              <th>説明</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code style="color: var(--aws-orange);">AUTO_MODE_COMPUTE_LOGS</code></td>
+              <td>Karpenter</td>
+              <td>コンピュートオートスケーリングのログ</td>
+            </tr>
+            <tr>
+              <td><code style="color: var(--aws-orange);">AUTO_MODE_BLOCK_STORAGE_LOGS</code></td>
+              <td>EBS CSI</td>
+              <td>ブロックストレージのログ</td>
+            </tr>
+            <tr>
+              <td><code style="color: var(--aws-orange);">AUTO_MODE_LOAD_BALANCING_LOGS</code></td>
+              <td>AWS LB Controller</td>
+              <td>ロードバランシングのログ</td>
+            </tr>
+            <tr>
+              <td><code style="color: var(--aws-orange);">AUTO_MODE_IPAM_LOGS</code></td>
+              <td>VPC CNI IPAM</td>
+              <td>Pod ネットワーキングのログ</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p style="font-size: 15px; font-weight: 600; color: var(--aws-white); margin-top: 24px; margin-bottom: 12px;">配信先と閲覧方法</p>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>配信先</th>
+              <th>閲覧方法</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong style="color: var(--aws-white);">CloudWatch Logs</strong></td>
+              <td>CloudWatch コンソール、AWS CLI、CloudWatch Logs Insights</td>
+            </tr>
+            <tr>
+              <td><strong style="color: var(--aws-white);">Amazon S3</strong></td>
+              <td>S3 コンソール、AWS CLI、Amazon Athena</td>
+            </tr>
+            <tr>
+              <td><strong style="color: var(--aws-white);">Amazon Kinesis Data Firehose</strong></td>
+              <td>OpenSearch Service、Redshift などのターゲット</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p style="font-size: 15px; font-weight: 600; color: var(--aws-white); margin-top: 24px; margin-bottom: 12px;">API 変更履歴</p>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>日付</th>
+              <th>サービス</th>
+              <th>変更内容</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>2026/02/09</td>
+              <td>Amazon EKS</td>
+              <td>10 updated methods - EKS Auto Mode + CloudWatch Vended Logs 連携のため DescribeUpdate に VendedLogsUpdate タイプを追加</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ===== 設定方法 ===== -->
+    <div class="section">
+      <h2>&#9881;&#65039; 設定方法</h2>
+
+      <p style="font-size: 14px; color: var(--aws-light-gray); margin-bottom: 8px;"><strong style="color: var(--aws-white);">前提条件:</strong></p>
+      <ul style="list-style: none; padding: 0; margin-bottom: 20px;">
+        <li style="padding: 4px 0; font-size: 14px;">&#10003; EKS Auto Mode が有効なクラスターが作成済みであること</li>
+        <li style="padding: 4px 0; font-size: 14px;">&#10003; CloudWatch Logs API を使用するための IAM 権限があること</li>
+        <li style="padding: 4px 0; font-size: 14px;">&#10003; 配信先が作成済みであること</li>
+      </ul>
+
+      <p style="font-size: 14px; color: var(--aws-orange); font-weight: 600; margin-bottom: 8px;">ステップ 1: 配信ソースの作成</p>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash</span>
+          <span class="code-title">コンピュートオートスケーリングログの配信ソースを作成</span>
+        </div>
+        <pre><code class="language-bash">aws logs put-delivery-source \
+    --name "my-eks-auto-compute-logs" \
+    --resource-arn "arn:aws:eks:us-west-2:123456789012:cluster/my-cluster" \
+    --log-type "AUTO_MODE_COMPUTE_LOGS"</code></pre>
+      </div>
+
+      <p style="font-size: 14px; color: var(--aws-orange); font-weight: 600; margin-bottom: 8px; margin-top: 20px;">ステップ 2: 配信先の作成</p>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash</span>
+          <span class="code-title">CloudWatch Logs ロググループを配信先として設定</span>
+        </div>
+        <pre><code class="language-bash">aws logs put-delivery-destination \
+    --name "my-eks-auto-logs-destination" \
+    --delivery-destination-configuration \
+        '{"destinationResourceArn":"arn:aws:logs:us-west-2:123456789012:log-group:/eks/auto-mode/compute:*"}'</code></pre>
+      </div>
+
+      <p style="font-size: 14px; color: var(--aws-orange); font-weight: 600; margin-bottom: 8px; margin-top: 20px;">ステップ 3: 配信の作成</p>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash</span>
+          <span class="code-title">配信ソースと配信先を接続する配信を作成</span>
+        </div>
+        <pre><code class="language-bash">aws logs create-delivery \
+    --delivery-source-name "my-eks-auto-compute-logs" \
+    --delivery-destination-arn "arn:aws:logs:us-west-2:123456789012:delivery-destination:my-eks-auto-logs-destination"</code></pre>
+      </div>
+
+      <p style="font-size: 14px; color: var(--aws-orange); font-weight: 600; margin-bottom: 8px; margin-top: 20px;">ステップ 4: 他のコンポーネントのログも設定</p>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash</span>
+          <span class="code-title">残りのマネージドコンポーネントの配信ソースを追加</span>
+        </div>
+        <pre><code class="language-bash"># ブロックストレージログの配信ソースを追加
+aws logs put-delivery-source \
+    --name "my-eks-auto-storage-logs" \
+    --resource-arn "arn:aws:eks:us-west-2:123456789012:cluster/my-cluster" \
+    --log-type "AUTO_MODE_BLOCK_STORAGE_LOGS"
+
+# ロードバランシングログの配信ソースを追加
+aws logs put-delivery-source \
+    --name "my-eks-auto-lb-logs" \
+    --resource-arn "arn:aws:eks:us-west-2:123456789012:cluster/my-cluster" \
+    --log-type "AUTO_MODE_LOAD_BALANCING_LOGS"
+
+# Pod ネットワーキングログの配信ソースを追加
+aws logs put-delivery-source \
+    --name "my-eks-auto-ipam-logs" \
+    --resource-arn "arn:aws:eks:us-west-2:123456789012:cluster/my-cluster" \
+    --log-type "AUTO_MODE_IPAM_LOGS"</code></pre>
+      </div>
+
+      <div class="flow-diagram" style="margin-top: 24px;">
+        <div class="flow-step">&#128203; 配信ソース<br/>作成</div>
+        <span class="flow-arrow">&rarr;</span>
+        <div class="flow-step">&#127919; 配信先<br/>作成</div>
+        <span class="flow-arrow">&rarr;</span>
+        <div class="flow-step">&#128268; 配信を<br/>接続</div>
+        <span class="flow-arrow">&rarr;</span>
+        <div class="flow-step">&#9989; ログ配信<br/>開始</div>
+      </div>
+    </div>
+
+    <!-- ===== メリット ===== -->
+    <div class="section">
+      <h2>&#9989; メリット</h2>
+      <div class="merit-grid">
+        <div class="merit-box business">
+          <h3>&#128188; ビジネス面</h3>
+          <ul class="merit-list">
+            <li>&rarr; <strong>可観測性の向上:</strong> Auto Mode が管理するコンポーネントの動作を詳細に把握可能</li>
+            <li>&rarr; <strong>トラブルシューティングの迅速化:</strong> ログを活用して問題の原因を迅速に特定</li>
+            <li>&rarr; <strong>コスト最適化:</strong> Vended Logs の低価格な料金体系により、標準の CloudWatch Logs よりコストを削減</li>
+          </ul>
+        </div>
+        <div class="merit-box technical">
+          <h3>&#128295; 技術面</h3>
+          <ul class="merit-list">
+            <li>&rarr; <strong>柔軟なログ管理:</strong> 4 つのコンポーネントごとに独立したログ配信を設定可能</li>
+            <li>&rarr; <strong>複数配信先のサポート:</strong> CloudWatch Logs、S3、Kinesis Data Firehose から用途に応じて選択</li>
+            <li>&rarr; <strong>セキュアな配信:</strong> 組み込みの AWS 認証・認可によるログ配信</li>
+            <li>&rarr; <strong>クロスアカウント対応:</strong> 別アカウントへのログ配信も IAM ポリシーで設定可能</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== デメリット・制約事項 ===== -->
+    <div class="section">
+      <h2>&#9888;&#65039; デメリット・制約事項</h2>
+      <div class="caution-card">
+        <h3>&#128679; 制限事項</h3>
+        <ul class="caution-list">
+          <li>EKS コントロールプレーンログ (API サーバー、Audit 等) とは別に設定が必要</li>
+          <li>CloudWatch Logs API を使用して設定する必要があり、EKS コンソールからの直接設定ではない</li>
+          <li>ログ配信先に応じた IAM ポリシーやロールの設定が必要</li>
+        </ul>
+      </div>
+      <div class="caution-card">
+        <h3>&#128161; 考慮すべき点</h3>
+        <ul class="caution-list">
+          <li>ログの配信量に応じて CloudWatch Vended Logs、S3、または Kinesis Data Firehose の料金が発生</li>
+          <li>クロスアカウントでログを配信する場合は PutDeliveryDestinationPolicy API で IAM ポリシーの設定が必要</li>
+          <li>大量のログを出力する環境では、ログの保持期間とストレージコストを考慮した設計が必要</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- ===== ユースケース ===== -->
+    <div class="section">
+      <h2>&#128161; ユースケース</h2>
+
+      <div class="usecase-card">
+        <div class="usecase-title">&#128270; ユースケース 1: コンピュートオートスケーリングのトラブルシューティング</div>
+        <div class="usecase-scenario"><strong style="color: var(--aws-white);">シナリオ:</strong> EKS Auto Mode クラスターで Pod がスケジュールされない問題が発生し、Karpenter のオートスケーリング動作を調査したい。</div>
+        <div class="usecase-effect">&rarr; Karpenter のスケーリング判断やノードプロビジョニングのログを確認でき、問題の原因を迅速に特定できる。</div>
+      </div>
+
+      <div class="usecase-card">
+        <div class="usecase-title">&#128200; ユースケース 2: ストレージとネットワーキングの長期分析</div>
+        <div class="usecase-scenario"><strong style="color: var(--aws-white);">シナリオ:</strong> ブロックストレージと Pod ネットワーキングのログを長期保存して、パフォーマンストレンドを分析したい。</div>
+        <div class="usecase-effect">&rarr; S3 に低コストで長期保存し、Amazon Athena で過去のトレンドを分析できる。</div>
+      </div>
+
+      <div class="usecase-card">
+        <div class="usecase-title">&#9889; ユースケース 3: リアルタイムログモニタリング</div>
+        <div class="usecase-scenario"><strong style="color: var(--aws-white);">シナリオ:</strong> ロードバランシングのログをリアルタイムで監視し、異常検知システムと連携したい。</div>
+        <div class="usecase-effect">&rarr; ログをリアルタイムで OpenSearch Service にストリーミングし、ダッシュボードやアラートで監視できる。</div>
+      </div>
+    </div>
+
+    <!-- ===== 料金情報 ===== -->
+    <div class="section">
+      <h2>&#128179; 料金</h2>
+      <p style="font-size: 14px; color: var(--aws-light-gray); margin-bottom: 16px;">CloudWatch Vended Logs の料金が適用されます。標準の CloudWatch Logs と比較して低価格で提供されています。</p>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>項目</th>
+              <th>説明</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong style="color: var(--aws-white);">Vended Logs 配信</strong></td>
+              <td>ボリュームに応じた階層型料金</td>
+            </tr>
+            <tr>
+              <td><strong style="color: var(--aws-white);">CloudWatch Logs 保存</strong></td>
+              <td>ロググループの保存料金</td>
+            </tr>
+            <tr>
+              <td><strong style="color: var(--aws-white);">Amazon S3</strong></td>
+              <td>S3 の標準ストレージ料金</td>
+            </tr>
+            <tr>
+              <td><strong style="color: var(--aws-white);">Kinesis Data Firehose</strong></td>
+              <td>Firehose のデータ処理料金</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p style="font-size: 13px; color: var(--aws-light-gray); margin-top: 12px;">
+        詳細な料金情報については、<a href="https://aws.amazon.com/cloudwatch/pricing/" target="_blank" rel="noopener noreferrer" style="color: var(--aws-teal); text-decoration: none;">CloudWatch 料金ページの Vended Logs セクション</a>を参照してください。
+      </p>
+    </div>
+
+    <!-- ===== 利用可能リージョン ===== -->
+    <div class="section">
+      <h2>&#127758; 利用可能リージョン</h2>
+      <div class="region-badge">
+        &#127760; EKS Auto Mode が利用可能な全ての AWS リージョンで提供
+      </div>
+    </div>
+
+    <!-- ===== 関連サービス ===== -->
+    <div class="section">
+      <h2>&#128279; 関連サービス・機能</h2>
+      <div class="related-service">
+        <div class="related-service-icon">&#128203;</div>
+        <div>
+          <div class="related-service-name">Amazon EKS コントロールプレーンログ</div>
+          <div class="related-service-desc">API サーバー、Audit、Authenticator、Controller Manager、Scheduler のログ</div>
+        </div>
+      </div>
+      <div class="related-service">
+        <div class="related-service-icon">&#128202;</div>
+        <div>
+          <div class="related-service-name">Amazon CloudWatch Vended Logs</div>
+          <div class="related-service-desc">AWS サービスからの低価格なマネージドログ配信</div>
+        </div>
+      </div>
+      <div class="related-service">
+        <div class="related-service-icon">&#128269;</div>
+        <div>
+          <div class="related-service-name">Amazon CloudWatch Logs Insights</div>
+          <div class="related-service-desc">ログデータのインタラクティブなクエリと分析</div>
+        </div>
+      </div>
+      <div class="related-service">
+        <div class="related-service-icon">&#128450;</div>
+        <div>
+          <div class="related-service-name">Amazon Athena</div>
+          <div class="related-service-desc">S3 に保存されたログの SQL クエリによる分析</div>
+        </div>
+      </div>
+      <div class="related-service">
+        <div class="related-service-icon">&#128293;</div>
+        <div>
+          <div class="related-service-name">Amazon Kinesis Data Firehose</div>
+          <div class="related-service-desc">リアルタイムデータストリーミング</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== まとめ ===== -->
+    <div class="summary-box">
+      <h2>&#128221; まとめ</h2>
+      <p>
+        Amazon EKS Auto Mode の拡張ロギング機能により、マネージド Kubernetes コンポーネント (コンピュートオートスケーリング、ブロックストレージ、ロードバランシング、Pod ネットワーキング) のログを CloudWatch Vended Logs として収集・配信できるようになりました。各コンポーネントを個別の配信ソースとして構成でき、CloudWatch Logs、Amazon S3、Amazon Kinesis Data Firehose に柔軟にログを送信できます。Vended Logs の低価格な料金体系と組み込みの AWS 認証・認可により、EKS Auto Mode クラスターの可観測性を効率的かつセキュアに向上させることができます。EKS Auto Mode を利用しているお客様は、この機能を活用してクラスター運用のトラブルシューティングとモニタリングを強化してください。
+      </p>
+    </div>
+
+    <!-- ===== Footer ===== -->
+    <footer>
+      <p style="margin-bottom: 8px;"><strong style="color: var(--aws-orange);">&#128206; 参考リンク</strong></p>
+      <ul class="footer-links">
+        <li>&#128202; <a href="https://takech9203.github.io/awsnews-summary/20260210-amazon-eks-auto-mode-enhanced-logging.html" target="_blank" rel="noopener noreferrer">インフォグラフィック</a></li>
+        <li>&#128196; <a href="https://aws.amazon.com/about-aws/whats-new/2026/02/amazon-eks-auto-mode-enhanced-logging/" target="_blank" rel="noopener noreferrer">公式発表 (What's New)</a></li>
+        <li>&#128214; <a href="https://docs.aws.amazon.com/eks/latest/userguide/auto-managed-component-logs.html" target="_blank" rel="noopener noreferrer">EKS Auto Mode マネージドコンポーネントログ ドキュメント</a></li>
+        <li>&#128274; <a href="https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/AWS-vended-logs-permissions-V2.html" target="_blank" rel="noopener noreferrer">CloudWatch Vended Logs 権限ドキュメント</a></li>
+        <li>&#128203; <a href="https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutDeliverySource.html" target="_blank" rel="noopener noreferrer">PutDeliverySource API リファレンス</a></li>
+        <li>&#128176; <a href="https://aws.amazon.com/cloudwatch/pricing/" target="_blank" rel="noopener noreferrer">CloudWatch 料金</a></li>
+      </ul>
+      <p style="margin-top: 12px; font-size: 11px; color: rgba(213, 219, 219, 0.5);">Generated from reports/2026/2026-02-10-amazon-eks-auto-mode-enhanced-logging.md</p>
+    </footer>
+
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'base',
+      themeVariables: {
+        primaryColor: '#FF9900',
+        primaryTextColor: '#232F3E',
+        primaryBorderColor: '#FF9900',
+        lineColor: '#FF9900',
+        secondaryColor: '#F5F5F5',
+        tertiaryColor: '#FAFAFA',
+        background: '#FFFFFF',
+        mainBkg: '#FFF3E0',
+        nodeBorder: '#FF9900',
+        clusterBkg: '#FFF8E1',
+        clusterBorder: '#FF9900',
+        edgeLabelBackground: '#FFFFFF',
+        textColor: '#232F3E'
+      }
+    });
+  </script>
+  <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/highlight.min.js"></script>
+  <script>hljs.highlightAll();</script>
+</body>
+</html>

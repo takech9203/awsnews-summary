@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Amazon EC2 C8i/C8i-flex - 3 リージョン追加で利用可能に</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/styles/atom-one-dark.min.css">
+    <style>
+        :root {
+            --squid-ink: #232F3E;
+            --dark-squid: #1A242F;
+            --aws-orange: #FF9900;
+            --smile-orange: #FFAD33;
+            --text-primary: #FFFFFF;
+            --text-secondary: #D5DBDB;
+            --text-muted: #AAAAAA;
+            --card-bg: #2D3A4A;
+            --border-color: #3D4A5A;
+            --aws-teal: #00A1C9;
+            --aws-green: #1D8102;
+            --aws-red: #D13212;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            background-color: var(--squid-ink);
+            color: var(--text-secondary);
+            line-height: 1.8;
+            font-size: 16px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+            padding-bottom: 30px;
+            border-bottom: 3px solid var(--aws-orange);
+        }
+
+        .badge-row {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+
+        .service-badge {
+            display: inline-block;
+            background-color: var(--aws-orange);
+            color: var(--squid-ink);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .region-badge {
+            display: inline-block;
+            background-color: #2ECC71;
+            color: #FFFFFF;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .processor-badge {
+            display: inline-block;
+            background-color: var(--aws-teal);
+            color: #FFFFFF;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+            line-height: 1.4;
+        }
+
+        .release-date {
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--aws-orange);
+            margin-bottom: 20px;
+            padding-left: 15px;
+            border-left: 4px solid var(--aws-orange);
+        }
+
+        .overview-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .overview-text {
+            font-size: 16px;
+            line-height: 1.9;
+        }
+
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .comparison-grid {
+                grid-template-columns: 1fr;
+            }
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr) !important;
+            }
+            .features-grid {
+                grid-template-columns: 1fr !important;
+            }
+            .instance-compare-grid {
+                grid-template-columns: 1fr !important;
+            }
+        }
+
+        .comparison-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .comparison-card.before {
+            border-top: 4px solid #E74C3C;
+        }
+
+        .comparison-card.after {
+            border-top: 4px solid #2ECC71;
+        }
+
+        .comparison-label {
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        .comparison-card.before .comparison-label {
+            color: #E74C3C;
+        }
+
+        .comparison-card.after .comparison-label {
+            color: #2ECC71;
+        }
+
+        .comparison-list {
+            list-style: none;
+        }
+
+        .comparison-list li {
+            padding: 8px 0;
+            padding-left: 25px;
+            position: relative;
+            font-size: 14px;
+        }
+
+        .comparison-card.before .comparison-list li::before {
+            content: "\2717";
+            position: absolute;
+            left: 0;
+            color: #E74C3C;
+            font-weight: bold;
+        }
+
+        .comparison-card.after .comparison-list li::before {
+            content: "\2713";
+            position: absolute;
+            left: 0;
+            color: #2ECC71;
+            font-weight: bold;
+        }
+
+        /* Statistics Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, var(--card-bg) 0%, var(--dark-squid) 100%);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid rgba(255, 153, 0, 0.2);
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--aws-orange);
+            line-height: 1.2;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 6px;
+        }
+
+        .stat-sublabel {
+            font-size: 11px;
+            color: var(--text-muted);
+            opacity: 0.7;
+        }
+
+        /* Instance Comparison Grid */
+        .instance-compare-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .instance-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 25px;
+            border-left: 4px solid var(--aws-orange);
+        }
+
+        .instance-card-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--aws-orange);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .instance-card-desc {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 15px;
+            line-height: 1.7;
+        }
+
+        .instance-detail-list {
+            list-style: none;
+        }
+
+        .instance-detail-list li {
+            padding: 6px 0;
+            padding-left: 22px;
+            position: relative;
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .instance-detail-list li::before {
+            content: "\2713";
+            position: absolute;
+            left: 0;
+            color: var(--aws-orange);
+            font-weight: bold;
+        }
+
+        /* Performance Table */
+        .perf-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            font-size: 14px;
+        }
+
+        .perf-table th,
+        .perf-table td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .perf-table th {
+            color: var(--aws-orange);
+            font-weight: 700;
+            background-color: var(--dark-squid);
+            font-size: 13px;
+        }
+
+        .perf-table td {
+            color: var(--text-secondary);
+        }
+
+        .perf-table .perf-value {
+            color: var(--aws-orange);
+            font-weight: 700;
+        }
+
+        .perf-table tr:hover {
+            background-color: rgba(255, 153, 0, 0.05);
+        }
+
+        /* Features Grid */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .feature-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .feature-icon {
+            font-size: 36px;
+            margin-bottom: 15px;
+        }
+
+        .feature-title {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--aws-orange);
+        }
+
+        .feature-description {
+            font-size: 14px;
+            color: var(--text-muted);
+            line-height: 1.7;
+        }
+
+        /* Use Cases */
+        .usecase-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 3px solid var(--smile-orange);
+        }
+
+        .usecase-title {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--aws-orange);
+        }
+
+        .usecase-description {
+            font-size: 14px;
+            color: var(--text-muted);
+            line-height: 1.7;
+        }
+
+        /* Considerations */
+        .consideration-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+        }
+
+        .consideration-card.warning {
+            border-left: 4px solid #F39C12;
+        }
+
+        .consideration-card.info {
+            border-left: 4px solid var(--aws-teal);
+        }
+
+        .consideration-title {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+        }
+
+        .consideration-list {
+            list-style: none;
+        }
+
+        .consideration-list li {
+            padding: 6px 0;
+            padding-left: 22px;
+            position: relative;
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        .consideration-card.warning .consideration-list li::before {
+            content: "\26A0";
+            position: absolute;
+            left: 0;
+            color: #F39C12;
+        }
+
+        .consideration-card.info .consideration-list li::before {
+            content: "\2139";
+            position: absolute;
+            left: 0;
+            color: var(--aws-teal);
+            font-weight: bold;
+        }
+
+        /* Code Block */
+        .code-block {
+            background: #1a1a2e;
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 16px 0;
+        }
+
+        .code-header {
+            background: #16213e;
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+        }
+
+        .code-lang {
+            color: var(--aws-orange);
+            font-weight: bold;
+        }
+
+        .code-title {
+            color: var(--text-muted);
+        }
+
+        .code-block pre {
+            margin: 0;
+            padding: 0;
+            overflow-x: auto;
+        }
+
+        .code-block code {
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            padding: 16px !important;
+        }
+
+        /* Pricing */
+        .pricing-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 25px;
+            text-align: center;
+        }
+
+        .pricing-options {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+
+        .pricing-tag {
+            background-color: var(--dark-squid);
+            border: 1px solid var(--aws-orange);
+            border-radius: 8px;
+            padding: 10px 20px;
+            font-size: 14px;
+            color: var(--text-primary);
+        }
+
+        .pricing-tag-icon {
+            display: block;
+            font-size: 22px;
+            margin-bottom: 4px;
+        }
+
+        /* Related Services */
+        .related-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+
+        @media (max-width: 768px) {
+            .related-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .related-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 18px;
+            text-align: center;
+        }
+
+        .related-icon {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        .related-name {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .related-desc {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        /* Region List */
+        .region-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 15px;
+            justify-content: center;
+        }
+
+        .region-tag {
+            background-color: var(--card-bg);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .region-tag.new {
+            background-color: #2ECC71;
+            color: #FFFFFF;
+            font-weight: 700;
+        }
+
+        /* Flow Diagram */
+        .flow-diagram {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin: 24px 0;
+        }
+
+        .flow-step {
+            background: var(--dark-squid);
+            border: 2px solid var(--aws-orange);
+            border-radius: 8px;
+            padding: 12px 20px;
+            text-align: center;
+            min-width: 100px;
+            font-size: 14px;
+        }
+
+        .flow-arrow {
+            color: var(--aws-orange);
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        /* Footer */
+        footer {
+            margin-top: 50px;
+            padding-top: 30px;
+            border-top: 1px solid var(--border-color);
+            text-align: center;
+        }
+
+        .source-link {
+            color: var(--aws-teal);
+            text-decoration: none;
+            font-size: 14px;
+            display: inline-block;
+            margin-bottom: 8px;
+        }
+
+        .source-link:hover {
+            color: var(--smile-orange);
+            text-decoration: underline;
+        }
+
+        .footer-note {
+            color: var(--text-muted);
+            font-size: 12px;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="badge-row">
+                <span class="service-badge">Amazon EC2</span>
+                <span class="processor-badge">Intel Xeon 6</span>
+                <span class="region-badge">3 Regions NEW</span>
+            </div>
+            <h1>Amazon EC2 C8i / C8i-flex<br>Europe (Paris)、Canada (Central)、US West (N. California) で利用可能に</h1>
+            <p class="release-date">2026 年 2 月 11 日</p>
+        </header>
+
+        <!-- Overview Section -->
+        <section class="section">
+            <h2 class="section-title">概要</h2>
+            <div class="overview-card">
+                <p class="overview-text">
+                    Amazon EC2 C8i および C8i-flex インスタンスが <span style="color: var(--aws-orange); font-weight: 700;">Europe (Paris)</span>、<span style="color: var(--aws-orange); font-weight: 700;">Canada (Central)</span>、<span style="color: var(--aws-orange); font-weight: 700;">US West (N. California)</span> リージョンで利用可能になりました。C8i インスタンスは AWS 専用のカスタム Intel Xeon 6 プロセッサを搭載し、前世代の Intel ベースインスタンスと比較して最大 15% の価格パフォーマンス向上と 2.5 倍のメモリ帯域幅を実現します。
+                </p>
+            </div>
+
+            <div class="comparison-grid">
+                <div class="comparison-card before">
+                    <div class="comparison-label">Before - アップデート前の課題</div>
+                    <ul class="comparison-list">
+                        <li>C8i/C8i-flex インスタンスが Paris、Canada Central、N. California リージョンで利用できなかった</li>
+                        <li>これらのリージョンのユーザーは前世代のコンピューティング最適化インスタンスを使用する必要があった</li>
+                    </ul>
+                </div>
+                <div class="comparison-card after">
+                    <div class="comparison-label">After - アップデート後の改善</div>
+                    <ul class="comparison-list">
+                        <li>3 つの追加リージョンで最新世代のコンピューティング最適化インスタンスが利用可能に</li>
+                        <li>グローバルなマルチリージョン展開の選択肢が拡大</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Stats Section -->
+        <section class="section">
+            <h2 class="section-title">数字で見るパフォーマンス向上</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value">60%</div>
+                    <div class="stat-label">NGINX Web アプリ高速化</div>
+                    <div class="stat-sublabel">C7i 比</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">40%</div>
+                    <div class="stat-label">AI/ML 推薦モデル高速化</div>
+                    <div class="stat-sublabel">C7i 比</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">35%</div>
+                    <div class="stat-label">Memcached 高速化</div>
+                    <div class="stat-sublabel">C7i 比</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">2.5x</div>
+                    <div class="stat-label">メモリ帯域幅</div>
+                    <div class="stat-sublabel">前世代比</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">20%</div>
+                    <div class="stat-label">全般パフォーマンス向上</div>
+                    <div class="stat-sublabel">C7i/C7i-flex 比</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">15%</div>
+                    <div class="stat-label">価格パフォーマンス向上</div>
+                    <div class="stat-sublabel">前世代 Intel 比</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Instance Types Section -->
+        <section class="section">
+            <h2 class="section-title">主要機能</h2>
+            <div class="instance-compare-grid">
+                <div class="instance-card">
+                    <div class="instance-card-title">&#9881; C8i インスタンス</div>
+                    <div class="instance-card-desc">
+                        高度なコンピューティング最適化が必要なワークロード向け。ベアメタルを含む幅広いサイズ展開。
+                    </div>
+                    <ul class="instance-detail-list">
+                        <li>ベアメタルを含む 13 サイズ</li>
+                        <li>新しい 96xlarge サイズを含む</li>
+                        <li>NGINX Web アプリで C7i 比最大 60% 高速</li>
+                        <li>AI ディープラーニング推薦モデルで C7i 比最大 40% 高速</li>
+                        <li>Memcached ストアで C7i 比最大 35% 高速</li>
+                    </ul>
+                </div>
+                <div class="instance-card">
+                    <div class="instance-card-title">&#9889; C8i-flex インスタンス</div>
+                    <div class="instance-card-desc">
+                        コンピューティング集約型ワークロードの価格パフォーマンスを最も簡単に向上。
+                    </div>
+                    <ul class="instance-detail-list">
+                        <li>large から 16xlarge までの一般的なサイズ</li>
+                        <li>Web / アプリケーションサーバーに最適</li>
+                        <li>データベース、キャッシュワークロード</li>
+                        <li>Apache Kafka、Elasticsearch</li>
+                        <li>エンタープライズアプリケーション</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- New Regions Highlight -->
+            <div class="overview-card" style="border: 2px solid #2ECC71;">
+                <div style="font-size: 16px; font-weight: 700; color: #2ECC71; margin-bottom: 12px;">&#127758; 新規利用可能リージョン</div>
+                <div class="flow-diagram">
+                    <div class="flow-step" style="border-color: #2ECC71;">&#127467;&#127479; Europe (Paris)<br><span style="font-size: 12px; color: var(--text-muted);">eu-west-3</span></div>
+                    <div class="flow-step" style="border-color: #2ECC71;">&#127464;&#127462; Canada (Central)<br><span style="font-size: 12px; color: var(--text-muted);">ca-central-1</span></div>
+                    <div class="flow-step" style="border-color: #2ECC71;">&#127482;&#127480; US West (N. California)<br><span style="font-size: 12px; color: var(--text-muted);">us-west-1</span></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Performance Comparison Table -->
+        <section class="section">
+            <h2 class="section-title">パフォーマンス比較表</h2>
+            <div class="overview-card">
+                <table class="perf-table">
+                    <thead>
+                        <tr>
+                            <th>項目</th>
+                            <th>C8i vs C7i/C7i-flex</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>全般パフォーマンス</td>
+                            <td class="perf-value">最大 20% 向上</td>
+                        </tr>
+                        <tr>
+                            <td>価格パフォーマンス</td>
+                            <td class="perf-value">最大 15% 向上</td>
+                        </tr>
+                        <tr>
+                            <td>メモリ帯域幅</td>
+                            <td class="perf-value">2.5 倍</td>
+                        </tr>
+                        <tr>
+                            <td>NGINX Web アプリ</td>
+                            <td class="perf-value">最大 60% 高速</td>
+                        </tr>
+                        <tr>
+                            <td>AI/ML 推薦モデル</td>
+                            <td class="perf-value">最大 40% 高速</td>
+                        </tr>
+                        <tr>
+                            <td>Memcached</td>
+                            <td class="perf-value">最大 35% 高速</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Setup Section -->
+        <section class="section">
+            <h2 class="section-title">設定方法</h2>
+            <div class="overview-card">
+                <div style="font-size: 15px; font-weight: 700; color: var(--text-primary); margin-bottom: 12px;">前提条件</div>
+                <ul class="instance-detail-list" style="margin-bottom: 20px;">
+                    <li>AWS アカウントと該当リージョンへのアクセス権限</li>
+                    <li>C8i/C8i-flex インスタンスタイプのサービスクォータ確認</li>
+                </ul>
+
+                <div style="font-size: 15px; font-weight: 700; color: var(--text-primary); margin-bottom: 12px;">インスタンスの起動</div>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">Bash</span>
+                        <span class="code-title">C8i インスタンス起動コマンド</span>
+                    </div>
+                    <pre><code class="language-bash">aws ec2 run-instances \
+  --region eu-west-3 \
+  --instance-type c8i.xlarge \
+  --image-id ami-xxxxxxxxxxxxxxxxx \
+  --key-name my-key-pair \
+  --security-group-ids sg-xxxxxxxxx</code></pre>
+                </div>
+                <p style="font-size: 14px; color: var(--text-muted); margin-top: 10px;">
+                    対象リージョンで C8i インスタンスを起動します。リージョンコード (eu-west-3, ca-central-1, us-west-1) を指定して利用してください。
+                </p>
+            </div>
+        </section>
+
+        <!-- Use Cases Section -->
+        <section class="section">
+            <h2 class="section-title">ユースケース</h2>
+            <div class="usecase-card">
+                <div class="usecase-title">&#127760; Web / アプリケーションサーバー</div>
+                <div class="usecase-description">NGINX Web アプリケーションで C7i 比最大 60% のパフォーマンス向上を実現。高トラフィックな Web サービスや API サーバーの処理能力を大幅に強化します。C8i-flex により、リソースを完全に活用しないワークロードのコストも最適化できます。</div>
+            </div>
+            <div class="usecase-card">
+                <div class="usecase-title">&#129302; AI/ML 推論ワークロード</div>
+                <div class="usecase-description">AI ディープラーニング推薦モデルで C7i 比最大 40% の高速化を実現。Intel Xeon 6 プロセッサの最新機能により、CPU ベースの機械学習推論処理を効率的に実行できます。</div>
+            </div>
+            <div class="usecase-card">
+                <div class="usecase-title">&#128202; キャッシュ / データベース</div>
+                <div class="usecase-description">Memcached ストアで C7i 比最大 35% の高速化。2.5 倍のメモリ帯域幅により、キャッシュやインメモリデータベースのパフォーマンスが向上。Apache Kafka や Elasticsearch などのデータ処理基盤にも最適です。</div>
+            </div>
+        </section>
+
+        <!-- Benefits Section -->
+        <section class="section">
+            <h2 class="section-title">メリット</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">&#127758;</div>
+                    <div class="feature-title">リージョン拡大</div>
+                    <div class="feature-description">3 つの追加リージョンで最新世代コンピューティングインスタンスが利用可能。グローバル展開の選択肢が拡大。</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#128176;</div>
+                    <div class="feature-title">コスト最適化</div>
+                    <div class="feature-description">C8i-flex により、リソースを完全に活用しないワークロードのコストを最適化。価格パフォーマンスが最大 15% 向上。</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#9889;</div>
+                    <div class="feature-title">大幅なパフォーマンス向上</div>
+                    <div class="feature-description">Web アプリケーションやキャッシュワークロードで顕著な改善。Intel Xeon 6 プロセッサの最新機能を活用。</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Considerations Section -->
+        <section class="section">
+            <h2 class="section-title">制約事項・考慮点</h2>
+            <div class="consideration-card warning">
+                <div class="consideration-title">&#9888; 制限事項</div>
+                <ul class="consideration-list">
+                    <li>新規リージョンでの初期のサービスクォータが制限される場合がある</li>
+                    <li>すべてのインスタンスサイズがすべてのリージョンで利用可能とは限らない</li>
+                </ul>
+            </div>
+            <div class="consideration-card info">
+                <div class="consideration-title">&#8505; 考慮すべき点</div>
+                <ul class="consideration-list">
+                    <li>既存の Savings Plans やリザーブドインスタンスの適用範囲を確認</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Pricing Section -->
+        <section class="section">
+            <h2 class="section-title">料金</h2>
+            <div class="pricing-card">
+                <p style="font-size: 14px; margin-bottom: 15px;">C8i および C8i-flex インスタンスは以下の購入オプションで利用可能です。料金はリージョンにより異なります。</p>
+                <div class="pricing-options">
+                    <div class="pricing-tag">
+                        <span class="pricing-tag-icon">&#128179;</span>
+                        Savings Plans
+                    </div>
+                    <div class="pricing-tag">
+                        <span class="pricing-tag-icon">&#128176;</span>
+                        オンデマンド
+                    </div>
+                    <div class="pricing-tag">
+                        <span class="pricing-tag-icon">&#128200;</span>
+                        スポット
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Available Regions Section -->
+        <section class="section">
+            <h2 class="section-title">利用可能リージョン</h2>
+            <div class="overview-card" style="text-align: center;">
+                <p style="font-size: 14px; margin-bottom: 10px;">C8i/C8i-flex インスタンスの利用可能リージョン (今回追加分を含む)</p>
+                <div class="region-list">
+                    <span class="region-tag">US East (N. Virginia, Ohio)</span>
+                    <span class="region-tag">US West (Oregon)</span>
+                    <span class="region-tag new">US West (N. California) NEW</span>
+                    <span class="region-tag">Europe (Frankfurt)</span>
+                    <span class="region-tag">Europe (Ireland)</span>
+                    <span class="region-tag">Europe (London)</span>
+                    <span class="region-tag">Europe (Stockholm)</span>
+                    <span class="region-tag new">Europe (Paris) NEW</span>
+                    <span class="region-tag">Asia Pacific (Tokyo)</span>
+                    <span class="region-tag">Asia Pacific (Singapore)</span>
+                    <span class="region-tag">Asia Pacific (Sydney)</span>
+                    <span class="region-tag">Asia Pacific (Mumbai)</span>
+                    <span class="region-tag">Asia Pacific (Seoul)</span>
+                    <span class="region-tag new">Canada (Central) NEW</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Related Services Section -->
+        <section class="section">
+            <h2 class="section-title">関連サービス</h2>
+            <div class="related-grid">
+                <div class="related-card">
+                    <div class="related-icon">&#128204;</div>
+                    <div class="related-name">Amazon EC2 R8i/R8i-flex</div>
+                    <div class="related-desc">メモリ最適化の同世代インスタンス</div>
+                </div>
+                <div class="related-card">
+                    <div class="related-icon">&#9881;</div>
+                    <div class="related-name">Amazon EC2 M8i</div>
+                    <div class="related-desc">汎用の同世代インスタンス</div>
+                </div>
+                <div class="related-card">
+                    <div class="related-icon">&#128640;</div>
+                    <div class="related-name">AWS Graviton4</div>
+                    <div class="related-desc">Arm ベースの高性能代替オプション</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer>
+            <div>
+                <a href="https://aws.amazon.com/about-aws/whats-new/2026/02/amazon-ec2-c8i-c8i-flex-instances-europe-paris-canada-central-uswest-ncalifornia-regions/" class="source-link" target="_blank" rel="noopener noreferrer">
+                    &#128279; 公式発表 (What's New) を見る
+                </a>
+            </div>
+            <div>
+                <a href="https://aws.amazon.com/blogs/aws/introducing-new-compute-optimized-amazon-ec2-c8i-and-c8i-flex-instances/" class="source-link" target="_blank" rel="noopener noreferrer">
+                    &#128221; AWS Blog - C8i/C8i-flex インスタンス
+                </a>
+            </div>
+            <div>
+                <a href="https://aws.amazon.com/ec2/instance-types/c8i/" class="source-link" target="_blank" rel="noopener noreferrer">
+                    &#128196; Amazon EC2 C8i インスタンスタイプ
+                </a>
+            </div>
+            <p class="footer-note">C8i/C8i-flex インスタンスは AWS 専用カスタム Intel Xeon 6 プロセッサを搭載し、コンピューティング集約型ワークロードに最適化されています。</p>
+        </footer>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/highlight.min.js"></script>
+    <script>hljs.highlightAll();</script>
+</body>
+</html>

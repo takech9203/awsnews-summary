@@ -1,0 +1,1205 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Amazon Athena - 1 分間キャパシティリザベーションと 4 DPU 最小キャパシティ</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/styles/atom-one-dark.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap');
+
+    :root {
+      --aws-squid-ink: #232F3E;
+      --aws-dark-squid: #1A242F;
+      --aws-orange: #FF9900;
+      --aws-smile-orange: #FFAD33;
+      --aws-white: #FFFFFF;
+      --aws-light-gray: #D5DBDB;
+      --aws-teal: #00A1C9;
+      --aws-purple: #8C4FFF;
+      --aws-green: #1D8102;
+      --aws-red: #D13212;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--aws-squid-ink);
+      font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+      color: var(--aws-light-gray);
+      font-size: 16px;
+      line-height: 1.6;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    /* ===== Header ===== */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 32px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .header-left { flex: 1; }
+
+    .service-badge {
+      display: inline-block;
+      background: var(--aws-orange);
+      color: var(--aws-squid-ink);
+      font-size: 13px;
+      font-weight: 700;
+      padding: 4px 14px;
+      border-radius: 20px;
+      margin-bottom: 12px;
+      letter-spacing: 0.5px;
+    }
+
+    h1 {
+      font-size: 36px;
+      font-weight: 700;
+      color: var(--aws-white);
+      line-height: 1.3;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      font-size: 16px;
+      color: var(--aws-light-gray);
+    }
+
+    .header-right {
+      text-align: right;
+      font-size: 14px;
+      color: var(--aws-light-gray);
+      flex-shrink: 0;
+    }
+
+    .date-label {
+      color: var(--aws-orange);
+      font-weight: 600;
+    }
+
+    /* ===== Sections ===== */
+    h2 {
+      font-size: 24px;
+      font-weight: 600;
+      color: var(--aws-orange);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .section {
+      background: var(--aws-dark-squid);
+      border-radius: 8px;
+      padding: 24px;
+      margin-bottom: 24px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .highlight {
+      background-color: rgba(255, 153, 0, 0.2);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 600;
+      color: var(--aws-orange);
+    }
+
+    /* ===== Overview Text ===== */
+    .overview-text {
+      font-size: 16px;
+      color: var(--aws-light-gray);
+      line-height: 1.8;
+      margin-bottom: 20px;
+    }
+
+    /* ===== Stats Cards ===== */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    @media (max-width: 768px) {
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 480px) {
+      .stats-grid { grid-template-columns: 1fr; }
+    }
+
+    .stat-card {
+      background: linear-gradient(135deg, rgba(255, 153, 0, 0.15), rgba(140, 79, 255, 0.1));
+      border: 1px solid rgba(255, 153, 0, 0.3);
+      border-radius: 8px;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .stat-number {
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--aws-orange);
+      line-height: 1.2;
+    }
+
+    .stat-label {
+      font-size: 13px;
+      color: var(--aws-light-gray);
+      margin-top: 4px;
+    }
+
+    /* ===== Before/After ===== */
+    .before-after {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-top: 16px;
+    }
+
+    @media (max-width: 640px) {
+      .before-after { grid-template-columns: 1fr; }
+    }
+
+    .before-card, .after-card {
+      border-radius: 8px;
+      padding: 20px;
+    }
+
+    .before-card {
+      background: rgba(209, 50, 18, 0.1);
+      border: 1px solid rgba(209, 50, 18, 0.3);
+    }
+
+    .after-card {
+      background: rgba(29, 129, 2, 0.1);
+      border: 1px solid rgba(29, 129, 2, 0.3);
+    }
+
+    .ba-label {
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .before-card .ba-label { color: var(--aws-red); }
+    .after-card .ba-label { color: var(--aws-green); }
+
+    .ba-list {
+      list-style: none;
+      padding: 0;
+    }
+
+    .ba-list li {
+      padding: 6px 0;
+      font-size: 14px;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .ba-list li::before { flex-shrink: 0; }
+    .before-card .ba-list li::before { content: "\2717"; color: var(--aws-red); font-weight: bold; }
+    .after-card .ba-list li::before { content: "\2713"; color: var(--aws-green); font-weight: bold; }
+
+    /* ===== Feature Cards ===== */
+    .feature-card {
+      background: var(--aws-dark-squid);
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 16px;
+      border-left: 4px solid var(--aws-orange);
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      border-right: 1px solid rgba(255, 255, 255, 0.08);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .feature-card.teal { border-left-color: var(--aws-teal); }
+    .feature-card.purple { border-left-color: var(--aws-purple); }
+    .feature-card.green { border-left-color: var(--aws-green); }
+
+    .feature-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--aws-white);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .feature-desc {
+      font-size: 14px;
+      color: var(--aws-light-gray);
+      line-height: 1.7;
+    }
+
+    .feature-desc li {
+      padding: 3px 0;
+    }
+
+    /* ===== Comparison Table ===== */
+    .table-wrapper {
+      overflow-x: auto;
+      margin: 16px 0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    th {
+      background: rgba(255, 153, 0, 0.15);
+      color: var(--aws-orange);
+      font-weight: 600;
+      padding: 12px 16px;
+      text-align: left;
+      border-bottom: 2px solid rgba(255, 153, 0, 0.3);
+      white-space: nowrap;
+    }
+
+    td {
+      padding: 10px 16px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      color: var(--aws-light-gray);
+    }
+
+    tr:hover td {
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .changed {
+      color: var(--aws-green);
+      font-weight: 600;
+    }
+
+    .unchanged {
+      color: var(--aws-light-gray);
+      font-style: italic;
+    }
+
+    /* ===== Use Case Cards ===== */
+    .usecase-card {
+      background: linear-gradient(135deg, rgba(255, 153, 0, 0.08), rgba(255, 153, 0, 0.03));
+      border: 1px solid rgba(255, 153, 0, 0.2);
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+
+    .usecase-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--aws-white);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .usecase-scenario {
+      font-size: 14px;
+      color: var(--aws-light-gray);
+      margin-bottom: 8px;
+    }
+
+    .usecase-effect {
+      font-size: 14px;
+      color: var(--aws-smile-orange);
+      font-weight: 500;
+    }
+
+    /* ===== Merits / Demerits ===== */
+    .merit-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    @media (max-width: 640px) {
+      .merit-grid { grid-template-columns: 1fr; }
+    }
+
+    .merit-box {
+      border-radius: 8px;
+      padding: 20px;
+    }
+
+    .merit-box.business {
+      background: rgba(255, 153, 0, 0.08);
+      border: 1px solid rgba(255, 153, 0, 0.2);
+    }
+
+    .merit-box.technical {
+      background: rgba(0, 161, 201, 0.08);
+      border: 1px solid rgba(0, 161, 201, 0.2);
+    }
+
+    .merit-box h3 {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+
+    .merit-box.business h3 { color: var(--aws-orange); }
+    .merit-box.technical h3 { color: var(--aws-teal); }
+
+    .merit-list {
+      list-style: none;
+      padding: 0;
+    }
+
+    .merit-list li {
+      padding: 6px 0;
+      font-size: 14px;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .merit-list li strong {
+      color: var(--aws-white);
+    }
+
+    /* ===== Caution / Limitations ===== */
+    .caution-card {
+      background: rgba(209, 50, 18, 0.06);
+      border: 1px solid rgba(209, 50, 18, 0.2);
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+
+    .caution-card h3 {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--aws-red);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .caution-list {
+      list-style: none;
+      padding: 0;
+    }
+
+    .caution-list li {
+      padding: 5px 0;
+      font-size: 14px;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      color: var(--aws-light-gray);
+    }
+
+    .caution-list li::before {
+      content: "\26A0";
+      flex-shrink: 0;
+    }
+
+    /* ===== Pricing ===== */
+    .pricing-highlight {
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .pricing-highlight.low { color: var(--aws-green); }
+    .pricing-highlight.mid { color: var(--aws-teal); }
+    .pricing-highlight.high { color: var(--aws-orange); }
+
+    /* ===== Code Block ===== */
+    .code-block {
+      background: #1a1a2e;
+      border-radius: 8px;
+      overflow: hidden;
+      margin: 16px 0;
+    }
+
+    .code-header {
+      background: #16213e;
+      padding: 8px 16px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+    }
+
+    .code-lang {
+      color: var(--aws-orange);
+      font-weight: bold;
+    }
+
+    .code-title {
+      color: var(--aws-light-gray);
+    }
+
+    .code-block pre {
+      margin: 0;
+      padding: 0;
+      overflow-x: auto;
+    }
+
+    .code-block code {
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      line-height: 1.5;
+      padding: 16px !important;
+    }
+
+    /* ===== Flow Diagram ===== */
+    .flow-diagram {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin: 24px 0;
+    }
+
+    .flow-step {
+      background: var(--aws-dark-squid);
+      border: 2px solid var(--aws-orange);
+      border-radius: 8px;
+      padding: 12px 20px;
+      text-align: center;
+      min-width: 120px;
+      color: var(--aws-white);
+      font-size: 14px;
+    }
+
+    .flow-arrow {
+      color: var(--aws-orange);
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    /* ===== Mermaid ===== */
+    .mermaid-container {
+      background: #FFFFFF;
+      border-radius: 12px;
+      padding: 24px;
+      margin: 20px 0;
+      border: 2px solid rgba(255, 153, 0, 0.3);
+      overflow-x: auto;
+    }
+
+    .mermaid {
+      display: flex;
+      justify-content: center;
+    }
+
+    /* ===== Region Badge ===== */
+    .region-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(0, 161, 201, 0.1);
+      border: 1px solid rgba(0, 161, 201, 0.3);
+      border-radius: 8px;
+      padding: 12px 20px;
+      font-size: 15px;
+      color: var(--aws-teal);
+      font-weight: 500;
+    }
+
+    /* ===== Related Services ===== */
+    .related-service {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .related-service:last-child { border-bottom: none; }
+
+    .related-service-icon {
+      font-size: 24px;
+      flex-shrink: 0;
+    }
+
+    .related-service-name {
+      font-weight: 600;
+      color: var(--aws-white);
+      font-size: 15px;
+    }
+
+    .related-service-name a {
+      color: var(--aws-teal);
+      text-decoration: none;
+    }
+
+    .related-service-name a:hover { color: var(--aws-smile-orange); }
+
+    .related-service-desc {
+      font-size: 13px;
+      color: var(--aws-light-gray);
+    }
+
+    /* ===== Summary Box ===== */
+    .summary-box {
+      background: linear-gradient(135deg, rgba(255, 153, 0, 0.12), rgba(140, 79, 255, 0.08));
+      border: 2px solid rgba(255, 153, 0, 0.3);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+
+    .summary-box p {
+      font-size: 15px;
+      line-height: 1.8;
+      color: var(--aws-light-gray);
+    }
+
+    /* ===== Footer ===== */
+    footer {
+      margin-top: 24px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(255, 255, 255, 0.2);
+      font-size: 12px;
+      color: var(--aws-light-gray);
+    }
+
+    footer a {
+      color: var(--aws-teal);
+      text-decoration: none;
+      word-break: break-all;
+    }
+
+    footer a:hover { color: var(--aws-smile-orange); }
+
+    .footer-links {
+      list-style: none;
+      padding: 0;
+    }
+
+    .footer-links li {
+      padding: 3px 0;
+    }
+
+    /* ===== Responsive ===== */
+    @media (max-width: 640px) {
+      h1 { font-size: 26px; }
+      .header { flex-direction: column; }
+      .header-right { text-align: left; }
+      .stats-grid { grid-template-columns: 1fr 1fr; }
+      .stat-number { font-size: 26px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <!-- ===== Header ===== -->
+    <div class="header">
+      <div class="header-left">
+        <div class="service-badge">Amazon Athena</div>
+        <h1>&#9889; 1 分間キャパシティリザベーションと 4 DPU 最小キャパシティ</h1>
+        <div class="subtitle">Capacity Reservations がより小さく、より短く、より柔軟に。最大 95% のコスト削減を実現</div>
+      </div>
+      <div class="header-right">
+        <div><span class="date-label">&#x1F4C5; リリース日:</span> 2026 年 2 月 10 日</div>
+      </div>
+    </div>
+
+    <!-- ===== Stats ===== -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-number">95%</div>
+        <div class="stat-label">最大コスト削減率</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">4 DPU</div>
+        <div class="stat-label">最小キャパシティ (従来 24)</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">1 分</div>
+        <div class="stat-label">最小予約時間 (従来 60 分)</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">$0.10</div>
+        <div class="stat-label">4 DPU / 5 分の料金例</div>
+      </div>
+    </div>
+
+    <!-- ===== 概要 ===== -->
+    <div class="section">
+      <h2>&#x1F4CB; 概要</h2>
+      <p class="overview-text">
+        Amazon Athena が、Capacity Reservations で<span class="highlight">1 分間の予約</span>と最小<span class="highlight">4 DPU</span>のキャパシティをサポートしました。従来の最小 24 DPU / 60 分間から大幅に引き下げられ、より少ないキャパシティで開始し、ワークロードパターンに合わせてきめ細かく頻繁に調整できるようになりました。長期的なコミットメントは不要で、短時間のクエリワークロードに対して<span class="highlight">最大 95% のコスト削減</span>が可能です。
+      </p>
+      <p class="overview-text">
+        Capacity Reservations は、クエリの優先順位付けと同時実行制御を必要とするワークロードに最適な、専用のサーバーレスコンピューティングリソースを提供します。予約したキャパシティに対してのみ課金され、データスキャン料金は発生しません。既存の Athena クエリやワークグループとシームレスに連携し、ワークグループをリザベーションにアタッチしてクエリを送信するだけで利用できます。
+      </p>
+
+      <!-- Before/After -->
+      <div class="before-after">
+        <div class="before-card">
+          <div class="ba-label">&#x274C; Before</div>
+          <ul class="ba-list">
+            <li>最小キャパシティが 24 DPU で小規模ワークロードには過剰</li>
+            <li>最小予約時間が 60 分間で短時間クエリにはコスト効率が悪い</li>
+            <li>キャパシティ調整の粒度が粗く変動に柔軟に対応できない</li>
+            <li>スキャンベースでは対話的クエリがキューイングされる可能性</li>
+          </ul>
+        </div>
+        <div class="after-card">
+          <div class="ba-label">&#x2705; After</div>
+          <ul class="ba-list">
+            <li>最小 4 DPU で小規模ワークロードもコスト効率よく利用可能</li>
+            <li>最小予約時間 1 分間で最大 95% のコスト削減が可能</li>
+            <li>きめ細かいキャパシティ調整でワークロードに正確にマッチ</li>
+            <li>長期コミットメント不要で必要な時に必要な分だけ予約</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== アーキテクチャ図 ===== -->
+    <div class="section">
+      <h2>&#x1F3D7;&#xFE0F; アーキテクチャ図</h2>
+      <div class="mermaid-container">
+        <pre class="mermaid">
+flowchart TD
+    subgraph Athena["&#9729;&#65039; Amazon Athena"]
+        subgraph CR["&#128230; Capacity Reservations"]
+            direction LR
+            CR1["&#9889; リザベーション A&lt;br/&gt;4 DPU&#12316;"]
+            CR2["&#9889; リザベーション B&lt;br/&gt;16 DPU&#12316;"]
+            CR3["&#9889; リザベーション C&lt;br/&gt;160 DPU&#12316;"]
+            CR1 ~~~ CR2 ~~~ CR3
+        end
+
+        subgraph WG["&#128194; Workgroups"]
+            direction LR
+            WG1["&#128202; ダッシュボード&lt;br/&gt;ワークグループ"]
+            WG2["&#9881;&#65039; ETL&lt;br/&gt;ワークグループ"]
+            WG3["&#128300; アドホック&lt;br/&gt;ワークグループ"]
+            WG1 ~~~ WG2 ~~~ WG3
+        end
+
+        subgraph Controls["&#127899;&#65039; コスト/パフォーマンス制御"]
+            DPU["&#128207; DPU 制限&lt;br/&gt;4&#12316;124 DPU"]
+            AS["&#128200; オートスケーリング"]
+        end
+    end
+
+    S3[("&#129683; Amazon S3&lt;br/&gt;データソース")]
+    Users(["&#128100; ユーザー/アプリケーション"])
+
+    Users -->|クエリ送信| WG
+    WG -->|キャパシティ割り当て| CR
+    CR -->|データスキャン| S3
+    Controls -.->|制御| CR
+
+    classDef cloud fill:none,stroke:#CCCCCC,stroke-width:2px,color:#666666
+    classDef layer fill:none,stroke:#E1BEE7,stroke-width:2px,color:#666666
+    classDef compute fill:#FFE0B2,stroke:#FFCC80,stroke-width:2px,color:#5D4037
+    classDef storage fill:#DCEDC8,stroke:#C5E1A5,stroke-width:2px,color:#33691E
+    classDef user fill:#E3F2FD,stroke:#BBDEFB,stroke-width:2px,color:#1565C0
+    classDef control fill:#F3E5F5,stroke:#7B61FF,stroke-width:2px,color:#333333
+
+    class Athena cloud
+    class CR,WG layer
+    class CR1,CR2,CR3 compute
+    class WG1,WG2,WG3 compute
+    class S3 storage
+    class Users user
+    class Controls,DPU,AS control
+        </pre>
+      </div>
+      <p style="font-size: 14px; color: var(--aws-light-gray);">ワークグループを Capacity Reservations にアタッチすることで、専用のサーバーレスコンピューティングリソースが割り当てられ、クエリの優先順位付けと同時実行制御が実現されます。</p>
+    </div>
+
+    <!-- ===== 主要機能 ===== -->
+    <div class="section">
+      <h2>&#x1F680; 主要機能</h2>
+
+      <div class="feature-card">
+        <div class="feature-title">&#9201; 1 分間キャパシティリザベーション</div>
+        <div class="feature-desc">
+          <ul style="list-style: none; padding: 0;">
+            <li style="padding: 3px 0;">&#8594; 最小予約時間が従来の 60 分間から <strong style="color: var(--aws-white);">1 分間</strong>に短縮</li>
+            <li style="padding: 3px 0;">&#8594; 短時間のクエリワークロードで<strong style="color: var(--aws-white);">最大 95% のコスト削減</strong>が可能</li>
+            <li style="padding: 3px 0;">&#8594; 頻繁なキャパシティ調整によりワークロードパターンに正確にマッチ</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="feature-card teal">
+        <div class="feature-title">&#128202; 4 DPU 最小キャパシティ</div>
+        <div class="feature-desc">
+          <ul style="list-style: none; padding: 0;">
+            <li style="padding: 3px 0;">&#8594; すべてのリザベーションで最小 <strong style="color: var(--aws-white);">4 DPU</strong> から開始可能 (従来は 24 DPU)</li>
+            <li style="padding: 3px 0;">&#8594; 4 DPU 単位で増減可能</li>
+            <li style="padding: 3px 0;">&#8594; 小規模なワークロードでもコスト効率のよいキャパシティ予約が可能</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="feature-card purple">
+        <div class="feature-title">&#128279; 既存環境とのシームレスな統合</div>
+        <div class="feature-desc">
+          <ul style="list-style: none; padding: 0;">
+            <li style="padding: 3px 0;">&#8594; ワークグループをリザベーションにアタッチするだけで利用開始</li>
+            <li style="padding: 3px 0;">&#8594; <strong style="color: var(--aws-white);">SQL クエリやアプリケーションコードの変更は不要</strong></li>
+            <li style="padding: 3px 0;">&#8594; リザベーションに割り当てられたワークグループのクエリは自動的に予約キャパシティにルーティング</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="feature-card green">
+        <div class="feature-title">&#128737; 専用サーバーレスコンピュート</div>
+        <div class="feature-desc">
+          <ul style="list-style: none; padding: 0;">
+            <li style="padding: 3px 0;">&#8594; 予約したキャパシティはアカウント内の他のクエリから<strong style="color: var(--aws-white);">分離</strong></li>
+            <li style="padding: 3px 0;">&#8594; クエリの優先順位付けと同時実行制御が可能</li>
+            <li style="padding: 3px 0;">&#8594; アカウントレベルの同時実行クォータに影響しない</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== 技術仕様 ===== -->
+    <div class="section">
+      <h2>&#128295; 技術仕様</h2>
+      <h3 style="color: var(--aws-white); font-size: 17px; margin-bottom: 12px;">キャパシティリザベーションの設定パラメータ</h3>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>パラメータ</th>
+              <th>詳細</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong style="color: var(--aws-white);">最小 DPU</strong></td>
+              <td><span class="changed">4 DPU</span></td>
+            </tr>
+            <tr>
+              <td><strong style="color: var(--aws-white);">DPU 増減単位</strong></td>
+              <td>4 DPU 単位</td>
+            </tr>
+            <tr>
+              <td><strong style="color: var(--aws-white);">最小予約時間</strong></td>
+              <td><span class="changed">1 分間</span></td>
+            </tr>
+            <tr>
+              <td><strong style="color: var(--aws-white);">DPU 制御範囲</strong></td>
+              <td>4 ~ 124 DPU</td>
+            </tr>
+            <tr>
+              <td><strong style="color: var(--aws-white);">キャパシティ割り当て時間</strong></td>
+              <td>最大 30 分</td>
+            </tr>
+            <tr>
+              <td><strong style="color: var(--aws-white);">課金単位</strong></td>
+              <td>DPU 時間あたり</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 style="color: var(--aws-white); font-size: 17px; margin: 24px 0 12px;">従来との比較</h3>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>項目</th>
+              <th>従来</th>
+              <th>現在</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong style="color: var(--aws-white);">最小 DPU</strong></td>
+              <td style="color: var(--aws-red);">24 DPU</td>
+              <td><span class="changed">4 DPU</span></td>
+            </tr>
+            <tr>
+              <td><strong style="color: var(--aws-white);">最小予約時間</strong></td>
+              <td style="color: var(--aws-red);">60 分間</td>
+              <td><span class="changed">1 分間</span></td>
+            </tr>
+            <tr>
+              <td><strong style="color: var(--aws-white);">DPU 増減単位</strong></td>
+              <td>4 DPU</td>
+              <td><span class="unchanged">4 DPU (変更なし)</span></td>
+            </tr>
+            <tr>
+              <td><strong style="color: var(--aws-white);">長期コミットメント</strong></td>
+              <td>不要</td>
+              <td><span class="unchanged">不要 (変更なし)</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ===== 設定方法 ===== -->
+    <div class="section">
+      <h2>&#9881;&#65039; 設定方法</h2>
+      <p style="font-size: 14px; color: var(--aws-light-gray); margin-bottom: 8px;"><strong style="color: var(--aws-white);">前提条件:</strong></p>
+      <ul style="list-style: none; padding: 0; margin-bottom: 20px;">
+        <li style="padding: 4px 0; font-size: 14px;">&#10003; AWS アカウントがあること</li>
+        <li style="padding: 4px 0; font-size: 14px;">&#10003; Athena へのアクセス権限が設定されていること</li>
+        <li style="padding: 4px 0; font-size: 14px;">&#10003; クエリ対象のデータが Amazon S3 に保存されていること</li>
+      </ul>
+
+      <p style="font-size: 14px; color: var(--aws-orange); font-weight: 600; margin-bottom: 8px;">ステップ 1: Capacity Reservation の作成</p>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash</span>
+          <span class="code-title">最小 4 DPU でリザベーションを作成</span>
+        </div>
+        <pre><code class="language-bash">aws athena create-capacity-reservation \
+    --name my-reservation \
+    --target-dpus 4</code></pre>
+      </div>
+
+      <p style="font-size: 14px; color: var(--aws-orange); font-weight: 600; margin-bottom: 8px; margin-top: 20px;">ステップ 2: ワークグループのアタッチ</p>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash</span>
+          <span class="code-title">既存のワークグループをリザベーションにアタッチ</span>
+        </div>
+        <pre><code class="language-bash">aws athena update-workgroup \
+    --work-group my-workgroup \
+    --configuration-updates \
+    '{"AdditionalConfiguration": "{\"capacityReservation\": {\"capacityReservationName\": \"my-reservation\"}}"}'</code></pre>
+      </div>
+
+      <p style="font-size: 14px; color: var(--aws-orange); font-weight: 600; margin-bottom: 8px; margin-top: 20px;">ステップ 3: クエリの実行</p>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">SQL</span>
+          <span class="code-title">SQL の変更は不要。通常通りクエリを実行</span>
+        </div>
+        <pre><code class="language-sql">-- SQL クエリの変更は不要
+-- 通常通りクエリを実行
+SELECT *
+FROM my_database.my_table
+WHERE date = '2026-02-10'
+LIMIT 100;</code></pre>
+      </div>
+
+      <p style="font-size: 14px; color: var(--aws-orange); font-weight: 600; margin-bottom: 8px; margin-top: 20px;">ステップ 4: キャパシティの調整</p>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash</span>
+          <span class="code-title">需要に応じてキャパシティを動的に調整</span>
+        </div>
+        <pre><code class="language-bash">aws athena update-capacity-reservation \
+    --name my-reservation \
+    --target-dpus 16</code></pre>
+      </div>
+
+      <p style="font-size: 14px; color: var(--aws-orange); font-weight: 600; margin-bottom: 8px; margin-top: 20px;">ステップ 5: オートスケーリングの設定 (オプション)</p>
+      <p style="font-size: 14px; color: var(--aws-light-gray);">Athena コンソールのリザベーション詳細ページから <strong style="color: var(--aws-white);">[Set up autoscaling]</strong> をクリックすると、AWS CloudFormation テンプレートにより Step Functions ベースのオートスケーリングソリューションが自動的にセットアップされます。CloudWatch メトリクスに基づいてキャパシティが自動調整されます。</p>
+
+      <div class="flow-diagram" style="margin-top: 24px;">
+        <div class="flow-step">&#128230; リザベーション<br/>作成</div>
+        <span class="flow-arrow">&#8594;</span>
+        <div class="flow-step">&#128279; ワークグループ<br/>アタッチ</div>
+        <span class="flow-arrow">&#8594;</span>
+        <div class="flow-step">&#128269; クエリ実行<br/>(変更不要)</div>
+        <span class="flow-arrow">&#8594;</span>
+        <div class="flow-step">&#128200; キャパシティ<br/>調整</div>
+      </div>
+    </div>
+
+    <!-- ===== メリット ===== -->
+    <div class="section">
+      <h2>&#x2705; メリット</h2>
+      <div class="merit-grid">
+        <div class="merit-box business">
+          <h3>&#128188; ビジネス面</h3>
+          <ul class="merit-list">
+            <li>&#8594; <strong>大幅なコスト削減:</strong> 短時間のクエリワークロードで最大 95% のコスト削減が可能。必要な分だけ予約することで無駄を排除</li>
+            <li>&#8594; <strong>長期コミットメント不要:</strong> 必要な時に必要な分だけキャパシティを予約でき、ビジネスの変化に柔軟に対応可能</li>
+            <li>&#8594; <strong>ワークロードの優先順位付け:</strong> ミッションクリティカルなクエリに専用キャパシティを割り当て、ビジネス SLA を確保</li>
+          </ul>
+        </div>
+        <div class="merit-box technical">
+          <h3>&#128295; 技術面</h3>
+          <ul class="merit-list">
+            <li>&#8594; <strong>きめ細かいキャパシティ制御:</strong> 4 DPU 単位、1 分間の粒度でキャパシティを調整し、ワークロードパターンに正確にマッチ</li>
+            <li>&#8594; <strong>ワークロードの分離:</strong> 予約キャパシティは他のクエリから分離され、他のワークロードの影響を受けない</li>
+            <li>&#8594; <strong>コード変更不要:</strong> 既存の SQL クエリやアプリケーションコードの変更なしで利用可能</li>
+            <li>&#8594; <strong>オートスケーリング対応:</strong> Step Functions ベースのオートスケーリングにより手動調整の負担を軽減</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== デメリット・制約事項 ===== -->
+    <div class="section">
+      <h2>&#x26A0;&#xFE0F; デメリット・制約事項</h2>
+      <div class="caution-card">
+        <h3>&#128679; 制限事項</h3>
+        <ul class="caution-list">
+          <li>キャパシティリクエストは保証されておらず、完了までに最大 30 分かかる場合がある</li>
+          <li>DPU の増減は 4 DPU 単位でのみ可能</li>
+          <li>ワークグループレベルおよびクエリレベルの DPU 制御は 4 ~ 124 DPU の範囲に限定</li>
+        </ul>
+      </div>
+      <div class="caution-card">
+        <h3>&#128161; 考慮すべき点</h3>
+        <ul class="caution-list">
+          <li>予約キャパシティに対して課金されるため、利用率が低い場合はスキャンベースの料金モデルの方がコスト効率がよい場合がある</li>
+          <li>キャパシティ要件の見積もりには、ワークロードパターンの分析が必要</li>
+          <li>オートスケーリングソリューションは Step Functions や CloudWatch などの追加リソースを使用するため、それらの料金も考慮が必要</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- ===== ユースケース ===== -->
+    <div class="section">
+      <h2>&#128161; ユースケース</h2>
+
+      <div class="usecase-card">
+        <div class="usecase-title">&#128202; ユースケース 1: ダッシュボードワークロードの優先実行</div>
+        <div class="usecase-scenario"><strong style="color: var(--aws-white);">シナリオ:</strong> 毎朝のビジネスダッシュボード更新時にクエリが集中し、他の非対話的クエリとリソースが競合して遅延が発生していた。</div>
+        <div class="code-block" style="margin: 12px 0;">
+          <div class="code-header">
+            <span class="code-lang">Bash</span>
+            <span class="code-title">ピーク時間帯にキャパシティを確保し、終了後に削減</span>
+          </div>
+          <pre><code class="language-bash"># ピーク時間帯用のリザベーション作成
+aws athena create-capacity-reservation \
+    --name dashboard-peak \
+    --target-dpus 160
+
+# ピーク終了後にキャパシティを削減
+aws athena update-capacity-reservation \
+    --name dashboard-peak \
+    --target-dpus 16</code></pre>
+        </div>
+        <div class="usecase-effect">&#8594; ダッシュボードクエリが専用キャパシティで実行され、他のワークロードの影響を受けずに安定したレスポンスタイムを確保。1 分間の最小予約時間により、ピーク時間帯のみのキャパシティ確保が可能でコスト効率が大幅に向上。</div>
+      </div>
+
+      <div class="usecase-card">
+        <div class="usecase-title">&#9889; ユースケース 2: 短時間バッチクエリの最適化</div>
+        <div class="usecase-scenario"><strong style="color: var(--aws-white);">シナリオ:</strong> Apache Iceberg テーブルの更新や下流分析用のデータ準備など、数分間で完了するバッチクエリを定期的に実行している。</div>
+        <div class="code-block" style="margin: 12px 0;">
+          <div class="code-header">
+            <span class="code-lang">Bash</span>
+            <span class="code-title">小規模リザベーションでバッチ処理を実行</span>
+          </div>
+          <pre><code class="language-bash"># 小規模なリザベーションを作成
+aws athena create-capacity-reservation \
+    --name batch-processing \
+    --target-dpus 4
+
+# バッチ処理用ワークグループをアタッチ
+aws athena update-workgroup \
+    --work-group batch-workgroup \
+    --configuration-updates \
+    '{"AdditionalConfiguration": "{\"capacityReservation\": {\"capacityReservationName\": \"batch-processing\"}}"}'</code></pre>
+        </div>
+        <div class="usecase-effect">&#8594; 最小 4 DPU と 1 分間の予約時間により、短時間のバッチ処理を従来比最大 95% のコスト削減で実行。スキャンベースの料金モデルと比較して予測可能なコストを実現。</div>
+      </div>
+
+      <div class="usecase-card">
+        <div class="usecase-title">&#128200; ユースケース 3: 動的ワークロードへのオートスケーリング対応</div>
+        <div class="usecase-scenario"><strong style="color: var(--aws-white);">シナリオ:</strong> 日中の利用パターンが変動するビジネスインテリジェンスワークロードで、手動でのキャパシティ調整が運用負荷になっていた。</div>
+        <div class="usecase-effect" style="margin-top: 8px;">
+          <strong style="color: var(--aws-white);">実装手順:</strong><br/>
+          1. Athena コンソールでリザベーションを作成<br/>
+          2. リザベーション詳細ページから [Set up autoscaling] をクリック<br/>
+          3. CloudFormation テンプレートによりオートスケーリングリソースが自動デプロイ<br/>
+          4. CloudWatch メトリクスに基づいて DPU が自動調整<br/><br/>
+          &#8594; 需要の変動に応じてキャパシティが自動調整され、手動介入なしで安定したパフォーマンスとコスト最適化を実現。
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== 料金 ===== -->
+    <div class="section">
+      <h2>&#128179; 料金</h2>
+      <p style="font-size: 14px; color: var(--aws-light-gray); margin-bottom: 16px;">Capacity Reservations では、予約したキャパシティ (DPU) に対してのみ課金され、データスキャン料金は発生しません。</p>
+
+      <h3 style="color: var(--aws-white); font-size: 17px; margin-bottom: 12px;">料金モデル</h3>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>項目</th>
+              <th>料金</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong style="color: var(--aws-white);">DPU 時間あたり</strong></td>
+              <td><span class="pricing-highlight high">$0.30 USD</span></td>
+            </tr>
+            <tr>
+              <td><strong style="color: var(--aws-white);">データスキャン料金</strong></td>
+              <td><span class="changed">なし (予約キャパシティに含まれる)</span></td>
+            </tr>
+            <tr>
+              <td><strong style="color: var(--aws-white);">最小課金単位</strong></td>
+              <td><span class="changed">1 分間</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 style="color: var(--aws-white); font-size: 17px; margin: 24px 0 12px;">料金例</h3>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>シナリオ</th>
+              <th>DPU</th>
+              <th>時間</th>
+              <th>料金 (概算)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong style="color: var(--aws-white);">小規模バッチ処理</strong></td>
+              <td>4 DPU</td>
+              <td>5 分間</td>
+              <td><span class="pricing-highlight low">$0.10</span></td>
+            </tr>
+            <tr>
+              <td><strong style="color: var(--aws-white);">ダッシュボードピーク</strong></td>
+              <td>160 DPU</td>
+              <td>15 分間</td>
+              <td><span class="pricing-highlight mid">$12.00</span></td>
+            </tr>
+            <tr>
+              <td><strong style="color: var(--aws-white);">オフピーク</strong></td>
+              <td>16 DPU</td>
+              <td>45 分間</td>
+              <td><span class="pricing-highlight mid">$3.60</span></td>
+            </tr>
+            <tr>
+              <td><strong style="color: var(--aws-white);">1 時間の合計</strong></td>
+              <td>-</td>
+              <td>1 時間</td>
+              <td><span class="pricing-highlight high">$15.60</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p style="font-size: 13px; color: var(--aws-light-gray); margin-top: 12px;">詳細な料金情報は <a href="https://aws.amazon.com/athena/pricing/" target="_blank" rel="noopener noreferrer" style="color: var(--aws-teal); text-decoration: none;">Amazon Athena 料金ページ</a> を参照してください。</p>
+    </div>
+
+    <!-- ===== 利用可能リージョン ===== -->
+    <div class="section">
+      <h2>&#127758; 利用可能リージョン</h2>
+      <div class="region-badge">
+        &#127760; Capacity Reservations がサポートされているすべての AWS リージョンで利用可能
+      </div>
+    </div>
+
+    <!-- ===== 関連サービス ===== -->
+    <div class="section">
+      <h2>&#128279; 関連サービス・機能</h2>
+      <div class="related-service">
+        <div class="related-service-icon">&#128200;</div>
+        <div>
+          <div class="related-service-name"><a href="https://aws.amazon.com/about-aws/whats-new/2025/11/amazon-athena-capacity-auto-scaling/" target="_blank" rel="noopener noreferrer">Amazon Athena オートスケーリングソリューション</a></div>
+          <div class="related-service-desc">AWS Step Functions を使用した Capacity Reservations の自動スケーリング</div>
+        </div>
+      </div>
+      <div class="related-service">
+        <div class="related-service-icon">&#127899;&#65039;</div>
+        <div>
+          <div class="related-service-name"><a href="https://aws.amazon.com/about-aws/whats-new/2025/11/amazon-athena-capacity-reservation-controls/" target="_blank" rel="noopener noreferrer">Amazon Athena DPU コスト/パフォーマンス制御</a></div>
+          <div class="related-service-desc">ワークグループおよびクエリレベルでの DPU 使用量制御</div>
+        </div>
+      </div>
+      <div class="related-service">
+        <div class="related-service-icon">&#129683;</div>
+        <div>
+          <div class="related-service-name"><a href="https://aws.amazon.com/s3/" target="_blank" rel="noopener noreferrer">Amazon S3</a></div>
+          <div class="related-service-desc">Athena のデータソースとして使用されるオブジェクトストレージ</div>
+        </div>
+      </div>
+      <div class="related-service">
+        <div class="related-service-icon">&#9889;</div>
+        <div>
+          <div class="related-service-name"><a href="https://aws.amazon.com/step-functions/" target="_blank" rel="noopener noreferrer">AWS Step Functions</a></div>
+          <div class="related-service-desc">オートスケーリングソリューションのオーケストレーションに使用</div>
+        </div>
+      </div>
+      <div class="related-service">
+        <div class="related-service-icon">&#128202;</div>
+        <div>
+          <div class="related-service-name"><a href="https://aws.amazon.com/cloudwatch/" target="_blank" rel="noopener noreferrer">Amazon CloudWatch</a></div>
+          <div class="related-service-desc">キャパシティ利用率メトリクスのモニタリング</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== まとめ ===== -->
+    <div class="summary-box">
+      <h2>&#128221; まとめ</h2>
+      <p>
+        Amazon Athena の Capacity Reservations が <strong style="color: var(--aws-white);">1 分間の予約</strong>と最小 <strong style="color: var(--aws-white);">4 DPU</strong> をサポートしたことで、短時間のクエリワークロードに対して<strong style="color: var(--aws-orange);">最大 95% のコスト削減</strong>が可能になりました。従来の最小 24 DPU / 60 分間から大幅に引き下げられ、ワークロードパターンにきめ細かくマッチしたキャパシティ管理が実現します。長期コミットメントは不要で、既存の SQL クエリやアプリケーションコードの変更も必要ありません。オートスケーリングソリューションや DPU 制御機能と組み合わせることで、ミッションクリティカルなワークロードの安定したパフォーマンスとコスト最適化を両立できます。
+      </p>
+    </div>
+
+    <!-- ===== Footer ===== -->
+    <footer>
+      <p style="margin-bottom: 8px;"><strong style="color: var(--aws-orange);">&#128206; 参考リンク</strong></p>
+      <ul class="footer-links">
+        <li>&#128227; <a href="https://aws.amazon.com/about-aws/whats-new/2026/02/amazon-athena-one-minute-capacity-reservations/" target="_blank" rel="noopener noreferrer">公式発表 (What's New)</a></li>
+        <li>&#128221; <a href="https://aws.amazon.com/blogs/big-data/amazon-athena-adds-1-minute-reservations-and-new-capacity-control-features/" target="_blank" rel="noopener noreferrer">AWS Blog: Amazon Athena adds 1-minute reservations and new capacity control features</a></li>
+        <li>&#128214; <a href="https://docs.aws.amazon.com/athena/latest/ug/capacity-management-creating-capacity-reservations.html" target="_blank" rel="noopener noreferrer">ドキュメント: Create capacity reservations</a></li>
+        <li>&#128214; <a href="https://docs.aws.amazon.com/athena/latest/ug/capacity-management-automatically-adjust-capacity.html" target="_blank" rel="noopener noreferrer">ドキュメント: Automatically adjust capacity</a></li>
+        <li>&#128176; <a href="https://aws.amazon.com/athena/pricing/" target="_blank" rel="noopener noreferrer">Amazon Athena 料金ページ</a></li>
+      </ul>
+      <p style="margin-top: 12px; font-size: 11px; color: rgba(213, 219, 219, 0.5);">Generated from reports/2026/2026-02-10-amazon-athena-one-minute-capacity-reservations.md</p>
+    </footer>
+
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'base',
+      themeVariables: {
+        primaryColor: '#FF9900',
+        primaryTextColor: '#232F3E',
+        primaryBorderColor: '#FF9900',
+        lineColor: '#FF9900',
+        secondaryColor: '#F5F5F5',
+        tertiaryColor: '#FAFAFA',
+        background: '#FFFFFF',
+        mainBkg: '#FFF3E0',
+        nodeBorder: '#FF9900',
+        clusterBkg: '#FFF8E1',
+        clusterBorder: '#FF9900',
+        edgeLabelBackground: '#FFFFFF',
+        textColor: '#232F3E'
+      }
+    });
+  </script>
+  <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/highlight.min.js"></script>
+  <script>hljs.highlightAll();</script>
+</body>
+</html>

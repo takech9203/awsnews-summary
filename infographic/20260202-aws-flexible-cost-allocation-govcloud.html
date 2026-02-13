@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AWS Network Firewall - GovCloud での柔軟なコスト配分対応</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/styles/atom-one-dark.min.css">
+    <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/highlight.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'base',
+            themeVariables: {
+                primaryColor: '#FF9900',
+                primaryTextColor: '#232F3E',
+                primaryBorderColor: '#FF9900',
+                lineColor: '#FF9900',
+                secondaryColor: '#F5F5F5',
+                tertiaryColor: '#FAFAFA',
+                background: '#FFFFFF',
+                mainBkg: '#FFF3E0',
+                nodeBorder: '#FF9900',
+                clusterBkg: '#FFF8E1',
+                clusterBorder: '#FF9900',
+                edgeLabelBackground: '#FFFFFF',
+                textColor: '#232F3E'
+            }
+        });
+        document.addEventListener('DOMContentLoaded', function() { hljs.highlightAll(); });
+    </script>
+    <style>
+        :root {
+            --aws-squid-ink: #232F3E;
+            --aws-dark-squid: #1A242F;
+            --aws-orange: #FF9900;
+            --aws-smile-orange: #FFAD33;
+            --aws-white: #FFFFFF;
+            --aws-light-gray: #D5DBDB;
+            --aws-teal: #00A1C9;
+            --aws-purple: #8C4FFF;
+            --aws-green: #1D8102;
+            --aws-red: #D13212;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            background: var(--aws-squid-ink);
+            color: var(--aws-light-gray);
+            line-height: 1.8;
+            padding: 40px 20px;
+        }
+        .container { max-width: 1000px; margin: 0 auto; }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 40px 24px;
+            background: linear-gradient(135deg, var(--aws-dark-squid) 0%, var(--aws-squid-ink) 100%);
+            border-radius: 12px;
+            border: 3px solid var(--aws-orange);
+        }
+        .service-badge {
+            display: inline-block;
+            background: var(--aws-orange);
+            color: var(--aws-squid-ink);
+            padding: 8px 24px;
+            border-radius: 24px;
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        .service-badge + .service-badge { margin-left: 8px; }
+        .header h1 {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--aws-white);
+            margin-bottom: 12px;
+            line-height: 1.4;
+        }
+        .header .subtitle { font-size: 16px; color: var(--aws-light-gray); }
+        .release-date {
+            font-size: 14px;
+            color: var(--aws-orange);
+            margin-top: 16px;
+            font-weight: 600;
+        }
+
+        /* Sections */
+        .section {
+            background: var(--aws-dark-squid);
+            padding: 24px;
+            border-radius: 8px;
+            margin-bottom: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .section h2 {
+            font-size: 22px;
+            font-weight: 600;
+            color: var(--aws-orange);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .highlight {
+            background: rgba(255, 153, 0, 0.2);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+            color: var(--aws-orange);
+        }
+
+        /* Before/After Comparison */
+        .comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        @media (max-width: 768px) { .comparison { grid-template-columns: 1fr; } }
+        .comparison-card {
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 5px solid;
+        }
+        .comparison-card.before {
+            background: rgba(209, 50, 18, 0.15);
+            border-left-color: var(--aws-red);
+        }
+        .comparison-card.after {
+            background: rgba(29, 129, 2, 0.15);
+            border-left-color: var(--aws-green);
+        }
+        .comparison-card h4 { font-size: 16px; margin-bottom: 12px; font-weight: 600; }
+        .comparison-card.before h4 { color: var(--aws-red); }
+        .comparison-card.after h4 { color: var(--aws-green); }
+        .comparison-card ul { list-style: none; padding-left: 0; }
+        .comparison-card li {
+            margin-bottom: 8px;
+            padding-left: 20px;
+            position: relative;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        .comparison-card.before li::before { content: "\2715"; position: absolute; left: 0; color: var(--aws-red); font-weight: bold; }
+        .comparison-card.after li::before { content: "\2713"; position: absolute; left: 0; color: var(--aws-green); font-weight: bold; }
+
+        /* Mermaid */
+        .mermaid-container {
+            background: #FFFFFF;
+            border-radius: 12px;
+            padding: 24px;
+            margin: 20px 0;
+            border: 2px solid rgba(255, 153, 0, 0.3);
+            overflow-x: auto;
+        }
+        .mermaid {
+            display: flex;
+            justify-content: center;
+        }
+
+        /* Stats */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-top: 16px;
+        }
+        @media (max-width: 768px) { .stats-grid { grid-template-columns: 1fr; } }
+        .stats-card {
+            background: linear-gradient(135deg, var(--aws-orange) 0%, #FF6B00 100%);
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            color: var(--aws-white);
+        }
+        .stats-card .number { font-size: 36px; font-weight: bold; line-height: 1; }
+        .stats-card .label { font-size: 13px; margin-top: 8px; }
+
+        /* Feature Grid */
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            margin-top: 16px;
+        }
+        @media (max-width: 768px) { .feature-grid { grid-template-columns: 1fr; } }
+        .feature-card {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid var(--aws-orange);
+        }
+        .feature-card h4 {
+            color: var(--aws-orange);
+            font-size: 16px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .feature-card p { font-size: 14px; color: var(--aws-light-gray); }
+
+        /* Usecase */
+        .usecase {
+            background: linear-gradient(135deg, rgba(255, 153, 0, 0.15) 0%, rgba(255, 153, 0, 0.05) 100%);
+            padding: 20px;
+            border-radius: 8px;
+            border: 2px solid rgba(255, 153, 0, 0.3);
+            margin-bottom: 16px;
+        }
+        .usecase h3 { font-size: 18px; color: var(--aws-orange); margin-bottom: 8px; }
+        .usecase p { font-size: 15px; color: #EEEEEE; }
+        .usecase .usecase-meta { font-size: 13px; color: var(--aws-light-gray); margin-top: 8px; }
+
+        /* Spec Table */
+        .spec-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 16px;
+        }
+        .spec-table th,
+        .spec-table td {
+            text-align: left;
+            padding: 12px 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 14px;
+        }
+        .spec-table th {
+            color: var(--aws-orange);
+            font-weight: 600;
+            width: 35%;
+            background: rgba(255, 153, 0, 0.08);
+        }
+        .spec-table td {
+            color: var(--aws-light-gray);
+        }
+
+        /* Steps */
+        .step-list { margin-top: 16px; }
+        .step-item {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 20px;
+            align-items: flex-start;
+        }
+        .step-number {
+            background: var(--aws-orange);
+            color: var(--aws-squid-ink);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+        .step-content { flex: 1; }
+        .step-content h4 {
+            color: var(--aws-white);
+            font-size: 16px;
+            margin-bottom: 4px;
+        }
+        .step-content p { font-size: 14px; color: var(--aws-light-gray); }
+
+        /* Code Block */
+        .code-block {
+            background: #1a1a2e;
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 12px 0;
+        }
+        .code-header {
+            background: #16213e;
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+        }
+        .code-lang { color: var(--aws-orange); font-weight: bold; }
+        .code-title { color: var(--aws-light-gray); }
+        .code-block pre { margin: 0; padding: 0; overflow-x: auto; }
+        .code-block code {
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            padding: 16px !important;
+        }
+
+        /* Merits/Demerits */
+        .merit-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 16px;
+        }
+        @media (max-width: 768px) { .merit-grid { grid-template-columns: 1fr; } }
+        .merit-column h3 {
+            font-size: 18px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .merit-column h3.business { color: var(--aws-teal); }
+        .merit-column h3.tech { color: var(--aws-purple); }
+        .merit-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+        .merit-item .icon { flex-shrink: 0; font-size: 16px; }
+
+        /* Limitations */
+        .limitation-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 16px;
+        }
+        @media (max-width: 768px) { .limitation-grid { grid-template-columns: 1fr; } }
+        .limitation-card {
+            background: rgba(209, 50, 18, 0.08);
+            border: 1px solid rgba(209, 50, 18, 0.3);
+            border-radius: 8px;
+            padding: 20px;
+        }
+        .limitation-card h4 {
+            color: var(--aws-red);
+            font-size: 15px;
+            margin-bottom: 12px;
+        }
+        .limitation-card li {
+            font-size: 14px;
+            margin-bottom: 6px;
+            padding-left: 20px;
+            position: relative;
+            list-style: none;
+        }
+        .limitation-card li::before {
+            content: "!";
+            position: absolute;
+            left: 0;
+            color: var(--aws-red);
+            font-weight: bold;
+        }
+
+        /* Region Info */
+        .region-badges {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 12px;
+        }
+        .region-badge {
+            background: rgba(140, 79, 255, 0.15);
+            border: 1px solid rgba(140, 79, 255, 0.4);
+            color: var(--aws-purple);
+            padding: 8px 20px;
+            border-radius: 24px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        /* Related Services */
+        .related-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-top: 16px;
+        }
+        @media (max-width: 768px) { .related-grid { grid-template-columns: 1fr; } }
+        .related-card {
+            background: rgba(0, 161, 201, 0.1);
+            border: 1px solid rgba(0, 161, 201, 0.3);
+            border-radius: 8px;
+            padding: 16px;
+        }
+        .related-card h4 {
+            color: var(--aws-teal);
+            font-size: 15px;
+            margin-bottom: 4px;
+        }
+        .related-card p { font-size: 13px; color: var(--aws-light-gray); }
+
+        /* Links */
+        a { color: var(--aws-teal); text-decoration: none; }
+        a:hover { color: var(--aws-smile-orange); text-decoration: underline; }
+
+        /* Footer */
+        footer {
+            margin-top: 32px;
+            padding: 24px;
+            background: var(--aws-dark-squid);
+            border-radius: 8px;
+            border-top: 3px solid var(--aws-orange);
+        }
+        footer h3 { font-size: 18px; color: var(--aws-orange); margin-bottom: 16px; }
+        footer a {
+            display: block;
+            margin-bottom: 10px;
+            padding: 8px 12px;
+            background: rgba(255, 153, 0, 0.1);
+            border-radius: 6px;
+            word-break: break-all;
+        }
+        .footer-note {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid #333;
+            font-size: 12px;
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+
+        <!-- Header -->
+        <div class="header">
+            <div>
+                <span class="service-badge">AWS Network Firewall</span>
+                <span class="service-badge">AWS Transit Gateway</span>
+            </div>
+            <h1>💰 GovCloud での<br/>柔軟なコスト配分対応</h1>
+            <div class="subtitle">Flexible Cost Allocation -- 集中管理ファイアウォールのデータ処理コストを複数アカウントへ自動配分</div>
+            <div class="release-date">📅 リリース日: 2026 年 2 月 2 日</div>
+        </div>
+
+        <!-- Overview -->
+        <div class="section">
+            <h2>📊 概要</h2>
+            <p>AWS Network Firewall が AWS Transit Gateway のネイティブアタッチメントを通じて、<span class="highlight">AWS GovCloud (US) リージョン</span>でのコスト配分機能をサポートしました。この機能により、集中管理されたファイアウォールのデータ処理コストを<span class="highlight">複数の AWS アカウント間で自動的に配分</span>できるようになり、セキュリティと財務管理の効率化が実現されます。</p>
+            <p style="margin-top: 12px;">組織は、ファイアウォール所有者アカウントにコストを集約するのではなく、実際の使用量に基づいて各アプリケーションチームに利用料金を自動配分できるようになりました。</p>
+            <div class="comparison">
+                <div class="comparison-card before">
+                    <h4>⚠️ アップデート前の課題</h4>
+                    <ul>
+                        <li>集中管理されたファイアウォール費用がすべてファイアウォール所有者アカウントに集約される</li>
+                        <li>アプリケーションチーム別の利用コストの可視化が困難</li>
+                        <li>チャージバック (内部請求) の仕組みを手動で構築する必要があった</li>
+                        <li>スケール環境でのコスト管理が複雑だった</li>
+                    </ul>
+                </div>
+                <div class="comparison-card after">
+                    <h4>✨ アップデート後の改善</h4>
+                    <ul>
+                        <li>メーリングポリシーでデータ処理コストを自動的に複数アカウントに配分</li>
+                        <li>組織のチャージバック要件に基づいたコスト配分が可能</li>
+                        <li>セキュリティ統制を保ちながらコスト管理の分散化が実現</li>
+                        <li>カスタムコスト管理ソリューション開発が不要に</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Architecture Diagram (Mermaid) -->
+        <div class="section">
+            <h2>🏗️ アーキテクチャ図</h2>
+            <div class="mermaid-container">
+                <pre class="mermaid">
+flowchart TD
+    subgraph Security["セキュリティアカウント"]
+        NFW["🔒 AWS Network<br/>Firewall"]
+        TGW["🌐 Transit<br/>Gateway"]
+    end
+
+    subgraph AppTeams["アプリケーションアカウント"]
+        direction LR
+        App1["⚙️ App Team 1"]
+        App2["⚙️ App Team 2"]
+        App3["⚙️ App Team 3"]
+        App1 ~~~ App2 ~~~ App3
+    end
+
+    subgraph Billing["請求アカウント"]
+        CB1["💰 Cost<br/>Allocation<br/>Team 1"]
+        CB2["💰 Cost<br/>Allocation<br/>Team 2"]
+        CB3["💰 Cost<br/>Allocation<br/>Team 3"]
+    end
+
+    App1 -->|トラフィック検査| TGW
+    App2 -->|トラフィック検査| TGW
+    App3 -->|トラフィック検査| TGW
+    TGW -->|フィルタリング| NFW
+    NFW -->|メーリング<br/>ポリシー| CB1
+    NFW -->|メーリング<br/>ポリシー| CB2
+    NFW -->|メーリング<br/>ポリシー| CB3
+                </pre>
+            </div>
+            <p style="font-size: 14px; color: var(--aws-light-gray); margin-top: 8px;">メーリングポリシーにより、各アプリケーションチームの実際のトラフィック検査コストが自動配分されます。</p>
+        </div>
+
+        <!-- Key Features -->
+        <div class="section">
+            <h2>🔧 主要機能</h2>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h4>📋 メーリングポリシー</h4>
+                    <p>データ処理コストを複数アカウント間で自動配分。組織のチャージバック要件に基づいた柔軟な設定が可能。</p>
+                </div>
+                <div class="feature-card">
+                    <h4>🌐 Transit Gateway ネイティブアタッチメント対応</h4>
+                    <p>Transit Gateway を通じた集中管理ファイアウォール。複数アカウント間のコスト追跡を実現。</p>
+                </div>
+                <div class="feature-card">
+                    <h4>📊 使用量ベースのコスト配分</h4>
+                    <p>実際のデータ処理量に基づいたチャージバック。アプリケーションチームの利用コスト可視化。</p>
+                </div>
+                <div class="feature-card">
+                    <h4>🏛️ GovCloud 対応</h4>
+                    <p>AWS GovCloud (US-East) と AWS GovCloud (US-West) で利用可能。政府機関の要件に対応。</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Technical Specifications -->
+        <div class="section">
+            <h2>📐 技術仕様</h2>
+            <table class="spec-table">
+                <tr>
+                    <th>サービス</th>
+                    <td>AWS Network Firewall + Transit Gateway</td>
+                </tr>
+                <tr>
+                    <th>対応リージョン</th>
+                    <td>GovCloud (US-East)、GovCloud (US-West)</td>
+                </tr>
+                <tr>
+                    <th>配分方式</th>
+                    <td>メーリングポリシー</td>
+                </tr>
+                <tr>
+                    <th>課金ベース</th>
+                    <td>データ処理量 (実際の使用量)</td>
+                </tr>
+                <tr>
+                    <th>追加料金</th>
+                    <td>なし (通常の Network Firewall、Transit Gateway 料金のみ)</td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- Setup Guide -->
+        <div class="section">
+            <h2>⚙️ 設定方法</h2>
+            <p style="margin-bottom: 16px; font-size: 14px;">以下の前提条件が必要です。</p>
+            <div style="background: rgba(0,0,0,0.2); padding: 16px; border-radius: 8px; margin-bottom: 20px;">
+                <div class="merit-item"><span class="icon">1.</span><span>AWS GovCloud アカウントへのアクセス</span></div>
+                <div class="merit-item"><span class="icon">2.</span><span>AWS Network Firewall の構築済み環境</span></div>
+                <div class="merit-item"><span class="icon">3.</span><span>Transit Gateway の構築済み環境</span></div>
+                <div class="merit-item"><span class="icon">4.</span><span>Organization または複数アカウント管理の実装</span></div>
+            </div>
+
+            <div class="step-list">
+                <div class="step-item">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h4>Transit Gateway アタッチメント作成</h4>
+                        <p>AWS Management Console または CLI で Transit Gateway にネイティブアタッチメントを作成し、Network Firewall エンドポイントを接続します。</p>
+                        <div class="code-block">
+                            <div class="code-header">
+                                <span class="code-lang">Bash</span>
+                                <span class="code-title">Transit Gateway アタッチメント作成</span>
+                            </div>
+                            <pre><code class="language-bash"># Transit Gateway アタッチメント作成
+aws ec2 create-transit-gateway-attachment \
+    --transit-gateway-id tgw-xxxxx \
+    --resource-type network-interface \
+    --resource-id eni-xxxxx \
+    --region us-gov-east-1</code></pre>
+                        </div>
+                    </div>
+                </div>
+                <div class="step-item">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h4>メーリングポリシー設定</h4>
+                        <p>メーリングポリシーを有効化し、コスト配分を開始します。</p>
+                        <div class="code-block">
+                            <div class="code-header">
+                                <span class="code-lang">Bash</span>
+                                <span class="code-title">メーリングポリシーの作成と設定</span>
+                            </div>
+                            <pre><code class="language-bash"># メーリングポリシーの作成
+aws ec2 create-transit-gateway-route-table \
+    --transit-gateway-id tgw-xxxxx \
+    --region us-gov-east-1
+
+# メーリングポリシー属性の設定
+aws ec2 modify-transit-gateway-route-table-options \
+    --transit-gateway-route-table-id tgw-rtb-xxxxx \
+    --options MeteringPolicyState=enabled</code></pre>
+                        </div>
+                    </div>
+                </div>
+                <div class="step-item">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h4>アカウント別コスト追跡設定</h4>
+                        <p>AWS Cost Explorer または AWS Billing Console でコスト配分タグを設定し、各アカウントへの請求を確認します。</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Benefits -->
+        <div class="section">
+            <h2>✅ メリット</h2>
+            <div class="merit-grid">
+                <div class="merit-column">
+                    <h3 class="business">💼 ビジネス面</h3>
+                    <div class="merit-item">
+                        <span class="icon" style="color: var(--aws-green);">&#10003;</span>
+                        <span><strong>コスト可視化</strong>: アプリケーションチーム別の利用コストが明確に</span>
+                    </div>
+                    <div class="merit-item">
+                        <span class="icon" style="color: var(--aws-green);">&#10003;</span>
+                        <span><strong>チャージバック効率化</strong>: 自動配分で財務管理業務が削減</span>
+                    </div>
+                    <div class="merit-item">
+                        <span class="icon" style="color: var(--aws-green);">&#10003;</span>
+                        <span><strong>予算管理</strong>: 部門別の予算計画と実績管理が容易</span>
+                    </div>
+                </div>
+                <div class="merit-column">
+                    <h3 class="tech">🔧 技術面</h3>
+                    <div class="merit-item">
+                        <span class="icon" style="color: var(--aws-green);">&#10003;</span>
+                        <span><strong>スケーラビリティ</strong>: 多数のアカウントで統制されたコスト管理</span>
+                    </div>
+                    <div class="merit-item">
+                        <span class="icon" style="color: var(--aws-green);">&#10003;</span>
+                        <span><strong>自動化</strong>: 手動のコスト計算やチャージバックが不要</span>
+                    </div>
+                    <div class="merit-item">
+                        <span class="icon" style="color: var(--aws-green);">&#10003;</span>
+                        <span><strong>セキュリティ維持</strong>: 集中管理ファイアウォールのセキュリティ統制を保持</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Limitations -->
+        <div class="section">
+            <h2>⚠️ デメリット・制約事項</h2>
+            <div class="limitation-grid">
+                <div class="limitation-card">
+                    <h4>🚧 制限事項</h4>
+                    <ul style="padding-left: 0;">
+                        <li>GovCloud リージョンのみの利用可能 (現在)</li>
+                        <li>Transit Gateway ネイティブアタッチメントが必須</li>
+                        <li>メーリングポリシーの詳細設定には運用経験が必要</li>
+                    </ul>
+                </div>
+                <div class="limitation-card">
+                    <h4>💡 考慮すべき点</h4>
+                    <ul style="padding-left: 0;">
+                        <li>複数アカウント管理体制の構築が前提</li>
+                        <li>メーリングポリシー設定の検証が重要</li>
+                        <li>配分結果の監視と調整が必要な場合がある</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Use Cases -->
+        <div class="section">
+            <h2>💡 ユースケース</h2>
+            <div class="usecase">
+                <h3>🏢 ユースケース 1: 部門別チャージバック</h3>
+                <p><strong>シナリオ</strong>: 複数の事業部がそれぞれアカウントを持ち、集中管理ファイアウォール経由でインターネット接続をしている</p>
+                <p class="usecase-meta"><strong>実装例</strong>: メーリングポリシーを設定し、各事業部アカウントのトラフィック量に基づいてコストを配分</p>
+                <p class="usecase-meta"><strong>効果</strong>: 各事業部に対して利用量ベースの正確なチャージバック請求が可能</p>
+            </div>
+            <div class="usecase">
+                <h3>🏛️ ユースケース 2: クラウド利用コストの可視化</h3>
+                <p><strong>シナリオ</strong>: GovCloud でのセキュリティコストの透明性を求める政府機関</p>
+                <p class="usecase-meta"><strong>実装例</strong>: 複数アカウント間でのコスト配分ポリシーを設定し、部門別コスト追跡</p>
+                <p class="usecase-meta"><strong>効果</strong>: セキュリティ投資対効果の可視化</p>
+            </div>
+            <div class="usecase">
+                <h3>📈 ユースケース 3: 成長段階でのコスト管理</h3>
+                <p><strong>シナリオ</strong>: 新しいアプリケーションチームが増加し、ファイアウォール経由のトラフィックが増加している</p>
+                <p class="usecase-meta"><strong>実装例</strong>: メーリングポリシーで新チームの利用コストを自動配分</p>
+                <p class="usecase-meta"><strong>効果</strong>: スケール時のコスト管理が自動化される</p>
+            </div>
+        </div>
+
+        <!-- Pricing -->
+        <div class="section">
+            <h2>💲 料金</h2>
+            <div class="stats-grid">
+                <div class="stats-card">
+                    <div class="number">$0</div>
+                    <div class="label">Flexible Cost Allocation<br/>追加料金</div>
+                </div>
+                <div class="stats-card" style="background: linear-gradient(135deg, var(--aws-teal) 0%, #0077B6 100%);">
+                    <div class="number" style="font-size: 20px;">標準料金</div>
+                    <div class="label">Network Firewall 料金のみ</div>
+                </div>
+                <div class="stats-card" style="background: linear-gradient(135deg, var(--aws-purple) 0%, #6A3DB8 100%);">
+                    <div class="number" style="font-size: 20px;">標準料金</div>
+                    <div class="label">Transit Gateway 料金のみ</div>
+                </div>
+            </div>
+            <p style="margin-top: 16px; font-size: 14px;">Flexible Cost Allocation 機能自体に追加料金はかかりません。AWS Network Firewall と AWS Transit Gateway の標準料金のみで利用可能です。</p>
+        </div>
+
+        <!-- Available Regions -->
+        <div class="section">
+            <h2>🌏 利用可能リージョン</h2>
+            <p>現在、以下の GovCloud リージョンでのみ利用可能です。他の商用リージョンへの対応は現在のところ発表されていません。</p>
+            <div class="region-badges">
+                <span class="region-badge">🇺🇸 GovCloud (US-East)</span>
+                <span class="region-badge">🇺🇸 GovCloud (US-West)</span>
+            </div>
+        </div>
+
+        <!-- Related Services -->
+        <div class="section">
+            <h2>🔗 関連サービス・機能</h2>
+            <div class="related-grid">
+                <div class="related-card">
+                    <h4>🌐 AWS Transit Gateway</h4>
+                    <p>複数アカウント / VPC の統合管理</p>
+                </div>
+                <div class="related-card">
+                    <h4>🔒 AWS Network Firewall</h4>
+                    <p>集中管理ファイアウォール</p>
+                </div>
+                <div class="related-card">
+                    <h4>📊 AWS Cost Explorer</h4>
+                    <p>コスト分析と可視化</p>
+                </div>
+                <div class="related-card">
+                    <h4>💳 AWS Billing</h4>
+                    <p>チャージバック管理</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer>
+            <h3>📎 出典・参考リンク</h3>
+            <a href="https://aws.amazon.com/about-aws/whats-new/2026/01/aws-flexible-cost-allocation-govcloud/" target="_blank" rel="noopener noreferrer">🔗 公式発表 (What's New)</a>
+            <a href="https://docs.aws.amazon.com/vpc/latest/tgw/metering-policy.html" target="_blank" rel="noopener noreferrer">📖 ドキュメント - Metering Policy</a>
+            <a href="https://aws.amazon.com/network-firewall/pricing/" target="_blank" rel="noopener noreferrer">💰 AWS Network Firewall 料金</a>
+            <a href="https://aws.amazon.com/transit-gateway/pricing/" target="_blank" rel="noopener noreferrer">💰 AWS Transit Gateway 料金</a>
+            <p class="footer-note">🤖 Generated with Kiro | 📅 2026-02-13</p>
+        </footer>
+    </div>
+</body>
+</html>

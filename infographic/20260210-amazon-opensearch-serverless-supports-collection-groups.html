@@ -1,0 +1,1144 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Amazon OpenSearch Serverless - コレクショングループのサポート</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/styles/atom-one-dark.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap');
+
+    :root {
+      --aws-squid-ink: #232F3E;
+      --aws-dark-squid: #1A242F;
+      --aws-orange: #FF9900;
+      --aws-smile-orange: #FFAD33;
+      --aws-white: #FFFFFF;
+      --aws-light-gray: #D5DBDB;
+      --aws-teal: #00A1C9;
+      --aws-purple: #8C4FFF;
+      --aws-green: #1D8102;
+      --aws-red: #D13212;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--aws-squid-ink);
+      font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+      color: var(--aws-light-gray);
+      font-size: 16px;
+      line-height: 1.6;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    /* ===== Header ===== */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 32px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .header-left { flex: 1; }
+
+    .service-badge {
+      display: inline-block;
+      background: var(--aws-orange);
+      color: var(--aws-squid-ink);
+      font-size: 13px;
+      font-weight: 700;
+      padding: 4px 14px;
+      border-radius: 20px;
+      margin-bottom: 12px;
+      letter-spacing: 0.5px;
+    }
+
+    h1 {
+      font-size: 36px;
+      font-weight: 700;
+      color: var(--aws-white);
+      line-height: 1.3;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      font-size: 16px;
+      color: var(--aws-light-gray);
+    }
+
+    .header-right {
+      text-align: right;
+      font-size: 14px;
+      color: var(--aws-light-gray);
+      flex-shrink: 0;
+    }
+
+    .date-label {
+      color: var(--aws-orange);
+      font-weight: 600;
+    }
+
+    /* ===== Sections ===== */
+    h2 {
+      font-size: 24px;
+      font-weight: 600;
+      color: var(--aws-orange);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .section {
+      background: var(--aws-dark-squid);
+      border-radius: 8px;
+      padding: 24px;
+      margin-bottom: 24px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .highlight {
+      background-color: rgba(255, 153, 0, 0.2);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 600;
+      color: var(--aws-orange);
+    }
+
+    /* ===== Overview Text ===== */
+    .overview-text {
+      font-size: 16px;
+      color: var(--aws-light-gray);
+      line-height: 1.8;
+      margin-bottom: 20px;
+    }
+
+    /* ===== Before/After ===== */
+    .before-after {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-top: 16px;
+    }
+
+    @media (max-width: 640px) {
+      .before-after { grid-template-columns: 1fr; }
+    }
+
+    .before-card, .after-card {
+      border-radius: 8px;
+      padding: 20px;
+    }
+
+    .before-card {
+      background: rgba(209, 50, 18, 0.1);
+      border: 1px solid rgba(209, 50, 18, 0.3);
+    }
+
+    .after-card {
+      background: rgba(29, 129, 2, 0.1);
+      border: 1px solid rgba(29, 129, 2, 0.3);
+    }
+
+    .ba-label {
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .before-card .ba-label { color: var(--aws-red); }
+    .after-card .ba-label { color: var(--aws-green); }
+
+    .ba-list {
+      list-style: none;
+      padding: 0;
+    }
+
+    .ba-list li {
+      padding: 6px 0;
+      font-size: 14px;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .ba-list li::before { flex-shrink: 0; }
+    .before-card .ba-list li::before { content: "\2717"; color: var(--aws-red); font-weight: bold; }
+    .after-card .ba-list li::before { content: "\2713"; color: var(--aws-green); font-weight: bold; }
+
+    /* ===== Stats Cards ===== */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    @media (max-width: 640px) {
+      .stats-grid { grid-template-columns: 1fr; }
+    }
+
+    .stat-card {
+      background: linear-gradient(135deg, rgba(255, 153, 0, 0.15), rgba(140, 79, 255, 0.1));
+      border: 1px solid rgba(255, 153, 0, 0.3);
+      border-radius: 8px;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .stat-number {
+      font-size: 36px;
+      font-weight: 700;
+      color: var(--aws-orange);
+      line-height: 1.2;
+    }
+
+    .stat-label {
+      font-size: 13px;
+      color: var(--aws-light-gray);
+      margin-top: 4px;
+    }
+
+    /* ===== Feature Cards ===== */
+    .feature-card {
+      background: var(--aws-dark-squid);
+      border-radius: 8px;
+      padding: 24px;
+      margin-bottom: 16px;
+      border-left: 4px solid var(--aws-orange);
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      border-right: 1px solid rgba(255, 255, 255, 0.08);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .feature-card.teal { border-left-color: var(--aws-teal); }
+    .feature-card.green { border-left-color: var(--aws-green); }
+
+    .feature-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--aws-white);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .feature-desc {
+      font-size: 14px;
+      color: var(--aws-light-gray);
+      line-height: 1.7;
+    }
+
+    .feature-desc li {
+      padding: 4px 0;
+    }
+
+    /* ===== Table ===== */
+    .table-wrapper {
+      overflow-x: auto;
+      margin: 16px 0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    th {
+      background: rgba(255, 153, 0, 0.15);
+      color: var(--aws-orange);
+      font-weight: 600;
+      padding: 12px 16px;
+      text-align: left;
+      border-bottom: 2px solid rgba(255, 153, 0, 0.3);
+      white-space: nowrap;
+    }
+
+    td {
+      padding: 10px 16px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      color: var(--aws-light-gray);
+    }
+
+    tr:hover td {
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    /* ===== Use Case Cards ===== */
+    .usecase-card {
+      background: linear-gradient(135deg, rgba(255, 153, 0, 0.08), rgba(255, 153, 0, 0.03));
+      border: 1px solid rgba(255, 153, 0, 0.2);
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+
+    .usecase-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--aws-white);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .usecase-scenario {
+      font-size: 14px;
+      color: var(--aws-light-gray);
+      margin-bottom: 8px;
+    }
+
+    .usecase-effect {
+      font-size: 14px;
+      color: var(--aws-smile-orange);
+      font-weight: 500;
+    }
+
+    /* ===== Merits ===== */
+    .merit-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    @media (max-width: 640px) {
+      .merit-grid { grid-template-columns: 1fr; }
+    }
+
+    .merit-box {
+      border-radius: 8px;
+      padding: 20px;
+    }
+
+    .merit-box.business {
+      background: rgba(255, 153, 0, 0.08);
+      border: 1px solid rgba(255, 153, 0, 0.2);
+    }
+
+    .merit-box.technical {
+      background: rgba(0, 161, 201, 0.08);
+      border: 1px solid rgba(0, 161, 201, 0.2);
+    }
+
+    .merit-box h3 {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+
+    .merit-box.business h3 { color: var(--aws-orange); }
+    .merit-box.technical h3 { color: var(--aws-teal); }
+
+    .merit-list {
+      list-style: none;
+      padding: 0;
+    }
+
+    .merit-list li {
+      padding: 6px 0;
+      font-size: 14px;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .merit-list li strong {
+      color: var(--aws-white);
+    }
+
+    /* ===== Caution ===== */
+    .caution-card {
+      background: rgba(209, 50, 18, 0.06);
+      border: 1px solid rgba(209, 50, 18, 0.2);
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+
+    .caution-card h3 {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--aws-red);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .caution-list {
+      list-style: none;
+      padding: 0;
+    }
+
+    .caution-list li {
+      padding: 5px 0;
+      font-size: 14px;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      color: var(--aws-light-gray);
+    }
+
+    .caution-list li::before {
+      content: "\26A0";
+      flex-shrink: 0;
+    }
+
+    /* ===== Code Block ===== */
+    .code-block {
+      background: #1a1a2e;
+      border-radius: 8px;
+      overflow: hidden;
+      margin: 16px 0;
+    }
+
+    .code-header {
+      background: #16213e;
+      padding: 8px 16px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+    }
+
+    .code-lang {
+      color: var(--aws-orange);
+      font-weight: bold;
+    }
+
+    .code-title {
+      color: var(--aws-light-gray);
+    }
+
+    .code-block pre {
+      margin: 0;
+      padding: 0;
+      overflow-x: auto;
+    }
+
+    .code-block code {
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      line-height: 1.5;
+      padding: 16px !important;
+    }
+
+    /* ===== Flow Diagram ===== */
+    .flow-diagram {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin: 24px 0;
+    }
+
+    .flow-step {
+      background: var(--aws-dark-squid);
+      border: 2px solid var(--aws-orange);
+      border-radius: 8px;
+      padding: 12px 20px;
+      text-align: center;
+      min-width: 120px;
+      color: var(--aws-white);
+      font-size: 14px;
+    }
+
+    .flow-arrow {
+      color: var(--aws-orange);
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    /* ===== Mermaid ===== */
+    .mermaid-container {
+      background: #FFFFFF;
+      border-radius: 12px;
+      padding: 24px;
+      margin: 20px 0;
+      border: 2px solid rgba(255, 153, 0, 0.3);
+      overflow-x: auto;
+    }
+
+    .mermaid {
+      display: flex;
+      justify-content: center;
+    }
+
+    /* ===== Region Badge ===== */
+    .region-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(0, 161, 201, 0.1);
+      border: 1px solid rgba(0, 161, 201, 0.3);
+      border-radius: 8px;
+      padding: 12px 20px;
+      font-size: 15px;
+      color: var(--aws-teal);
+      font-weight: 500;
+    }
+
+    /* ===== Related Services ===== */
+    .related-service {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .related-service:last-child { border-bottom: none; }
+
+    .related-service-icon {
+      font-size: 24px;
+      flex-shrink: 0;
+    }
+
+    .related-service-name {
+      font-weight: 600;
+      color: var(--aws-white);
+      font-size: 15px;
+    }
+
+    .related-service-desc {
+      font-size: 13px;
+      color: var(--aws-light-gray);
+    }
+
+    /* ===== Summary Box ===== */
+    .summary-box {
+      background: linear-gradient(135deg, rgba(255, 153, 0, 0.12), rgba(140, 79, 255, 0.08));
+      border: 2px solid rgba(255, 153, 0, 0.3);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+
+    .summary-box p {
+      font-size: 15px;
+      line-height: 1.8;
+      color: var(--aws-light-gray);
+    }
+
+    /* ===== Pricing ===== */
+    .pricing-note {
+      font-size: 14px;
+      color: var(--aws-light-gray);
+      line-height: 1.7;
+      margin-top: 12px;
+    }
+
+    /* ===== Footer ===== */
+    footer {
+      margin-top: 24px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(255, 255, 255, 0.2);
+      font-size: 12px;
+      color: var(--aws-light-gray);
+    }
+
+    footer a {
+      color: var(--aws-teal);
+      text-decoration: none;
+      word-break: break-all;
+    }
+
+    footer a:hover { color: var(--aws-smile-orange); }
+
+    .footer-links {
+      list-style: none;
+      padding: 0;
+    }
+
+    .footer-links li {
+      padding: 3px 0;
+    }
+
+    @media (max-width: 640px) {
+      h1 { font-size: 26px; }
+      .header { flex-direction: column; }
+      .header-right { text-align: left; }
+      .stats-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <!-- ===== Header ===== -->
+    <div class="header">
+      <div class="header-left">
+        <div class="service-badge">Amazon OpenSearch Serverless</div>
+        <h1>📁 コレクショングループのサポート</h1>
+        <div class="subtitle">異なる KMS キーを持つコレクション間で OCU を共有し、コスト削減とパフォーマンス安定化を実現</div>
+      </div>
+      <div class="header-right">
+        <div><span class="date-label">📅 リリース日:</span> 2026 年 2 月 10 日</div>
+      </div>
+    </div>
+
+    <!-- ===== Stats ===== -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-number">1,700</div>
+        <div class="stat-label">アカウントあたり最大 OCU 合計</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">0</div>
+        <div class="stat-label">コレクショングループ追加料金</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">96 OCU</div>
+        <div class="stat-label">デフォルト最大 OCU</div>
+      </div>
+    </div>
+
+    <!-- ===== 概要 ===== -->
+    <div class="section">
+      <h2>📋 概要</h2>
+      <p class="overview-text">
+        Amazon OpenSearch Serverless に<span class="highlight">コレクショングループ</span>機能が追加されました。コレクショングループを使用すると、異なる <strong style="color: var(--aws-white);">AWS KMS キー</strong>を持つ複数のコレクション間で <strong style="color: var(--aws-white);">OpenSearch Compute Units (OCUs)</strong> を共有でき、コレクションごとに個別の OCU を割り当てる必要がなくなります。
+      </p>
+      <p class="overview-text">
+        さらに、最小 OCU と最大 OCU の制限を設定できるため、起動時からベースラインキャパシティを確保し、<span class="highlight">コールドスタートの遅延を排除</span>しつつ、コストを制御できます。
+      </p>
+
+      <!-- Before/After -->
+      <div class="before-after">
+        <div class="before-card">
+          <div class="ba-label">❌ Before</div>
+          <ul class="ba-list">
+            <li>異なる KMS キーを使用するコレクションは個別の OCU を必要とし、コストが増大</li>
+            <li>マルチテナントで KMS キーを分離すると OCU コストが大幅に増加</li>
+            <li>コレクション起動時にコールドスタートが発生し、パフォーマンスが不安定</li>
+            <li>コンピュートキャパシティの最小値を事前に確保する手段がなかった</li>
+          </ul>
+        </div>
+        <div class="after-card">
+          <div class="ba-label">✅ After</div>
+          <ul class="ba-list">
+            <li>異なる KMS キーを持つコレクション間で OCU を共有し、全体コストを削減</li>
+            <li>コレクショングループレベルで最小・最大 OCU 制限を設定可能</li>
+            <li>最小 OCU によりベースラインキャパシティを事前確保し、コールドスタートを排除</li>
+            <li>コレクションレベルのアクセス制御を維持しながらリソース効率を最適化</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== アーキテクチャ図 ===== -->
+    <div class="section">
+      <h2>🏗️ アーキテクチャ図</h2>
+      <div class="mermaid-container">
+        <pre class="mermaid">
+flowchart TD
+    subgraph Before["⚠️ 従来のアーキテクチャ"]
+        direction TB
+        subgraph K1_Before["🔑 KMS キー A"]
+            C1B["📦 コレクション 1<br/>専用 OCU"]
+        end
+        subgraph K2_Before["🔑 KMS キー B"]
+            C2B["📦 コレクション 2<br/>専用 OCU"]
+        end
+        subgraph K3_Before["🔑 KMS キー C"]
+            C3B["📦 コレクション 3<br/>専用 OCU"]
+        end
+    end
+
+    subgraph After["✅ コレクショングループ"]
+        direction TB
+        subgraph CG["📁 コレクショングループ<br/>共有 OCU プール"]
+            C1A["📦 コレクション 1<br/>🔑 KMS キー A"]
+            C2A["📦 コレクション 2<br/>🔑 KMS キー B"]
+            C3A["📦 コレクション 3<br/>🔑 KMS キー C"]
+        end
+        subgraph Limits["⚙️ キャパシティ制限"]
+            Min["最小 OCU: ベースライン確保"]
+            Max["最大 OCU: コスト制御"]
+        end
+        CG --> Limits
+    end
+
+    Before ~~~ After
+
+    classDef container fill:none,stroke:#CCCCCC,stroke-width:2px,color:#666666
+    classDef key fill:#FFF3E0,stroke:#FF9800,stroke-width:2px,color:#5D4037
+    classDef collection fill:#E3F2FD,stroke:#BBDEFB,stroke-width:2px,color:#1565C0
+    classDef group fill:#DCEDC8,stroke:#C5E1A5,stroke-width:2px,color:#33691E
+    classDef limit fill:#E8EAF6,stroke:#C5CAE9,stroke-width:2px,color:#283593
+
+    class Before,After container
+    class K1_Before,K2_Before,K3_Before key
+    class C1B,C2B,C3B,C1A,C2A,C3A collection
+    class CG group
+    class Limits,Min,Max limit
+        </pre>
+      </div>
+      <p style="font-size: 14px; color: var(--aws-light-gray); margin-top: 12px;">
+        従来は KMS キーごとに個別の OCU が必要でしたが、コレクショングループにより異なる KMS キーを持つコレクション間で OCU を共有し、キャパシティ制限で最小・最大値を制御できるようになりました。
+      </p>
+    </div>
+
+    <!-- ===== 主要機能 ===== -->
+    <div class="section">
+      <h2>🚀 主要機能</h2>
+
+      <div class="feature-card">
+        <div class="feature-title">🔑 異なる KMS キー間での OCU 共有</div>
+        <div class="feature-desc">
+          <ul style="list-style: none; padding: 0;">
+            <li style="padding: 4px 0;">→ 同じコレクショングループ内のコレクションは、異なる KMS キーを使用していても OCU とメモリ空間を共有</li>
+            <li style="padding: 4px 0;">→ 各コレクションのデータは指定された KMS キーで暗号化されたまま維持</li>
+            <li style="padding: 4px 0;">→ コレクションレベルのアクセス制御は引き続き適用</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="feature-card teal">
+        <div class="feature-title">⚙️ 最小・最大 OCU 制限の設定</div>
+        <div class="feature-desc">
+          <ul style="list-style: none; padding: 0;">
+            <li style="padding: 4px 0;">→ インデックス作成と検索の両方に対して、最小・最大 OCU を個別に設定可能</li>
+            <li style="padding: 4px 0;">→ 最小 OCU によりベースラインパフォーマンスを保証</li>
+            <li style="padding: 4px 0;">→ 最大 OCU によりコストの上限を制御</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="feature-card green">
+        <div class="feature-title">⚡ コールドスタートの排除</div>
+        <div class="feature-desc">
+          <ul style="list-style: none; padding: 0;">
+            <li style="padding: 4px 0;">→ 最小 OCU を設定することで、コンピュートキャパシティを起動時から事前にプロビジョニング</li>
+            <li style="padding: 4px 0;">→ ワークロードが最小値を下回っても、設定した最小 OCU が維持される</li>
+            <li style="padding: 4px 0;">→ 予測可能なパフォーマンスを実現</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== 技術仕様 ===== -->
+    <div class="section">
+      <h2>📊 技術仕様</h2>
+
+      <h3 style="font-size: 16px; font-weight: 600; color: var(--aws-white); margin-bottom: 12px;">コレクショングループのキャパシティ制限</h3>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>パラメータ</th>
+              <th>説明</th>
+              <th>タイプ</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code style="color: var(--aws-teal);">maxIndexingCapacityInOCU</code></td>
+              <td>グループ内コレクションの最大インデックス作成 OCU</td>
+              <td>Float (最小値: 1)</td>
+            </tr>
+            <tr>
+              <td><code style="color: var(--aws-teal);">maxSearchCapacityInOCU</code></td>
+              <td>グループ内コレクションの最大検索 OCU</td>
+              <td>Float (最小値: 1)</td>
+            </tr>
+            <tr>
+              <td><code style="color: var(--aws-teal);">minIndexingCapacityInOCU</code></td>
+              <td>グループ内コレクションの最小インデックス作成 OCU</td>
+              <td>Float (最小値: 1)</td>
+            </tr>
+            <tr>
+              <td><code style="color: var(--aws-teal);">minSearchCapacityInOCU</code></td>
+              <td>グループ内コレクションの最小検索 OCU</td>
+              <td>Float (最小値: 1)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 style="font-size: 16px; font-weight: 600; color: var(--aws-white); margin-top: 24px; margin-bottom: 12px;">有効な OCU 値</h3>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>設定項目</th>
+              <th>有効値</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>OCU 制限値</td>
+              <td>1, 2, 4, 8, 16、および 16 の倍数 (32, 48, 64, 80, 96 など)</td>
+            </tr>
+            <tr>
+              <td>デフォルト最大 OCU</td>
+              <td><span class="highlight">96 OCU</span> (未指定の場合)</td>
+            </tr>
+            <tr>
+              <td>アカウントあたりの最大 OCU 合計</td>
+              <td><span class="highlight">1,700 OCU</span> (アカウントレベル + 全コレクショングループの合計)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 style="font-size: 16px; font-weight: 600; color: var(--aws-white); margin-top: 24px; margin-bottom: 12px;">キャパシティ制限の動作</h3>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>条件</th>
+              <th>動作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>ワークロードが最小 OCU を下回る</td>
+              <td>最小 OCU を維持 (課金は最小 OCU 分)</td>
+            </tr>
+            <tr>
+              <td>ワークロードが最小 OCU を上回る</td>
+              <td>ワークロードに応じた OCU まで自動スケーリング</td>
+            </tr>
+            <tr>
+              <td>ワークロードが最大 OCU に到達</td>
+              <td>最大 OCU を超えるスケーリングを拒否</td>
+            </tr>
+            <tr>
+              <td>コレクショングループが空</td>
+              <td>OCU を消費せず、キャパシティ制限を適用しない</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 style="font-size: 16px; font-weight: 600; color: var(--aws-white); margin-top: 24px; margin-bottom: 12px;">CloudWatch メトリクス</h3>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>メトリクス</th>
+              <th>説明</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code style="color: var(--aws-teal);">IndexingOCU</code></td>
+              <td>コレクショングループで使用中のインデックス作成 OCU 数</td>
+            </tr>
+            <tr>
+              <td><code style="color: var(--aws-teal);">SearchOCU</code></td>
+              <td>コレクショングループで使用中の検索 OCU 数</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p style="font-size: 13px; color: var(--aws-light-gray); margin-top: 8px;">※ メトリクスは 1 分間隔で発行されます。</p>
+    </div>
+
+    <!-- ===== 設定方法 ===== -->
+    <div class="section">
+      <h2>⚙️ 設定方法</h2>
+      <p style="font-size: 14px; color: var(--aws-light-gray); margin-bottom: 8px;"><strong style="color: var(--aws-white);">前提条件:</strong></p>
+      <ul style="list-style: none; padding: 0; margin-bottom: 20px;">
+        <li style="padding: 4px 0; font-size: 14px;">✓ AWS アカウントと適切な IAM 権限</li>
+        <li style="padding: 4px 0; font-size: 14px;">✓ Amazon OpenSearch Serverless が利用可能なリージョン</li>
+        <li style="padding: 4px 0; font-size: 14px;">✓ AWS CLI v2 がインストール済み (CLI を使用する場合)</li>
+      </ul>
+
+      <p style="font-size: 14px; color: var(--aws-orange); font-weight: 600; margin-bottom: 8px;">ステップ 1: コレクショングループの作成</p>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash</span>
+          <span class="code-title">コレクショングループを作成</span>
+        </div>
+        <pre><code class="language-bash">aws opensearchserverless create-collection-group \
+    --name my-collection-group \
+    --description "Collection group for production workloads" \
+    --capacity-limits maxIndexingCapacityInOCU=32,maxSearchCapacityInOCU=32,minIndexingCapacityInOCU=4,minSearchCapacityInOCU=4 \
+    --tags key=Environment,value=Production key=Team,value=DataEngineering</code></pre>
+      </div>
+      <p style="font-size: 13px; color: var(--aws-light-gray); margin-bottom: 20px;">名前は 3-32 文字で、小文字のアルファベットで始まり、小文字・数字・ハイフンのみ使用できます。</p>
+
+      <p style="font-size: 14px; color: var(--aws-orange); font-weight: 600; margin-bottom: 8px;">ステップ 2: コレクションをコレクショングループに追加</p>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash</span>
+          <span class="code-title">コレクションを作成して追加</span>
+        </div>
+        <pre><code class="language-bash">aws opensearchserverless create-collection \
+    --name my-collection \
+    --type SEARCH \
+    --collection-group-name my-collection-group \
+    --description "Collection for search workloads"</code></pre>
+      </div>
+      <p style="font-size: 13px; color: var(--aws-light-gray); margin-bottom: 20px;">コレクションは一度に 1 つのコレクショングループにのみ所属できます。</p>
+
+      <p style="font-size: 14px; color: var(--aws-orange); font-weight: 600; margin-bottom: 8px;">ステップ 3: キャパシティ制限の更新</p>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash</span>
+          <span class="code-title">キャパシティ制限を更新</span>
+        </div>
+        <pre><code class="language-bash">aws opensearchserverless update-collection-group \
+    --id abcdef123456 \
+    --capacity-limits maxIndexingCapacityInOCU=48,maxSearchCapacityInOCU=48,minIndexingCapacityInOCU=8,minSearchCapacityInOCU=8</code></pre>
+      </div>
+      <p style="font-size: 13px; color: var(--aws-light-gray);">変更は即座に反映され、グループ内のコレクションのスケーリング動作に影響します。</p>
+
+      <div class="flow-diagram" style="margin-top: 24px;">
+        <div class="flow-step">📁 グループ作成</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-step">📦 コレクション追加</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-step">⚙️ 制限設定</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-step">📊 監視開始</div>
+      </div>
+    </div>
+
+    <!-- ===== メリット ===== -->
+    <div class="section">
+      <h2>✅ メリット</h2>
+      <div class="merit-grid">
+        <div class="merit-box business">
+          <h3>💼 ビジネス面</h3>
+          <ul class="merit-list">
+            <li>→ <strong>コスト削減:</strong> 異なる KMS キーを持つコレクション間で OCU を共有し、全体の OCU コストを大幅に削減</li>
+            <li>→ <strong>予測可能なコスト管理:</strong> 最大 OCU 制限によりコストの上限を設定し、予算超過を防止</li>
+            <li>→ <strong>マルチテナント対応:</strong> テナントごとに KMS キーを分離しながら、コスト効率の高いアーキテクチャを実現</li>
+          </ul>
+        </div>
+        <div class="merit-box technical">
+          <h3>🔧 技術面</h3>
+          <ul class="merit-list">
+            <li>→ <strong>コールドスタートの排除:</strong> 最小 OCU によりベースラインキャパシティを事前に確保し、安定したパフォーマンスを提供</li>
+            <li>→ <strong>セキュリティの維持:</strong> コレクションレベルの暗号化とアクセス制御はそのまま維持</li>
+            <li>→ <strong>柔軟なリソース管理:</strong> インデックス作成と検索の OCU を個別に制御し、ワークロード特性に最適化</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== デメリット・制約事項 ===== -->
+    <div class="section">
+      <h2>⚠️ デメリット・制約事項</h2>
+      <div class="caution-card">
+        <h3>🚧 制限事項</h3>
+        <ul class="caution-list">
+          <li>OCU 制限値は特定の値 (1, 2, 4, 8, 16、および 16 の倍数) のみ設定可能</li>
+          <li>アカウントあたりの最大 OCU 合計は 1,700 (アカウントレベル + 全コレクショングループ)</li>
+          <li>コレクションは一度に 1 つのコレクショングループにのみ所属可能</li>
+          <li>コレクショングループ内のコレクション数、インデックス数にはサービスクォータが適用される</li>
+        </ul>
+      </div>
+      <div class="caution-card">
+        <h3>💡 考慮すべき点</h3>
+        <ul class="caution-list">
+          <li>最小 OCU を設定すると、ワークロードが低い場合でもその分の課金が発生する</li>
+          <li>コレクショングループのキャパシティ制限はアカウントレベルの設定とは独立して動作するため、両方の設定を適切に管理する必要がある</li>
+          <li>コレクショングループを削除するには、事前にすべてのコレクションを削除する必要がある</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- ===== ユースケース ===== -->
+    <div class="section">
+      <h2>💡 ユースケース</h2>
+
+      <div class="usecase-card">
+        <div class="usecase-title">🏢 ユースケース 1: マルチテナント SaaS アプリケーション</div>
+        <div class="usecase-scenario"><strong style="color: var(--aws-white);">シナリオ:</strong> SaaS プロバイダーが、テナントごとに異なる KMS キーでデータを暗号化しながら、コンピュートコストを最適化したい。</div>
+        <div class="code-block" style="margin: 12px 0;">
+          <div class="code-header">
+            <span class="code-lang">Bash</span>
+            <span class="code-title">マルチテナント設定例</span>
+          </div>
+          <pre><code class="language-bash"># テナント用コレクショングループを作成
+aws opensearchserverless create-collection-group \
+    --name tenant-group \
+    --capacity-limits maxIndexingCapacityInOCU=64,maxSearchCapacityInOCU=64,minIndexingCapacityInOCU=8,minSearchCapacityInOCU=8
+
+# テナント A のコレクション (KMS キー A)
+aws opensearchserverless create-collection \
+    --name tenant-a-data --type SEARCH --collection-group-name tenant-group
+
+# テナント B のコレクション (KMS キー B)
+aws opensearchserverless create-collection \
+    --name tenant-b-data --type SEARCH --collection-group-name tenant-group</code></pre>
+        </div>
+        <div class="usecase-effect">→ テナントごとの KMS キー分離を維持しながら、OCU を共有することで全体のコンピュートコストを大幅に削減</div>
+      </div>
+
+      <div class="usecase-card">
+        <div class="usecase-title">⚡ ユースケース 2: 予測可能なパフォーマンスが必要なワークロード</div>
+        <div class="usecase-scenario"><strong style="color: var(--aws-white);">シナリオ:</strong> リアルタイム検索アプリケーションで、コールドスタートによるレイテンシの変動を排除し、一貫したパフォーマンスを提供したい。</div>
+        <div class="code-block" style="margin: 12px 0;">
+          <div class="code-header">
+            <span class="code-lang">Bash</span>
+            <span class="code-title">ベースラインキャパシティ確保</span>
+          </div>
+          <pre><code class="language-bash"># 最小 OCU を設定してベースラインキャパシティを確保
+aws opensearchserverless create-collection-group \
+    --name realtime-search-group \
+    --capacity-limits maxIndexingCapacityInOCU=32,maxSearchCapacityInOCU=32,minIndexingCapacityInOCU=4,minSearchCapacityInOCU=8</code></pre>
+        </div>
+        <div class="usecase-effect">→ 最小 OCU によりコンピュートキャパシティが常に確保され、コールドスタートの遅延なく安定したレスポンスタイムを実現</div>
+      </div>
+
+      <div class="usecase-card">
+        <div class="usecase-title">🧪 ユースケース 3: コスト制御が重要な開発・テスト環境</div>
+        <div class="usecase-scenario"><strong style="color: var(--aws-white);">シナリオ:</strong> 開発・テスト環境で複数のコレクションを使用するが、コストを最小限に抑えたい。</div>
+        <div class="code-block" style="margin: 12px 0;">
+          <div class="code-header">
+            <span class="code-lang">Bash</span>
+            <span class="code-title">低コスト設定例</span>
+          </div>
+          <pre><code class="language-bash"># 最大 OCU を低く設定してコストを制御
+aws opensearchserverless create-collection-group \
+    --name dev-test-group \
+    --description "Development and testing workloads" \
+    --capacity-limits maxIndexingCapacityInOCU=4,maxSearchCapacityInOCU=4,minIndexingCapacityInOCU=1,minSearchCapacityInOCU=1</code></pre>
+        </div>
+        <div class="usecase-effect">→ 最大 OCU の上限により予期しないコストの増大を防止しつつ、複数のコレクションでリソースを効率的に共有</div>
+      </div>
+    </div>
+
+    <!-- ===== 料金 ===== -->
+    <div class="section">
+      <h2>💳 料金</h2>
+      <p class="overview-text">コレクショングループの利用自体に追加料金はかかりません。引き続き OpenSearch Serverless の OCU 使用量に基づいて課金されます。</p>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>項目</th>
+              <th>説明</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong style="color: var(--aws-white);">コンピュート (OCU)</strong></td>
+              <td>使用された OCU の時間単位課金</td>
+            </tr>
+            <tr>
+              <td><strong style="color: var(--aws-white);">ストレージ</strong></td>
+              <td>データ保存量に基づく GB 月単位課金</td>
+            </tr>
+            <tr>
+              <td><strong style="color: var(--aws-white);">最小 OCU 設定時</strong></td>
+              <td>最小 OCU 分は常に課金対象</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="pricing-note">※ 最小 OCU を設定した場合、実際のワークロードが最小値を下回っても最小 OCU 分の課金が発生します。詳細は <a href="https://aws.amazon.com/opensearch-service/pricing/" target="_blank" rel="noopener noreferrer" style="color: var(--aws-teal);">Amazon OpenSearch Service 料金ページ</a>を参照してください。</p>
+    </div>
+
+    <!-- ===== 利用可能リージョン ===== -->
+    <div class="section">
+      <h2>🌍 利用可能リージョン</h2>
+      <div class="region-badge">
+        🌐 Amazon OpenSearch Serverless が利用可能なすべての AWS リージョン
+      </div>
+    </div>
+
+    <!-- ===== 関連サービス ===== -->
+    <div class="section">
+      <h2>🔗 関連サービス・機能</h2>
+      <div class="related-service">
+        <div class="related-service-icon">🔍</div>
+        <div>
+          <div class="related-service-name">Amazon OpenSearch Serverless</div>
+          <div class="related-service-desc">フルマネージドサーバーレス検索・分析サービス</div>
+        </div>
+      </div>
+      <div class="related-service">
+        <div class="related-service-icon">🔑</div>
+        <div>
+          <div class="related-service-name">AWS KMS</div>
+          <div class="related-service-desc">暗号化キーの管理</div>
+        </div>
+      </div>
+      <div class="related-service">
+        <div class="related-service-icon">📊</div>
+        <div>
+          <div class="related-service-name">Amazon CloudWatch</div>
+          <div class="related-service-desc">OCU 使用量のモニタリングとアラーム設定</div>
+        </div>
+      </div>
+      <div class="related-service">
+        <div class="related-service-icon">🔒</div>
+        <div>
+          <div class="related-service-name">AWS IAM</div>
+          <div class="related-service-desc">コレクションレベルのアクセス制御</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== まとめ ===== -->
+    <div class="summary-box">
+      <h2>📝 まとめ</h2>
+      <p>
+        Amazon OpenSearch Serverless のコレクショングループにより、異なる AWS KMS キーを持つ複数のコレクション間で OCU を共有できるようになりました。マルチテナントワークロードでテナントごとに KMS キーを分離しながら、共有コンピュートモデルで OCU コストを大幅に削減できます。最小 OCU 設定によるコールドスタートの排除と、最大 OCU 設定によるコスト制御を組み合わせることで、予測可能なパフォーマンスとコスト管理を両立できます。OpenSearch Serverless が利用可能なすべてのリージョンで使用できるため、既存のワークロードにすぐに適用できます。
+      </p>
+    </div>
+
+    <!-- ===== Footer ===== -->
+    <footer>
+      <p style="margin-bottom: 8px;"><strong style="color: var(--aws-orange);">📎 参考リンク</strong></p>
+      <ul class="footer-links">
+        <li>📄 <a href="https://aws.amazon.com/about-aws/whats-new/2026/02/amazon-opensearch-serverless-supports-collection-groups/" target="_blank" rel="noopener noreferrer">公式発表 (What's New)</a></li>
+        <li>📖 <a href="https://docs.aws.amazon.com/opensearch-service/latest/developerguide/serverless-collection-groups.html" target="_blank" rel="noopener noreferrer">コレクショングループの概要</a></li>
+        <li>🔧 <a href="https://docs.aws.amazon.com/opensearch-service/latest/developerguide/serverless-collection-groups-procedures.html" target="_blank" rel="noopener noreferrer">コレクショングループの作成と管理</a></li>
+        <li>⚙️ <a href="https://docs.aws.amazon.com/opensearch-service/latest/developerguide/collection-groups-capacity-limits.html" target="_blank" rel="noopener noreferrer">コレクショングループのキャパシティ制限</a></li>
+        <li>💰 <a href="https://aws.amazon.com/opensearch-service/pricing/" target="_blank" rel="noopener noreferrer">Amazon OpenSearch Service 料金ページ</a></li>
+      </ul>
+      <p style="margin-top: 12px; font-size: 11px; color: rgba(213, 219, 219, 0.5);">Generated from reports/2026/2026-02-10-amazon-opensearch-serverless-supports-collection-groups.md</p>
+    </footer>
+
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'base',
+      themeVariables: {
+        primaryColor: '#FF9900',
+        primaryTextColor: '#232F3E',
+        primaryBorderColor: '#FF9900',
+        lineColor: '#FF9900',
+        secondaryColor: '#F5F5F5',
+        tertiaryColor: '#FAFAFA',
+        background: '#FFFFFF',
+        mainBkg: '#FFF3E0',
+        nodeBorder: '#FF9900',
+        clusterBkg: '#FFF8E1',
+        clusterBorder: '#FF9900',
+        edgeLabelBackground: '#FFFFFF',
+        textColor: '#232F3E'
+      }
+    });
+  </script>
+  <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/highlight.min.js"></script>
+  <script>hljs.highlightAll();</script>
+</body>
+</html>
