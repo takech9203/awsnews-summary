@@ -4,7 +4,7 @@
 **サービス**: Amazon RDS
 **機能**: 強化されたコンソールエクスペリエンスによるデータベース接続
 
-📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/awsnews-summary/20260203-amazon-rds-provides-enhanced-console-experience.html)
+📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/aws-news-summary/20260203-amazon-rds-provides-enhanced-console-experience.html)
 
 ## 概要
 
@@ -236,7 +236,7 @@ psql -h mydb-instance.us-east-1.rds.amazonaws.com -U admin -d myapp
 
 ## 参考リンク
 
-- 📊 [インフォグラフィック](https://takech9203.github.io/awsnews-summary/20260203-amazon-rds-provides-enhanced-console-experience.html)
+- 📊 [インフォグラフィック](https://takech9203.github.io/aws-news-summary/20260203-amazon-rds-provides-enhanced-console-experience.html)
 - [公式発表 (What's New)](https://aws.amazon.com/about-aws/whats-new/2026/02/amazon-rds-provides-enhanced-console-experience/)
 - [Amazon RDS ユーザーガイド](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Welcome.html)
 - [Amazon Aurora ユーザーガイド](https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/CHAP_AuroraOverview.html)

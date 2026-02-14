@@ -4,7 +4,7 @@
 **サービス**: AWS Lake Formation
 **機能**: 数十万テーブルのクロスアカウント共有
 
-📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/awsnews-summary/20260211-aws-lake-formation-cross-account-sharing.html)
+📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/aws-news-summary/20260211-aws-lake-formation-cross-account-sharing.html)
 
 ## 概要
 
@@ -236,7 +236,7 @@ AWS Lake Formation が提供されているすべてのリージョンで利用�
 
 ## 参考リンク
 
-- 📊 [インフォグラフィック](https://takech9203.github.io/awsnews-summary/20260211-aws-lake-formation-cross-account-sharing.html)
+- 📊 [インフォグラフィック](https://takech9203.github.io/aws-news-summary/20260211-aws-lake-formation-cross-account-sharing.html)
 - [公式発表 (What's New)](https://aws.amazon.com/about-aws/whats-new/2026/02/aws-lake-formation-cross-account-sharing/)
 - [AWS Lake Formation](https://aws.amazon.com/lake-formation/)
 - [クロスアカウント権限ドキュメント](https://docs.aws.amazon.com/lake-formation/latest/dg/cross-account-permissions.html)

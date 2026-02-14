@@ -4,7 +4,7 @@
 **サービス**: Amazon Bedrock AgentCore Browser
 **機能**: ブラウザプロファイル
 
-📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/awsnews-summary/20260206-amazon-bedrock-agentcore-browser-profiles.html)
+📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/aws-news-summary/20260206-amazon-bedrock-agentcore-browser-profiles.html)
 
 ## 概要
 
@@ -249,7 +249,7 @@ AgentCore Browser の標準料金が適用されます。ブラウザプロフ�
 
 ## 参考リンク
 
-- 📊 [インフォグラフィック](https://takech9203.github.io/awsnews-summary/20260206-amazon-bedrock-agentcore-browser-profiles.html)
+- 📊 [インフォグラフィック](https://takech9203.github.io/aws-news-summary/20260206-amazon-bedrock-agentcore-browser-profiles.html)
 - [公式発表 (What's New)](https://aws.amazon.com/about-aws/whats-new/2026/02/amazon-bedrock-agentcore-browser-profiles/)
 - [Browser Profiles ドキュメント](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/browser-profiles.html)
 - [AgentCore リージョン情報](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/agentcore-regions.html)

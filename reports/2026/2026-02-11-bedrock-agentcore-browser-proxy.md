@@ -4,7 +4,7 @@
 **サービス**: Amazon Bedrock AgentCore
 **機能**: Browser Proxy Configuration (ブラウザプロキシ設定)
 
-📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/awsnews-summary/20260211-bedrock-agentcore-browser-proxy.html)
+📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/aws-news-summary/20260211-bedrock-agentcore-browser-proxy.html)
 
 ## 概要
 
@@ -442,7 +442,7 @@ Amazon Bedrock AgentCore Browser の料金は、ブラウザセッションの�
 
 ## 参考リンク
 
-- 📊 [インフォグラフィック](https://takech9203.github.io/awsnews-summary/20260211-bedrock-agentcore-browser-proxy.html)
+- 📊 [インフォグラフィック](https://takech9203.github.io/aws-news-summary/20260211-bedrock-agentcore-browser-proxy.html)
 - [公式発表 (What's New)](https://aws.amazon.com/about-aws/whats-new/2026/02/bedrock-agentcore-browser-proxy/)
 - [Browser Proxies ドキュメント](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/browser-proxies.html)
 - [AgentCore Browser ドキュメント](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/browser-tool.html)

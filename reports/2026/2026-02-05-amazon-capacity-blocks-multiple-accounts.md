@@ -4,7 +4,7 @@
 **サービス**: Amazon EC2
 **機能**: Capacity Blocks for ML のクロスアカウント共有
 
-📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/awsnews-summary/20260205-amazon-capacity-blocks-multiple-accounts.html)
+📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/aws-news-summary/20260205-amazon-capacity-blocks-multiple-accounts.html)
 
 ## 概要
 
@@ -222,7 +222,7 @@ EC2 Capacity Blocks for ML が提供されているすべてのリージョン�
 
 ## 参考リンク
 
-- 📊 [インフォグラフィック](https://takech9203.github.io/awsnews-summary/20260205-amazon-capacity-blocks-multiple-accounts.html)
+- 📊 [インフォグラフィック](https://takech9203.github.io/aws-news-summary/20260205-amazon-capacity-blocks-multiple-accounts.html)
 - [公式発表 (What's New)](https://aws.amazon.com/about-aws/whats-new/2026/02/amazon-capacity-blocks-multiple-accounts/)
 - [Capacity Block ガイド](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/capacity-blocks-share.html)
 - [Capacity Blocks サポートリージョン](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-capacity-blocks.html#capacity-blocks-prerequisites)

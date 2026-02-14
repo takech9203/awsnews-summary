@@ -4,7 +4,7 @@
 **サービス**: Amazon EC2
 **機能**: C8id, M8id, R8id インスタンスタイプ
 
-📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/awsnews-summary/20260204-amazon-ec2-c8id-m8id-r8id-instances.html)
+📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/aws-news-summary/20260204-amazon-ec2-c8id-m8id-r8id-instances.html)
 
 ## 概要
 
@@ -210,7 +210,7 @@ aws ec2 run-instances \
 
 ## 参考リンク
 
-- 📊 [インフォグラフィック](https://takech9203.github.io/awsnews-summary/20260204-amazon-ec2-c8id-m8id-r8id-instances.html)
+- 📊 [インフォグラフィック](https://takech9203.github.io/aws-news-summary/20260204-amazon-ec2-c8id-m8id-r8id-instances.html)
 - [公式発表 (What's New)](https://aws.amazon.com/about-aws/whats-new/2026/02/amazon-ec2-c8id-m8id-r8id-instances/)
 - [Amazon EC2 インスタンスタイプ](https://aws.amazon.com/ec2/instance-types/)
 - [料金ページ](https://aws.amazon.com/ec2/pricing/)

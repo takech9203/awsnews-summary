@@ -4,7 +4,7 @@
 **サービス**: Amazon Bedrock
 **機能**: DeepSeek V3.2、MiniMax M2.1、GLM 4.7、Kimi K2.5、Qwen3 Coder Next のサポート
 
-📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/awsnews-summary/20260210-amazon-bedrock-adds-support-six-open-weights-models.html)
+📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/aws-news-summary/20260210-amazon-bedrock-adds-support-six-open-weights-models.html)
 
 ## 概要
 
@@ -264,7 +264,7 @@ Amazon Bedrock が利用可能なリージョンで順次展開されます。�
 
 ## 参考リンク
 
-- 📊 [インフォグラフィック](https://takech9203.github.io/awsnews-summary/20260210-amazon-bedrock-adds-support-six-open-weights-models.html)
+- 📊 [インフォグラフィック](https://takech9203.github.io/aws-news-summary/20260210-amazon-bedrock-adds-support-six-open-weights-models.html)
 - [公式発表 (What's New)](https://aws.amazon.com/about-aws/whats-new/2026/02/amazon-bedrock-adds-support-six-open-weights-models/)
 - [Amazon Bedrock コンソール](https://console.aws.amazon.com/bedrock/)
 - [Amazon Bedrock ドキュメント](https://docs.aws.amazon.com/bedrock/latest/userguide/getting-started.html)

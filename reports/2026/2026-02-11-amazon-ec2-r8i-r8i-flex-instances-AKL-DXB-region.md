@@ -4,7 +4,7 @@
 **サービス**: Amazon EC2
 **機能**: R8i および R8i-flex インスタンスの Asia Pacific (New Zealand)、Middle East (UAE) リージョンへの拡大
 
-📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/awsnews-summary/20260211-amazon-ec2-r8i-r8i-flex-instances-AKL-DXB-region.html)
+📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/aws-news-summary/20260211-amazon-ec2-r8i-r8i-flex-instances-AKL-DXB-region.html)
 
 ## 概要
 
@@ -123,7 +123,7 @@ R8i/R8i-flex インスタンスは、今回の追加により以下のリージ�
 
 ## 参考リンク
 
-- 📊 [インフォグラフィック](https://takech9203.github.io/awsnews-summary/20260211-amazon-ec2-r8i-r8i-flex-instances-AKL-DXB-region.html)
+- 📊 [インフォグラフィック](https://takech9203.github.io/aws-news-summary/20260211-amazon-ec2-r8i-r8i-flex-instances-AKL-DXB-region.html)
 - [公式発表 (What's New)](https://aws.amazon.com/about-aws/whats-new/2026/02/amazon-ec2-r8i-r8i-flex-instances-AKL-DXB-region/)
 - [AWS Blog - R8i および R8i-flex インスタンス](https://aws.amazon.com/blogs/aws/best-performance-and-fastest-memory-with-the-new-amazon-ec2-r8i-and-r8i-flex-instances/)
 - [Amazon EC2 R8i インスタンスタイプ](https://aws.amazon.com/ec2/instance-types/r8i)

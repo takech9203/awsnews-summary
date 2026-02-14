@@ -4,7 +4,7 @@
 **サービス**: Amazon CloudFront
 **機能**: Mutual TLS (mTLS) for Origins
 
-📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/awsnews-summary/20260202-amazon-cloudfront-mutual-tls-for-origins.html)
+📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/aws-news-summary/20260202-amazon-cloudfront-mutual-tls-for-origins.html)
 
 ## 概要
 
@@ -268,7 +268,7 @@ ssl_verify_client on;
 
 ## 参考リンク
 
-- 📊 [インフォグラフィック](https://takech9203.github.io/awsnews-summary/20260202-amazon-cloudfront-mutual-tls-for-origins.html)
+- 📊 [インフォグラフィック](https://takech9203.github.io/aws-news-summary/20260202-amazon-cloudfront-mutual-tls-for-origins.html)
 - [公式発表 (What's New)](https://aws.amazon.com/about-aws/whats-new/2026/01/amazon-cloudfront-mutual-tls-for-origins/)
 - [AWS Blog - Amazon CloudFront now supports mTLS authentication to origins](https://aws.amazon.com/blogs/networking-and-content-delivery/amazon-cloudfront-now-supports-mtls-authentication-to-origins/)
 - [CloudFront Origin mTLS ドキュメント](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/origin-mtls-authentication.html)

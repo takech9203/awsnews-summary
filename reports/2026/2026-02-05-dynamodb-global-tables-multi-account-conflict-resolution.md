@@ -4,8 +4,8 @@
 **サービス**: Amazon DynamoDB
 **機能**: Global Tables マルチアカウント競合解決
 
-📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/awsnews-summary/20260205-dynamodb-global-tables-multi-account-conflict-resolution.html)
-<!-- GitLab Pages URL: https://takech9203.github.io/awsnews-summary/20260205-dynamodb-global-tables-multi-account-conflict-resolution.html -->
+📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/aws-news-summary/20260205-dynamodb-global-tables-multi-account-conflict-resolution.html)
+<!-- GitLab Pages URL: https://takech9203.github.io/aws-news-summary/20260205-dynamodb-global-tables-multi-account-conflict-resolution.html -->
 
 ## 概要
 
@@ -349,7 +349,7 @@ aws dynamodb create-global-table \
 
 ## 参考リンク
 
-- 📊 [インフォグラフィック](https://takech9203.github.io/awsnews-summary/20260205-dynamodb-global-tables-multi-account-conflict-resolution.html)
+- 📊 [インフォグラフィック](https://takech9203.github.io/aws-news-summary/20260205-dynamodb-global-tables-multi-account-conflict-resolution.html)
 - [公式発表 (What's New)](https://aws.amazon.com/about-aws/whats-new/2026/02/dynamodb-gt-multi-account/)
 - [DynamoDB Global Tables ドキュメント](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/GlobalTables.html)
 - [DynamoDB 料金ページ](https://aws.amazon.com/dynamodb/pricing/)

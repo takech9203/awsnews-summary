@@ -4,7 +4,7 @@
 **サービス**: Kiro
 **機能**: 外部 ID プロバイダー (Okta, Microsoft Entra ID)、ユーザーレベルアクティビティメトリクス
 
-📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/awsnews-summary/20260213-kiro-enterprise-identity-and-usage-metrics.html)
+📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/aws-news-summary/20260213-kiro-enterprise-identity-and-usage-metrics.html)
 
 ## 概要
 
@@ -230,7 +230,7 @@ flowchart TD
 
 ## 参考リンク
 
-- 📊 [インフォグラフィック](https://takech9203.github.io/awsnews-summary/20260213-kiro-enterprise-identity-and-usage-metrics.html)
+- 📊 [インフォグラフィック](https://takech9203.github.io/aws-news-summary/20260213-kiro-enterprise-identity-and-usage-metrics.html)
 - [公式ブログ](https://kiro.dev/blog/enterprise-identity-and-usage-metrics/)
 - [Kiro Changelog](https://kiro.dev/changelog/)
 - [Kiro ドキュメント](https://kiro.dev/docs/)

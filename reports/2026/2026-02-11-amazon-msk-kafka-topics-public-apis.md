@@ -4,7 +4,7 @@
 **サービス**: Amazon Managed Streaming for Apache Kafka (MSK)
 **機能**: CreateTopic/UpdateTopic/DeleteTopic API、Express Brokers ブローカーログ
 
-📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/awsnews-summary/20260211-amazon-msk-kafka-topics-public-apis.html)
+📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/aws-news-summary/20260211-amazon-msk-kafka-topics-public-apis.html)
 
 ## 概要
 
@@ -298,7 +298,7 @@ Amazon MSK が提供されているすべての AWS リージョンで利用可�
 
 ## 参考リンク
 
-- 📊 [インフォグラフィック](https://takech9203.github.io/awsnews-summary/20260211-amazon-msk-kafka-topics-public-apis.html)
+- 📊 [インフォグラフィック](https://takech9203.github.io/aws-news-summary/20260211-amazon-msk-kafka-topics-public-apis.html)
 - [公式発表 - トピック管理 API](https://aws.amazon.com/about-aws/whats-new/2026/02/amazon-msk-kafka-topics-public-apis/)
 - [公式発表 - Express Brokers ログ](https://aws.amazon.com/about-aws/whats-new/2026/02/aws-msk-express-brokers-support-broker-logs/)
 - [Amazon MSK 開発者ガイド](https://docs.aws.amazon.com/msk/latest/developerguide/what-is-msk.html)

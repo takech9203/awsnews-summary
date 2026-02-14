@@ -4,7 +4,7 @@
 **サービス**: Amazon Elastic Container Service (Amazon ECS)
 **機能**: ECS Managed Instances in AWS European Sovereign Cloud
 
-📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/awsnews-summary/20260206-ecs-mi-european-sovereign-cloud.html)
+📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/aws-news-summary/20260206-ecs-mi-european-sovereign-cloud.html)
 
 ## 概要
 
@@ -274,7 +274,7 @@ AWS European Sovereign Cloud
 
 ## 参考リンク
 
-- 📊 [インフォグラフィック](https://takech9203.github.io/awsnews-summary/20260206-ecs-mi-european-sovereign-cloud.html)
+- 📊 [インフォグラフィック](https://takech9203.github.io/aws-news-summary/20260206-ecs-mi-european-sovereign-cloud.html)
 - [公式発表 (What's New)](https://aws.amazon.com/about-aws/whats-new/2026/02/ecs-mi-european-sovereign-cloud/)
 - [ECS Managed Instances 機能ページ](https://aws.eu/ecs/managed-instances/)
 - [ドキュメント](https://docs.aws.eu/AmazonECS/latest/developerguide/ManagedInstances.html)

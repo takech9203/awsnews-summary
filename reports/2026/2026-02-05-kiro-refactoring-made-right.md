@@ -4,7 +4,7 @@
 **サービス**: Kiro
 **機能**: セマンティックリファクタリングツール
 
-📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/awsnews-summary/20260205-kiro-refactoring-made-right.html)
+📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/aws-news-summary/20260205-kiro-refactoring-made-right.html)
 
 ## 概要
 
@@ -226,7 +226,7 @@ Kiro の処理:
 
 ## 参考リンク
 
-- 📊 [インフォグラフィック](https://takech9203.github.io/awsnews-summary/20260205-kiro-refactoring-made-right.html)
+- 📊 [インフォグラフィック](https://takech9203.github.io/aws-news-summary/20260205-kiro-refactoring-made-right.html)
 - [公式ブログ](https://kiro.dev/blog/refactoring-made-right/)
 - [Kiro](https://kiro.dev/)
 - [ドキュメント](https://kiro.dev/docs/)

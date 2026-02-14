@@ -4,8 +4,8 @@
 **サービス**: AWS IAM Identity Center
 **機能**: マルチリージョンデプロイメントのサポート
 
-📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/awsnews-summary/20260203-aws-iam-identity-center-multi-region-deployment.html)
-<!-- GitLab Pages URL: https://takech9203.github.io/awsnews-summary/20260203-aws-iam-identity-center-multi-region-deployment.html -->
+📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/aws-news-summary/20260203-aws-iam-identity-center-multi-region-deployment.html)
+<!-- GitLab Pages URL: https://takech9203.github.io/aws-news-summary/20260203-aws-iam-identity-center-multi-region-deployment.html -->
 
 ## 概要
 
@@ -308,7 +308,7 @@ AWS IAM Identity Center 自体は追加料金なしで提供されます。た�
 
 ## 参考リンク
 
-- 📊 [インフォグラフィック](https://takech9203.github.io/awsnews-summary/20260203-aws-iam-identity-center-multi-region-deployment.html)
+- 📊 [インフォグラフィック](https://takech9203.github.io/aws-news-summary/20260203-aws-iam-identity-center-multi-region-deployment.html)
 - [公式発表 (What's New)](https://aws.amazon.com/about-aws/whats-new/2026/02/aws-iam-identity-center-multi-region-deployment/)
 - [ドキュメント](https://docs.aws.amazon.com/singlesignon/latest/userguide/multi-region-deployment.html)
 - [AWS KMS マルチリージョンキー](https://docs.aws.amazon.com/kms/latest/developerguide/multi-region-keys-overview.html)

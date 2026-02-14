@@ -4,7 +4,7 @@
 **サービス**: Kiro
 **機能**: Agent Client Protocol (ACP) サポート
 
-📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/awsnews-summary/20260205-kiro-adopts-acp.html)
+📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/aws-news-summary/20260205-kiro-adopts-acp.html)
 
 ## 概要
 
@@ -265,7 +265,7 @@ Neovim の ACP プラグイン設定で Kiro CLI のパスを指定し、
 
 ## 参考リンク
 
-- 📊 [インフォグラフィック](https://takech9203.github.io/awsnews-summary/20260205-kiro-adopts-acp.html)
+- 📊 [インフォグラフィック](https://takech9203.github.io/aws-news-summary/20260205-kiro-adopts-acp.html)
 - [公式ブログ](https://kiro.dev/blog/kiro-adopts-acp/)
 - [Changelog](https://kiro.dev/changelog/)
 - [Kiro CLI ドキュメント](https://kiro.dev/docs/cli/)

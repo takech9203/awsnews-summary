@@ -4,7 +4,7 @@
 **サービス**: AWS Config
 **機能**: 30 の追加リソースタイプサポート
 
-📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/awsnews-summary/20260206-aws-config-new-resource-types.html)
+📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/aws-news-summary/20260206-aws-config-new-resource-types.html)
 
 ## 概要
 
@@ -209,7 +209,7 @@ AWS Config の標準料金が適用されます。記録されるリソース数
 
 ## 参考リンク
 
-- 📊 [インフォグラフィック](https://takech9203.github.io/awsnews-summary/20260206-aws-config-new-resource-types.html)
+- 📊 [インフォグラフィック](https://takech9203.github.io/aws-news-summary/20260206-aws-config-new-resource-types.html)
 - [公式発表 (What's New)](https://aws.amazon.com/about-aws/whats-new/2026/02/aws-config-new-resource-types/)
 - [AWS Config リソースカバレッジ](https://docs.aws.amazon.com/config/latest/developerguide/what-is-resource-config-coverage.html)
 - [AWS Config 料金](https://aws.amazon.com/config/pricing/)

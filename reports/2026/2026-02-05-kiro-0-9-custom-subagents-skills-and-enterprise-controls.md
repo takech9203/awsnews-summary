@@ -4,7 +4,7 @@
 **サービス**: Kiro
 **機能**: カスタムサブエージェント、Agent Skills、エンタープライズ制御
 
-📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/awsnews-summary/20260205-kiro-0-9-custom-subagents-skills-and-enterprise-controls.html)
+📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/aws-news-summary/20260205-kiro-0-9-custom-subagents-skills-and-enterprise-controls.html)
 
 ## 概要
 
@@ -254,7 +254,7 @@ Kiro の料金については [Kiro 料金ページ](https://kiro.dev/pricing/) 
 
 ## 参考リンク
 
-- 📊 [インフォグラフィック](https://takech9203.github.io/awsnews-summary/20260205-kiro-0-9-custom-subagents-skills-and-enterprise-controls.html)
+- 📊 [インフォグラフィック](https://takech9203.github.io/aws-news-summary/20260205-kiro-0-9-custom-subagents-skills-and-enterprise-controls.html)
 - [公式ブログ](https://kiro.dev/blog/custom-subagents-skills-and-enterprise-controls/)
 - [Changelog](https://kiro.dev/changelog/)
 - [ドキュメント](https://kiro.dev/docs/)

@@ -4,7 +4,7 @@
 **サービス**: Amazon Aurora DSQL
 **機能**: シングルリージョンクラスターの追加リージョン展開
 
-[このアップデートのインフォグラフィックを見る](https://takech9203.github.io/awsnews-summary/20260211-amazon-aurora-dsql-additional-aws-regions.html)
+[このアップデートのインフォグラフィックを見る](https://takech9203.github.io/aws-news-summary/20260211-amazon-aurora-dsql-additional-aws-regions.html)
 
 ## 概要
 
@@ -283,7 +283,7 @@ AWS Free Tier では、毎月最初の 100,000 DPU と 1 GB-月のストレー�
 
 ## 参考リンク
 
-- [インフォグラフィック](https://takech9203.github.io/awsnews-summary/20260211-amazon-aurora-dsql-additional-aws-regions.html)
+- [インフォグラフィック](https://takech9203.github.io/aws-news-summary/20260211-amazon-aurora-dsql-additional-aws-regions.html)
 - [公式発表 (What's New)](https://aws.amazon.com/about-aws/whats-new/2026/02/amazon-aurora-dsql-additional-aws-regions/)
 - [Aurora DSQL ドキュメント](https://docs.aws.amazon.com/aurora-dsql/latest/userguide/what-is-aurora-dsql.html)
 - [Aurora DSQL 製品ページ](https://aws.amazon.com/rds/aurora/dsql/)

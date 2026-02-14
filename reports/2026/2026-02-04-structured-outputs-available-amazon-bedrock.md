@@ -4,7 +4,7 @@
 **サービス**: Amazon Bedrock
 **機能**: Structured Outputs (構造化出力)
 
-📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/awsnews-summary/20260204-structured-outputs-available-amazon-bedrock.html)
+📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/aws-news-summary/20260204-structured-outputs-available-amazon-bedrock.html)
 
 ## 概要
 
@@ -315,7 +315,7 @@ Amazon Bedrock がサポートされているすべての商用 AWS リージョ
 
 ## 参考リンク
 
-- 📊 [インフォグラフィック](https://takech9203.github.io/awsnews-summary/20260204-structured-outputs-available-amazon-bedrock.html)
+- 📊 [インフォグラフィック](https://takech9203.github.io/aws-news-summary/20260204-structured-outputs-available-amazon-bedrock.html)
 - [公式発表 (What's New)](https://aws.amazon.com/about-aws/whats-new/2026/02/structured-outputs-available-amazon-bedrock/)
 - [ドキュメント - Structured Outputs](https://docs.aws.amazon.com/bedrock/latest/userguide/structured-output.html)
 - [サポート対象モデル一覧](https://docs.aws.amazon.com/bedrock/latest/userguide/structured-output.html#structured-output-supported-models)

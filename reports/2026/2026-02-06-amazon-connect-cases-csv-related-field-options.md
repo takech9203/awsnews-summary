@@ -4,7 +4,7 @@
 **サービス**: Amazon Connect Cases
 **機能**: CSV upload for related field options
 
-📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/awsnews-summary/20260206-amazon-connect-cases-csv-related-field-options.html)
+📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/aws-news-summary/20260206-amazon-connect-cases-csv-related-field-options.html)
 
 ## 概要
 
@@ -244,7 +244,7 @@ Amazon Connect Cases が利用可能な以下のリージョンで利用でき�
 
 ## 参考リンク
 
-- 📊 [インフォグラフィック](https://takech9203.github.io/awsnews-summary/20260206-amazon-connect-cases-csv-related-field-options.html)
+- 📊 [インフォグラフィック](https://takech9203.github.io/aws-news-summary/20260206-amazon-connect-cases-csv-related-field-options.html)
 - [公式発表 (What's New)](https://aws.amazon.com/about-aws/whats-new/2026/02/amazon-connect-cases-csv-related-field-options/)
 - [Amazon Connect Cases Web ページ](https://aws.amazon.com/connect/cases/)
 - [ドキュメント - フィールド依存関係の CSV アップロード](https://docs.aws.amazon.com/connect/latest/adminguide/case-field-dependent-csv-upload.html)

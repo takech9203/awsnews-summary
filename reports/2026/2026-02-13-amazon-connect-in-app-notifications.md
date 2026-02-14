@@ -4,7 +4,7 @@
 **サービス**: Amazon Connect
 **機能**: ワークスペースヘッダーのアプリ内通知 (In-App Notifications)
 
-📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/awsnews-summary/20260213-amazon-connect-in-app-notifications.html)
+📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/aws-news-summary/20260213-amazon-connect-in-app-notifications.html)
 
 ## 概要
 
@@ -292,7 +292,7 @@ Amazon Connect が提供されているすべての AWS リージョンで利用
 
 ## 参考リンク
 
-- 📊 [インフォグラフィック](https://takech9203.github.io/awsnews-summary/20260213-amazon-connect-in-app-notifications.html)
+- 📊 [インフォグラフィック](https://takech9203.github.io/aws-news-summary/20260213-amazon-connect-in-app-notifications.html)
 - [公式発表 (What's New)](https://aws.amazon.com/about-aws/whats-new/2026/02/amazon-connect-in-app-notifications/)
 - [ドキュメント - ワークスペースヘッダー通知](https://docs.aws.amazon.com/connect/latest/adminguide/amazon-connect-notifications.html)
 - [Amazon Connect 管理者ガイド](https://docs.aws.amazon.com/connect/latest/adminguide/what-is-amazon-connect.html)

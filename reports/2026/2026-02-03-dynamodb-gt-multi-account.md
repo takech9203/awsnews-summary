@@ -4,7 +4,7 @@
 **サービス**: Amazon DynamoDB
 **機能**: Global Tables マルチアカウントレプリケーション
 
-📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/awsnews-summary/20260203-dynamodb-gt-multi-account.html)
+📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/aws-news-summary/20260203-dynamodb-gt-multi-account.html)
 
 ## 概要
 
@@ -264,7 +264,7 @@ Amazon DynamoDB Global Tables がサポートされているすべての AWS リ
 
 ## 参考リンク
 
-- 📊 [インフォグラフィック](https://takech9203.github.io/awsnews-summary/20260203-dynamodb-gt-multi-account.html)
+- 📊 [インフォグラフィック](https://takech9203.github.io/aws-news-summary/20260203-dynamodb-gt-multi-account.html)
 - [公式発表 (What's New)](https://aws.amazon.com/about-aws/whats-new/2026/02/dynamodb-gt-multi-account/)
 - [DynamoDB Global Tables ドキュメント](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/GlobalTables.html)
 - [マルチアカウント Global Tables ガイド](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/globaltables-MultiAccount.html)

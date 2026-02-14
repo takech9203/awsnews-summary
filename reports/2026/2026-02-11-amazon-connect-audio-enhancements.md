@@ -4,7 +4,7 @@
 **サービス**: Amazon Connect
 **機能**: Audio Enhancement、チャネル別 ACW タイムアウト、チャネル別自動承認
 
-📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/awsnews-summary/20260211-amazon-connect-audio-enhancements.html)
+📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/aws-news-summary/20260211-amazon-connect-audio-enhancements.html)
 
 ## 概要
 
@@ -309,7 +309,7 @@ Audio Enhancement 機能、チャネル別 ACW タイムアウト設定、チャ
 
 ## 参考リンク
 
-- 📊 [インフォグラフィック](https://takech9203.github.io/awsnews-summary/20260211-amazon-connect-audio-enhancements.html)
+- 📊 [インフォグラフィック](https://takech9203.github.io/aws-news-summary/20260211-amazon-connect-audio-enhancements.html)
 - [公式発表 - Audio Enhancement (What's New)](https://aws.amazon.com/about-aws/whats-new/2026/02/amazon-connect-audio-enhancements/)
 - [公式発表 - ACW タイムアウト (What's New)](https://aws.amazon.com/about-aws/whats-new/2026/02/amazon-connect-omnichannel-acw-timeouts/)
 - [公式発表 - 自動承認 (What's New)](https://aws.amazon.com/about-aws/whats-new/2026/02/amazon-connect-omnichannel-auto-accept/)

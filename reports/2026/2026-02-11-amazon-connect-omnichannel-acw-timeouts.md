@@ -4,7 +4,7 @@
 **サービス**: Amazon Connect
 **機能**: チャット、タスク、メール、コールバック向け After Contact Work タイムアウト設定
 
-📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/awsnews-summary/20260211-amazon-connect-omnichannel-acw-timeouts.html)
+📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/aws-news-summary/20260211-amazon-connect-omnichannel-acw-timeouts.html)
 
 ## 概要
 
@@ -189,7 +189,7 @@ Amazon Connect が提供されているすべての AWS リージョンで利用
 
 ## 参考リンク
 
-- 📊 [インフォグラフィック](https://takech9203.github.io/awsnews-summary/20260211-amazon-connect-omnichannel-acw-timeouts.html)
+- 📊 [インフォグラフィック](https://takech9203.github.io/aws-news-summary/20260211-amazon-connect-omnichannel-acw-timeouts.html)
 - [公式発表 (What's New)](https://aws.amazon.com/about-aws/whats-new/2026/02/amazon-connect-omnichannel-acw-timeouts/)
 - [Amazon Connect 管理者ガイド - エージェント設定](https://docs.aws.amazon.com/connect/latest/adminguide/configure-agents.html)
 - [Amazon Connect ウェブサイト](https://aws.amazon.com/connect/)

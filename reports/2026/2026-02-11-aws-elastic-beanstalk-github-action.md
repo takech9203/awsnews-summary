@@ -4,7 +4,7 @@
 **サービス**: AWS Elastic Beanstalk
 **機能**: GitHub Actions 統合
 
-📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/awsnews-summary/20260211-aws-elastic-beanstalk-github-action.html)
+📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/aws-news-summary/20260211-aws-elastic-beanstalk-github-action.html)
 
 ## 概要
 
@@ -301,7 +301,7 @@ Elastic Beanstalk が利用可能なすべての商用 AWS リージョンで使
 
 ## 参考リンク
 
-- 📊 [インフォグラフィック](https://takech9203.github.io/awsnews-summary/20260211-aws-elastic-beanstalk-github-action.html)
+- 📊 [インフォグラフィック](https://takech9203.github.io/aws-news-summary/20260211-aws-elastic-beanstalk-github-action.html)
 - [公式発表 (What's New)](https://aws.amazon.com/about-aws/whats-new/2026/02/aws-elastic-beanstalk-github-action/)
 - [GitHub Action README](https://github.com/aws-actions/aws-elasticbeanstalk-deploy/blob/main/README.md)
 - [AWS Elastic Beanstalk](https://aws.amazon.com/elasticbeanstalk)

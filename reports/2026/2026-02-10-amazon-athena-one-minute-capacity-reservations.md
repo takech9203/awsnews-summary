@@ -4,7 +4,7 @@
 **サービス**: Amazon Athena
 **機能**: 1 分間キャパシティ予約、4 DPU 最小キャパシティ
 
-📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/awsnews-summary/20260210-amazon-athena-one-minute-capacity-reservations.html)
+📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/aws-news-summary/20260210-amazon-athena-one-minute-capacity-reservations.html)
 
 ## 概要
 
@@ -219,7 +219,7 @@ Amazon Athena が提供されているすべてのリージョンで利用可能
 
 ## 参考リンク
 
-- 📊 [インフォグラフィック](https://takech9203.github.io/awsnews-summary/20260210-amazon-athena-one-minute-capacity-reservations.html)
+- 📊 [インフォグラフィック](https://takech9203.github.io/aws-news-summary/20260210-amazon-athena-one-minute-capacity-reservations.html)
 - [公式発表 (What's New)](https://aws.amazon.com/about-aws/whats-new/2026/02/amazon-athena-one-minute-capacity-reservations/)
 - [Athena キャパシティ予約ドキュメント](https://docs.aws.amazon.com/athena/latest/ug/capacity-management-creating-capacity-reservations.html)
 - [Athena 料金](https://aws.amazon.com/athena/pricing/)

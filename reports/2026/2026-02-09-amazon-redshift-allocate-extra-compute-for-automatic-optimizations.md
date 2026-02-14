@@ -4,7 +4,7 @@
 **サービス**: Amazon Redshift
 **機能**: 自動最適化機能への追加コンピュートリソース割り当て
 
-📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/awsnews-summary/20260209-amazon-redshift-allocate-extra-compute-for-automatic-optimizations.html)
+📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/aws-news-summary/20260209-amazon-redshift-allocate-extra-compute-for-automatic-optimizations.html)
 
 ## 概要
 
@@ -233,7 +233,7 @@ ALTER SYSTEM SET autonomics_resource_limit = 10;
 
 ## 参考リンク
 
-- 📊 [インフォグラフィック](https://takech9203.github.io/awsnews-summary/20260209-amazon-redshift-allocate-extra-compute-for-automatic-optimizations.html)
+- 📊 [インフォグラフィック](https://takech9203.github.io/aws-news-summary/20260209-amazon-redshift-allocate-extra-compute-for-automatic-optimizations.html)
 - [公式発表 (What's New)](https://aws.amazon.com/about-aws/whats-new/2026/02/amazon-redshift-allocate-extra-compute-for-automatic-optimizations/)
 - [ドキュメント - Allocating extra compute resources for automatic database optimization](https://docs.aws.amazon.com/redshift/latest/dg/t_extra-compute-autonomics.html)
 - [Amazon Redshift 料金](https://aws.amazon.com/redshift/pricing/)

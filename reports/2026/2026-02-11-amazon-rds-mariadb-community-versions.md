@@ -4,7 +4,7 @@
 **サービス**: Amazon RDS for MariaDB
 **機能**: MariaDB マイナーバージョン 10.6.25、10.11.16、11.4.10、11.8.6 のサポート
 
-📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/awsnews-summary/20260211-amazon-rds-mariadb-community-versions.html)
+📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/aws-news-summary/20260211-amazon-rds-mariadb-community-versions.html)
 
 ## 概要
 
@@ -123,7 +123,7 @@ Amazon RDS for MariaDB が提供されているすべての AWS リージョン�
 
 ## 参考リンク
 
-- 📊 [インフォグラフィック](https://takech9203.github.io/awsnews-summary/20260211-amazon-rds-mariadb-community-versions.html)
+- 📊 [インフォグラフィック](https://takech9203.github.io/aws-news-summary/20260211-amazon-rds-mariadb-community-versions.html)
 - [公式発表 (What's New)](https://aws.amazon.com/about-aws/whats-new/2026/02/amazon-rds-mariadb-community-versions/)
 - [Amazon RDS for MariaDB アップグレードガイド](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_UpgradeDBInstance.MariaDB.html)
 - [Amazon RDS for MariaDB 料金](https://aws.amazon.com/rds/mariadb/pricing/)

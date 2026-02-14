@@ -4,7 +4,7 @@
 **サービス**: Amazon S3 Tables
 **機能**: Partition and Sort Order Definition in CreateTable API
 
-📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/awsnews-summary/20260212-s3-tables-partition-and-sort-order-createtable-api.html)
+📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/aws-news-summary/20260212-s3-tables-partition-and-sort-order-createtable-api.html)
 
 ## 概要
 
@@ -402,7 +402,7 @@ S3 Tables が利用可能なすべての AWS リージョンで利用できま�
 
 ## 参考リンク
 
-- 📊 [インフォグラフィック](https://takech9203.github.io/awsnews-summary/20260212-s3-tables-partition-and-sort-order-createtable-api.html)
+- 📊 [インフォグラフィック](https://takech9203.github.io/aws-news-summary/20260212-s3-tables-partition-and-sort-order-createtable-api.html)
 - [公式発表 (What's New)](https://aws.amazon.com/about-aws/whats-new/2026/02/s3-tables-partition-and-sort-order-createtable-api/)
 - [S3 Tables 製品ページ](https://aws.amazon.com/s3/features/tables/)
 - [S3 Tables ドキュメント](https://docs.aws.amazon.com/AmazonS3/latest/userguide/s3-tables.html)

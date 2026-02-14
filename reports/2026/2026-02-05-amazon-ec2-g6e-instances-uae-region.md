@@ -4,7 +4,7 @@
 **サービス**: Amazon EC2
 **機能**: G6e インスタンス UAE リージョン展開
 
-📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/awsnews-summary/20260205-amazon-ec2-g6e-instances-uae-region.html)
+📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/aws-news-summary/20260205-amazon-ec2-g6e-instances-uae-region.html)
 
 ## 概要
 
@@ -251,7 +251,7 @@ G6e インスタンスは以下のリージョンで利用可能です:
 
 ## 参考リンク
 
-- 📊 [インフォグラフィック](https://takech9203.github.io/awsnews-summary/20260205-amazon-ec2-g6e-instances-uae-region.html)
+- 📊 [インフォグラフィック](https://takech9203.github.io/aws-news-summary/20260205-amazon-ec2-g6e-instances-uae-region.html)
 - [公式発表 (What's New)](https://aws.amazon.com/about-aws/whats-new/2026/02/amazon-ec2-g6e-instances-uae-region/)
 - [G6e インスタンスページ](https://aws.amazon.com/ec2/instance-types/g6e/)
 - [AWS Management Console](https://console.aws.amazon.com/)
