@@ -4,7 +4,7 @@
 **サービス**: AWS Builder ID
 **機能**: Sign in with Apple
 
-📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/awsnews-summary/20260205-aws-builder-id-sign-in-apple.html)
+📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/aws-news-summary/20260205-aws-builder-id-sign-in-apple.html)
 
 ## 概要
 
@@ -194,7 +194,7 @@ AWS Builder ID はグローバルサービスであり、すべてのリージ�
 
 ## 参考リンク
 
-- 📊 [インフォグラフィック](https://takech9203.github.io/awsnews-summary/20260205-aws-builder-id-sign-in-apple.html)
+- 📊 [インフォグラフィック](https://takech9203.github.io/aws-news-summary/20260205-aws-builder-id-sign-in-apple.html)
 - [公式発表 (What's New)](https://aws.amazon.com/about-aws/whats-new/2026/02/aws-builder-id-sign-in-apple/)
 - [AWS Builder ID ドキュメント](https://docs.aws.amazon.com/signin/latest/userguide/sign-in-builder-id.html)
 

@@ -4,7 +4,7 @@
 **サービス**: Amazon EC2
 **機能**: C8i および C8i-flex インスタンスの Europe (Paris)、Canada (Central)、US West (N. California) リージョンへの拡大
 
-📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/awsnews-summary/20260211-amazon-ec2-c8i-c8i-flex-instances-europe-paris-canada-central-uswest-ncalifornia-regions.html)
+📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/aws-news-summary/20260211-amazon-ec2-c8i-c8i-flex-instances-europe-paris-canada-central-uswest-ncalifornia-regions.html)
 
 ## 概要
 
@@ -122,7 +122,7 @@ C8i/C8i-flex インスタンスの利用可能リージョン (今回追加分�
 
 ## 参考リンク
 
-- 📊 [インフォグラフィック](https://takech9203.github.io/awsnews-summary/20260211-amazon-ec2-c8i-c8i-flex-instances-europe-paris-canada-central-uswest-ncalifornia-regions.html)
+- 📊 [インフォグラフィック](https://takech9203.github.io/aws-news-summary/20260211-amazon-ec2-c8i-c8i-flex-instances-europe-paris-canada-central-uswest-ncalifornia-regions.html)
 - [公式発表 (What's New)](https://aws.amazon.com/about-aws/whats-new/2026/02/amazon-ec2-c8i-c8i-flex-instances-europe-paris-canada-central-uswest-ncalifornia-regions/)
 - [AWS Blog - C8i および C8i-flex インスタンス](https://aws.amazon.com/blogs/aws/introducing-new-compute-optimized-amazon-ec2-c8i-and-c8i-flex-instances/)
 - [Amazon EC2 C8i インスタンスタイプ](https://aws.amazon.com/ec2/instance-types/c8i/)

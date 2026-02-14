@@ -4,7 +4,7 @@
 **サービス**: Amazon ECS
 **機能**: Network Load Balancer 対応 Linear/Canary デプロイメント
 
-📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/awsnews-summary/20260204-amazon-ecs-nlb-linear-canary-deployments.html)
+📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/aws-news-summary/20260204-amazon-ecs-nlb-linear-canary-deployments.html)
 
 ## 概要
 
@@ -282,7 +282,7 @@ AWS 商用リージョンおよび AWS GovCloud (US) リージョンで利用可
 
 ## 参考リンク
 
-- 📊 [インフォグラフィック](https://takech9203.github.io/awsnews-summary/20260204-amazon-ecs-nlb-linear-canary-deployments.html)
+- 📊 [インフォグラフィック](https://takech9203.github.io/aws-news-summary/20260204-amazon-ecs-nlb-linear-canary-deployments.html)
 - [公式発表 (What's New)](https://aws.amazon.com/about-aws/whats-new/2026/02/amazon-ecs-nlb-linear-canary-deployments/)
 - [Linear デプロイメント ドキュメント](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/deployment-type-linear.html)
 - [Canary デプロイメント ドキュメント](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/canary-deployment.html)

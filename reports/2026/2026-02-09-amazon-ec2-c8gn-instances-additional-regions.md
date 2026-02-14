@@ -4,7 +4,7 @@
 **サービス**: Amazon EC2
 **機能**: C8gn インスタンスのリージョン拡大
 
-📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/awsnews-summary/20260209-amazon-ec2-c8gn-instances-additional-regions.html)
+📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/aws-news-summary/20260209-amazon-ec2-c8gn-instances-additional-regions.html)
 
 ## 概要
 
@@ -296,7 +296,7 @@ C8gn インスタンスは、以下の AWS リージョンで利用可能です�
 
 ## 参考リンク
 
-- 📊 [インフォグラフィック](https://takech9203.github.io/awsnews-summary/20260209-amazon-ec2-c8gn-instances-additional-regions.html)
+- 📊 [インフォグラフィック](https://takech9203.github.io/aws-news-summary/20260209-amazon-ec2-c8gn-instances-additional-regions.html)
 - [公式発表 (What's New)](https://aws.amazon.com/about-aws/whats-new/2026/02/amazon-ec2-c8gn-instances-additional-regions/)
 - [AWS Blog - New Amazon EC2 C8gn instances](https://aws.amazon.com/blogs/aws/new-amazon-ec2-c8gn-instances-powered-by-aws-graviton4-offering-up-to-600gbps-network-bandwidth/)
 - [Amazon C8gn Instances](https://aws.amazon.com/ec2/instance-types/c8g/)

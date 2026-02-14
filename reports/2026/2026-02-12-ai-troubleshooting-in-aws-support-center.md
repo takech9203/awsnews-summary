@@ -4,7 +4,7 @@
 **サービス**: AWS Support
 **機能**: AI トラブルシューティングの多言語サポート
 
-📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/awsnews-summary/20260212-ai-troubleshooting-in-aws-support-center.html)
+📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/aws-news-summary/20260212-ai-troubleshooting-in-aws-support-center.html)
 
 ## 概要
 
@@ -269,7 +269,7 @@ AI トラブルシューティング機能は、以下の AWS リージョンで
 
 ## 参考リンク
 
-- 📊 [インフォグラフィック](https://takech9203.github.io/awsnews-summary/20260212-ai-troubleshooting-in-aws-support-center.html)
+- 📊 [インフォグラフィック](https://takech9203.github.io/aws-news-summary/20260212-ai-troubleshooting-in-aws-support-center.html)
 - [公式発表 (What's New)](https://aws.amazon.com/about-aws/whats-new/2026/02/ai-troubleshooting-in-aws-support-center/)
 - [AI トラブルシューティング ユーザーガイド](https://docs.aws.amazon.com/awssupport/latest/user/ai-enhanced-support.html)
 - [IAM 権限の設定](https://docs.aws.amazon.com/awssupport/latest/user/support-interaction-perm.html)

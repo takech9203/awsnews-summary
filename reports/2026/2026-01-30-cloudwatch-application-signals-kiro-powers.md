@@ -4,7 +4,7 @@
 **サービス**: Amazon CloudWatch Application Signals
 **機能**: Kiro Powers による AI エージェント支援トラブルシューティング
 
-📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/awsnews-summary/20260130-cloudwatch-application-signals-kiro-powers.html)
+📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/aws-news-summary/20260130-cloudwatch-application-signals-kiro-powers.html)
 
 ## 概要
 

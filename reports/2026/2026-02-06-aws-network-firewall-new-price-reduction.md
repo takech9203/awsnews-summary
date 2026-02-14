@@ -4,7 +4,7 @@
 **サービス**: AWS Network Firewall
 **機能**: 料金引き下げ
 
-📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/awsnews-summary/20260206-aws-network-firewall-new-price-reduction.html)
+📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/aws-news-summary/20260206-aws-network-firewall-new-price-reduction.html)
 
 ## 概要
 
@@ -222,7 +222,7 @@ aws network-firewall update-firewall-policy \
 
 ## 参考リンク
 
-- 📊 [インフォグラフィック](https://takech9203.github.io/awsnews-summary/20260206-aws-network-firewall-new-price-reduction.html)
+- 📊 [インフォグラフィック](https://takech9203.github.io/aws-news-summary/20260206-aws-network-firewall-new-price-reduction.html)
 - [公式発表 (What's New)](https://aws.amazon.com/about-aws/whats-new/2026/02/aws-network-firewall-new-price-reduction/)
 - [AWS Network Firewall 料金](https://aws.amazon.com/network-firewall/pricing/)
 - [Network Firewall ドキュメント](https://docs.aws.amazon.com/network-firewall/latest/developerguide/firewall-creating.html)

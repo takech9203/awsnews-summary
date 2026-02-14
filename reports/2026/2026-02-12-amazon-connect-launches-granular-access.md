@@ -4,7 +4,7 @@
 **サービス**: Amazon Connect
 **機能**: 分析ダッシュボード向けタグベースアクセス制御
 
-📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/awsnews-summary/20260212-amazon-connect-launches-granular-access.html)
+📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/aws-news-summary/20260212-amazon-connect-launches-granular-access.html)
 
 ## 概要
 
@@ -255,7 +255,7 @@ Amazon Connect が提供されているすべての AWS 商用リージョンお
 
 ## 参考リンク
 
-- 📊 [インフォグラフィック](https://takech9203.github.io/awsnews-summary/20260212-amazon-connect-launches-granular-access.html)
+- 📊 [インフォグラフィック](https://takech9203.github.io/aws-news-summary/20260212-amazon-connect-launches-granular-access.html)
 - [公式発表 (What's New)](https://aws.amazon.com/about-aws/whats-new/2026/02/amazon-connect-launches-granular-access/)
 - [ドキュメント - ダッシュボードのタグベースアクセス制御](https://docs.aws.amazon.com/connect/latest/adminguide/dashboard-tag-based-access-control.html)
 - [ドキュメント - ダッシュボード](https://docs.aws.amazon.com/connect/latest/adminguide/dashboards.html)

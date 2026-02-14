@@ -4,7 +4,7 @@
 **サービス**: Amazon Connect
 **機能**: タスク向けリアルタイム AI 概要と推奨アクション
 
-📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/awsnews-summary/20260213-amazon-connect-tasks-ai-assistance.html)
+📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/aws-news-summary/20260213-amazon-connect-tasks-ai-assistance.html)
 
 ## 概要
 
@@ -211,7 +211,7 @@ Amazon Connect のリアルタイムエージェントアシスタンス (Amazon
 
 ## 参考リンク
 
-- 📊 [インフォグラフィック](https://takech9203.github.io/awsnews-summary/20260213-amazon-connect-tasks-ai-assistance.html)
+- 📊 [インフォグラフィック](https://takech9203.github.io/aws-news-summary/20260213-amazon-connect-tasks-ai-assistance.html)
 - [公式発表 (What's New)](https://aws.amazon.com/about-aws/whats-new/2026/02/amazon-connect-tasks-ai-assistance/)
 - [Amazon Connect 管理者ガイド](https://docs.aws.amazon.com/connect/latest/adminguide/what-is-amazon-connect.html)
 - [Amazon Q in Connect ドキュメント](https://docs.aws.amazon.com/connect/latest/adminguide/amazon-q-connect.html)

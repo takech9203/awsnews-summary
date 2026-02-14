@@ -4,7 +4,7 @@
 **サービス**: Amazon Connect
 **機能**: Improved Estimated Wait Time Metrics
 
-📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/awsnews-summary/20260130-amazon-connect-launches-improved-wait-time.html)
+📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/aws-news-summary/20260130-amazon-connect-launches-improved-wait-time.html)
 
 ## 概要
 

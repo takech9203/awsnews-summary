@@ -4,7 +4,7 @@
 **サービス**: Amazon EC2
 **機能**: M8azn インスタンス
 
-📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/awsnews-summary/20260212-aws-m8azn-instances-generally-available.html)
+📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/aws-news-summary/20260212-aws-m8azn-instances-generally-available.html)
 
 ## 概要
 
@@ -255,7 +255,7 @@ M8azn インスタンスは以下の AWS リージョンで利用可能です。
 
 ## 参考リンク
 
-- 📊 [インフォグラフィック](https://takech9203.github.io/awsnews-summary/20260212-aws-m8azn-instances-generally-available.html)
+- 📊 [インフォグラフィック](https://takech9203.github.io/aws-news-summary/20260212-aws-m8azn-instances-generally-available.html)
 - [公式発表 (What's New)](https://aws.amazon.com/about-aws/whats-new/2026/02/aws-m8azn-instances-generally-available/)
 - [Amazon EC2 M8azn インスタンスページ](https://aws.amazon.com/ec2/instance-types/m8a)
 - [AWS Nitro System](https://aws.amazon.com/ec2/nitro/)

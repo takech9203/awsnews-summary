@@ -4,7 +4,7 @@
 **サービス**: Amazon Managed Streaming for Apache Kafka (MSK)
 **機能**: Express Brokers でのブローカーログサポート
 
-📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/awsnews-summary/20260211-aws-msk-express-brokers-support-broker-logs.html)
+📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/aws-news-summary/20260211-aws-msk-express-brokers-support-broker-logs.html)
 
 ## 概要
 
@@ -324,7 +324,7 @@ Express Brokers がサポートされているすべての AWS リージョン�
 
 ## 参考リンク
 
-- 📊 [インフォグラフィック](https://takech9203.github.io/awsnews-summary/20260211-aws-msk-express-brokers-support-broker-logs.html)
+- 📊 [インフォグラフィック](https://takech9203.github.io/aws-news-summary/20260211-aws-msk-express-brokers-support-broker-logs.html)
 - [公式発表 (What's New)](https://aws.amazon.com/about-aws/whats-new/2026/02/aws-msk-express-brokers-support-broker-logs/)
 - [Amazon MSK ブローカーログドキュメント](https://docs.aws.amazon.com/msk/latest/developerguide/msk-logging.html)
 - [Express Brokers 製品ページ](https://aws.amazon.com/msk/features/express-brokers-for-amazon-msk/)

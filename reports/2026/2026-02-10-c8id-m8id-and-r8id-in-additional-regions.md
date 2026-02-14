@@ -4,7 +4,7 @@
 **サービス**: Amazon EC2
 **機能**: C8id, M8id, R8id インスタンスのリージョン拡大
 
-📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/awsnews-summary/20260210-c8id-m8id-and-r8id-in-additional-regions.html)
+📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/aws-news-summary/20260210-c8id-m8id-and-r8id-in-additional-regions.html)
 
 ## 概要
 
@@ -352,7 +352,7 @@ C8id、M8id、R8id インスタンスの料金は、インスタンスタイプ�
 
 ## 参考リンク
 
-- 📊 [インフォグラフィック](https://takech9203.github.io/awsnews-summary/20260210-c8id-m8id-and-r8id-in-additional-regions.html)
+- 📊 [インフォグラフィック](https://takech9203.github.io/aws-news-summary/20260210-c8id-m8id-and-r8id-in-additional-regions.html)
 - [公式発表 (What's New)](https://aws.amazon.com/about-aws/whats-new/2026/02/c8id-m8id-and-r8id-in-additional-regions/)
 - [Amazon EC2 インスタンスタイプ](https://aws.amazon.com/ec2/instance-types/)
 - [Amazon EC2 料金ページ](https://aws.amazon.com/ec2/pricing/)

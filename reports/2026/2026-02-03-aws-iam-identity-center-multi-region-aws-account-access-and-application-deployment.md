@@ -4,7 +4,7 @@
 **サービス**: AWS IAM Identity Center
 **機能**: マルチリージョンサポート
 
-📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/awsnews-summary/20260203-aws-iam-identity-center-multi-region-aws-account-access-and-application-deployment.html)
+📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/aws-news-summary/20260203-aws-iam-identity-center-multi-region-aws-account-access-and-application-deployment.html)
 
 ## 概要
 
@@ -224,7 +224,7 @@ IAM Identity Center 自体は追加料金なしで利用可能です。マルチ
 
 ## 参考リンク
 
-- 📊 [インフォグラフィック](https://takech9203.github.io/awsnews-summary/20260203-aws-iam-identity-center-multi-region-aws-account-access-and-application-deployment.html)
+- 📊 [インフォグラフィック](https://takech9203.github.io/aws-news-summary/20260203-aws-iam-identity-center-multi-region-aws-account-access-and-application-deployment.html)
 - [公式発表 (What's New)](https://aws.amazon.com/about-aws/whats-new/2026/02/aws-iam-identity-center-multi-region-aws-account-access-and-application-deployment/)
 - [IAM Identity Center 製品ページ](https://aws.amazon.com/iam/identity-center/)
 - [IAM Identity Center ユーザーガイド - マルチリージョン](https://docs.aws.amazon.com/singlesignon/latest/userguide/multi-region-iam-identity-center.html)

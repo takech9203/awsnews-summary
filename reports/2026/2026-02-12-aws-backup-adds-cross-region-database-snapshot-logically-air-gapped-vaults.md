@@ -4,7 +4,7 @@
 **サービス**: AWS Backup
 **機能**: クロスリージョン論理的エアギャップボールトへの単一アクションコピー
 
-📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/awsnews-summary/20260212-aws-backup-adds-cross-region-database-snapshot-logically-air-gapped-vaults.html)
+📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/aws-news-summary/20260212-aws-backup-adds-cross-region-database-snapshot-logically-air-gapped-vaults.html)
 
 ## 概要
 
@@ -260,7 +260,7 @@ AWS Backup がデータベースと論理的エアギャップボールトをサ
 
 ## 参考リンク
 
-- 📊 [インフォグラフィック](https://takech9203.github.io/awsnews-summary/20260212-aws-backup-adds-cross-region-database-snapshot-logically-air-gapped-vaults.html)
+- 📊 [インフォグラフィック](https://takech9203.github.io/aws-news-summary/20260212-aws-backup-adds-cross-region-database-snapshot-logically-air-gapped-vaults.html)
 - [公式発表 (What's New)](https://aws.amazon.com/about-aws/whats-new/2026/02/aws-backup-adds-cross-region-database-snapshot-logically-air-gapped-vaults/)
 - [AWS Backup ドキュメント](https://docs.aws.amazon.com/aws-backup/latest/devguide/backup-feature-availability.html#features-by-resource)
 

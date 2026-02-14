@@ -4,7 +4,7 @@
 **サービス**: AWS Payment Cryptography
 **機能**: Cartes Bancaires (CB) 認定の取得
 
-📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/awsnews-summary/20260211-payment-cryptography-cartes-bancaires.html)
+📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/aws-news-summary/20260211-payment-cryptography-cartes-bancaires.html)
 
 ## 概要
 
@@ -295,7 +295,7 @@ AWS Payment Cryptography は以下の AWS リージョンで利用可能です�
 
 ## 参考リンク
 
-- 📊 [インフォグラフィック](https://takech9203.github.io/awsnews-summary/20260211-payment-cryptography-cartes-bancaires.html)
+- 📊 [インフォグラフィック](https://takech9203.github.io/aws-news-summary/20260211-payment-cryptography-cartes-bancaires.html)
 - [公式発表 (What's New)](https://aws.amazon.com/about-aws/whats-new/2026/02/payment-cryptography-cartes-bancaires/)
 - [AWS Payment Cryptography ユーザーガイド](https://docs.aws.amazon.com/payment-cryptography/latest/userguide/what-is.html)
 - [AWS Payment Cryptography 製品ページ](https://aws.amazon.com/payment-cryptography/)

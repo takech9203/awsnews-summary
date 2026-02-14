@@ -4,7 +4,7 @@
 **サービス**: Amazon Bedrock
 **機能**: Claude Opus 4.6 モデルサポート
 
-📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/awsnews-summary/20260205-claude-opus-4.6-available-amazon-bedrock.html)
+📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/aws-news-summary/20260205-claude-opus-4.6-available-amazon-bedrock.html)
 
 ## 概要
 
@@ -324,7 +324,7 @@ Claude Opus 4.6 はクロスリージョン推論をサポートし、以下の�
 
 ## 参考リンク
 
-- 📊 [インフォグラフィック](https://takech9203.github.io/awsnews-summary/20260205-claude-opus-4.6-available-amazon-bedrock.html)
+- 📊 [インフォグラフィック](https://takech9203.github.io/aws-news-summary/20260205-claude-opus-4.6-available-amazon-bedrock.html)
 - [公式発表 (What's New)](https://aws.amazon.com/about-aws/whats-new/2026/2/claude-opus-4.6-available-amazon-bedrock/)
 - [サポートされるモデル一覧](https://docs.aws.amazon.com/bedrock/latest/userguide/models-supported.html)
 - [Claude モデルパラメータ](https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters-claude.html)

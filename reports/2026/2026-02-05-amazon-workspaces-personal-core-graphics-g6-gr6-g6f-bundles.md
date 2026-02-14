@@ -4,7 +4,7 @@
 **サービス**: Amazon WorkSpaces
 **機能**: Graphics G6, Gr6, G6f バンドル
 
-📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/awsnews-summary/20260205-amazon-workspaces-personal-core-graphics-g6-gr6-g6f-bundles.html)
+📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/aws-news-summary/20260205-amazon-workspaces-personal-core-graphics-g6-gr6-g6f-bundles.html)
 
 ## 概要
 
@@ -191,7 +191,7 @@ Amazon WorkSpaces が Amazon EC2 G6 ファミリーをベースにした 12 種�
 
 ## 参考リンク
 
-- 📊 [インフォグラフィック](https://takech9203.github.io/awsnews-summary/20260205-amazon-workspaces-personal-core-graphics-g6-gr6-g6f-bundles.html)
+- 📊 [インフォグラフィック](https://takech9203.github.io/aws-news-summary/20260205-amazon-workspaces-personal-core-graphics-g6-gr6-g6f-bundles.html)
 - [公式発表 (What's New)](https://aws.amazon.com/about-aws/whats-new/2026/02/amazon-workspaces-personal-core-graphics-g6-gr6-g6f-bundles/)
 - [EC2 G6 インスタンスページ](https://aws.amazon.com/ec2/instance-types/g6/)
 - [Amazon WorkSpaces 料金](https://aws.amazon.com/workspaces/desktop-as-a-service/pricing/)

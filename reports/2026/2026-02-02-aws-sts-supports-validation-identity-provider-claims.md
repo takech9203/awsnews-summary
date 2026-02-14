@@ -4,7 +4,7 @@
 **サービス**: AWS Security Token Service (STS)
 **機能**: Identity Provider Claims Validation
 
-📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/awsnews-summary/20260202-aws-sts-supports-validation-identity-provider-claims.html)
+📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/aws-news-summary/20260202-aws-sts-supports-validation-identity-provider-claims.html)
 
 ## 概要
 
@@ -300,7 +300,7 @@ GitHub Actions ワークフローで OIDC を使用して AWS 認証情報を取
 
 ## 参考リンク
 
-- 📊 [インフォグラフィック](https://takech9203.github.io/awsnews-summary/20260202-aws-sts-supports-validation-identity-provider-claims.html)
+- 📊 [インフォグラフィック](https://takech9203.github.io/aws-news-summary/20260202-aws-sts-supports-validation-identity-provider-claims.html)
 - [公式発表 (What's New)](https://aws.amazon.com/about-aws/whats-new/2026/01/aws-sts-supports-validation-identity-provider-claims)
 - [IAM OIDC フェデレーション ドキュメント](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_providers_oidc.html)
 - [GitHub Actions OIDC 設定ガイド](https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/configuring-openid-connect-in-amazon-web-services)

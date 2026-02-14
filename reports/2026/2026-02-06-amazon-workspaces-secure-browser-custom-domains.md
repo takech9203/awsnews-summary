@@ -4,7 +4,7 @@
 **サービス**: Amazon WorkSpaces Secure Browser
 **機能**: カスタムドメイン
 
-📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/awsnews-summary/20260206-amazon-workspaces-secure-browser-custom-domains.html)
+📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/aws-news-summary/20260206-amazon-workspaces-secure-browser-custom-domains.html)
 
 ## 概要
 
@@ -205,7 +205,7 @@ secure.example.com CNAME d1234abcd.cloudfront.net
 
 ## 参考リンク
 
-- 📊 [インフォグラフィック](https://takech9203.github.io/awsnews-summary/20260206-amazon-workspaces-secure-browser-custom-domains.html)
+- 📊 [インフォグラフィック](https://takech9203.github.io/aws-news-summary/20260206-amazon-workspaces-secure-browser-custom-domains.html)
 - [公式発表 (What's New)](https://aws.amazon.com/about-aws/whats-new/2026/02/amazon-workspaces-secure-browser-custom-domains/)
 - [カスタムドメイン ドキュメント](https://docs.aws.amazon.com/workspaces-web/latest/adminguide/custom-domains.html)
 - [WorkSpaces Secure Browser 料金](https://aws.amazon.com/workspaces/secure-browser/pricing/)

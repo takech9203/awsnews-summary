@@ -4,7 +4,7 @@
 **サービス**: Amazon OpenSearch Serverless
 **機能**: Collection Groups
 
-📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/awsnews-summary/20260210-amazon-opensearch-serverless-supports-collection-groups.html)
+📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/aws-news-summary/20260210-amazon-opensearch-serverless-supports-collection-groups.html)
 
 ## 概要
 
@@ -259,7 +259,7 @@ Amazon OpenSearch Serverless が提供されているすべてのリージョン
 
 ## 参考リンク
 
-- 📊 [インフォグラフィック](https://takech9203.github.io/awsnews-summary/20260210-amazon-opensearch-serverless-supports-collection-groups.html)
+- 📊 [インフォグラフィック](https://takech9203.github.io/aws-news-summary/20260210-amazon-opensearch-serverless-supports-collection-groups.html)
 - [公式発表 (What's New)](https://aws.amazon.com/about-aws/whats-new/2026/02/amazon-opensearch-serverless-supports-collection-groups/)
 - [OpenSearch Serverless ドキュメント](https://docs.aws.amazon.com/opensearch-service/latest/developerguide/serverless-collection-groups.html)
 - [リージョン可用性](https://docs.aws.amazon.com/general/latest/gr/opensearch-service.html)

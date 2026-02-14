@@ -4,7 +4,7 @@
 **サービス**: Amazon Elastic Kubernetes Service (EKS)
 **機能**: Auto Mode マネージド機能の CloudWatch Vended Logs 統合
 
-📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/awsnews-summary/20260210-amazon-eks-auto-mode-enhanced-logging.html)
+📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/aws-news-summary/20260210-amazon-eks-auto-mode-enhanced-logging.html)
 
 ## 概要
 
@@ -255,7 +255,7 @@ EKS Auto Mode が利用可能なすべてのリージョンで利用できます
 
 ## 参考リンク
 
-- 📊 [インフォグラフィック](https://takech9203.github.io/awsnews-summary/20260210-amazon-eks-auto-mode-enhanced-logging.html)
+- 📊 [インフォグラフィック](https://takech9203.github.io/aws-news-summary/20260210-amazon-eks-auto-mode-enhanced-logging.html)
 - [公式発表 (What's New)](https://aws.amazon.com/about-aws/whats-new/2026/02/amazon-eks-auto-mode-enhanced-logging/)
 - [Amazon EKS ドキュメント](https://docs.aws.amazon.com/eks/latest/userguide/auto-observability.html)
 

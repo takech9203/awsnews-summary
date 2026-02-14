@@ -4,7 +4,7 @@
 **サービス**: AWS Data Transfer Terminal
 **機能**: Seattle、Phoenix、London、Paris、Sydney、Tokyo の 6 拠点追加
 
-📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/awsnews-summary/20260211-aws-data-transfer-terminal-6-new-locations.html)
+📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/aws-news-summary/20260211-aws-data-transfer-terminal-6-new-locations.html)
 
 ## 概要
 
@@ -321,7 +321,7 @@ AWS Data Transfer Terminal は以下の 10 拠点で利用可能です。
 
 ## 参考リンク
 
-- 📊 [インフォグラフィック](https://takech9203.github.io/awsnews-summary/20260211-aws-data-transfer-terminal-6-new-locations.html)
+- 📊 [インフォグラフィック](https://takech9203.github.io/aws-news-summary/20260211-aws-data-transfer-terminal-6-new-locations.html)
 - [公式発表 (What's New)](https://aws.amazon.com/about-aws/whats-new/2026/02/aws-data-transfer-terminal-6-new-locations/)
 - [Data Transfer Terminal 製品ページ](https://aws.amazon.com/data-transfer-terminal/)
 - [Data Transfer Terminal ドキュメント](https://docs.aws.amazon.com/datatransferterminal/latest/userguide/what-is-dtt.html)

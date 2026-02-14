@@ -4,7 +4,7 @@
 **サービス**: Amazon Aurora
 **機能**: Global Database のマネージドマイナーバージョンアップグレード
 
-📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/awsnews-summary/20260210-amazon-aurora-global-database-managed-minor.html)
+📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/aws-news-summary/20260210-amazon-aurora-global-database-managed-minor.html)
 
 ## 概要
 
@@ -248,7 +248,7 @@ Aurora Global Database をサポートするすべての商用 AWS リージョ�
 
 ## 参考リンク
 
-- 📊 [インフォグラフィック](https://takech9203.github.io/awsnews-summary/20260210-amazon-aurora-global-database-managed-minor.html)
+- 📊 [インフォグラフィック](https://takech9203.github.io/aws-news-summary/20260210-amazon-aurora-global-database-managed-minor.html)
 - [公式発表 (What's New)](https://aws.amazon.com/about-aws/whats-new/2026/02/amazon-aurora-global-database-managed-minor/)
 - [Aurora Global Database アップグレードドキュメント](https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-global-database-upgrade.html)
 - [Aurora PostgreSQL Global Database](https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/Concepts.Aurora_Fea_Regions_DB-eng.Feature.GlobalDatabase.html#Concepts.Aurora_Fea_Regions_DB-eng.Feature.GlobalDatabase.apg)

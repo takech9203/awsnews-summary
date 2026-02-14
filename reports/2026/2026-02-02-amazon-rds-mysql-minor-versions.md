@@ -4,7 +4,7 @@
 **サービス**: Amazon RDS for MySQL
 **機能**: MySQL マイナーバージョンアップデート対応
 
-📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/awsnews-summary/20260202-amazon-rds-mysql-minor-versions.html)
+📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/aws-news-summary/20260202-amazon-rds-mysql-minor-versions.html)
 
 ## 概要
 

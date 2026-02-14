@@ -4,7 +4,7 @@
 **サービス**: AWS Batch
 **機能**: Unmanaged Compute Environments for Amazon EKS
 
-📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/awsnews-summary/20260204-aws-batch-on-eks-unmanaged-compute-environments.html)
+📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/aws-news-summary/20260204-aws-batch-on-eks-unmanaged-compute-environments.html)
 
 ## 概要
 
@@ -293,7 +293,7 @@ AWS Batch 自体に追加料金はありません。以下のリソースに対�
 
 ## 参考リンク
 
-- 📊 [インフォグラフィック](https://takech9203.github.io/awsnews-summary/20260204-aws-batch-on-eks-unmanaged-compute-environments.html)
+- 📊 [インフォグラフィック](https://takech9203.github.io/aws-news-summary/20260204-aws-batch-on-eks-unmanaged-compute-environments.html)
 - [公式発表 (What's New)](https://aws.amazon.com/about-aws/whats-new/2026/02/aws-batch-on-eks-unmanaged-compute-environments)
 - [AWS Batch ユーザーガイド - アンマネージド EKS コンピュート環境](https://docs.aws.amazon.com/batch/latest/userguide/create-compute-environment-unmanaged-eks.html)
 

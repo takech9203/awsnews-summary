@@ -4,7 +4,7 @@
 **サービス**: AWS Glue
 **機能**: ネイティブ REST API コネクタ
 
-📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/awsnews-summary/20260205-aws-glue-rest-api-connector.html)
+📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/aws-news-summary/20260205-aws-glue-rest-api-connector.html)
 
 ## 概要
 
@@ -266,7 +266,7 @@ AWS Glue が利用可能なすべての AWS 商用リージョンで利用可能
 
 ## 参考リンク
 
-- 📊 [インフォグラフィック](https://takech9203.github.io/awsnews-summary/20260205-aws-glue-rest-api-connector.html)
+- 📊 [インフォグラフィック](https://takech9203.github.io/aws-news-summary/20260205-aws-glue-rest-api-connector.html)
 - [公式発表 (What's New)](https://aws.amazon.com/about-aws/whats-new/2026/02/aws-glue-rest-api-connector/)
 - [AWS Glue REST API 接続ドキュメント](https://docs.aws.amazon.com/glue/latest/dg/rest-api-connections.html)
 - [AWS Glue 料金](https://aws.amazon.com/glue/pricing/)

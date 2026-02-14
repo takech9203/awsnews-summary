@@ -4,7 +4,7 @@
 **サービス**: AWS HealthOmics
 **機能**: Kiro Power および Kiro IDE 拡張機能によるバイオインフォマティクスワークフロー開発
 
-📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/awsnews-summary/20260209-aws-healthomics-introduces-kiro-plugin-for-bioinformatics-workflow-development.html)
+📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/aws-news-summary/20260209-aws-healthomics-introduces-kiro-plugin-for-bioinformatics-workflow-development.html)
 
 ## 概要
 
@@ -192,7 +192,7 @@ AWS HealthOmics がサポートされているリージョンで利用可能で�
 
 ## 参考リンク
 
-- 📊 [インフォグラフィック](https://takech9203.github.io/awsnews-summary/20260209-aws-healthomics-introduces-kiro-plugin-for-bioinformatics-workflow-development.html)
+- 📊 [インフォグラフィック](https://takech9203.github.io/aws-news-summary/20260209-aws-healthomics-introduces-kiro-plugin-for-bioinformatics-workflow-development.html)
 - [公式発表 (What's New)](https://aws.amazon.com/about-aws/whats-new/2026/01/aws-healthomics-introduces-kiro-plugin-for-bioinformatics-workflow-development/)
 - [Kiro Powers](https://kiro.dev/powers/)
 - [Open VSX Registry - HealthOmics Extension](https://open-vsx.org/extension/amazonwebservices/aws-healthomics-extension)

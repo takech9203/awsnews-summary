@@ -4,7 +4,7 @@
 **サービス**: AWS Network Firewall、AWS Transit Gateway
 **機能**: Flexible Cost Allocation (柔軟なコスト配分)
 
-📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/awsnews-summary/20260202-aws-flexible-cost-allocation-govcloud.html)
+📊 [このアップデートのインフォグラフィックを見る](https://takech9203.github.io/aws-news-summary/20260202-aws-flexible-cost-allocation-govcloud.html)
 
 ## 概要
 
