@@ -16,9 +16,18 @@ Parameters:
     Type: String
     Description: GitLab project name (e.g. aws-news-summary)
 
+  OIDCProviderArn:
+    Type: String
+    Default: ""
+    Description: (Optional) Existing OIDC Provider ARN. If not specified, a new provider will be created.
+
+Conditions:
+  CreateOIDCProvider: !Equals [!Ref OIDCProviderArn, ""]
+
 Resources:
   GitLabOIDCProvider:
     Type: AWS::IAM::OIDCProvider
+    Condition: CreateOIDCProvider
     Properties:
       Url: https://gitlab.com
       ClientIdList:
@@ -57,7 +66,10 @@ Resources:
         Statement:
           - Effect: Allow
             Principal:
-              Federated: !GetAtt GitLabOIDCProvider.Arn
+              Federated: !If
+                - CreateOIDCProvider
+                - !GetAtt GitLabOIDCProvider.Arn
+                - !Ref OIDCProviderArn
             Action: sts:AssumeRoleWithWebIdentity
             Condition:
               StringEquals:
@@ -78,5 +90,8 @@ Outputs:
     Value: !Ref RoleName
 
   OIDCProviderArn:
-    Description: GitLab OIDC Provider ARN
-    Value: !GetAtt GitLabOIDCProvider.Arn
+    Description: GitLab OIDC Provider ARN (created or existing)
+    Value: !If
+      - CreateOIDCProvider
+      - !GetAtt GitLabOIDCProvider.Arn
+      - !Ref OIDCProviderArn

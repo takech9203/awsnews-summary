@@ -20,6 +20,7 @@ ROLE_NAME=""
 PLATFORM=""
 ORG_OR_GROUP=""
 REPO_OR_PROJECT=""
+OIDC_PROVIDER_ARN=""
 
 usage() {
   cat <<EOF
@@ -41,22 +42,29 @@ Optional:
   -n, --role-name NAME        IAM role name (default: GitHubActions-AWSNewsSummary or GitLabCI-AWSNewsSummary)
   -s, --stack-name NAME       CloudFormation stack name (default: aws-news-summary-github-iam or aws-news-summary-gitlab-iam)
   -R, --region REGION         AWS region (default: us-east-1)
+  -O, --oidc-provider-arn ARN Existing OIDC Provider ARN (auto-detected if not specified)
   -h, --help                  Show this help
+
+Note:
+  The script automatically checks for existing OIDC provider.
+  If found, it will be used. Otherwise, a new provider will be created.
+  Use -O option to override auto-detection.
 EOF
   exit 1
 }
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    -p|--platform)   PLATFORM="$2"; shift 2 ;;
-    -o|--org)        ORG_OR_GROUP="$2"; shift 2 ;;
-    -g|--group)      ORG_OR_GROUP="$2"; shift 2 ;;
-    -r|--repo)       REPO_OR_PROJECT="$2"; shift 2 ;;
-    -n|--role-name)  ROLE_NAME="$2"; shift 2 ;;
-    -s|--stack-name) STACK_NAME="$2"; shift 2 ;;
-    -R|--region)     REGION="$2"; shift 2 ;;
-    -h|--help)       usage ;;
-    *)               echo "Error: Unknown option: $1"; usage ;;
+    -p|--platform)           PLATFORM="$2"; shift 2 ;;
+    -o|--org)                ORG_OR_GROUP="$2"; shift 2 ;;
+    -g|--group)              ORG_OR_GROUP="$2"; shift 2 ;;
+    -r|--repo)               REPO_OR_PROJECT="$2"; shift 2 ;;
+    -n|--role-name)          ROLE_NAME="$2"; shift 2 ;;
+    -s|--stack-name)         STACK_NAME="$2"; shift 2 ;;
+    -R|--region)             REGION="$2"; shift 2 ;;
+    -O|--oidc-provider-arn)  OIDC_PROVIDER_ARN="$2"; shift 2 ;;
+    -h|--help)               usage ;;
+    *)                       echo "Error: Unknown option: $1"; usage ;;
   esac
 done
 
@@ -85,6 +93,29 @@ if [[ -z "$REPO_OR_PROJECT" ]]; then
   usage
 fi
 
+# Auto-detect existing OIDC provider if not specified
+if [[ -z "$OIDC_PROVIDER_ARN" ]]; then
+  echo "Checking for existing OIDC provider..."
+  if [[ "$PLATFORM" == "github" ]]; then
+    DETECTED_ARN=$(aws iam list-open-id-connect-providers \
+      --region "$REGION" \
+      --query 'OpenIDConnectProviderList[?contains(Arn, `token.actions.githubusercontent.com`)].Arn' \
+      --output text 2>/dev/null || echo "")
+  else
+    DETECTED_ARN=$(aws iam list-open-id-connect-providers \
+      --region "$REGION" \
+      --query 'OpenIDConnectProviderList[?contains(Arn, `gitlab.com`)].Arn' \
+      --output text 2>/dev/null || echo "")
+  fi
+
+  if [[ -n "$DETECTED_ARN" ]]; then
+    OIDC_PROVIDER_ARN="$DETECTED_ARN"
+    echo "Found existing OIDC provider: ${OIDC_PROVIDER_ARN}"
+  else
+    echo "No existing OIDC provider found. Will create new one."
+  fi
+fi
+
 # Select template and parameters
 if [[ "$PLATFORM" == "github" ]]; then
   [[ -z "$ROLE_NAME" ]] && ROLE_NAME="GitHubActions-AWSNewsSummary"
@@ -102,12 +133,21 @@ else
   REPO_DISPLAY="${ORG_OR_GROUP}/${REPO_OR_PROJECT}"
 fi
 
+if [[ -n "$OIDC_PROVIDER_ARN" ]]; then
+  PARAMS="${PARAMS} OIDCProviderArn=${OIDC_PROVIDER_ARN}"
+fi
+
 echo "=== AWS News Summary IAM Setup ==="
 echo "Platform: ${LABEL}"
 echo "Repo:     ${REPO_DISPLAY}"
 echo "Stack:    ${STACK_NAME}"
 echo "Region:   ${REGION}"
 echo "Role:     ${ROLE_NAME}"
+if [[ -n "$OIDC_PROVIDER_ARN" ]]; then
+  echo "OIDC:     ${OIDC_PROVIDER_ARN} (existing)"
+else
+  echo "OIDC:     Will create new provider"
+fi
 echo ""
 
 export AWS_PAGER=""
