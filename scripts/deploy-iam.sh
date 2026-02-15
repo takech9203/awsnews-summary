@@ -3,13 +3,13 @@
 #
 # Usage:
 #   # GitHub Actions (role: GitHubActions-AWSNewsSummary, stack: aws-news-summary-github-iam)
-#   ./scripts/deploy-iam.sh -p github -o myorg -r aws-news-summary
+#   ./scripts/deploy-iam.sh -p github -o myorg
 #
 #   # GitLab CI (role: GitLabCI-AWSNewsSummary, stack: aws-news-summary-gitlab-iam)
-#   ./scripts/deploy-iam.sh -p gitlab -g mygroup -r aws-news-summary
+#   ./scripts/deploy-iam.sh -p gitlab -g mygroup
 #
-#   # Custom role name and region
-#   ./scripts/deploy-iam.sh -p github -o myorg -r aws-news-summary -n MyRole -R us-west-2
+#   # Custom repository name and region
+#   ./scripts/deploy-iam.sh -p github -o myorg -r my-custom-repo -n MyRole -R us-west-2
 
 set -euo pipefail
 
@@ -19,7 +19,7 @@ REGION="us-east-1"
 ROLE_NAME=""
 PLATFORM=""
 ORG_OR_GROUP=""
-REPO_OR_PROJECT=""
+REPO_OR_PROJECT="aws-news-summary"
 OIDC_PROVIDER_ARN=""
 
 usage() {
@@ -32,13 +32,12 @@ Required:
 Platform-specific:
   GitHub:
     -o, --org ORG             GitHub owner/org
-    -r, --repo REPO           GitHub repository name
 
   GitLab:
     -g, --group GROUP         GitLab group/namespace
-    -r, --repo REPO           GitLab project name
 
 Optional:
+  -r, --repo REPO             Repository/project name (default: aws-news-summary)
   -n, --role-name NAME        IAM role name (default: GitHubActions-AWSNewsSummary or GitLabCI-AWSNewsSummary)
   -s, --stack-name NAME       CloudFormation stack name (default: aws-news-summary-github-iam or aws-news-summary-gitlab-iam)
   -R, --region REGION         AWS region (default: us-east-1)
@@ -88,10 +87,7 @@ if [[ -z "$ORG_OR_GROUP" ]]; then
   usage
 fi
 
-if [[ -z "$REPO_OR_PROJECT" ]]; then
-  echo "Error: -r/--repo is required."
-  usage
-fi
+# REPO_OR_PROJECT has a default value, so no validation needed
 
 # Auto-detect existing OIDC provider if not specified
 if [[ -z "$OIDC_PROVIDER_ARN" ]]; then
