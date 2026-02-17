@@ -5,7 +5,15 @@
 
 ## 2026 年
 
+- [2026-02-17 - Kiro - Claude Sonnet 4.6 サポートの追加](2026/2026-02-17-kiro-sonnet-4-6.md)
+- [2026-02-17 - Amazon Connect - ドラフトスケジュールへの休暇リクエスト反映](2026/2026-02-17-amazon-connect-time-off-draft-schedules.md)
+- [2026-02-17 - Amazon Bedrock - Claude Sonnet 4.6 の提供開始](2026/2026-02-17-claude-sonnet-4-6-available-in-amazon-bedrock.md)
+- [2026-02-16 - AWS Glue 5.1 - 18 リージョンへの拡大](2026/2026-02-16-aws-glue-5-1-eighteen-additional-regions.md)
+- [2026-02-16 - Amazon Aurora - デフォルトのサーバーサイド暗号化](2026/2026-02-16-amazon-aurora-server-side-encryption-at-rest.md)
+- [2026-02-16 - AWS HealthImaging - データストア監視用メトリクスの追加](2026/2026-02-16-aws-healthimaging-additional-metrics.md)
 - [2026-02-16 - Amazon EC2 - 仮想インスタンスでのネステッド仮想化のサポート](2026/2026-02-16-amazon-ec2-nested-virtualization-on-virtual.md)
+- [2026-02-16 - AWS Backup - SAP HANA 向け PrivateLink サポート](2026/2026-02-16-aws-backup-announces-privatelink-sap-hana-aws.md)
+- [2026-02-16 - Amazon EC2 - Hpc8a インスタンスの提供開始](2026/2026-02-16-announcing-amazon-ec2-hpc8a-instances.md)
 - [2026-02-16 - Amazon DocumentDB - エンジンバージョン 5.0 長期サポート (LTS) の提供開始](2026/2026-02-16-announcing-amazon-documentdb-5-0-long-term-support.md)
 - [2026-02-13 - Amazon EC2 - High Memory U7i インスタンスが追加リージョンで利用可能に](2026/2026-02-13-amazon-ec2-highmem-instances-available.md)
 - [2026-02-13 - Amazon Connect - タスク向け AI アシスタンス](2026/2026-02-13-amazon-connect-tasks-ai-assistance.md)

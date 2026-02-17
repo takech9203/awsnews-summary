@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Amazon Connect - ドラフトスケジュールへの休暇リクエスト反映</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <style>
+        :root {
+            --squid-ink: #232F3E;
+            --aws-orange: #FF9900;
+            --aws-smile-orange: #FFAD33;
+            --text-primary: #FFFFFF;
+            --text-secondary: #AAAAAA;
+            --light-gray: #D5DBDB;
+            --card-bg: #2D3A4A;
+            --dark-squid: #1A242F;
+            --border-color: #3D4A5A;
+            --aws-teal: #00A1C9;
+            --aws-purple: #8C4FFF;
+            --aws-green: #1D8102;
+            --aws-red: #D13212;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            background-color: var(--squid-ink);
+            color: var(--light-gray);
+            line-height: 1.8;
+            font-size: 16px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+            padding-bottom: 30px;
+            border-bottom: 3px solid var(--aws-orange);
+        }
+
+        .service-badge {
+            display: inline-block;
+            background-color: var(--aws-orange);
+            color: var(--squid-ink);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+        }
+
+        .header-subtitle {
+            color: var(--light-gray);
+            font-size: 15px;
+            margin-bottom: 8px;
+        }
+
+        .release-date {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--aws-orange);
+            margin-bottom: 20px;
+            padding-left: 15px;
+            border-left: 4px solid var(--aws-orange);
+        }
+
+        .overview-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .overview-text {
+            font-size: 16px;
+            line-height: 1.9;
+        }
+
+        .highlight {
+            background-color: rgba(255, 153, 0, 0.2);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+            color: var(--aws-orange);
+        }
+
+        /* Stats grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, var(--card-bg) 0%, var(--dark-squid) 100%);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid rgba(255, 153, 0, 0.2);
+        }
+
+        .stat-icon {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--aws-orange);
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        /* Before/After comparison */
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .comparison-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .comparison-card.before {
+            border-top: 4px solid #E74C3C;
+        }
+
+        .comparison-card.after {
+            border-top: 4px solid #2ECC71;
+        }
+
+        .comparison-label {
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        .comparison-card.before .comparison-label {
+            color: #E74C3C;
+        }
+
+        .comparison-card.after .comparison-label {
+            color: #2ECC71;
+        }
+
+        .comparison-list {
+            list-style: none;
+        }
+
+        .comparison-list li {
+            padding: 8px 0;
+            padding-left: 25px;
+            position: relative;
+            font-size: 14px;
+        }
+
+        .comparison-card.before .comparison-list li::before {
+            content: "\2717";
+            position: absolute;
+            left: 0;
+            color: #E74C3C;
+            font-weight: bold;
+        }
+
+        .comparison-card.after .comparison-list li::before {
+            content: "\2713";
+            position: absolute;
+            left: 0;
+            color: #2ECC71;
+            font-weight: bold;
+        }
+
+        /* Mermaid diagram */
+        .diagram-container {
+            background-color: #FFFFFF;
+            border: 2px solid rgba(255, 153, 0, 0.3);
+            border-radius: 12px;
+            padding: 25px;
+            overflow-x: auto;
+        }
+
+        .mermaid {
+            display: flex;
+            justify-content: center;
+        }
+
+        /* Feature cards */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .feature-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            border-left: 3px solid var(--aws-orange);
+        }
+
+        .feature-icon {
+            font-size: 36px;
+            margin-bottom: 12px;
+            text-align: center;
+        }
+
+        .feature-title {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--aws-orange);
+        }
+
+        .feature-description {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        /* Tech spec table */
+        .spec-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+        }
+
+        .spec-table th {
+            background-color: var(--dark-squid);
+            color: var(--aws-orange);
+            padding: 12px 14px;
+            text-align: left;
+            font-size: 13px;
+            font-weight: 700;
+            border-bottom: 2px solid var(--aws-orange);
+        }
+
+        .spec-table td {
+            padding: 12px 14px;
+            font-size: 14px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--light-gray);
+        }
+
+        .spec-table tr:hover {
+            background-color: rgba(255, 153, 0, 0.05);
+        }
+
+        /* Flow diagram */
+        .flow-diagram {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin: 24px 0;
+        }
+
+        .flow-step {
+            background: var(--dark-squid);
+            border: 2px solid var(--aws-orange);
+            border-radius: 8px;
+            padding: 12px 20px;
+            text-align: center;
+            min-width: 120px;
+            font-size: 14px;
+        }
+
+        .flow-arrow {
+            color: var(--aws-orange);
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        /* Use case cards */
+        .usecase-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 3px solid var(--aws-orange);
+        }
+
+        .usecase-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .usecase-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--aws-orange);
+        }
+
+        .usecase-scenario {
+            font-size: 14px;
+            color: var(--light-gray);
+            margin-bottom: 12px;
+        }
+
+        .usecase-effect {
+            font-size: 14px;
+            color: #2ECC71;
+            padding: 10px;
+            background-color: rgba(46, 204, 113, 0.1);
+            border-radius: 8px;
+        }
+
+        .usecase-effect::before {
+            content: "\2713 ";
+            font-weight: bold;
+        }
+
+        /* Merit/Demerit */
+        .merit-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .merit-section {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .merit-section h3 {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: var(--aws-orange);
+        }
+
+        .merit-list {
+            list-style: none;
+        }
+
+        .merit-list li {
+            padding: 6px 0;
+            padding-left: 22px;
+            position: relative;
+            font-size: 14px;
+            color: var(--light-gray);
+        }
+
+        .merit-list li::before {
+            content: "\2713";
+            position: absolute;
+            left: 0;
+            color: #2ECC71;
+            font-weight: bold;
+        }
+
+        /* Constraint/Limitation */
+        .constraint-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 3px solid #E74C3C;
+        }
+
+        .constraint-title {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #E74C3C;
+        }
+
+        .constraint-list {
+            list-style: none;
+        }
+
+        .constraint-list li {
+            padding: 6px 0;
+            padding-left: 22px;
+            position: relative;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .constraint-list li::before {
+            content: "\26A0";
+            position: absolute;
+            left: 0;
+            font-size: 12px;
+        }
+
+        /* Pricing card */
+        .pricing-card {
+            background: linear-gradient(135deg, rgba(29, 129, 2, 0.15) 0%, var(--card-bg) 100%);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid rgba(29, 129, 2, 0.3);
+            text-align: center;
+        }
+
+        .pricing-highlight {
+            font-size: 22px;
+            font-weight: 700;
+            color: #2ECC71;
+            margin-bottom: 8px;
+        }
+
+        .pricing-detail {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        /* Region */
+        .region-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .region-card p {
+            font-size: 15px;
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        /* Related services */
+        .related-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+
+        .related-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+        }
+
+        .related-name {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 6px;
+        }
+
+        .related-desc {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        /* Sub-section title */
+        .sub-section-title {
+            font-size: 17px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 14px;
+            margin-top: 24px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .sub-section-title:first-child {
+            margin-top: 0;
+        }
+
+        /* Footer */
+        footer {
+            margin-top: 50px;
+            padding-top: 30px;
+            border-top: 1px solid var(--border-color);
+            text-align: center;
+        }
+
+        .source-links {
+            list-style: none;
+            margin-bottom: 16px;
+        }
+
+        .source-links li {
+            margin-bottom: 6px;
+        }
+
+        .source-link {
+            color: var(--aws-teal);
+            text-decoration: none;
+            font-size: 14px;
+            word-break: break-all;
+        }
+
+        .source-link:hover {
+            color: var(--aws-smile-orange);
+            text-decoration: underline;
+        }
+
+        .footer-note {
+            color: var(--text-secondary);
+            font-size: 12px;
+            margin-top: 10px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .comparison-grid,
+            .merit-grid {
+                grid-template-columns: 1fr;
+            }
+            .features-grid {
+                grid-template-columns: 1fr !important;
+            }
+            .stats-grid {
+                grid-template-columns: 1fr !important;
+            }
+            .related-grid {
+                grid-template-columns: 1fr !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <span class="service-badge">Amazon Connect</span>
+            <h1>ドラフトスケジュールへの休暇リクエスト反映</h1>
+            <p class="header-subtitle">スケジュール公開前にカバレッジギャップを可視化し、効率的なスケジュール管理を実現</p>
+            <p class="release-date">2026 年 2 月 17 日</p>
+        </header>
+
+        <!-- Overview -->
+        <section class="section">
+            <h2 class="section-title">&#128203; 概要</h2>
+            <div class="overview-card">
+                <p class="overview-text">
+                    Amazon Connect のスケジューリング機能がアップデートされ、<span class="highlight">ドラフトスケジュールにエージェントの休暇リクエストが反映</span>されるようになりました。スケジュール管理者は、特定の日にエージェントがスケジュールされなかった理由をドラフト段階で確認できます。例えば、来月のスケジュール生成時に通常勤務のエージェントが特定の週にスケジュールされていない場合、<span class="highlight">そのエージェントが休暇中であることを即座に把握</span>できます。
+                </p>
+            </div>
+
+            <!-- Stats -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">&#128197;</div>
+                    <div class="stat-value">Draft</div>
+                    <div class="stat-label">ドラフト段階で休暇表示</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">&#128269;</div>
+                    <div class="stat-value">&#9889;</div>
+                    <div class="stat-label">カバレッジギャップの早期検出</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">&#9881;&#65039;</div>
+                    <div class="stat-value">0</div>
+                    <div class="stat-label">追加設定不要</div>
+                </div>
+            </div>
+
+            <!-- Before/After -->
+            <div class="comparison-grid">
+                <div class="comparison-card before">
+                    <div class="comparison-label">Before - アップデート前の課題</div>
+                    <ul class="comparison-list">
+                        <li>ドラフトスケジュール上でエージェントが未スケジュールの理由が不明だった</li>
+                        <li>休暇リクエストの確認には公開済みスケジュールや設定の確認が必要だった</li>
+                        <li>カバレッジギャップの特定に時間がかかっていた</li>
+                    </ul>
+                </div>
+                <div class="comparison-card after">
+                    <div class="comparison-label">After - アップデート後の改善</div>
+                    <ul class="comparison-list">
+                        <li>ドラフトスケジュール内で休暇リクエストが直接表示される</li>
+                        <li>スケジュール公開前にカバレッジギャップを迅速に特定し調整可能</li>
+                        <li>スケジュール管理のワークフローが効率化</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Architecture Diagram -->
+        <section class="section">
+            <h2 class="section-title">&#128736;&#65039; アーキテクチャ図</h2>
+            <div class="diagram-container">
+                <pre class="mermaid">
+flowchart TD
+    subgraph Connect["&#9729;&#65039; Amazon Connect"]
+        subgraph Scheduling["&#128197; スケジューリング"]
+            direction LR
+            Gen["&#9881;&#65039; スケジュール生成"]
+            Draft["&#128221; ドラフトスケジュール"]
+            Pub["&#128227; スケジュール公開"]
+            Gen ~~~ Draft ~~~ Pub
+        end
+
+        subgraph TimeOff["&#127958;&#65039; 休暇管理"]
+            direction LR
+            Req["&#128203; 休暇リクエスト"]
+            Approve["&#9989; 承認済みリクエスト"]
+            Req ~~~ Approve
+        end
+    end
+
+    Manager(["&#128100; スケジュール管理者"])
+    Agent(["&#128084; エージェント"])
+
+    Agent -->|休暇申請| Req
+    Req -->|承認処理| Approve
+    Manager -->|スケジュール生成| Gen
+    Gen --> Draft
+    Approve -->|"自動反映 NEW"| Draft
+    Manager -->|"ギャップ確認・調整"| Draft
+    Draft -->|公開| Pub
+
+    classDef cloud fill:none,stroke:#CCCCCC,stroke-width:2px,color:#666666
+    classDef layer fill:none,stroke:#E1BEE7,stroke-width:2px,color:#666666
+    classDef compute fill:#FFE0B2,stroke:#FFCC80,stroke-width:2px,color:#5D4037
+    classDef user fill:#E3F2FD,stroke:#BBDEFB,stroke-width:2px,color:#1565C0
+    classDef input fill:#E9F7EC,stroke:#66BB6A,stroke-width:2px,color:#333333
+    classDef process fill:#FFFFFF,stroke:#4A90E2,stroke-width:2px,color:#333333
+
+    class Connect cloud
+    class Scheduling,TimeOff layer
+    class Gen,Draft,Pub compute
+    class Req,Approve input
+    class Manager,Agent user
+                </pre>
+            </div>
+            <p style="font-size: 14px; color: var(--text-secondary); margin-top: 12px; text-align: center;">エージェントの承認済み休暇リクエストがドラフトスケジュールに自動反映される流れ</p>
+        </section>
+
+        <!-- Key Features -->
+        <section class="section">
+            <h2 class="section-title">&#11088; 主要機能</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">&#128197;</div>
+                    <div class="feature-title">休暇リクエストのドラフト表示</div>
+                    <div class="feature-description">エージェントの休暇リクエストがドラフトスケジュールに自動的に反映されます。有給休暇、病気休暇などの休暇理由がスケジュール上で可視化され、スケジュール未割り当ての理由が明確に表示されます。</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#128269;</div>
+                    <div class="feature-title">カバレッジギャップの早期検出</div>
+                    <div class="feature-description">スケジュール公開前にカバレッジ不足を特定できます。必要に応じて他のエージェントの再配置やシフト調整が可能になり、スケジュール品質が向上します。</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Technical Specifications -->
+        <section class="section">
+            <h2 class="section-title">&#128295; 技術仕様</h2>
+            <table class="spec-table">
+                <thead>
+                    <tr>
+                        <th>項目</th>
+                        <th>詳細</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong style="color: var(--text-primary);">対象機能</strong></td>
+                        <td>エージェントスケジューリング</td>
+                    </tr>
+                    <tr>
+                        <td><strong style="color: var(--text-primary);">表示対象</strong></td>
+                        <td>ドラフトスケジュール</td>
+                    </tr>
+                    <tr>
+                        <td><strong style="color: var(--text-primary);">反映データ</strong></td>
+                        <td>承認済み休暇リクエスト</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- Setup -->
+        <section class="section">
+            <h2 class="section-title">&#9881;&#65039; 設定方法</h2>
+
+            <h3 class="sub-section-title">前提条件</h3>
+            <div class="overview-card" style="margin-bottom: 16px;">
+                <ul class="merit-list">
+                    <li>Amazon Connect インスタンスが設定済みであること</li>
+                    <li>エージェントスケジューリング機能が有効化されていること</li>
+                    <li>適切な管理者権限を持つユーザーであること</li>
+                </ul>
+            </div>
+
+            <h3 class="sub-section-title">ステップ 1: スケジュール生成</h3>
+            <div class="flow-diagram">
+                <div class="flow-step">&#128187; Amazon Connect<br>コンソールを開く</div>
+                <span class="flow-arrow">&rarr;</span>
+                <div class="flow-step">&#128197; スケジューリング<br>セクションへ移動</div>
+                <span class="flow-arrow">&rarr;</span>
+                <div class="flow-step">&#9881;&#65039; 対象期間の<br>ドラフトスケジュール生成</div>
+            </div>
+
+            <h3 class="sub-section-title">ステップ 2: 休暇リクエストの確認</h3>
+            <div class="overview-card" style="margin-bottom: 16px;">
+                <p style="font-size: 14px; line-height: 1.8;">生成されたドラフトスケジュール上で、各エージェントの休暇リクエスト情報が<span class="highlight">自動的に表示</span>されます。未スケジュールの日について休暇申請が理由であることを確認できます。</p>
+            </div>
+
+            <h3 class="sub-section-title">ステップ 3: スケジュール調整と公開</h3>
+            <div class="flow-diagram">
+                <div class="flow-step">&#128269; カバレッジ<br>ギャップを確認</div>
+                <span class="flow-arrow">&rarr;</span>
+                <div class="flow-step">&#128260; 必要に応じて<br>スケジュール調整</div>
+                <span class="flow-arrow">&rarr;</span>
+                <div class="flow-step">&#128227; スケジュール<br>公開</div>
+            </div>
+        </section>
+
+        <!-- Benefits -->
+        <section class="section">
+            <h2 class="section-title">&#128077; メリット</h2>
+            <div class="merit-grid">
+                <div class="merit-section">
+                    <h3>&#128188; ビジネス面</h3>
+                    <ul class="merit-list">
+                        <li><strong style="color: var(--text-primary);">運用効率の向上:</strong> スケジュール管理者がドラフト段階で問題を把握でき、調整作業が効率化</li>
+                        <li><strong style="color: var(--text-primary);">サービス品質の維持:</strong> カバレッジギャップを事前に特定し、顧客対応の品質を維持</li>
+                        <li><strong style="color: var(--text-primary);">管理工数の削減:</strong> 複数画面を確認する手間が不要になり、管理工数を削減</li>
+                    </ul>
+                </div>
+                <div class="merit-section">
+                    <h3>&#128736;&#65039; 技術面</h3>
+                    <ul class="merit-list">
+                        <li><strong style="color: var(--text-primary);">ワークフローの簡素化:</strong> 既存のスケジューリングフローに自然に統合</li>
+                        <li><strong style="color: var(--text-primary);">追加設定不要:</strong> 機能は自動的に利用可能で、追加の設定作業は不要</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Limitations -->
+        <section class="section">
+            <h2 class="section-title">&#9888;&#65039; 制約事項・注意点</h2>
+            <div class="constraint-card">
+                <div class="constraint-title">制限事項</div>
+                <ul class="constraint-list">
+                    <li>Amazon Connect エージェントスケジューリングが利用可能なリージョンのみで提供</li>
+                </ul>
+            </div>
+            <div class="constraint-card">
+                <div class="constraint-title">考慮すべき点</div>
+                <ul class="constraint-list">
+                    <li>未承認の休暇リクエストはドラフトスケジュールに反映されない場合がある</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Use Cases -->
+        <section class="section">
+            <h2 class="section-title">&#128161; ユースケース</h2>
+
+            <div class="usecase-card">
+                <div class="usecase-header">
+                    <span style="font-size: 24px;">&#128197;</span>
+                    <div class="usecase-title">ユースケース 1: 月次スケジュール作成</div>
+                </div>
+                <div class="usecase-scenario">
+                    コンタクトセンターマネージャーが来月のエージェントスケジュールを作成する際に、休暇中のエージェントによるカバレッジ不足を事前に把握したい。
+                </div>
+                <div class="usecase-effect">
+                    ドラフト段階で休暇情報が見えるため、公開前にシフト調整や代替エージェントの手配が可能
+                </div>
+            </div>
+
+            <div class="usecase-card">
+                <div class="usecase-header">
+                    <span style="font-size: 24px;">&#128293;</span>
+                    <div class="usecase-title">ユースケース 2: 繁忙期のスケジュール最適化</div>
+                </div>
+                <div class="usecase-scenario">
+                    年末年始やセール期間中のスケジュールを作成する際に、多数の休暇リクエストが集中しているかを確認したい。
+                </div>
+                <div class="usecase-effect">
+                    特定期間のカバレッジ状況をドラフト段階で把握し、必要に応じて休暇の調整依頼や臨時スタッフの手配を行える
+                </div>
+            </div>
+        </section>
+
+        <!-- Pricing -->
+        <section class="section">
+            <h2 class="section-title">&#128176; 料金</h2>
+            <div class="pricing-card">
+                <div class="pricing-highlight">追加料金不要</div>
+                <div class="pricing-detail">Amazon Connect のエージェントスケジューリング機能の一部として提供されます。詳細は <a href="https://aws.amazon.com/connect/pricing/" target="_blank" style="color: var(--aws-teal); text-decoration: none;">Amazon Connect 料金ページ</a>を参照してください。</div>
+            </div>
+        </section>
+
+        <!-- Region -->
+        <section class="section">
+            <h2 class="section-title">&#127758; 利用可能リージョン</h2>
+            <div class="region-card">
+                <div style="font-size: 28px; margin-bottom: 8px;">&#127758;</div>
+                <p>Amazon Connect エージェントスケジューリングが利用可能なすべての AWS リージョンで提供</p>
+                <p style="font-size: 13px; color: var(--text-secondary); margin-top: 8px;">詳細は <a href="https://docs.aws.amazon.com/connect/latest/adminguide/regions.html#optimization_region" target="_blank" style="color: var(--aws-teal); text-decoration: none;">AWS リージョン一覧</a>を参照</p>
+            </div>
+        </section>
+
+        <!-- Related Services -->
+        <section class="section">
+            <h2 class="section-title">&#128279; 関連サービス・機能</h2>
+            <div class="related-grid">
+                <div class="related-card">
+                    <div style="font-size: 24px; margin-bottom: 8px;">&#128197;</div>
+                    <div class="related-name">Amazon Connect スケジューリング</div>
+                    <div class="related-desc">エージェントのシフト管理やスケジュール最適化の基盤機能</div>
+                </div>
+                <div class="related-card">
+                    <div style="font-size: 24px; margin-bottom: 8px;">&#128200;</div>
+                    <div class="related-name">Amazon Connect 予測</div>
+                    <div class="related-desc">需要予測に基づくスケジュール最適化</div>
+                </div>
+                <div class="related-card">
+                    <div style="font-size: 24px; margin-bottom: 8px;">&#128101;</div>
+                    <div class="related-name">Amazon Connect キャパシティプランニング</div>
+                    <div class="related-desc">長期的な人員計画の策定</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer>
+            <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 12px;">参考リンク</p>
+            <ul class="source-links">
+                <li><a href="https://aws.amazon.com/about-aws/whats-new/2025/02/amazon-connect-time-off-draft-schedules" class="source-link" target="_blank">公式発表 (What's New)</a></li>
+                <li><a href="https://docs.aws.amazon.com/connect/latest/adminguide/forecasting-capacity-planning-scheduling.html" class="source-link" target="_blank">Amazon Connect スケジューリングドキュメント</a></li>
+                <li><a href="https://aws.amazon.com/connect/pricing/" class="source-link" target="_blank">Amazon Connect 料金ページ</a></li>
+            </ul>
+            <p class="footer-note">Amazon Connect - ドラフトスケジュールへの休暇リクエスト反映 | 2026 年 2 月 17 日</p>
+        </footer>
+    </div>
+
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'base',
+            themeVariables: {
+                primaryColor: '#FF9900',
+                primaryTextColor: '#232F3E',
+                primaryBorderColor: '#FF9900',
+                lineColor: '#FF9900',
+                secondaryColor: '#F5F5F5',
+                tertiaryColor: '#FAFAFA',
+                background: '#FFFFFF',
+                mainBkg: '#FFF3E0',
+                nodeBorder: '#FF9900',
+                clusterBkg: '#FFF8E1',
+                clusterBorder: '#FF9900',
+                edgeLabelBackground: '#FFFFFF',
+                textColor: '#232F3E'
+            }
+        });
+    </script>
+</body>
+</html>
