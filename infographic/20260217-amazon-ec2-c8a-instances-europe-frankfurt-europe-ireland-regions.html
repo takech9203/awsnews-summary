@@ -1,0 +1,1219 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Amazon EC2 C8a - Europe (Frankfurt) / Europe (Ireland) で利用可能に</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/styles/atom-one-dark.min.css">
+    <style>
+        :root {
+            --squid-ink: #232F3E;
+            --dark-squid: #1A242F;
+            --aws-orange: #FF9900;
+            --smile-orange: #FFAD33;
+            --text-primary: #FFFFFF;
+            --text-secondary: #D5DBDB;
+            --text-muted: #AAAAAA;
+            --card-bg: #2D3A4A;
+            --border-color: #3D4A5A;
+            --aws-teal: #00A1C9;
+            --aws-green: #1D8102;
+            --aws-red: #D13212;
+            --aws-purple: #8C4FFF;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            background-color: var(--squid-ink);
+            color: var(--text-secondary);
+            line-height: 1.8;
+            font-size: 16px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+            padding-bottom: 30px;
+            border-bottom: 3px solid var(--aws-orange);
+        }
+
+        .badge-row {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+
+        .service-badge {
+            display: inline-block;
+            background-color: var(--aws-orange);
+            color: var(--squid-ink);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .feature-badge {
+            display: inline-block;
+            background-color: var(--aws-teal);
+            color: #FFFFFF;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .nitro-badge {
+            display: inline-block;
+            background-color: var(--aws-purple);
+            color: #FFFFFF;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+            line-height: 1.4;
+        }
+
+        .release-date {
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--aws-orange);
+            margin-bottom: 20px;
+            padding-left: 15px;
+            border-left: 4px solid var(--aws-orange);
+        }
+
+        .overview-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .overview-text {
+            font-size: 16px;
+            line-height: 1.9;
+        }
+
+        .highlight {
+            color: var(--aws-orange);
+            font-weight: 700;
+        }
+
+        /* Comparison Grid */
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .comparison-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .comparison-card.before {
+            border-top: 4px solid #E74C3C;
+        }
+
+        .comparison-card.after {
+            border-top: 4px solid #2ECC71;
+        }
+
+        .comparison-label {
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        .comparison-card.before .comparison-label {
+            color: #E74C3C;
+        }
+
+        .comparison-card.after .comparison-label {
+            color: #2ECC71;
+        }
+
+        .comparison-list {
+            list-style: none;
+        }
+
+        .comparison-list li {
+            padding: 8px 0;
+            padding-left: 25px;
+            position: relative;
+            font-size: 14px;
+        }
+
+        .comparison-card.before .comparison-list li::before {
+            content: "\2717";
+            position: absolute;
+            left: 0;
+            color: #E74C3C;
+            font-weight: bold;
+        }
+
+        .comparison-card.after .comparison-list li::before {
+            content: "\2713";
+            position: absolute;
+            left: 0;
+            color: #2ECC71;
+            font-weight: bold;
+        }
+
+        /* Statistics Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, var(--card-bg) 0%, var(--dark-squid) 100%);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid rgba(255, 153, 0, 0.2);
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--aws-orange);
+            line-height: 1.2;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 6px;
+        }
+
+        .stat-sublabel {
+            font-size: 11px;
+            color: var(--text-muted);
+            opacity: 0.7;
+        }
+
+        /* Features Grid */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .feature-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .feature-icon {
+            font-size: 36px;
+            margin-bottom: 15px;
+        }
+
+        .feature-title {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--aws-orange);
+        }
+
+        .feature-description {
+            font-size: 14px;
+            color: var(--text-muted);
+            line-height: 1.7;
+        }
+
+        /* Technical Table */
+        .tech-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            font-size: 14px;
+        }
+
+        .tech-table th,
+        .tech-table td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .tech-table th {
+            color: var(--aws-orange);
+            font-weight: 700;
+            background-color: var(--dark-squid);
+            font-size: 13px;
+        }
+
+        .tech-table td {
+            color: var(--text-secondary);
+        }
+
+        .tech-table .tech-value {
+            color: var(--aws-orange);
+            font-weight: 700;
+        }
+
+        .tech-table tr:hover {
+            background-color: rgba(255, 153, 0, 0.05);
+        }
+
+        /* Use Cases */
+        .usecase-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 3px solid var(--smile-orange);
+        }
+
+        .usecase-title {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 6px;
+            color: var(--aws-orange);
+        }
+
+        .usecase-scenario {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+            font-style: italic;
+        }
+
+        .usecase-effect {
+            font-size: 13px;
+            color: #2ECC71;
+            margin-top: 8px;
+            font-weight: 500;
+        }
+
+        /* Benefits Grid */
+        .benefits-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .benefit-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 25px;
+            border-left: 4px solid var(--aws-orange);
+        }
+
+        .benefit-card-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--aws-orange);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .benefit-list {
+            list-style: none;
+        }
+
+        .benefit-list li {
+            padding: 6px 0;
+            padding-left: 22px;
+            position: relative;
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .benefit-list li::before {
+            content: "\2713";
+            position: absolute;
+            left: 0;
+            color: var(--aws-orange);
+            font-weight: bold;
+        }
+
+        /* Considerations */
+        .consideration-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+        }
+
+        .consideration-card.warning {
+            border-left: 4px solid #F39C12;
+        }
+
+        .consideration-card.info {
+            border-left: 4px solid var(--aws-teal);
+        }
+
+        .consideration-title {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+        }
+
+        .consideration-list {
+            list-style: none;
+        }
+
+        .consideration-list li {
+            padding: 6px 0;
+            padding-left: 22px;
+            position: relative;
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        .consideration-card.warning .consideration-list li::before {
+            content: "\26A0";
+            position: absolute;
+            left: 0;
+            color: #F39C12;
+        }
+
+        .consideration-card.info .consideration-list li::before {
+            content: "\2139";
+            position: absolute;
+            left: 0;
+            color: var(--aws-teal);
+            font-weight: bold;
+        }
+
+        /* Code Block */
+        .code-block {
+            background: #1a1a2e;
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 16px 0;
+        }
+
+        .code-header {
+            background: #16213e;
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+        }
+
+        .code-lang {
+            color: var(--aws-orange);
+            font-weight: bold;
+        }
+
+        .code-title {
+            color: var(--text-muted);
+        }
+
+        .code-block pre {
+            margin: 0;
+            padding: 0;
+            overflow-x: auto;
+        }
+
+        .code-block code {
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            padding: 16px !important;
+        }
+
+        /* Mermaid Container */
+        .mermaid-container {
+            background: #FFFFFF;
+            border-radius: 12px;
+            padding: 24px;
+            margin: 20px 0;
+            border: 2px solid rgba(255, 153, 0, 0.3);
+            overflow-x: auto;
+        }
+        .mermaid {
+            display: flex;
+            justify-content: center;
+        }
+
+        /* Region badges */
+        .region-badges {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+
+        .region-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background-color: var(--card-bg);
+            padding: 12px 24px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 153, 0, 0.3);
+            font-size: 15px;
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .region-badge.new {
+            border: 2px solid var(--aws-orange);
+            position: relative;
+        }
+
+        .region-badge.new::after {
+            content: "NEW";
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: var(--aws-orange);
+            color: var(--squid-ink);
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 8px;
+        }
+
+        /* Related Services */
+        .related-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+
+        .related-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 18px;
+            text-align: center;
+        }
+
+        .related-icon {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        .related-name {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .related-desc {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        /* Instance Size Grid */
+        .instance-table-wrapper {
+            overflow-x: auto;
+        }
+
+        /* Footer */
+        footer {
+            margin-top: 50px;
+            padding-top: 30px;
+            border-top: 1px solid var(--border-color);
+            text-align: center;
+        }
+
+        .source-link {
+            color: var(--aws-teal);
+            text-decoration: none;
+            font-size: 14px;
+            display: inline-block;
+            margin-bottom: 8px;
+        }
+
+        .source-link:hover {
+            color: var(--smile-orange);
+            text-decoration: underline;
+        }
+
+        .footer-note {
+            color: var(--text-muted);
+            font-size: 12px;
+            margin-top: 15px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .comparison-grid {
+                grid-template-columns: 1fr;
+            }
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr) !important;
+            }
+            .features-grid {
+                grid-template-columns: 1fr !important;
+            }
+            .benefits-grid {
+                grid-template-columns: 1fr !important;
+            }
+            .related-grid {
+                grid-template-columns: 1fr !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="badge-row">
+                <span class="service-badge">Amazon EC2</span>
+                <span class="feature-badge">C8a Instances</span>
+                <span class="nitro-badge">AMD EPYC 5th Gen</span>
+            </div>
+            <h1>Amazon EC2 C8a インスタンス<br>Europe (Frankfurt) / Europe (Ireland) で利用可能に</h1>
+            <p class="release-date">2026 年 2 月 17 日</p>
+        </header>
+
+        <!-- Overview Section -->
+        <section class="section">
+            <h2 class="section-title">概要</h2>
+            <div class="overview-card">
+                <p class="overview-text">
+                    AWS は <span class="highlight">Amazon EC2 C8a</span> インスタンスが<span class="highlight">ヨーロッパ (フランクフルト)</span> および<span class="highlight">ヨーロッパ (アイルランド)</span> リージョンで利用可能になったことを発表しました。C8a インスタンスは<span class="highlight">第 5 世代 AMD EPYC プロセッサ</span> (コード名 Turin) を搭載し、最大周波数 <span class="highlight">4.5 GHz</span> で動作します。
+                </p>
+                <p class="overview-text" style="margin-top: 12px;">
+                    C7a インスタンスと比較して最大 <span class="highlight">30%</span> のパフォーマンス向上と最大 <span class="highlight">19%</span> の価格パフォーマンス改善を実現。<span class="highlight">33%</span> 多いメモリ帯域幅を提供し、GroovyJVM では最大 <span class="highlight">57%</span> 高速化されています。2 つのベアメタルサイズを含む <span class="highlight">12 サイズ</span>が提供されます。
+                </p>
+            </div>
+
+            <div class="comparison-grid">
+                <div class="comparison-card before">
+                    <div class="comparison-label">Before - アップデート前の課題</div>
+                    <ul class="comparison-list">
+                        <li>C8a インスタンスがフランクフルトおよびアイルランドリージョンで利用できなかった</li>
+                        <li>ヨーロッパリージョンのユーザーは前世代の AMD ベースコンピューティング最適化インスタンスを使用する必要があった</li>
+                        <li>データレジデンシー要件を満たしながら最新世代の AMD プロセッサによる高性能を活用できなかった</li>
+                    </ul>
+                </div>
+                <div class="comparison-card after">
+                    <div class="comparison-label">After - アップデート後の改善</div>
+                    <ul class="comparison-list">
+                        <li>フランクフルトおよびアイルランドリージョンで C8a インスタンスを直接起動できるようになった</li>
+                        <li>C7a インスタンスと比較して最大 30% のパフォーマンス向上を享受できるようになった</li>
+                        <li>ヨーロッパのデータレジデンシー要件を満たしながら、最新世代の AMD ベースコンピューティングを利用可能になった</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Stats Section -->
+        <section class="section">
+            <h2 class="section-title">数字で見るアップデート</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value">30%</div>
+                    <div class="stat-label">パフォーマンス向上</div>
+                    <div class="stat-sublabel">C7a 比</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">19%</div>
+                    <div class="stat-label">価格パフォーマンス改善</div>
+                    <div class="stat-sublabel">C7a 比</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">33%</div>
+                    <div class="stat-label">メモリ帯域幅向上</div>
+                    <div class="stat-sublabel">C7a 比</div>
+                </div>
+            </div>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value">57%</div>
+                    <div class="stat-label">GroovyJVM 高速化</div>
+                    <div class="stat-sublabel">Java ベースアプリ</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">75 Gbps</div>
+                    <div class="stat-label">最大ネットワーク帯域</div>
+                    <div class="stat-sublabel">50% 増加</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">12</div>
+                    <div class="stat-label">インスタンスサイズ</div>
+                    <div class="stat-sublabel">ベアメタル 2 種含む</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Architecture Diagram Section -->
+        <section class="section">
+            <h2 class="section-title">アーキテクチャ図</h2>
+            <div class="mermaid-container">
+                <pre class="mermaid">
+flowchart TD
+    subgraph EU["&#127758; ヨーロッパリージョン"]
+        subgraph Frankfurt["eu-central-1 フランクフルト"]
+            C8aFRA["&#128187; EC2 C8a インスタンス&lt;br/&gt;12 サイズ"]
+        end
+
+        subgraph Ireland["eu-west-1 アイルランド"]
+            C8aIRL["&#128187; EC2 C8a インスタンス&lt;br/&gt;12 サイズ"]
+        end
+    end
+
+    subgraph Processor["&#9881;&#65039; プロセッサ"]
+        AMD["&#128295; 第 5 世代 AMD EPYC&lt;br/&gt;最大 4.5 GHz"]
+    end
+
+    subgraph Nitro["&#128737;&#65039; インフラストラクチャ"]
+        NitroSys["&#128274; AWS Nitro System&lt;br/&gt;第 6 世代 Nitro Cards"]
+    end
+
+    subgraph Workloads["&#128202; ワークロード"]
+        direction LR
+        Batch["&#128230; バッチ処理"]
+        Analytics["&#128200; 分散分析"]
+        HPC["&#128300; HPC"]
+        Batch ~~~ Analytics ~~~ HPC
+    end
+
+    subgraph Workloads2["&#127918; ワークロード"]
+        direction LR
+        AdServing["&#128226; 広告配信"]
+        Gaming["&#127918; ゲーミング"]
+        Video["&#127916; 動画エンコーディング"]
+        AdServing ~~~ Gaming ~~~ Video
+    end
+
+    AMD -.->|パワー| C8aFRA
+    AMD -.->|パワー| C8aIRL
+    NitroSys -.->|基盤| C8aFRA
+    NitroSys -.->|基盤| C8aIRL
+
+    C8aFRA --> Workloads
+    C8aFRA --> Workloads2
+    C8aIRL --> Workloads
+    C8aIRL --> Workloads2
+
+    classDef region fill:#FFF4E6,stroke:#FF9800,stroke-width:2px,color:#E65100
+    classDef instance fill:#E3F2FD,stroke:#2196F3,stroke-width:2px,color:#0D47A1
+    classDef processor fill:#F3E5F5,stroke:#9C27B0,stroke-width:2px,color:#4A148C
+    classDef infra fill:#E8EAF6,stroke:#C5CAE9,stroke-width:2px,color:#283593
+    classDef workload fill:#E8F5E9,stroke:#4CAF50,stroke-width:2px,color:#1B5E20
+
+    class Frankfurt,Ireland region
+    class C8aFRA,C8aIRL instance
+    class AMD processor
+    class NitroSys infra
+    class Batch,Analytics,HPC,AdServing,Gaming,Video workload
+                </pre>
+            </div>
+            <p style="font-size: 14px; color: var(--text-muted); text-align: center; margin-top: 10px;">
+                C8a インスタンスが新たに利用可能になった 2 つのヨーロッパリージョンと、第 5 世代 AMD EPYC プロセッサおよび AWS Nitro System によって駆動され、多様なコンピューティング集約型ワークロードに最適化されています。
+            </p>
+        </section>
+
+        <!-- Key Features Section -->
+        <section class="section">
+            <h2 class="section-title">主要機能</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">&#9889;</div>
+                    <div class="feature-title">第 5 世代 AMD EPYC プロセッサ</div>
+                    <div class="feature-description">コード名 Turin の最新 AMD プロセッサを搭載。最大周波数 4.5 GHz。各 vCPU が物理 CPU コアに対応し、AMD SME による AES-256 常時メモリ暗号化を提供。</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#128640;</div>
+                    <div class="feature-title">大幅なパフォーマンス向上</div>
+                    <div class="feature-description">C7a 比最大 30% のパフォーマンス向上、33% のメモリ帯域幅増加。AVX-512、VNNI、bfloat16 命令セットをサポートし、AI/ML ワークロードにも対応。</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#128736;&#65039;</div>
+                    <div class="feature-title">柔軟なインスタンスサイズ</div>
+                    <div class="feature-description">10 の仮想化サイズと 2 つのベアメタルサイズの計 12 サイズ。1 vCPU から 192 vCPU まで対応。IBC によりネットワーク/EBS 帯域幅を最大 25% ブースト可能。</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#128737;&#65039;</div>
+                    <div class="feature-title">AWS Nitro System 基盤</div>
+                    <div class="feature-description">第 6 世代 AWS Nitro Cards を搭載。I/O 機能のオフロードと高速化によるシステム全体のパフォーマンス向上を実現。</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Technical Specifications -->
+        <section class="section">
+            <h2 class="section-title">技術仕様</h2>
+            <div class="overview-card">
+                <div style="font-size: 15px; font-weight: 700; color: var(--text-primary); margin-bottom: 12px;">C8a インスタンスサイズ一覧</div>
+                <div class="instance-table-wrapper">
+                    <table class="tech-table">
+                        <thead>
+                            <tr>
+                                <th>インスタンスサイズ</th>
+                                <th>vCPU</th>
+                                <th>メモリ</th>
+                                <th>ネットワーク</th>
+                                <th>EBS 帯域幅</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>c8a.medium</td>
+                                <td>1</td>
+                                <td>2 GiB</td>
+                                <td>最大 12.5 Gbps</td>
+                                <td>最大 10 Gbps</td>
+                            </tr>
+                            <tr>
+                                <td>c8a.large</td>
+                                <td>2</td>
+                                <td>4 GiB</td>
+                                <td>最大 12.5 Gbps</td>
+                                <td>最大 10 Gbps</td>
+                            </tr>
+                            <tr>
+                                <td>c8a.xlarge</td>
+                                <td>4</td>
+                                <td>8 GiB</td>
+                                <td>最大 12.5 Gbps</td>
+                                <td>最大 10 Gbps</td>
+                            </tr>
+                            <tr>
+                                <td>c8a.2xlarge</td>
+                                <td>8</td>
+                                <td>16 GiB</td>
+                                <td>最大 15 Gbps</td>
+                                <td>最大 10 Gbps</td>
+                            </tr>
+                            <tr>
+                                <td>c8a.4xlarge</td>
+                                <td>16</td>
+                                <td>32 GiB</td>
+                                <td>最大 15 Gbps</td>
+                                <td>最大 10 Gbps</td>
+                            </tr>
+                            <tr>
+                                <td>c8a.8xlarge</td>
+                                <td>32</td>
+                                <td>64 GiB</td>
+                                <td>15 Gbps</td>
+                                <td>10 Gbps</td>
+                            </tr>
+                            <tr>
+                                <td>c8a.12xlarge</td>
+                                <td>48</td>
+                                <td>96 GiB</td>
+                                <td>22.5 Gbps</td>
+                                <td>15 Gbps</td>
+                            </tr>
+                            <tr>
+                                <td>c8a.16xlarge</td>
+                                <td>64</td>
+                                <td>128 GiB</td>
+                                <td>30 Gbps</td>
+                                <td>20 Gbps</td>
+                            </tr>
+                            <tr>
+                                <td>c8a.24xlarge</td>
+                                <td>96</td>
+                                <td>192 GiB</td>
+                                <td>40 Gbps</td>
+                                <td>30 Gbps</td>
+                            </tr>
+                            <tr>
+                                <td class="tech-value">c8a.48xlarge</td>
+                                <td class="tech-value">192</td>
+                                <td class="tech-value">384 GiB</td>
+                                <td class="tech-value">75 Gbps</td>
+                                <td class="tech-value">60 Gbps</td>
+                            </tr>
+                            <tr>
+                                <td>c8a.metal-24xl</td>
+                                <td>96</td>
+                                <td>192 GiB</td>
+                                <td>40 Gbps</td>
+                                <td>30 Gbps</td>
+                            </tr>
+                            <tr>
+                                <td class="tech-value">c8a.metal-48xl</td>
+                                <td class="tech-value">192</td>
+                                <td class="tech-value">384 GiB</td>
+                                <td class="tech-value">75 Gbps</td>
+                                <td class="tech-value">60 Gbps</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="overview-card" style="margin-top: 20px;">
+                <div style="font-size: 15px; font-weight: 700; color: var(--text-primary); margin-bottom: 12px;">パフォーマンス比較: C8a vs C7a</div>
+                <table class="tech-table">
+                    <thead>
+                        <tr>
+                            <th>指標</th>
+                            <th>改善率</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>全体パフォーマンス</td>
+                            <td class="tech-value">最大 30% 向上</td>
+                        </tr>
+                        <tr>
+                            <td>価格パフォーマンス</td>
+                            <td class="tech-value">最大 19% 改善</td>
+                        </tr>
+                        <tr>
+                            <td>メモリ帯域幅</td>
+                            <td class="tech-value">33% 向上</td>
+                        </tr>
+                        <tr>
+                            <td>GroovyJVM</td>
+                            <td class="tech-value">最大 57% 高速</td>
+                        </tr>
+                        <tr>
+                            <td>ネットワークスループット</td>
+                            <td class="tech-value">50% 増加 (最大 75 Gbps)</td>
+                        </tr>
+                        <tr>
+                            <td>EBS 帯域幅</td>
+                            <td class="tech-value">最大 60 Gbps</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Setup Section -->
+        <section class="section">
+            <h2 class="section-title">設定方法</h2>
+            <div class="overview-card">
+                <div style="font-size: 15px; font-weight: 700; color: var(--text-primary); margin-bottom: 12px;">前提条件</div>
+                <ul class="benefit-list" style="margin-bottom: 20px;">
+                    <li>AWS アカウントと適切な IAM 権限</li>
+                    <li>フランクフルトまたはアイルランドリージョンへのアクセス</li>
+                    <li>C8a インスタンスタイプのサービスクォータ確認</li>
+                </ul>
+
+                <div style="font-size: 15px; font-weight: 700; color: var(--text-primary); margin-bottom: 12px;">ステップ 1: 利用可能なインスタンスタイプの確認</div>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">Bash</span>
+                        <span class="code-title">フランクフルトリージョンで C8a インスタンスタイプを確認</span>
+                    </div>
+                    <pre><code class="language-bash">aws ec2 describe-instance-types \
+  --filters "Name=instance-type,Values=c8a*" \
+  --region eu-central-1 \
+  --query "InstanceTypes[].{Type:InstanceType,vCPU:VCpuInfo.DefaultVCpus,Memory:MemoryInfo.SizeInMiB}" \
+  --output table</code></pre>
+                </div>
+                <p style="font-size: 14px; color: var(--text-muted); margin-top: 8px; margin-bottom: 20px;">
+                    フランクフルトリージョンで利用可能な C8a インスタンスタイプとスペックを表示します。
+                </p>
+
+                <div style="font-size: 15px; font-weight: 700; color: var(--text-primary); margin-bottom: 12px;">ステップ 2: インスタンスの起動</div>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">Bash</span>
+                        <span class="code-title">フランクフルトリージョンで C8a インスタンスを起動</span>
+                    </div>
+                    <pre><code class="language-bash">aws ec2 run-instances \
+  --image-id ami-xxxxxxxxxxxxxxxxx \
+  --instance-type c8a.4xlarge \
+  --region eu-central-1 \
+  --subnet-id subnet-xxxxxxxxxxxxxxxxx \
+  --security-group-ids sg-xxxxxxxxxxxxxxxxx \
+  --key-name my-key-pair</code></pre>
+                </div>
+                <p style="font-size: 14px; color: var(--text-muted); margin-top: 8px; margin-bottom: 20px;">
+                    フランクフルトリージョン (eu-central-1) で C8a.4xlarge インスタンスを起動します。
+                </p>
+
+                <div style="font-size: 15px; font-weight: 700; color: var(--text-primary); margin-bottom: 12px;">ステップ 3: 購入オプションの選択</div>
+                <ul class="benefit-list">
+                    <li><strong style="color: var(--text-primary);">Savings Plans</strong>: 1 年または 3 年のコミットメントで割引</li>
+                    <li><strong style="color: var(--text-primary);">オンデマンドインスタンス</strong>: 使用した分だけ支払い</li>
+                    <li><strong style="color: var(--text-primary);">スポットインスタンス</strong>: 未使用の EC2 容量を大幅な割引で利用</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Use Cases Section -->
+        <section class="section">
+            <h2 class="section-title">ユースケース</h2>
+            <div class="usecase-card">
+                <div class="usecase-title">&#128202; ユースケース 1: バッチ処理と分散分析</div>
+                <div class="usecase-scenario">シナリオ: 金融機関がヨーロッパリージョンで大量のトランザクションデータのバッチ処理と分析を実行</div>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">Bash</span>
+                        <span class="code-title">C8a.24xlarge でバッチ処理を実行</span>
+                    </div>
+                    <pre><code class="language-bash">aws ec2 run-instances \
+  --image-id ami-xxxxxxxxxxxxxxxxx \
+  --instance-type c8a.24xlarge \
+  --region eu-central-1 \
+  --iam-instance-profile Name=BatchProcessing-Role</code></pre>
+                </div>
+                <div class="usecase-effect">&#10004; C7a と比較して最大 30% のパフォーマンス向上により、バッチ処理の完了時間を短縮し、GDPR 準拠のデータレジデンシー要件を充足</div>
+            </div>
+            <div class="usecase-card">
+                <div class="usecase-title">&#9749; ユースケース 2: Java ベースのエンタープライズアプリケーション</div>
+                <div class="usecase-scenario">シナリオ: 大規模な Java ベースの Web アプリケーションをヨーロッパのユーザーに低レイテンシーで提供</div>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">Bash</span>
+                        <span class="code-title">C8a.8xlarge で Java アプリケーションサーバーを起動</span>
+                    </div>
+                    <pre><code class="language-bash">aws ec2 run-instances \
+  --image-id ami-xxxxxxxxxxxxxxxxx \
+  --instance-type c8a.8xlarge \
+  --region eu-west-1 \
+  --user-data file://java-app-setup.sh</code></pre>
+                </div>
+                <div class="usecase-effect">&#10004; GroovyJVM で最大 57% の高速化により、Java ベースのアプリケーションのレスポンスタイムが大幅に改善</div>
+            </div>
+            <div class="usecase-card">
+                <div class="usecase-title">&#127916; ユースケース 3: 動画エンコーディングとストリーミング</div>
+                <div class="usecase-scenario">シナリオ: メディア企業がヨーロッパの視聴者向けに動画コンテンツのエンコーディングとトランスコードを実行</div>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">Bash</span>
+                        <span class="code-title">C8a.48xlarge で動画エンコーディングを実行</span>
+                    </div>
+                    <pre><code class="language-bash">aws ec2 run-instances \
+  --image-id ami-xxxxxxxxxxxxxxxxx \
+  --instance-type c8a.48xlarge \
+  --region eu-west-1 \
+  --block-device-mappings file://storage-config.json</code></pre>
+                </div>
+                <div class="usecase-effect">&#10004; 192 vCPU と 384 GiB メモリにより大規模な並列エンコーディングが可能。最大 19% の価格パフォーマンス改善でコスト削減</div>
+            </div>
+        </section>
+
+        <!-- Benefits Section -->
+        <section class="section">
+            <h2 class="section-title">メリット</h2>
+            <div class="benefits-grid">
+                <div class="benefit-card">
+                    <div class="benefit-card-title">&#128176; ビジネス面</div>
+                    <ul class="benefit-list">
+                        <li>コスト効率の向上: C7a 比最大 19% の価格パフォーマンス改善でコンピューティングコストを削減</li>
+                        <li>フリートサイズの最適化: 高いパフォーマンスにより、より小さいインスタンスサイズの選択が可能</li>
+                        <li>ヨーロッパでのデータレジデンシー: GDPR などのデータ保護要件に対応しながら最新のコンピューティングを活用</li>
+                    </ul>
+                </div>
+                <div class="benefit-card">
+                    <div class="benefit-card-title">&#9889; 技術面</div>
+                    <ul class="benefit-list">
+                        <li>高性能プロセッサ: 第 5 世代 AMD EPYC で C7a 比最大 30% のパフォーマンス向上</li>
+                        <li>メモリ帯域幅の大幅向上: 33% の改善によりメモリバウンドなワークロードが高速化</li>
+                        <li>Java アプリケーションの高速化: GroovyJVM で最大 57% の高速化</li>
+                        <li>拡張命令セット: AVX-512、VNNI、bfloat16 で AI/ML に対応</li>
+                        <li>強化されたセキュリティ: AMD SME による AES-256 常時メモリ暗号化</li>
+                        <li>高ネットワーク性能: 最大 75 Gbps ネットワーク、60 Gbps EBS</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Considerations Section -->
+        <section class="section">
+            <h2 class="section-title">制約事項・考慮点</h2>
+            <div class="consideration-card warning">
+                <div class="consideration-title">&#9888; 制限事項</div>
+                <ul class="consideration-list">
+                    <li>C8a インスタンスが利用可能なリージョンは限定されている (順次拡大中)</li>
+                    <li>既存の C7a インスタンスからの自動移行はサポートされていない</li>
+                    <li>EBS のみのストレージでインスタンスストレージは提供されていない</li>
+                </ul>
+            </div>
+            <div class="consideration-card info">
+                <div class="consideration-title">&#8505; 考慮すべき点</div>
+                <ul class="consideration-list">
+                    <li>既存のワークロードを C7a から C8a に移行する場合、アプリケーションの互換性テストが必要</li>
+                    <li>AMD ベースのインスタンスであるため、一部のソフトウェアがプロセッサアーキテクチャに依存している場合は確認が必要</li>
+                    <li>Savings Plans やスポットインスタンスを活用してコストを最適化することを推奨</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Pricing Section -->
+        <section class="section">
+            <h2 class="section-title">料金</h2>
+            <div class="overview-card" style="text-align: center;">
+                <p style="font-size: 14px; margin-bottom: 10px;">C8a インスタンスは <span class="highlight">Savings Plans</span>、<span class="highlight">オンデマンド</span>、<span class="highlight">スポットインスタンス</span>で購入可能です。</p>
+                <ul class="benefit-list" style="text-align: left; margin-top: 15px;">
+                    <li><strong style="color: var(--text-primary);">Savings Plans</strong>: 1 年または 3 年の利用契約で割引</li>
+                    <li><strong style="color: var(--text-primary);">オンデマンド</strong>: 時間単位の従量課金</li>
+                    <li><strong style="color: var(--text-primary);">スポットインスタンス</strong>: 余剰キャパシティを活用して大幅割引</li>
+                </ul>
+                <p style="font-size: 13px; color: var(--text-muted); margin-top: 15px;">
+                    詳細な料金は <a href="https://aws.amazon.com/ec2/pricing/" target="_blank" rel="noopener noreferrer" style="color: var(--aws-teal); text-decoration: none;">Amazon EC2 料金ページ</a>を参照してください。
+                </p>
+            </div>
+        </section>
+
+        <!-- Available Regions Section -->
+        <section class="section">
+            <h2 class="section-title">利用可能リージョン</h2>
+            <div class="overview-card" style="text-align: center;">
+                <p style="font-size: 14px; margin-bottom: 15px;">C8a インスタンスは以下のリージョンが<span class="highlight">新規追加</span>されました。</p>
+                <div class="region-badges">
+                    <div class="region-badge new">
+                        &#127465;&#127466; ヨーロッパ (フランクフルト) - eu-central-1
+                    </div>
+                    <div class="region-badge new">
+                        &#127470;&#127466; ヨーロッパ (アイルランド) - eu-west-1
+                    </div>
+                </div>
+                <p style="font-size: 13px; color: var(--text-muted); margin-top: 15px;">
+                    最新のリージョン情報は <a href="https://aws.amazon.com/about-aws/global-infrastructure/regional-product-services/" target="_blank" rel="noopener noreferrer" style="color: var(--aws-teal); text-decoration: none;">AWS Regional Services List</a> を参照してください。
+                </p>
+            </div>
+        </section>
+
+        <!-- Related Services Section -->
+        <section class="section">
+            <h2 class="section-title">関連サービス</h2>
+            <div class="related-grid">
+                <div class="related-card">
+                    <div class="related-icon">&#128200;</div>
+                    <div class="related-name">Amazon EC2 Auto Scaling</div>
+                    <div class="related-desc">ワークロードに応じて自動的にスケーリング</div>
+                </div>
+                <div class="related-card">
+                    <div class="related-icon">&#128176;</div>
+                    <div class="related-name">AWS Savings Plans</div>
+                    <div class="related-desc">コミットメントでコストを削減</div>
+                </div>
+                <div class="related-card">
+                    <div class="related-icon">&#128202;</div>
+                    <div class="related-name">Amazon CloudWatch</div>
+                    <div class="related-desc">パフォーマンスメトリクスを監視</div>
+                </div>
+                <div class="related-card">
+                    <div class="related-icon">&#9881;&#65039;</div>
+                    <div class="related-name">AWS Compute Optimizer</div>
+                    <div class="related-desc">最適なインスタンスタイプを推奨</div>
+                </div>
+                <div class="related-card">
+                    <div class="related-icon">&#9878;&#65039;</div>
+                    <div class="related-name">Elastic Load Balancing</div>
+                    <div class="related-desc">インスタンス間でトラフィックを分散</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- API Changes Section -->
+        <section class="section">
+            <h2 class="section-title">API 変更履歴</h2>
+            <div class="overview-card">
+                <table class="tech-table">
+                    <thead>
+                        <tr>
+                            <th>日付</th>
+                            <th>サービス</th>
+                            <th>変更内容</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>2026/02/17</td>
+                            <td><a href="https://awsapichanges.com/archive/changes/9d9af7-ec2.html" target="_blank" rel="noopener noreferrer" style="color: var(--aws-teal); text-decoration: none;">Amazon EC2</a></td>
+                            <td>2 updated api methods - CreatePlacementGroup および DescribePlacementGroup API に Operator フィールドを追加</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer>
+            <div>
+                <a href="https://aws.amazon.com/about-aws/whats-new/2026/02/amazon-ec2-c8a-instances-europe-frankfurt-europe-ireland-regions/" class="source-link" target="_blank" rel="noopener noreferrer">
+                    &#128279; 公式発表 (What's New) を見る
+                </a>
+            </div>
+            <div>
+                <a href="https://aws.amazon.com/ec2/instance-types/c8a/" class="source-link" target="_blank" rel="noopener noreferrer">
+                    &#128187; Amazon EC2 C8a インスタンスページ
+                </a>
+            </div>
+            <div>
+                <a href="https://aws.amazon.com/ec2/pricing/" class="source-link" target="_blank" rel="noopener noreferrer">
+                    &#128176; Amazon EC2 料金ページ
+                </a>
+            </div>
+            <div>
+                <a href="https://awsapichanges.com/archive/changes/9d9af7-ec2.html" class="source-link" target="_blank" rel="noopener noreferrer">
+                    &#128196; API 変更履歴: Amazon EC2
+                </a>
+            </div>
+            <p class="footer-note">Amazon EC2 C8a インスタンスは、第 5 世代 AMD EPYC プロセッサと第 6 世代 Nitro Cards を搭載したコンピューティング最適化インスタンスです。C7a 比で最大 30% のパフォーマンス向上と 19% のコストパフォーマンス改善を実現し、バッチ処理、分散分析、HPC、動画エンコーディングなどのコンピューティング集約型ワークロードに最適です。</p>
+        </footer>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'base',
+            themeVariables: {
+                primaryColor: '#FF9900',
+                primaryTextColor: '#232F3E',
+                primaryBorderColor: '#FF9900',
+                lineColor: '#FF9900',
+                secondaryColor: '#F5F5F5',
+                tertiaryColor: '#FAFAFA',
+                background: '#FFFFFF',
+                mainBkg: '#FFF3E0',
+                nodeBorder: '#FF9900',
+                clusterBkg: '#FFF8E1',
+                clusterBorder: '#FF9900',
+                edgeLabelBackground: '#FFFFFF',
+                textColor: '#232F3E'
+            }
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/highlight.min.js"></script>
+    <script>hljs.highlightAll();</script>
+</body>
+</html>

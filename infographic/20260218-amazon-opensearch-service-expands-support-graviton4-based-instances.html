@@ -1,0 +1,1400 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Amazon OpenSearch Service - Graviton4 ベースインスタンスのサポートリージョン拡大</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/styles/atom-one-dark.min.css">
+    <style>
+        :root {
+            --squid-ink: #232F3E;
+            --dark-squid: #1A242F;
+            --aws-orange: #FF9900;
+            --smile-orange: #FFAD33;
+            --text-primary: #FFFFFF;
+            --text-secondary: #D5DBDB;
+            --text-muted: #AAAAAA;
+            --card-bg: #2D3A4A;
+            --border-color: #3D4A5A;
+            --aws-teal: #00A1C9;
+            --aws-green: #1D8102;
+            --aws-red: #D13212;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            background-color: var(--squid-ink);
+            color: var(--text-secondary);
+            line-height: 1.8;
+            font-size: 16px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+            padding-bottom: 30px;
+            border-bottom: 3px solid var(--aws-orange);
+        }
+
+        .badge-row {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+
+        .service-badge {
+            display: inline-block;
+            background-color: var(--aws-orange);
+            color: var(--squid-ink);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .region-badge {
+            display: inline-block;
+            background-color: #2ECC71;
+            color: #FFFFFF;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .processor-badge {
+            display: inline-block;
+            background-color: var(--aws-teal);
+            color: #FFFFFF;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .instance-badge {
+            display: inline-block;
+            background-color: #8C4FFF;
+            color: #FFFFFF;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+            line-height: 1.4;
+        }
+
+        .release-date {
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--aws-orange);
+            margin-bottom: 20px;
+            padding-left: 15px;
+            border-left: 4px solid var(--aws-orange);
+        }
+
+        .overview-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .overview-text {
+            font-size: 16px;
+            line-height: 1.9;
+        }
+
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .comparison-grid {
+                grid-template-columns: 1fr;
+            }
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr) !important;
+            }
+            .features-grid {
+                grid-template-columns: 1fr !important;
+            }
+            .instance-grid {
+                grid-template-columns: 1fr !important;
+            }
+            .benefits-grid {
+                grid-template-columns: 1fr !important;
+            }
+            .related-grid {
+                grid-template-columns: repeat(2, 1fr) !important;
+            }
+            .new-regions-grid {
+                grid-template-columns: repeat(2, 1fr) !important;
+            }
+            .flow-diagram {
+                flex-direction: column;
+            }
+            .flow-arrow {
+                transform: rotate(90deg);
+            }
+        }
+
+        .comparison-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .comparison-card.before {
+            border-top: 4px solid #E74C3C;
+        }
+
+        .comparison-card.after {
+            border-top: 4px solid #2ECC71;
+        }
+
+        .comparison-label {
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        .comparison-card.before .comparison-label {
+            color: #E74C3C;
+        }
+
+        .comparison-card.after .comparison-label {
+            color: #2ECC71;
+        }
+
+        .comparison-list {
+            list-style: none;
+        }
+
+        .comparison-list li {
+            padding: 8px 0;
+            padding-left: 25px;
+            position: relative;
+            font-size: 14px;
+        }
+
+        .comparison-card.before .comparison-list li::before {
+            content: "\2717";
+            position: absolute;
+            left: 0;
+            color: #E74C3C;
+            font-weight: bold;
+        }
+
+        .comparison-card.after .comparison-list li::before {
+            content: "\2713";
+            position: absolute;
+            left: 0;
+            color: #2ECC71;
+            font-weight: bold;
+        }
+
+        /* Statistics Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, var(--card-bg) 0%, var(--dark-squid) 100%);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid rgba(255, 153, 0, 0.2);
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--aws-orange);
+            line-height: 1.2;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 6px;
+        }
+
+        .stat-sublabel {
+            font-size: 11px;
+            color: var(--text-muted);
+            opacity: 0.7;
+        }
+
+        /* Mermaid */
+        .mermaid-container {
+            background: #FFFFFF;
+            border-radius: 12px;
+            padding: 24px;
+            margin: 20px 0;
+            border: 2px solid rgba(255, 153, 0, 0.3);
+            overflow-x: auto;
+        }
+        .mermaid {
+            display: flex;
+            justify-content: center;
+        }
+
+        /* Features Grid */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .feature-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            border-left: 4px solid var(--aws-orange);
+        }
+
+        .feature-icon {
+            font-size: 36px;
+            margin-bottom: 12px;
+        }
+
+        .feature-title {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--aws-orange);
+        }
+
+        .feature-description {
+            font-size: 14px;
+            color: var(--text-muted);
+            line-height: 1.7;
+        }
+
+        .feature-detail-list {
+            list-style: none;
+            margin-top: 10px;
+        }
+
+        .feature-detail-list li {
+            padding: 4px 0;
+            padding-left: 22px;
+            position: relative;
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .feature-detail-list li::before {
+            content: "\2713";
+            position: absolute;
+            left: 0;
+            color: var(--aws-orange);
+            font-weight: bold;
+        }
+
+        /* Instance Grid */
+        .instance-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .instance-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            border-top: 3px solid var(--aws-teal);
+        }
+
+        .instance-name {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--aws-teal);
+            margin-bottom: 4px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .instance-type {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 10px;
+        }
+
+        .instance-desc {
+            font-size: 13px;
+            color: var(--text-muted);
+            line-height: 1.7;
+        }
+
+        .instance-meta {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+
+        .instance-tag {
+            background-color: var(--dark-squid);
+            border: 1px solid var(--border-color);
+            padding: 3px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        /* Spec Table */
+        .spec-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            font-size: 14px;
+        }
+
+        .spec-table th,
+        .spec-table td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .spec-table th {
+            color: var(--aws-orange);
+            font-weight: 700;
+            background-color: var(--dark-squid);
+            font-size: 13px;
+        }
+
+        .spec-table td {
+            color: var(--text-secondary);
+        }
+
+        .spec-table .spec-value {
+            color: var(--aws-orange);
+            font-weight: 700;
+        }
+
+        .spec-table tr:hover {
+            background-color: rgba(255, 153, 0, 0.05);
+        }
+
+        /* Use Cases */
+        .usecase-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 3px solid var(--smile-orange);
+        }
+
+        .usecase-title {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: var(--aws-orange);
+        }
+
+        .usecase-scenario {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+            line-height: 1.7;
+        }
+
+        .usecase-effect {
+            font-size: 14px;
+            color: var(--text-muted);
+            line-height: 1.7;
+            padding-left: 15px;
+            border-left: 2px solid var(--aws-orange);
+        }
+
+        /* Benefits */
+        .benefits-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .benefit-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .benefit-icon {
+            font-size: 36px;
+            margin-bottom: 12px;
+        }
+
+        .benefit-title {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+
+        .benefit-desc {
+            font-size: 13px;
+            color: var(--text-muted);
+            line-height: 1.7;
+        }
+
+        /* Considerations */
+        .consideration-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+        }
+
+        .consideration-card.warning {
+            border-left: 4px solid #F39C12;
+        }
+
+        .consideration-card.info {
+            border-left: 4px solid var(--aws-teal);
+        }
+
+        .consideration-title {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+        }
+
+        .consideration-list {
+            list-style: none;
+        }
+
+        .consideration-list li {
+            padding: 6px 0;
+            padding-left: 22px;
+            position: relative;
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        .consideration-card.warning .consideration-list li::before {
+            content: "\26A0";
+            position: absolute;
+            left: 0;
+            color: #F39C12;
+        }
+
+        .consideration-card.info .consideration-list li::before {
+            content: "\2139";
+            position: absolute;
+            left: 0;
+            color: var(--aws-teal);
+            font-weight: bold;
+        }
+
+        /* Code Block */
+        .code-block {
+            background: #1a1a2e;
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 16px 0;
+        }
+
+        .code-header {
+            background: #16213e;
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+        }
+
+        .code-lang {
+            color: var(--aws-orange);
+            font-weight: bold;
+        }
+
+        .code-title {
+            color: var(--text-muted);
+        }
+
+        .code-block pre {
+            margin: 0;
+            padding: 0;
+            overflow-x: auto;
+        }
+
+        .code-block code {
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            padding: 16px !important;
+        }
+
+        .code-desc {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-top: 8px;
+            line-height: 1.6;
+        }
+
+        /* New Regions */
+        .new-regions-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-top: 15px;
+        }
+
+        .new-region-item {
+            background-color: var(--dark-squid);
+            border: 2px solid #2ECC71;
+            border-radius: 10px;
+            padding: 14px;
+            text-align: center;
+        }
+
+        .new-region-flag {
+            font-size: 28px;
+            margin-bottom: 6px;
+        }
+
+        .new-region-name {
+            font-size: 13px;
+            font-weight: 700;
+            color: #2ECC71;
+        }
+
+        .new-region-code {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        /* Region List */
+        .region-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 15px;
+            justify-content: center;
+        }
+
+        .region-tag {
+            background-color: var(--card-bg);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .region-tag.new {
+            background-color: #2ECC71;
+            color: #FFFFFF;
+            font-weight: 700;
+        }
+
+        /* Pricing */
+        .pricing-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 25px;
+            text-align: center;
+        }
+
+        /* Related Services */
+        .related-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+        }
+
+        .related-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 18px;
+            text-align: center;
+        }
+
+        .related-icon {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        .related-name {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .related-desc {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        /* Flow Diagram */
+        .flow-diagram {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin: 24px 0;
+        }
+
+        .flow-step {
+            background: var(--dark-squid);
+            border: 2px solid var(--aws-orange);
+            border-radius: 8px;
+            padding: 12px 20px;
+            text-align: center;
+            min-width: 100px;
+            font-size: 14px;
+        }
+
+        .flow-arrow {
+            color: var(--aws-orange);
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        /* Version Table */
+        .version-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-top: 15px;
+        }
+
+        .version-card {
+            background-color: var(--dark-squid);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 16px;
+            text-align: center;
+        }
+
+        .version-engine {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--aws-orange);
+            margin-bottom: 6px;
+        }
+
+        .version-value {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        /* Footer */
+        footer {
+            margin-top: 50px;
+            padding-top: 30px;
+            border-top: 1px solid var(--border-color);
+            text-align: center;
+        }
+
+        .source-link {
+            color: var(--aws-teal);
+            text-decoration: none;
+            font-size: 14px;
+            display: inline-block;
+            margin-bottom: 8px;
+        }
+
+        .source-link:hover {
+            color: var(--smile-orange);
+            text-decoration: underline;
+        }
+
+        .footer-note {
+            color: var(--text-muted);
+            font-size: 12px;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="badge-row">
+                <span class="service-badge">Amazon OpenSearch Service</span>
+                <span class="processor-badge">AWS Graviton4</span>
+                <span class="instance-badge">c8g / m8g / r8g / r8gd</span>
+                <span class="region-badge">12 Regions NEW</span>
+            </div>
+            <h1>Amazon OpenSearch Service<br>Graviton4 ベースインスタンスのサポートリージョン拡大</h1>
+            <p class="release-date">2026 年 2 月 18 日</p>
+        </header>
+
+        <!-- Overview Section -->
+        <section class="section">
+            <h2 class="section-title">概要</h2>
+            <div class="overview-card">
+                <p class="overview-text">
+                    Amazon OpenSearch Service は、最新世代の <span style="color: var(--aws-orange); font-weight: 700;">Graviton4 ベース Amazon EC2 インスタンスファミリー</span>のサポートを拡大しました。対象となるインスタンスタイプは、コンピューティング最適化 <span style="color: var(--aws-teal); font-weight: 700;">c8g</span>、汎用 <span style="color: var(--aws-teal); font-weight: 700;">m8g</span>、メモリ最適化 <span style="color: var(--aws-teal); font-weight: 700;">r8g</span>、<span style="color: var(--aws-teal); font-weight: 700;">r8gd</span> の 4 種類です。AWS Graviton4 プロセッサは Graviton3 プロセッサと比較して最大 <span style="color: #2ECC71; font-weight: 700;">30%</span> 優れたパフォーマンスを提供します。
+                </p>
+            </div>
+
+            <div class="comparison-grid">
+                <div class="comparison-card before">
+                    <div class="comparison-label">Before - アップデート前の課題</div>
+                    <ul class="comparison-list">
+                        <li>Graviton4 ベースインスタンスは 23 リージョンでのみ利用可能であり、アジアパシフィックの一部やヨーロッパ、中東では利用不可</li>
+                        <li>対象外リージョンでは Graviton3 ベースの C7g、M7g、R7g インスタンスを使用する必要があり、最新の性能向上を活用できなかった</li>
+                        <li>GovCloud (US-East) では Graviton4 ベースの OpenSearch Service インスタンスが利用不可</li>
+                    </ul>
+                </div>
+                <div class="comparison-card after">
+                    <div class="comparison-label">After - アップデート後の改善</div>
+                    <ul class="comparison-list">
+                        <li>12 の追加リージョンで Graviton4 ベースインスタンスが利用可能になり、グローバルなカバレッジが拡大</li>
+                        <li>Graviton3 比で最大 30% のパフォーマンス向上を、より多くのリージョンで活用可能に</li>
+                        <li>GovCloud (US-East) を含む政府系ワークロードでも Graviton4 の恩恵を受けられるように</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Stats Section -->
+        <section class="section">
+            <h2 class="section-title">数字で見るアップデート効果</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value">30%</div>
+                    <div class="stat-label">パフォーマンス向上</div>
+                    <div class="stat-sublabel">Graviton3 比</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">12</div>
+                    <div class="stat-label">新規追加リージョン</div>
+                    <div class="stat-sublabel">Asia Pacific / Europe / ME / GovCloud</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">35+</div>
+                    <div class="stat-label">グローバル利用可能リージョン</div>
+                    <div class="stat-sublabel">合計</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">4</div>
+                    <div class="stat-label">インスタンスファミリー</div>
+                    <div class="stat-sublabel">c8g / m8g / r8g / r8gd</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Architecture Diagram -->
+        <section class="section">
+            <h2 class="section-title">アーキテクチャ図</h2>
+            <div class="mermaid-container">
+                <pre class="mermaid">
+flowchart TD
+    subgraph OpenSearch["&#9729;&#65039; Amazon OpenSearch Service"]
+        direction LR
+        Domain["&#128269; OpenSearch ドメイン"]
+        Cluster["&#128421;&#65039; クラスター管理"]
+        Domain ~~~ Cluster
+    end
+
+    subgraph Graviton4["&#9889; Graviton4 インスタンスファミリー"]
+        direction LR
+        C8g["&#128187; c8g&lt;br/&gt;コンピューティング最適化"]
+        M8g["&#9881;&#65039; m8g&lt;br/&gt;汎用"]
+        R8g["&#129504; r8g / r8gd&lt;br/&gt;メモリ最適化"]
+        C8g ~~~ M8g ~~~ R8g
+    end
+
+    subgraph Regions["&#127757; 新規対応リージョン"]
+        direction LR
+        APAC["&#127759; Asia Pacific&lt;br/&gt;Hong Kong, Hyderabad,&lt;br/&gt;Jakarta, Melbourne,&lt;br/&gt;Osaka, Thailand"]
+        EU["&#127466;&#127482; Europe&lt;br/&gt;Milan, Paris, Zurich"]
+        ME["&#127964;&#65039; Middle East&lt;br/&gt;UAE"]
+        GOV["&#127963;&#65039; GovCloud&lt;br/&gt;US-West, US-East"]
+        APAC ~~~ EU ~~~ ME ~~~ GOV
+    end
+
+    subgraph Workloads["&#128202; ワークロード"]
+        direction LR
+        Search["&#128270; 全文検索"]
+        Log["&#128203; ログ分析"]
+        SIEM["&#128737;&#65039; SIEM"]
+        Search ~~~ Log ~~~ SIEM
+    end
+
+    Workloads --> OpenSearch
+    OpenSearch --> Graviton4
+    Graviton4 --> Regions
+
+    classDef cloud fill:none,stroke:#CCCCCC,stroke-width:2px,color:#666666
+    classDef layer fill:none,stroke:#E1BEE7,stroke-width:2px,color:#666666
+    classDef compute fill:#FFE0B2,stroke:#FFCC80,stroke-width:2px,color:#5D4037
+    classDef storage fill:#DCEDC8,stroke:#C5E1A5,stroke-width:2px,color:#33691E
+    classDef user fill:#E3F2FD,stroke:#BBDEFB,stroke-width:2px,color:#1565C0
+    classDef region fill:#E8EAF6,stroke:#C5CAE9,stroke-width:2px,color:#283593
+
+    class OpenSearch cloud
+    class Graviton4,Workloads layer
+    class C8g,M8g,R8g compute
+    class Domain,Cluster storage
+    class Search,Log,SIEM user
+    class APAC,EU,ME,GOV region
+                </pre>
+            </div>
+            <p style="font-size: 14px; color: var(--text-muted); text-align: center; margin-top: 10px;">
+                Amazon OpenSearch Service の Graviton4 インスタンスファミリーが新たに 12 リージョンに拡大され、全文検索、ログ分析、SIEM などのワークロードで活用できることを示す図
+            </p>
+        </section>
+
+        <!-- New Regions Highlight -->
+        <section class="section">
+            <h2 class="section-title">新規利用可能リージョン</h2>
+            <div class="overview-card" style="border: 2px solid #2ECC71;">
+                <div class="new-regions-grid">
+                    <div class="new-region-item">
+                        <div class="new-region-flag">&#127469;&#127472;</div>
+                        <div class="new-region-name">Asia Pacific (Hong Kong)</div>
+                        <div class="new-region-code">ap-east-1</div>
+                    </div>
+                    <div class="new-region-item">
+                        <div class="new-region-flag">&#127470;&#127475;</div>
+                        <div class="new-region-name">Asia Pacific (Hyderabad)</div>
+                        <div class="new-region-code">ap-south-2</div>
+                    </div>
+                    <div class="new-region-item">
+                        <div class="new-region-flag">&#127470;&#127465;</div>
+                        <div class="new-region-name">Asia Pacific (Jakarta)</div>
+                        <div class="new-region-code">ap-southeast-3</div>
+                    </div>
+                    <div class="new-region-item">
+                        <div class="new-region-flag">&#127462;&#127482;</div>
+                        <div class="new-region-name">Asia Pacific (Melbourne)</div>
+                        <div class="new-region-code">ap-southeast-4</div>
+                    </div>
+                    <div class="new-region-item">
+                        <div class="new-region-flag">&#127471;&#127477;</div>
+                        <div class="new-region-name">Asia Pacific (Osaka)</div>
+                        <div class="new-region-code">ap-northeast-3</div>
+                    </div>
+                    <div class="new-region-item">
+                        <div class="new-region-flag">&#127481;&#127469;</div>
+                        <div class="new-region-name">Asia Pacific (Thailand)</div>
+                        <div class="new-region-code">ap-southeast-7</div>
+                    </div>
+                    <div class="new-region-item">
+                        <div class="new-region-flag">&#127470;&#127481;</div>
+                        <div class="new-region-name">Europe (Milan)</div>
+                        <div class="new-region-code">eu-south-1</div>
+                    </div>
+                    <div class="new-region-item">
+                        <div class="new-region-flag">&#127467;&#127479;</div>
+                        <div class="new-region-name">Europe (Paris)</div>
+                        <div class="new-region-code">eu-west-3</div>
+                    </div>
+                    <div class="new-region-item">
+                        <div class="new-region-flag">&#127464;&#127469;</div>
+                        <div class="new-region-name">Europe (Zurich)</div>
+                        <div class="new-region-code">eu-central-2</div>
+                    </div>
+                    <div class="new-region-item">
+                        <div class="new-region-flag">&#127462;&#127466;</div>
+                        <div class="new-region-name">Middle East (UAE)</div>
+                        <div class="new-region-code">me-central-1</div>
+                    </div>
+                    <div class="new-region-item">
+                        <div class="new-region-flag">&#127482;&#127480;</div>
+                        <div class="new-region-name">GovCloud (US-West)</div>
+                        <div class="new-region-code">us-gov-west-1</div>
+                    </div>
+                    <div class="new-region-item">
+                        <div class="new-region-flag">&#127482;&#127480;</div>
+                        <div class="new-region-name">GovCloud (US-East)</div>
+                        <div class="new-region-code">us-gov-east-1</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Key Features Section -->
+        <section class="section">
+            <h2 class="section-title">主要機能</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">&#9889;</div>
+                    <div class="feature-title">Graviton4 プロセッサによるパフォーマンス向上</div>
+                    <div class="feature-description">Graviton3 プロセッサと比較して最大 30% 優れたパフォーマンスを提供。コンピューティング集約型、汎用、メモリ集約型の各ワークロードで最高の価格パフォーマンスを実現。</div>
+                    <ul class="feature-detail-list">
+                        <li>最大 30% のパフォーマンス向上</li>
+                        <li>GP3 ストレージボリュームをサポート</li>
+                    </ul>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#128187;</div>
+                    <div class="feature-title">4 つのインスタンスファミリー</div>
+                    <div class="feature-description">ワークロードの特性に応じた最適なインスタンスタイプを選択可能。</div>
+                    <ul class="feature-detail-list">
+                        <li>c8g: コンピューティング最適化</li>
+                        <li>m8g: 汎用</li>
+                        <li>r8g: メモリ最適化</li>
+                        <li>r8gd: メモリ最適化 + ローカル NVMe</li>
+                    </ul>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#128196;</div>
+                    <div class="feature-title">幅広いバージョンサポート</div>
+                    <div class="feature-description">すべての OpenSearch バージョンおよび Elasticsearch 7.9、7.10 でサポート。既存ドメインからの簡単な移行が可能。</div>
+                    <ul class="feature-detail-list">
+                        <li>全 OpenSearch バージョンで利用可能</li>
+                        <li>Elasticsearch 7.9、7.10 対応</li>
+                        <li>インスタンスタイプ変更で簡単移行</li>
+                    </ul>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#127757;</div>
+                    <div class="feature-title">グローバルなリージョン展開</div>
+                    <div class="feature-description">今回の拡大で 35 以上のリージョンでグローバルに利用可能。GovCloud リージョンを含む政府系ワークロードにも対応。</div>
+                    <ul class="feature-detail-list">
+                        <li>35+ リージョンで利用可能</li>
+                        <li>GovCloud 対応</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Instance Families -->
+        <section class="section">
+            <h2 class="section-title">Graviton4 インスタンスファミリー詳細</h2>
+            <div class="instance-grid">
+                <div class="instance-card">
+                    <div class="instance-name">c8g</div>
+                    <div class="instance-type">コンピューティング最適化</div>
+                    <div class="instance-desc">インデックス作成やクエリ処理が多いワークロードに最適。高いコンピューティング能力を提供。</div>
+                    <div class="instance-meta">
+                        <span class="instance-tag">large ~ 16xlarge</span>
+                        <span class="instance-tag">GP3 EBS</span>
+                    </div>
+                </div>
+                <div class="instance-card">
+                    <div class="instance-name">m8g</div>
+                    <div class="instance-type">汎用</div>
+                    <div class="instance-desc">バランスの取れたコンピューティングとメモリが必要なワークロードに最適。</div>
+                    <div class="instance-meta">
+                        <span class="instance-tag">medium ~ 16xlarge</span>
+                        <span class="instance-tag">GP3 EBS</span>
+                    </div>
+                </div>
+                <div class="instance-card">
+                    <div class="instance-name">r8g</div>
+                    <div class="instance-type">メモリ最適化</div>
+                    <div class="instance-desc">大規模なデータセットをメモリ上に保持するワークロードに最適。</div>
+                    <div class="instance-meta">
+                        <span class="instance-tag">medium ~ 16xlarge</span>
+                        <span class="instance-tag">GP3 EBS</span>
+                    </div>
+                </div>
+                <div class="instance-card">
+                    <div class="instance-name">r8gd</div>
+                    <div class="instance-type">メモリ最適化 + ローカルストレージ</div>
+                    <div class="instance-desc">EBS を使用せず、ローカル NVMe ストレージが必要なワークロードに最適。</div>
+                    <div class="instance-meta">
+                        <span class="instance-tag">medium ~ 16xlarge</span>
+                        <span class="instance-tag" style="border-color: var(--aws-teal); color: var(--aws-teal);">NVMe</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Technical Specs Section -->
+        <section class="section">
+            <h2 class="section-title">技術仕様</h2>
+            <div class="overview-card">
+                <div style="font-size: 15px; font-weight: 700; color: var(--text-primary); margin-bottom: 12px;">Graviton4 vs Graviton3 比較</div>
+                <table class="spec-table">
+                    <thead>
+                        <tr>
+                            <th>項目</th>
+                            <th>Graviton4 (c8g/m8g/r8g)</th>
+                            <th>Graviton3 (C7g/M7g/R7g)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>パフォーマンス</td>
+                            <td class="spec-value">最大 30% 向上</td>
+                            <td>基準</td>
+                        </tr>
+                        <tr>
+                            <td>価格パフォーマンス</td>
+                            <td class="spec-value">最高</td>
+                            <td>良好</td>
+                        </tr>
+                        <tr>
+                            <td>ストレージサポート</td>
+                            <td>GP3</td>
+                            <td>GP3</td>
+                        </tr>
+                        <tr>
+                            <td>バージョン要件</td>
+                            <td>ES 7.9 以降 / 全 OpenSearch</td>
+                            <td>ES 7.9 以降 / 全 OpenSearch</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="overview-card" style="margin-top: 20px;">
+                <div style="font-size: 15px; font-weight: 700; color: var(--text-primary); margin-bottom: 12px;">バージョン要件</div>
+                <div class="version-grid">
+                    <div class="version-card">
+                        <div class="version-engine">OpenSearch</div>
+                        <div class="version-value">すべてのバージョン</div>
+                    </div>
+                    <div class="version-card">
+                        <div class="version-engine">Elasticsearch</div>
+                        <div class="version-value">7.9、7.10</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Migration Flow -->
+        <section class="section">
+            <h2 class="section-title">移行フロー</h2>
+            <div class="overview-card">
+                <div class="flow-diagram">
+                    <div class="flow-step">&#128196; 既存ドメイン<br>確認</div>
+                    <span class="flow-arrow">&#8594;</span>
+                    <div class="flow-step">&#9881;&#65039; インスタンス<br>タイプ変更</div>
+                    <span class="flow-arrow">&#8594;</span>
+                    <div class="flow-step">&#128260; Blue/Green<br>デプロイメント</div>
+                    <span class="flow-arrow">&#8594;</span>
+                    <div class="flow-step">&#9989; ダウンタイム<br>なしで完了</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Setup Section -->
+        <section class="section">
+            <h2 class="section-title">設定方法</h2>
+            <div class="overview-card">
+                <div style="font-size: 15px; font-weight: 700; color: var(--text-primary); margin-bottom: 12px;">前提条件</div>
+                <ul class="feature-detail-list" style="margin-bottom: 20px;">
+                    <li>AWS アカウントを保有していること</li>
+                    <li>Amazon OpenSearch Service ドメインが作成済み、または新規作成する権限があること</li>
+                    <li>対象リージョンへのアクセス権限があること</li>
+                </ul>
+            </div>
+
+            <div class="overview-card">
+                <div style="font-size: 15px; font-weight: 700; color: var(--text-primary); margin-bottom: 12px;">Step 1: 新規ドメインで Graviton4 インスタンスを使用する</div>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">Bash</span>
+                        <span class="code-title">Melbourne リージョンで新規ドメインを作成</span>
+                    </div>
+                    <pre><code class="language-bash">aws opensearch create-domain \
+  --domain-name my-graviton4-domain \
+  --engine-version OpenSearch_2.17 \
+  --cluster-config \
+    InstanceType=r8g.2xlarge.search,InstanceCount=3,DedicatedMasterEnabled=true,DedicatedMasterType=m8g.large.search,DedicatedMasterCount=3,ZoneAwarenessEnabled=true,ZoneAwarenessConfig='{AvailabilityZoneCount=3}' \
+  --ebs-options EBSEnabled=true,VolumeType=gp3,VolumeSize=100 \
+  --region ap-southeast-4</code></pre>
+                </div>
+                <p class="code-desc">Melbourne リージョンで r8g.2xlarge.search インスタンスを使用した新規 OpenSearch ドメインを作成します。</p>
+            </div>
+
+            <div class="overview-card">
+                <div style="font-size: 15px; font-weight: 700; color: var(--text-primary); margin-bottom: 12px;">Step 2: 既存ドメインのインスタンスタイプを変更する</div>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">Bash</span>
+                        <span class="code-title">Osaka リージョンの既存ドメインを Graviton4 に変更</span>
+                    </div>
+                    <pre><code class="language-bash">aws opensearch update-domain-config \
+  --domain-name my-existing-domain \
+  --cluster-config \
+    InstanceType=r8g.2xlarge.search \
+  --region ap-northeast-3</code></pre>
+                </div>
+                <p class="code-desc">Osaka リージョンの既存ドメインのインスタンスタイプを Graviton4 ベースの r8g.2xlarge.search に変更します。ブルー/グリーンデプロイメントにより、ダウンタイムなしで変更が適用されます。</p>
+            </div>
+
+            <div class="overview-card">
+                <div style="font-size: 15px; font-weight: 700; color: var(--text-primary); margin-bottom: 12px;">Step 3: ドメインの状態を確認する</div>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">Bash</span>
+                        <span class="code-title">ドメインの処理状態とインスタンス構成を確認</span>
+                    </div>
+                    <pre><code class="language-bash">aws opensearch describe-domain \
+  --domain-name my-graviton4-domain \
+  --query 'DomainStatus.{Status:Processing,InstanceType:ClusterConfig.InstanceType,InstanceCount:ClusterConfig.InstanceCount}' \
+  --output table</code></pre>
+                </div>
+                <p class="code-desc">ドメインの処理状態とインスタンス構成を確認します。</p>
+            </div>
+        </section>
+
+        <!-- Use Cases Section -->
+        <section class="section">
+            <h2 class="section-title">ユースケース</h2>
+            <div class="usecase-card">
+                <div class="usecase-title">&#128202; アジアパシフィック地域でのログ分析基盤</div>
+                <div class="usecase-scenario">
+                    メルボルンやジャカルタにインフラストラクチャを持つ企業が、現地のデータレジデンシー要件に準拠しながら大規模なログ分析を実行したい。
+                </div>
+                <div class="usecase-effect">
+                    Melbourne リージョンで Graviton4 の m8g インスタンスを使用することで、Graviton3 と比較して最大 30% のパフォーマンス向上を実現し、データレジデンシー要件を満たしながらコスト効率の高いログ分析基盤を構築可能。
+                </div>
+            </div>
+            <div class="usecase-card">
+                <div class="usecase-title">&#128270; ヨーロッパでの全文検索サービス</div>
+                <div class="usecase-scenario">
+                    E コマース企業がヨーロッパの顧客向けに高速な商品検索機能を提供したい。
+                </div>
+                <div class="usecase-effect">
+                    Paris、Milan、Zurich リージョンで c8g インスタンスを使用することで、コンピューティング最適化された検索パフォーマンスを低レイテンシーで提供可能。Graviton4 の高いコンピューティング性能により、複雑なクエリの処理速度が向上。
+                </div>
+            </div>
+            <div class="usecase-card">
+                <div class="usecase-title">&#128737;&#65039; GovCloud での SIEM ワークロード</div>
+                <div class="usecase-scenario">
+                    政府機関がセキュリティログの収集と分析のために SIEM 基盤を GovCloud 上に構築したい。
+                </div>
+                <div class="usecase-effect">
+                    GovCloud (US-East) で r8g インスタンスを使用することで、大量のセキュリティイベントデータをメモリ上に保持しながら高速な脅威検出クエリを実行可能。Graviton4 のパフォーマンス向上により、リアルタイム分析の応答性が改善。
+                </div>
+            </div>
+        </section>
+
+        <!-- Benefits Section -->
+        <section class="section">
+            <h2 class="section-title">メリット</h2>
+            <div style="font-size: 15px; font-weight: 700; color: var(--text-primary); margin-bottom: 15px;">ビジネス面</div>
+            <div class="benefits-grid" style="margin-bottom: 25px;">
+                <div class="benefit-card">
+                    <div class="benefit-icon">&#128176;</div>
+                    <div class="benefit-title">コスト最適化</div>
+                    <div class="benefit-desc">Graviton4 の優れた価格パフォーマンスにより、同等のパフォーマンスを低コストで実現、または同等のコストでパフォーマンスを向上。</div>
+                </div>
+                <div class="benefit-card">
+                    <div class="benefit-icon">&#127757;</div>
+                    <div class="benefit-title">グローバル展開の容易化</div>
+                    <div class="benefit-desc">12 リージョンの追加により、データレジデンシー要件やレイテンシー要件に応じて最適なリージョンを選択可能。</div>
+                </div>
+                <div class="benefit-card">
+                    <div class="benefit-icon">&#127963;&#65039;</div>
+                    <div class="benefit-title">GovCloud 対応</div>
+                    <div class="benefit-desc">政府系ワークロードでも最新のプロセッサパフォーマンスを活用可能。</div>
+                </div>
+            </div>
+            <div style="font-size: 15px; font-weight: 700; color: var(--text-primary); margin-bottom: 15px;">技術面</div>
+            <div class="benefits-grid">
+                <div class="benefit-card">
+                    <div class="benefit-icon">&#128640;</div>
+                    <div class="benefit-title">最大 30% のパフォーマンス向上</div>
+                    <div class="benefit-desc">クエリレスポンスの高速化とインデックス作成スループットの向上。</div>
+                </div>
+                <div class="benefit-card">
+                    <div class="benefit-icon">&#128196;</div>
+                    <div class="benefit-title">幅広いバージョンサポート</div>
+                    <div class="benefit-desc">すべての OpenSearch バージョンで利用可能であり、既存環境からの移行が容易。</div>
+                </div>
+                <div class="benefit-card">
+                    <div class="benefit-icon">&#128260;</div>
+                    <div class="benefit-title">ダウンタイムなしの移行</div>
+                    <div class="benefit-desc">ブルー/グリーンデプロイメントにより、運用中のドメインでもインスタンスタイプの変更が可能。</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Considerations Section -->
+        <section class="section">
+            <h2 class="section-title">制約事項・考慮点</h2>
+            <div class="consideration-card warning">
+                <div class="consideration-title">&#9888; 制限事項</div>
+                <ul class="consideration-list">
+                    <li>Graviton4 インスタンスは GP3 ストレージボリュームのみサポート (r8gd はローカル NVMe を使用、EBS 非対応)</li>
+                    <li>すべてのリージョンで全インスタンスタイプが利用可能とは限らない</li>
+                    <li>Elasticsearch 7.8 以前のバージョンでは利用不可</li>
+                </ul>
+            </div>
+            <div class="consideration-card info">
+                <div class="consideration-title">&#8505; 考慮すべき点</div>
+                <ul class="consideration-list">
+                    <li>Graviton3 から Graviton4 への移行時には、パフォーマンステストを実施して期待される改善を確認することを推奨</li>
+                    <li>r8gd インスタンスはローカル NVMe ストレージを使用するため、EBS ベースとは異なるデータ保護計画が必要</li>
+                    <li>インスタンスタイプ変更時のブルー/グリーンデプロイメントには一定の時間がかかるため、計画的な実施を推奨</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Pricing Section -->
+        <section class="section">
+            <h2 class="section-title">料金</h2>
+            <div class="pricing-card">
+                <p style="font-size: 14px; margin-bottom: 15px;">Graviton4 インスタンスの料金は、インスタンスタイプ、サイズ、リージョンによって異なります。リザーブドインスタンスによる割引も利用可能です。</p>
+                <a href="https://aws.amazon.com/opensearch-service/pricing/" target="_blank" rel="noopener noreferrer" style="color: var(--aws-teal); text-decoration: none; font-size: 14px; font-weight: 700;">&#128279; Amazon OpenSearch Service 料金ページ</a>
+            </div>
+        </section>
+
+        <!-- Available Regions Section -->
+        <section class="section">
+            <h2 class="section-title">利用可能リージョン</h2>
+            <div class="overview-card" style="text-align: center;">
+                <p style="font-size: 14px; margin-bottom: 10px;">Graviton4 インスタンスの全利用可能リージョン (35+ リージョン)</p>
+                <div class="region-list">
+                    <span class="region-tag">US East (N. Virginia)</span>
+                    <span class="region-tag">US East (Ohio)</span>
+                    <span class="region-tag">US West (N. California)</span>
+                    <span class="region-tag">US West (Oregon)</span>
+                    <span class="region-tag">AP (Mumbai)</span>
+                    <span class="region-tag">AP (Malaysia)</span>
+                    <span class="region-tag">AP (Seoul)</span>
+                    <span class="region-tag">AP (Singapore)</span>
+                    <span class="region-tag">AP (Sydney)</span>
+                    <span class="region-tag">AP (Tokyo)</span>
+                    <span class="region-tag">Canada (Central)</span>
+                    <span class="region-tag">Europe (Frankfurt)</span>
+                    <span class="region-tag">Europe (Ireland)</span>
+                    <span class="region-tag">Europe (London)</span>
+                    <span class="region-tag">Europe (Spain)</span>
+                    <span class="region-tag">Europe (Stockholm)</span>
+                    <span class="region-tag">South America (Sao Paulo)</span>
+                    <span class="region-tag new">AP (Hong Kong) NEW</span>
+                    <span class="region-tag new">AP (Hyderabad) NEW</span>
+                    <span class="region-tag new">AP (Jakarta) NEW</span>
+                    <span class="region-tag new">AP (Melbourne) NEW</span>
+                    <span class="region-tag new">AP (Osaka) NEW</span>
+                    <span class="region-tag new">AP (Thailand) NEW</span>
+                    <span class="region-tag new">Europe (Milan) NEW</span>
+                    <span class="region-tag new">Europe (Paris) NEW</span>
+                    <span class="region-tag new">Europe (Zurich) NEW</span>
+                    <span class="region-tag new">Middle East (UAE) NEW</span>
+                    <span class="region-tag new">GovCloud (US-West) NEW</span>
+                    <span class="region-tag new">GovCloud (US-East) NEW</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Related Services Section -->
+        <section class="section">
+            <h2 class="section-title">関連サービス</h2>
+            <div class="related-grid">
+                <div class="related-card">
+                    <div class="related-icon">&#128269;</div>
+                    <div class="related-name">OpenSearch Serverless</div>
+                    <div class="related-desc">サーバーレスオプションでの OpenSearch 利用</div>
+                </div>
+                <div class="related-card">
+                    <div class="related-icon">&#9889;</div>
+                    <div class="related-name">AWS Graviton</div>
+                    <div class="related-desc">AWS 独自設計の Arm ベースプロセッサ</div>
+                </div>
+                <div class="related-card">
+                    <div class="related-icon">&#128295;</div>
+                    <div class="related-name">OpenSearch Ingestion</div>
+                    <div class="related-desc">データ取り込みパイプライン</div>
+                </div>
+                <div class="related-card">
+                    <div class="related-icon">&#128202;</div>
+                    <div class="related-name">Amazon CloudWatch</div>
+                    <div class="related-desc">ドメインのモニタリング</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer>
+            <div>
+                <a href="https://aws.amazon.com/about-aws/whats-new/2026/02/amazon-opensearch-service-expands-support-graviton4-based-instances/" class="source-link" target="_blank" rel="noopener noreferrer">
+                    &#128279; 公式発表 (What's New) を見る
+                </a>
+            </div>
+            <div>
+                <a href="https://aws.amazon.com/opensearch-service/pricing/" class="source-link" target="_blank" rel="noopener noreferrer">
+                    &#128176; Amazon OpenSearch Service 料金ページ
+                </a>
+            </div>
+            <div>
+                <a href="https://aws.amazon.com/opensearch-service/" class="source-link" target="_blank" rel="noopener noreferrer">
+                    &#128196; Amazon OpenSearch Service 製品ページ
+                </a>
+            </div>
+            <div>
+                <a href="https://aws.amazon.com/blogs/aws/aws-graviton4-based-amazon-ec2-r8g-instances-best-price-performance-in-amazon-ec2/" class="source-link" target="_blank" rel="noopener noreferrer">
+                    &#128221; AWS Blog - Graviton4 r8g インスタンス
+                </a>
+            </div>
+            <div>
+                <a href="https://aws.amazon.com/blogs/aws/run-your-compute-intensive-and-general-purpose-workloads-sustainably-with-the-new-amazon-ec2-c8g-m8g-instances/" class="source-link" target="_blank" rel="noopener noreferrer">
+                    &#128221; AWS Blog - Graviton4 c8g/m8g インスタンス
+                </a>
+            </div>
+            <p class="footer-note">Amazon OpenSearch Service は Graviton4 ベースインスタンス (c8g, m8g, r8g, r8gd) のサポートを 12 の追加リージョンに拡大し、Graviton3 と比較して最大 30% のパフォーマンス向上を提供します。</p>
+        </footer>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'base',
+            themeVariables: {
+                primaryColor: '#FF9900',
+                primaryTextColor: '#232F3E',
+                primaryBorderColor: '#FF9900',
+                lineColor: '#FF9900',
+                secondaryColor: '#F5F5F5',
+                tertiaryColor: '#FAFAFA',
+                background: '#FFFFFF',
+                mainBkg: '#FFF3E0',
+                nodeBorder: '#FF9900',
+                clusterBkg: '#FFF8E1',
+                clusterBorder: '#FF9900',
+                edgeLabelBackground: '#FFFFFF',
+                textColor: '#232F3E'
+            }
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/highlight.min.js"></script>
+    <script>hljs.highlightAll();</script>
+</body>
+</html>

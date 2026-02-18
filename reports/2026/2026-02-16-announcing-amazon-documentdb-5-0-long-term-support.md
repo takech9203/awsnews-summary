@@ -217,7 +217,7 @@ Amazon DocumentDB LTS の利用自体に追加料金は発生しません。料�
 | データベースストレージ | 使用されたストレージ容量に基づく課金 |
 | バックアップストレージ | クラスターストレージの 100% まで無料、超過分は課金 |
 
-詳細は [Amazon DocumentDB 料金ページ](https://aws.amazon.com/documentdb/pricing/)を参照してください。
+詳細は [Amazon DocumentDB 料金ページ](https://aws.amazon.com/documentdb/pricing/) を参照してください。
 
 ## 利用可能リージョン
 
@@ -234,6 +234,7 @@ Amazon DocumentDB LTS の利用自体に追加料金は発生しません。料�
 - 📊 [インフォグラフィック](https://takech9203.github.io/aws-news-summary/20260216-announcing-amazon-documentdb-5-0-long-term-support.html)
 - [公式発表 (What's New)](https://aws.amazon.com/about-aws/whats-new/2026/02/announcing-amazon-documentdb-5-0-long-term-support/)
 - [ドキュメント: LTS リリースの使用](https://docs.aws.amazon.com/documentdb/latest/developerguide/docdb-lts-release.html)
+- [関連ブログ: Extended Support for Amazon DocumentDB version 3.6](https://aws.amazon.com/blogs/database/announcing-extended-support-for-amazon-documentdb-with-mongodb-compatibility-version-3-6/)
 - [料金ページ](https://aws.amazon.com/documentdb/pricing/)
 
 ## まとめ
