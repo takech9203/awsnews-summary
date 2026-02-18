@@ -5,9 +5,18 @@
 
 ## 2026 年
 
+- [2026-02-18 - Kiro - AWS GovCloud (US) リージョンで利用可能に](2026/2026-02-18-kiro-introducing-govcloud.md)
+- [2026-02-18 - Amazon OpenSearch Service - ストレージ最適化 i7i インスタンスのサポート開始](2026/2026-02-18-amazon-opensearch-service-supports-i7i-instances.md)
+- [2026-02-18 - Amazon OpenSearch Service - Graviton4 ベースインスタンスのサポートリージョン拡大](2026/2026-02-18-amazon-opensearch-service-expands-support-graviton4-based-instances.md)
+- [2026-02-18 - Amazon Connect Cases - AWS Service Quotas サポート](2026/2026-02-18-amazon-connect-cases-aws-service-quotas.md)
+- [2026-02-17 - Amazon Bedrock - 強化ファインチューニングがオープンウェイトモデルと OpenAI 互換 API に対応](2026/2026-02-17-amazon-bedrock-reinforcement-fine-tuning-openai.md)
+- [2026-02-17 - Amazon EC2 C8a インスタンス - Europe (Frankfurt) および Europe (Ireland) リージョンで利用可能に](2026/2026-02-17-amazon-ec2-c8a-instances-europe-frankfurt-europe-ireland-regions.md)
+- [2026-02-17 - Amazon Aurora MySQL 3.12 - MySQL 8.0.44 互換の一般提供開始](2026/2026-02-17-amazon-aurora-mysql-312-available.md)
 - [2026-02-17 - Kiro - Claude Sonnet 4.6 サポートの追加](2026/2026-02-17-kiro-sonnet-4-6.md)
 - [2026-02-17 - Amazon Connect - ドラフトスケジュールへの休暇リクエスト反映](2026/2026-02-17-amazon-connect-time-off-draft-schedules.md)
+- [2026-02-17 - Amazon MSK - 既存クラスターでのデュアルスタック (IPv4/IPv6) 接続のサポート](2026/2026-02-17-aws-msk-dual-stack-ipv4-and-ipv6.md)
 - [2026-02-17 - Amazon Bedrock - Claude Sonnet 4.6 の提供開始](2026/2026-02-17-claude-sonnet-4-6-available-in-amazon-bedrock.md)
+- [2026-02-17 - Amazon Connect Cases - 複数行テキストフィールドのサポート](2026/2026-02-17-amazon-connect-cases-multiline-text-fields.md)
 - [2026-02-16 - AWS Glue 5.1 - 18 リージョンへの拡大](2026/2026-02-16-aws-glue-5-1-eighteen-additional-regions.md)
 - [2026-02-16 - Amazon Aurora - デフォルトのサーバーサイド暗号化](2026/2026-02-16-amazon-aurora-server-side-encryption-at-rest.md)
 - [2026-02-16 - AWS HealthImaging - データストア監視用メトリクスの追加](2026/2026-02-16-aws-healthimaging-additional-metrics.md)
@@ -31,6 +40,7 @@
 - [2026-02-12 - Amazon RDS for PostgreSQL - マイナーバージョン 18.2, 17.8, 16.12, 15.16, 14.21 サポート](2026/2026-02-12-rds-minor-version-18-2-17-8-16-12-15-16-14-21.md)
 - [2026-02-12 - Amazon EC2 M8azn - 5GHz の最高周波数を持つ汎用インスタンス](2026/2026-02-12-aws-m8azn-instances-generally-available.md)
 - [2026-02-12 - AWS Support Center Console の AI トラブルシューティングが 7 言語追加対応](2026/2026-02-12-ai-troubleshooting-in-aws-support-center.md)
+- [2026-02-12 - Amazon Bedrock - Claude Sonnet 4.5 のデフォルトクォータが AWS GovCloud (US) で 25 倍に増加](2026/2026-02-12-amazon-bedrock-s4.5-quota-aws-govcloud-us.md)
 - [2026-02-12 - Amazon Bedrock - AWS PrivateLink サポートの拡大 (OpenAI API 互換エンドポイント)](2026/2026-02-12-amazon-bedrock-expands-aws-privatelink-support-openai-api-endpoints.md)
 - [2026-02-12 - Amazon EC2 C8i, M8i, R8i インスタンス - 第 2 世代 AWS Outposts racks 対応](2026/2026-02-12-amazon-ec2-c8i-m8i-and-r8i-instances-on-aws-outposts.md)
 - [2026-02-12 - Amazon Connect - 分析ダッシュボード向けきめ細かなアクセス制御](2026/2026-02-12-amazon-connect-launches-granular-access.md)

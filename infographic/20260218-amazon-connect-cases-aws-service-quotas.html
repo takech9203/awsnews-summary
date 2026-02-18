@@ -1,0 +1,1322 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Amazon Connect Cases - AWS Service Quotas サポート</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/styles/atom-one-dark.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/highlight.min.js"></script>
+    <style>
+        :root {
+            --squid-ink: #232F3E;
+            --aws-orange: #FF9900;
+            --aws-smile-orange: #FFAD33;
+            --text-primary: #FFFFFF;
+            --text-secondary: #AAAAAA;
+            --light-gray: #D5DBDB;
+            --card-bg: #2D3A4A;
+            --dark-squid: #1A242F;
+            --border-color: #3D4A5A;
+            --aws-teal: #00A1C9;
+            --aws-purple: #8C4FFF;
+            --aws-green: #1D8102;
+            --aws-red: #D13212;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            background-color: var(--squid-ink);
+            color: var(--light-gray);
+            line-height: 1.8;
+            font-size: 16px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+            padding-bottom: 30px;
+            border-bottom: 3px solid var(--aws-orange);
+        }
+
+        .service-badge {
+            display: inline-block;
+            background-color: var(--aws-orange);
+            color: var(--squid-ink);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+        }
+
+        .header-subtitle {
+            color: var(--light-gray);
+            font-size: 15px;
+            margin-bottom: 8px;
+        }
+
+        .release-date {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--aws-orange);
+            margin-bottom: 20px;
+            padding-left: 15px;
+            border-left: 4px solid var(--aws-orange);
+        }
+
+        .overview-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .overview-text {
+            font-size: 16px;
+            line-height: 1.9;
+        }
+
+        .highlight {
+            background-color: rgba(255, 153, 0, 0.2);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+            color: var(--aws-orange);
+        }
+
+        /* Stats grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, var(--card-bg) 0%, var(--dark-squid) 100%);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid rgba(255, 153, 0, 0.2);
+        }
+
+        .stat-icon {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--aws-orange);
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        /* Before/After comparison */
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .comparison-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .comparison-card.before {
+            border-top: 4px solid #E74C3C;
+        }
+
+        .comparison-card.after {
+            border-top: 4px solid #2ECC71;
+        }
+
+        .comparison-label {
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        .comparison-card.before .comparison-label {
+            color: #E74C3C;
+        }
+
+        .comparison-card.after .comparison-label {
+            color: #2ECC71;
+        }
+
+        .comparison-list {
+            list-style: none;
+        }
+
+        .comparison-list li {
+            padding: 8px 0;
+            padding-left: 25px;
+            position: relative;
+            font-size: 14px;
+        }
+
+        .comparison-card.before .comparison-list li::before {
+            content: "\2717";
+            position: absolute;
+            left: 0;
+            color: #E74C3C;
+            font-weight: bold;
+        }
+
+        .comparison-card.after .comparison-list li::before {
+            content: "\2713";
+            position: absolute;
+            left: 0;
+            color: #2ECC71;
+            font-weight: bold;
+        }
+
+        /* Mermaid diagram */
+        .diagram-container {
+            background-color: #FFFFFF;
+            border: 2px solid rgba(255, 153, 0, 0.3);
+            border-radius: 12px;
+            padding: 25px;
+            overflow-x: auto;
+        }
+
+        .mermaid {
+            display: flex;
+            justify-content: center;
+        }
+
+        /* Feature cards */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .feature-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            border-left: 3px solid var(--aws-orange);
+        }
+
+        .feature-icon {
+            font-size: 36px;
+            margin-bottom: 12px;
+            text-align: center;
+        }
+
+        .feature-title {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--aws-orange);
+        }
+
+        .feature-description {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        .feature-detail-list {
+            list-style: none;
+            margin-top: 8px;
+        }
+
+        .feature-detail-list li {
+            padding: 3px 0;
+            padding-left: 18px;
+            position: relative;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .feature-detail-list li::before {
+            content: "\2713";
+            position: absolute;
+            left: 0;
+            color: var(--aws-green);
+            font-weight: bold;
+            font-size: 11px;
+        }
+
+        /* Tech spec table */
+        .spec-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+        }
+
+        .spec-table th {
+            background-color: var(--dark-squid);
+            color: var(--aws-orange);
+            padding: 12px 14px;
+            text-align: left;
+            font-size: 13px;
+            font-weight: 700;
+            border-bottom: 2px solid var(--aws-orange);
+        }
+
+        .spec-table td {
+            padding: 10px 14px;
+            font-size: 13px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--light-gray);
+        }
+
+        .spec-table tr:hover {
+            background-color: rgba(255, 153, 0, 0.05);
+        }
+
+        .adjustable-yes {
+            color: #2ECC71;
+            font-weight: 600;
+        }
+
+        .adjustable-no {
+            color: #E74C3C;
+            font-weight: 600;
+        }
+
+        /* Flow diagram */
+        .flow-diagram {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin: 24px 0;
+        }
+
+        .flow-step {
+            background: var(--dark-squid);
+            border: 2px solid var(--aws-orange);
+            border-radius: 8px;
+            padding: 12px 20px;
+            text-align: center;
+            min-width: 120px;
+            font-size: 14px;
+        }
+
+        .flow-arrow {
+            color: var(--aws-orange);
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        /* Use case cards */
+        .usecase-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 3px solid var(--aws-orange);
+        }
+
+        .usecase-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .usecase-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--aws-orange);
+        }
+
+        .usecase-scenario {
+            font-size: 14px;
+            color: var(--light-gray);
+            margin-bottom: 12px;
+        }
+
+        .usecase-effect {
+            font-size: 14px;
+            color: #2ECC71;
+            padding: 10px;
+            background-color: rgba(46, 204, 113, 0.1);
+            border-radius: 8px;
+        }
+
+        .usecase-effect::before {
+            content: "\2713 ";
+            font-weight: bold;
+        }
+
+        /* Merit/Demerit */
+        .merit-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .merit-section {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .merit-section h3 {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: var(--aws-orange);
+        }
+
+        .merit-list {
+            list-style: none;
+        }
+
+        .merit-list li {
+            padding: 6px 0;
+            padding-left: 22px;
+            position: relative;
+            font-size: 14px;
+            color: var(--light-gray);
+        }
+
+        .merit-list li::before {
+            content: "\2713";
+            position: absolute;
+            left: 0;
+            color: #2ECC71;
+            font-weight: bold;
+        }
+
+        /* Constraint/Limitation */
+        .constraint-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 3px solid #E74C3C;
+        }
+
+        .constraint-title {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #E74C3C;
+        }
+
+        .constraint-list {
+            list-style: none;
+        }
+
+        .constraint-list li {
+            padding: 6px 0;
+            padding-left: 22px;
+            position: relative;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .constraint-list li::before {
+            content: "\26A0";
+            position: absolute;
+            left: 0;
+            font-size: 12px;
+        }
+
+        /* Pricing card */
+        .pricing-card {
+            background: linear-gradient(135deg, rgba(29, 129, 2, 0.15) 0%, var(--card-bg) 100%);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid rgba(29, 129, 2, 0.3);
+            text-align: center;
+        }
+
+        .pricing-highlight {
+            font-size: 22px;
+            font-weight: 700;
+            color: #2ECC71;
+            margin-bottom: 8px;
+        }
+
+        .pricing-detail {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        /* Region */
+        .region-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .region-item {
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .region-flag {
+            font-size: 18px;
+        }
+
+        .region-name {
+            color: var(--light-gray);
+        }
+
+        .region-code {
+            color: var(--text-secondary);
+            font-size: 12px;
+            font-family: monospace;
+        }
+
+        /* Related services */
+        .related-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+
+        .related-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+        }
+
+        .related-name {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 6px;
+        }
+
+        .related-desc {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        /* Sub-section title */
+        .sub-section-title {
+            font-size: 17px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 14px;
+            margin-top: 24px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .sub-section-title:first-child {
+            margin-top: 0;
+        }
+
+        /* Code blocks */
+        .code-block {
+            background: #1a1a2e;
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 16px 0;
+        }
+
+        .code-header {
+            background: #16213e;
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+        }
+
+        .code-lang {
+            color: var(--aws-orange);
+            font-weight: bold;
+        }
+
+        .code-title {
+            color: var(--light-gray);
+        }
+
+        .code-block pre {
+            margin: 0;
+            padding: 0;
+            overflow-x: auto;
+        }
+
+        .code-block code {
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            padding: 16px !important;
+        }
+
+        /* Footer */
+        footer {
+            margin-top: 50px;
+            padding-top: 30px;
+            border-top: 1px solid var(--border-color);
+            text-align: center;
+        }
+
+        .source-links {
+            list-style: none;
+            margin-bottom: 16px;
+        }
+
+        .source-links li {
+            margin-bottom: 6px;
+        }
+
+        .source-link {
+            color: var(--aws-teal);
+            text-decoration: none;
+            font-size: 14px;
+            word-break: break-all;
+        }
+
+        .source-link:hover {
+            color: var(--aws-smile-orange);
+            text-decoration: underline;
+        }
+
+        .footer-note {
+            color: var(--text-secondary);
+            font-size: 12px;
+            margin-top: 10px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .comparison-grid,
+            .merit-grid {
+                grid-template-columns: 1fr;
+            }
+            .features-grid {
+                grid-template-columns: 1fr !important;
+            }
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr) !important;
+            }
+            .related-grid {
+                grid-template-columns: 1fr !important;
+            }
+            .region-grid {
+                grid-template-columns: 1fr !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <span class="service-badge">Amazon Connect Cases</span>
+            <h1>AWS Service Quotas サポート</h1>
+            <p class="header-subtitle">Service Quotas コンソールから Cases のクォータを一元管理、自動承認でスケーリングを迅速化</p>
+            <p class="release-date">2026 年 2 月 18 日</p>
+        </header>
+
+        <!-- Overview -->
+        <section class="section">
+            <h2 class="section-title">&#128203; 概要</h2>
+            <div class="overview-card">
+                <p class="overview-text">
+                    Amazon Connect Cases が <span class="highlight">AWS Service Quotas をサポート</span>しました。管理者は Service Quotas コンソールを通じて Cases の適用済みクォータの一元的な表示、使用率のモニタリング、およびクォータ増加リクエストを行えるようになります。対象となるリクエストは<span class="highlight">手動介入なしに自動的に承認</span>されるため、予期しないサービス制約に遭遇することなく、ケースワークロードのスケーリングが可能です。
+                </p>
+            </div>
+
+            <!-- Stats -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">&#128200;</div>
+                    <div class="stat-value">一元管理</div>
+                    <div class="stat-label">全クォータの統合表示</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">&#9989;</div>
+                    <div class="stat-value">自動承認</div>
+                    <div class="stat-label">クォータ増加リクエスト</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">&#128276;</div>
+                    <div class="stat-value">CloudWatch</div>
+                    <div class="stat-label">使用率アラーム連携</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">&#127759;</div>
+                    <div class="stat-value">10</div>
+                    <div class="stat-label">対応リージョン</div>
+                </div>
+            </div>
+
+            <!-- Before/After -->
+            <div class="comparison-grid">
+                <div class="comparison-card before">
+                    <div class="comparison-label">Before - アップデート前の課題</div>
+                    <ul class="comparison-list">
+                        <li>クォータ値の確認にはドキュメント参照や AWS サポートへの問い合わせが必要</li>
+                        <li>クォータ使用率をリアルタイムでモニタリングする手段がなく、上限到達後に発覚</li>
+                        <li>クォータ増加には AWS サポートケースの作成が必要で承認に時間がかかる</li>
+                        <li>複数のクォータを個別に確認する必要があり一元管理できない</li>
+                    </ul>
+                </div>
+                <div class="comparison-card after">
+                    <div class="comparison-label">After - アップデート後の改善</div>
+                    <ul class="comparison-list">
+                        <li>Service Quotas コンソールで全クォータを一覧表示し使用率を一元確認</li>
+                        <li>クォータ使用率のモニタリングにより上限到達前に事前対応が可能</li>
+                        <li>コンソールから直接増加リクエスト、対象リクエストは自動承認</li>
+                        <li>CloudWatch アラーム連携でしきい値超過時に自動通知</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Architecture Diagram -->
+        <section class="section">
+            <h2 class="section-title">&#128736;&#65039; アーキテクチャ図</h2>
+            <div class="diagram-container">
+                <pre class="mermaid">
+flowchart TD
+    subgraph Admin["&#128295; 管理者"]
+        User["&#128100; 管理者"]
+    end
+
+    subgraph SQ["&#128202; AWS Service Quotas"]
+        Console["&#128421;&#65039; Service Quotas&lt;br/&gt;コンソール"]
+        API["&#128268; Service Quotas&lt;br/&gt;API"]
+        AutoApprove["&#9989; 自動承認&lt;br/&gt;エンジン"]
+    end
+
+    subgraph Monitoring["&#128200; モニタリング"]
+        CW["&#9729;&#65039; CloudWatch&lt;br/&gt;アラーム"]
+        Notify["&#128276; 通知"]
+    end
+
+    subgraph Connect["&#9729;&#65039; Amazon Connect Cases"]
+        subgraph Quotas["&#128203; Cases クォータ"]
+            Q1["ドメイン数"]
+            Q2["フィールド数"]
+            Q3["テンプレート数"]
+            Q4["レイアウト数"]
+            Q1 ~~~ Q2 ~~~ Q3 ~~~ Q4
+        end
+    end
+
+    User -->|"1. クォータ確認・増加リクエスト"| Console
+    Console -->|"2. クォータ情報取得"| API
+    API -->|"3. クォータ値参照"| Quotas
+    Console -->|"4. 増加リクエスト"| AutoApprove
+    AutoApprove -->|"5. クォータ適用"| Quotas
+
+    API -->|"使用率メトリクス"| CW
+    CW -->|"しきい値超過時"| Notify
+    Notify -->|"アラート"| User
+
+    classDef admin fill:#E3F2FD,stroke:#BBDEFB,stroke-width:2px,color:#1565C0
+    classDef sq fill:#E8F1FF,stroke:#4A90E2,stroke-width:2px,color:#333333
+    classDef monitoring fill:#FFF3E0,stroke:#FF9800,stroke-width:2px,color:#E65100
+    classDef connect fill:#E9F7EC,stroke:#66BB6A,stroke-width:2px,color:#333333
+    classDef quota fill:#FFFFFF,stroke:#4A90E2,stroke-width:2px,color:#333333
+    classDef container fill:none,stroke:#CCCCCC,stroke-width:2px,color:#666666
+
+    class User admin
+    class Console,API,AutoApprove sq
+    class CW,Notify monitoring
+    class Q1,Q2,Q3,Q4 quota
+    class Admin,SQ,Monitoring,Connect,Quotas container
+                </pre>
+            </div>
+            <p style="font-size: 14px; color: var(--text-secondary); margin-top: 12px; text-align: center;">管理者は Service Quotas コンソールから Cases のクォータを一元管理し、CloudWatch アラーム連携で使用率もモニタリング可能</p>
+        </section>
+
+        <!-- Key Features -->
+        <section class="section">
+            <h2 class="section-title">&#11088; 主要機能</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">&#128202;</div>
+                    <div class="feature-title">1. クォータの一元表示</div>
+                    <div class="feature-description">Service Quotas コンソールで Amazon Connect Cases のすべてのクォータを一覧表示。</div>
+                    <ul class="feature-detail-list">
+                        <li>各クォータのデフォルト値、適用済みの値、調整可否を確認可能</li>
+                        <li>アカウントレベルのクォータとして管理</li>
+                    </ul>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#128200;</div>
+                    <div class="feature-title">2. 使用率のモニタリング</div>
+                    <div class="feature-description">現在のクォータ使用率をリアルタイムで確認。</div>
+                    <ul class="feature-detail-list">
+                        <li>CloudWatch メトリクスとの連携でアラーム設定が可能</li>
+                        <li>クォータの 80% に達した時点でアラートを設定するベストプラクティス</li>
+                    </ul>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#9889;</div>
+                    <div class="feature-title">3. クォータ増加リクエストの簡素化</div>
+                    <div class="feature-description">Service Quotas コンソールから直接増加リクエストを送信。</div>
+                    <ul class="feature-detail-list">
+                        <li>対象リクエストは手動介入なしに自動承認</li>
+                        <li>AWS サポートケースを作成する必要がなくなった</li>
+                    </ul>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#128187;</div>
+                    <div class="feature-title">4. プログラマティックアクセス</div>
+                    <div class="feature-description">Service Quotas API / AWS CLI を使用してプログラムでクォータ管理。</div>
+                    <ul class="feature-detail-list">
+                        <li>クォータ情報の取得や増加リクエストを自動化可能</li>
+                        <li>インフラストラクチャ管理ツールとの統合が可能</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Technical Specifications -->
+        <section class="section">
+            <h2 class="section-title">&#128295; 技術仕様</h2>
+
+            <h3 class="sub-section-title">Amazon Connect Cases クォータ一覧</h3>
+            <div class="overview-card" style="padding: 16px; overflow-x: auto;">
+                <table class="spec-table">
+                    <thead>
+                        <tr>
+                            <th>クォータ名</th>
+                            <th>デフォルト値</th>
+                            <th>調整可否</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Cases domains per AWS account</td>
+                            <td><strong style="color: var(--text-primary);">5</strong></td>
+                            <td><span class="adjustable-yes">可</span></td>
+                        </tr>
+                        <tr>
+                            <td>Fields in a Cases domain</td>
+                            <td><strong style="color: var(--text-primary);">500</strong></td>
+                            <td><span class="adjustable-yes">可</span></td>
+                        </tr>
+                        <tr>
+                            <td>Field options per single-select field</td>
+                            <td><strong style="color: var(--text-primary);">500</strong></td>
+                            <td><span class="adjustable-yes">可</span></td>
+                        </tr>
+                        <tr>
+                            <td>Layouts in a Cases domain</td>
+                            <td><strong style="color: var(--text-primary);">100</strong></td>
+                            <td><span class="adjustable-yes">可</span></td>
+                        </tr>
+                        <tr>
+                            <td>Templates in a Cases domain</td>
+                            <td><strong style="color: var(--text-primary);">100</strong></td>
+                            <td><span class="adjustable-yes">可</span></td>
+                        </tr>
+                        <tr>
+                            <td>Related items per case</td>
+                            <td><strong style="color: var(--text-primary);">200</strong></td>
+                            <td><span class="adjustable-yes">可</span></td>
+                        </tr>
+                        <tr>
+                            <td>Files per case</td>
+                            <td><strong style="color: var(--text-primary);">50</strong></td>
+                            <td><span class="adjustable-yes">可</span></td>
+                        </tr>
+                        <tr>
+                            <td>Case fields per case layout</td>
+                            <td><strong style="color: var(--text-primary);">100</strong></td>
+                            <td><span class="adjustable-no">不可</span></td>
+                        </tr>
+                        <tr>
+                            <td>SLAs per case</td>
+                            <td><strong style="color: var(--text-primary);">10</strong></td>
+                            <td><span class="adjustable-yes">可</span></td>
+                        </tr>
+                        <tr>
+                            <td>Fields in a Custom type related item</td>
+                            <td><strong style="color: var(--text-primary);">5</strong></td>
+                            <td><span class="adjustable-yes">可</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3 class="sub-section-title">Cases API スロットリングクォータ</h3>
+            <div class="overview-card" style="padding: 16px; overflow-x: auto;">
+                <table class="spec-table">
+                    <thead>
+                        <tr>
+                            <th>API</th>
+                            <th>レートリミット</th>
+                            <th>バーストリミット</th>
+                            <th>調整</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>CreateCase, SearchCases, ListTemplates, ListLayouts 等</td>
+                            <td><strong style="color: var(--text-primary);">2</strong></td>
+                            <td><strong style="color: var(--text-primary);">10</strong></td>
+                            <td><span class="adjustable-yes">可</span></td>
+                        </tr>
+                        <tr>
+                            <td>GetCase</td>
+                            <td><strong style="color: var(--text-primary);">4</strong></td>
+                            <td><strong style="color: var(--text-primary);">10</strong></td>
+                            <td><span class="adjustable-yes">可</span></td>
+                        </tr>
+                        <tr>
+                            <td>UpdateCase, ListCasesForContact</td>
+                            <td><strong style="color: var(--text-primary);">2</strong></td>
+                            <td><strong style="color: var(--text-primary);">2</strong></td>
+                            <td><span class="adjustable-yes">可</span></td>
+                        </tr>
+                        <tr>
+                            <td>CreateField, ListFields, CreateTemplate 等</td>
+                            <td><strong style="color: var(--text-primary);">2</strong></td>
+                            <td><strong style="color: var(--text-primary);">5</strong></td>
+                            <td><span class="adjustable-yes">可</span></td>
+                        </tr>
+                        <tr>
+                            <td>BatchGetField, BatchGetCaseRule</td>
+                            <td><strong style="color: var(--text-primary);">8</strong></td>
+                            <td><strong style="color: var(--text-primary);">25</strong></td>
+                            <td><span class="adjustable-yes">可</span></td>
+                        </tr>
+                        <tr>
+                            <td>ListFieldOptions</td>
+                            <td><strong style="color: var(--text-primary);">6</strong></td>
+                            <td><strong style="color: var(--text-primary);">16</strong></td>
+                            <td><span class="adjustable-yes">可</span></td>
+                        </tr>
+                        <tr>
+                            <td>GetTemplate, GetLayout</td>
+                            <td><strong style="color: var(--text-primary);">6</strong></td>
+                            <td><strong style="color: var(--text-primary);">20</strong></td>
+                            <td><span class="adjustable-yes">可</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Setup -->
+        <section class="section">
+            <h2 class="section-title">&#9881;&#65039; 設定方法</h2>
+
+            <h3 class="sub-section-title">前提条件</h3>
+            <div class="overview-card" style="margin-bottom: 16px;">
+                <ul class="merit-list">
+                    <li>Amazon Connect インスタンスが作成済みであること</li>
+                    <li>Amazon Connect Cases が有効化されていること</li>
+                    <li>Service Quotas コンソールへのアクセス権限を持っていること</li>
+                    <li><code style="background: rgba(255,153,0,0.15); padding: 2px 6px; border-radius: 3px; font-size: 13px;">servicequotas:RequestServiceQuotaIncrease</code> の IAM 権限が必要</li>
+                </ul>
+            </div>
+
+            <h3 class="sub-section-title">ステップ 1: Service Quotas コンソールで Cases クォータを確認</h3>
+            <div class="flow-diagram">
+                <div class="flow-step">&#128187; AWS コンソール<br>にログイン</div>
+                <span class="flow-arrow">&rarr;</span>
+                <div class="flow-step">&#128202; Service Quotas<br>コンソールを開く</div>
+                <span class="flow-arrow">&rarr;</span>
+                <div class="flow-step">&#128269; Amazon Connect<br>Cases を検索</div>
+                <span class="flow-arrow">&rarr;</span>
+                <div class="flow-step">&#128203; クォータ一覧<br>を確認</div>
+            </div>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Bash</span>
+                    <span class="code-title">AWS CLI でクォータ一覧を確認</span>
+                </div>
+                <pre><code class="language-bash">aws service-quotas list-service-quotas \
+  --service-code connect-cases</code></pre>
+            </div>
+
+            <h3 class="sub-section-title">ステップ 2: 現在のクォータ使用率を確認</h3>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Bash</span>
+                    <span class="code-title">特定クォータの詳細を取得</span>
+                </div>
+                <pre><code class="language-bash">aws service-quotas get-service-quota \
+  --service-code connect-cases \
+  --quota-code L-XXXXXXXX</code></pre>
+            </div>
+
+            <h3 class="sub-section-title">ステップ 3: クォータ増加をリクエスト</h3>
+            <div class="flow-diagram">
+                <div class="flow-step">&#128203; 増加したい<br>クォータを選択</div>
+                <span class="flow-arrow">&rarr;</span>
+                <div class="flow-step">&#128221; 希望する<br>クォータ値を入力</div>
+                <span class="flow-arrow">&rarr;</span>
+                <div class="flow-step">&#9989; リクエスト送信<br>自動承認</div>
+            </div>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Bash</span>
+                    <span class="code-title">AWS CLI でクォータ増加をリクエスト</span>
+                </div>
+                <pre><code class="language-bash">aws service-quotas request-service-quota-increase \
+  --service-code connect-cases \
+  --quota-code L-XXXXXXXX \
+  --desired-value 1000</code></pre>
+            </div>
+
+            <h3 class="sub-section-title">ステップ 4: CloudWatch アラームの設定</h3>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Bash</span>
+                    <span class="code-title">クォータ使用率 80% 超過時のアラーム設定</span>
+                </div>
+                <pre><code class="language-bash">aws cloudwatch put-metric-alarm \
+  --alarm-name "CasesQuotaUtilization" \
+  --alarm-description "Cases quota utilization exceeds 80%" \
+  --metric-name ServiceQuotaUtilization \
+  --namespace AWS/Usage \
+  --statistic Maximum \
+  --period 300 \
+  --threshold 80 \
+  --comparison-operator GreaterThanOrEqualToThreshold \
+  --evaluation-periods 1 \
+  --alarm-actions "arn:aws:sns:us-east-1:123456789012:quota-alerts"</code></pre>
+            </div>
+        </section>
+
+        <!-- Benefits -->
+        <section class="section">
+            <h2 class="section-title">&#128077; メリット</h2>
+            <div class="merit-grid">
+                <div class="merit-section">
+                    <h3>&#128188; ビジネス面</h3>
+                    <ul class="merit-list">
+                        <li><strong style="color: var(--text-primary);">運用の可視性向上:</strong> クォータ使用状況を一元的に可視化し、キャパシティプランニングが容易に</li>
+                        <li><strong style="color: var(--text-primary);">ダウンタイムの防止:</strong> クォータ上限到達前に事前対応でき、予期しないサービス中断を回避</li>
+                        <li><strong style="color: var(--text-primary);">スケーリングの迅速化:</strong> 自動承認により、ケースワークロードの増加に迅速に対応</li>
+                        <li><strong style="color: var(--text-primary);">管理工数の削減:</strong> AWS サポートケースの作成が不要になり、クォータ管理にかかる時間を短縮</li>
+                    </ul>
+                </div>
+                <div class="merit-section">
+                    <h3>&#128736;&#65039; 技術面</h3>
+                    <ul class="merit-list">
+                        <li><strong style="color: var(--text-primary);">一元管理:</strong> Service Quotas コンソールで複数の AWS サービスのクォータを統合管理</li>
+                        <li><strong style="color: var(--text-primary);">プログラマティックアクセス:</strong> Service Quotas API/CLI を使用した自動化が可能</li>
+                        <li><strong style="color: var(--text-primary);">CloudWatch 連携:</strong> 使用率のモニタリングとアラーム設定による事前検知</li>
+                        <li><strong style="color: var(--text-primary);">自動承認:</strong> 対象リクエストの自動承認により、リードタイムを大幅に短縮</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Limitations -->
+        <section class="section">
+            <h2 class="section-title">&#9888;&#65039; 制約事項・注意点</h2>
+            <div class="constraint-card">
+                <div class="constraint-title">制限事項</div>
+                <ul class="constraint-list">
+                    <li>一部のクォータ (Case fields per case layout など) は調整不可</li>
+                    <li>自動承認の対象外となるリクエストは、従来どおり AWS によるレビューが必要</li>
+                    <li>クォータはリージョン単位で管理されるため、複数リージョン使用時はリージョンごとに確認が必要</li>
+                </ul>
+            </div>
+            <div class="constraint-card">
+                <div class="constraint-title">考慮すべき点</div>
+                <ul class="constraint-list">
+                    <li>大幅なクォータ増加リクエストの場合、レビューと承認に数日から数週間かかる場合がある</li>
+                    <li>クォータ増加は即座に反映されない場合があるため、余裕を持った計画が推奨</li>
+                    <li>Service Quotas コンソールの使用には適切な IAM 権限の設定が必要</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Use Cases -->
+        <section class="section">
+            <h2 class="section-title">&#128161; ユースケース</h2>
+
+            <div class="usecase-card">
+                <div class="usecase-header">
+                    <span style="font-size: 24px;">&#127970;</span>
+                    <div class="usecase-title">ユースケース 1: 大規模コンタクトセンターのキャパシティプランニング</div>
+                </div>
+                <div class="usecase-scenario">
+                    大規模なコンタクトセンターを運営する企業が、急成長に伴いケース数が増加しており、Cases のクォータ上限に近づいている。事前にクォータ使用率を監視し、必要に応じて増加リクエストを行いたい。
+                </div>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">Bash</span>
+                        <span class="code-title">CloudWatch アラームで使用率を監視</span>
+                    </div>
+                    <pre><code class="language-bash"># 現在のクォータ使用率を確認
+aws service-quotas list-service-quotas \
+  --service-code connect-cases
+
+# CloudWatch アラームでクォータ使用率を監視
+aws cloudwatch put-metric-alarm \
+  --alarm-name "CasesFieldsQuotaAlert" \
+  --metric-name ServiceQuotaUtilization \
+  --namespace AWS/Usage \
+  --threshold 80 \
+  --comparison-operator GreaterThanOrEqualToThreshold \
+  --evaluation-periods 1 \
+  --alarm-actions "arn:aws:sns:us-east-1:123456789012:ops-team"</code></pre>
+                </div>
+                <div class="usecase-effect">
+                    クォータ上限に達する前にアラートを受け取り、事前にクォータ増加をリクエストすることで、サービス中断を防止
+                </div>
+            </div>
+
+            <div class="usecase-card">
+                <div class="usecase-header">
+                    <span style="font-size: 24px;">&#128640;</span>
+                    <div class="usecase-title">ユースケース 2: 新規コンタクトセンターの迅速な立ち上げ</div>
+                </div>
+                <div class="usecase-scenario">
+                    新しいコンタクトセンターを短期間で立ち上げる際に、デフォルトのクォータ値では不十分なケースがある。Service Quotas の自動承認機能を活用して、迅速にクォータを拡大したい。
+                </div>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">Bash</span>
+                        <span class="code-title">クォータ増加リクエストの送信</span>
+                    </div>
+                    <pre><code class="language-bash"># Cases ドメイン数の増加をリクエスト
+aws service-quotas request-service-quota-increase \
+  --service-code connect-cases \
+  --quota-code L-XXXXXXXX \
+  --desired-value 10
+
+# テンプレート数の増加をリクエスト
+aws service-quotas request-service-quota-increase \
+  --service-code connect-cases \
+  --quota-code L-YYYYYYYY \
+  --desired-value 200</code></pre>
+                </div>
+                <div class="usecase-effect">
+                    AWS サポートケースの作成を待たずに直接増加リクエストを送信でき、対象リクエストは自動承認で立ち上げスケジュールへの影響を最小化
+                </div>
+            </div>
+
+            <div class="usecase-card">
+                <div class="usecase-header">
+                    <span style="font-size: 24px;">&#127759;</span>
+                    <div class="usecase-title">ユースケース 3: マルチリージョン環境でのクォータ統合管理</div>
+                </div>
+                <div class="usecase-scenario">
+                    複数のリージョンで Amazon Connect Cases を運用しており、各リージョンのクォータ使用状況を統合的に管理したい。
+                </div>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">Bash</span>
+                        <span class="code-title">マルチリージョンのクォータ一括確認スクリプト</span>
+                    </div>
+                    <pre><code class="language-bash"># 各リージョンのクォータを確認するスクリプト
+for region in us-east-1 us-west-2 eu-central-1 ap-northeast-1; do
+  echo "=== $region ==="
+  aws service-quotas list-service-quotas \
+    --service-code connect-cases \
+    --region $region \
+    --query 'Quotas[].{Name:QuotaName,Value:Value,Usage:UsageMetric}' \
+    --output table
+done</code></pre>
+                </div>
+                <div class="usecase-effect">
+                    全リージョンのクォータ使用状況をスクリプトで一括確認でき、リージョンごとのキャパシティ状況を効率的に把握
+                </div>
+            </div>
+        </section>
+
+        <!-- Pricing -->
+        <section class="section">
+            <h2 class="section-title">&#128176; 料金</h2>
+            <div class="pricing-card">
+                <div class="pricing-highlight">AWS Service Quotas の利用に追加料金なし</div>
+                <div class="pricing-detail">Amazon Connect Cases の料金は、通常どおりアクティブなケース数に基づいて課金されます。詳細は <a href="https://aws.amazon.com/connect/pricing/" target="_blank" style="color: var(--aws-teal); text-decoration: none;">Amazon Connect 料金ページ</a>を参照してください。</div>
+            </div>
+        </section>
+
+        <!-- Region -->
+        <section class="section">
+            <h2 class="section-title">&#127758; 利用可能リージョン</h2>
+            <div class="region-grid">
+                <div class="region-item">
+                    <span class="region-flag">&#127482;&#127480;</span>
+                    <div>
+                        <div class="region-name">米国東部 (バージニア北部)</div>
+                        <div class="region-code">us-east-1</div>
+                    </div>
+                </div>
+                <div class="region-item">
+                    <span class="region-flag">&#127482;&#127480;</span>
+                    <div>
+                        <div class="region-name">米国西部 (オレゴン)</div>
+                        <div class="region-code">us-west-2</div>
+                    </div>
+                </div>
+                <div class="region-item">
+                    <span class="region-flag">&#127464;&#127462;</span>
+                    <div>
+                        <div class="region-name">カナダ (中部)</div>
+                        <div class="region-code">ca-central-1</div>
+                    </div>
+                </div>
+                <div class="region-item">
+                    <span class="region-flag">&#127465;&#127466;</span>
+                    <div>
+                        <div class="region-name">欧州 (フランクフルト)</div>
+                        <div class="region-code">eu-central-1</div>
+                    </div>
+                </div>
+                <div class="region-item">
+                    <span class="region-flag">&#127468;&#127463;</span>
+                    <div>
+                        <div class="region-name">欧州 (ロンドン)</div>
+                        <div class="region-code">eu-west-2</div>
+                    </div>
+                </div>
+                <div class="region-item">
+                    <span class="region-flag">&#127472;&#127479;</span>
+                    <div>
+                        <div class="region-name">アジアパシフィック (ソウル)</div>
+                        <div class="region-code">ap-northeast-2</div>
+                    </div>
+                </div>
+                <div class="region-item">
+                    <span class="region-flag">&#127480;&#127468;</span>
+                    <div>
+                        <div class="region-name">アジアパシフィック (シンガポール)</div>
+                        <div class="region-code">ap-southeast-1</div>
+                    </div>
+                </div>
+                <div class="region-item">
+                    <span class="region-flag">&#127462;&#127482;</span>
+                    <div>
+                        <div class="region-name">アジアパシフィック (シドニー)</div>
+                        <div class="region-code">ap-southeast-2</div>
+                    </div>
+                </div>
+                <div class="region-item">
+                    <span class="region-flag">&#127471;&#127477;</span>
+                    <div>
+                        <div class="region-name">アジアパシフィック (東京)</div>
+                        <div class="region-code">ap-northeast-1</div>
+                    </div>
+                </div>
+                <div class="region-item">
+                    <span class="region-flag">&#127487;&#127462;</span>
+                    <div>
+                        <div class="region-name">アフリカ (ケープタウン)</div>
+                        <div class="region-code">af-south-1</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Related Services -->
+        <section class="section">
+            <h2 class="section-title">&#128279; 関連サービス・機能</h2>
+            <div class="related-grid">
+                <div class="related-card">
+                    <div style="font-size: 24px; margin-bottom: 8px;">&#128202;</div>
+                    <div class="related-name">AWS Service Quotas</div>
+                    <div class="related-desc">AWS サービスのクォータを一元的に表示・管理。クォータ増加リクエストや使用率モニタリングを提供</div>
+                </div>
+                <div class="related-card">
+                    <div style="font-size: 24px; margin-bottom: 8px;">&#9729;&#65039;</div>
+                    <div class="related-name">Amazon CloudWatch</div>
+                    <div class="related-desc">クォータ使用率のメトリクスモニタリングとアラーム設定に使用</div>
+                </div>
+                <div class="related-card">
+                    <div style="font-size: 24px; margin-bottom: 8px;">&#128203;</div>
+                    <div class="related-name">Amazon Connect Cases</div>
+                    <div class="related-desc">コンタクトセンターのケース管理機能。今回のアップデートで Service Quotas と統合</div>
+                </div>
+                <div class="related-card">
+                    <div style="font-size: 24px; margin-bottom: 8px;">&#128222;</div>
+                    <div class="related-name">Amazon Connect</div>
+                    <div class="related-desc">クラウドベースのコンタクトセンターサービス。Cases を含む複数の機能を提供</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer>
+            <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 12px;">参考リンク</p>
+            <ul class="source-links">
+                <li><a href="https://aws.amazon.com/about-aws/whats-new/2026/02/amazon-connect-cases-aws-service-quotas/" class="source-link" target="_blank">公式発表 (What's New)</a></li>
+                <li><a href="https://aws.amazon.com/connect/cases/" class="source-link" target="_blank">Amazon Connect Cases ウェブページ</a></li>
+                <li><a href="https://docs.aws.amazon.com/connect/latest/adminguide/amazon-connect-service-limits.html#cases-quotas" class="source-link" target="_blank">Amazon Connect Cases サービスクォータ ドキュメント</a></li>
+                <li><a href="https://docs.aws.amazon.com/servicequotas/latest/userguide/intro.html" class="source-link" target="_blank">AWS Service Quotas ユーザーガイド</a></li>
+                <li><a href="https://aws.amazon.com/connect/pricing/" class="source-link" target="_blank">Amazon Connect 料金ページ</a></li>
+            </ul>
+            <p class="footer-note">Amazon Connect Cases - AWS Service Quotas サポート | 2026 年 2 月 18 日</p>
+        </footer>
+    </div>
+
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'base',
+            themeVariables: {
+                primaryColor: '#FF9900',
+                primaryTextColor: '#232F3E',
+                primaryBorderColor: '#FF9900',
+                lineColor: '#FF9900',
+                secondaryColor: '#F5F5F5',
+                tertiaryColor: '#FAFAFA',
+                background: '#FFFFFF',
+                mainBkg: '#FFF3E0',
+                nodeBorder: '#FF9900',
+                clusterBkg: '#FFF8E1',
+                clusterBorder: '#FF9900',
+                edgeLabelBackground: '#FFFFFF',
+                textColor: '#232F3E'
+            }
+        });
+        hljs.highlightAll();
+    </script>
+</body>
+</html>

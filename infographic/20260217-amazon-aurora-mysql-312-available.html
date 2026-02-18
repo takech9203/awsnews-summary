@@ -1,0 +1,1276 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Amazon Aurora MySQL 3.12 - MySQL 8.0.44 互換の一般提供開始</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/styles/atom-one-dark.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/highlight.min.js"></script>
+    <style>
+        :root {
+            --squid-ink: #232F3E;
+            --aws-orange: #FF9900;
+            --aws-smile-orange: #FFAD33;
+            --text-primary: #FFFFFF;
+            --text-secondary: #AAAAAA;
+            --light-gray: #D5DBDB;
+            --card-bg: #2D3A4A;
+            --dark-squid: #1A242F;
+            --border-color: #3D4A5A;
+            --aws-teal: #00A1C9;
+            --aws-purple: #8C4FFF;
+            --aws-green: #1D8102;
+            --aws-red: #D13212;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            background-color: var(--squid-ink);
+            color: var(--light-gray);
+            line-height: 1.8;
+            font-size: 16px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+            padding-bottom: 30px;
+            border-bottom: 3px solid var(--aws-orange);
+        }
+
+        .service-badge {
+            display: inline-block;
+            background-color: var(--aws-orange);
+            color: var(--squid-ink);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+        }
+
+        .release-date {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--aws-orange);
+            margin-bottom: 20px;
+            padding-left: 15px;
+            border-left: 4px solid var(--aws-orange);
+        }
+
+        .overview-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .overview-text {
+            font-size: 16px;
+            line-height: 1.9;
+        }
+
+        .highlight {
+            background-color: rgba(255, 153, 0, 0.2);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+            color: var(--aws-orange);
+        }
+
+        /* Stats grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, var(--card-bg) 0%, var(--dark-squid) 100%);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid rgba(255, 153, 0, 0.2);
+        }
+
+        .stat-icon {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--aws-orange);
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        /* Before/After comparison */
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .comparison-grid {
+                grid-template-columns: 1fr;
+            }
+            .features-grid {
+                grid-template-columns: 1fr !important;
+            }
+            .merit-grid {
+                grid-template-columns: 1fr;
+            }
+            .related-grid {
+                grid-template-columns: 1fr !important;
+            }
+            .upgrade-grid {
+                grid-template-columns: 1fr !important;
+            }
+        }
+
+        .comparison-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .comparison-card.before {
+            border-top: 4px solid #E74C3C;
+        }
+
+        .comparison-card.after {
+            border-top: 4px solid #2ECC71;
+        }
+
+        .comparison-label {
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        .comparison-card.before .comparison-label {
+            color: #E74C3C;
+        }
+
+        .comparison-card.after .comparison-label {
+            color: #2ECC71;
+        }
+
+        .comparison-list {
+            list-style: none;
+        }
+
+        .comparison-list li {
+            padding: 8px 0;
+            padding-left: 25px;
+            position: relative;
+            font-size: 14px;
+        }
+
+        .comparison-card.before .comparison-list li::before {
+            content: "\2717";
+            position: absolute;
+            left: 0;
+            color: #E74C3C;
+            font-weight: bold;
+        }
+
+        .comparison-card.after .comparison-list li::before {
+            content: "\2713";
+            position: absolute;
+            left: 0;
+            color: #2ECC71;
+            font-weight: bold;
+        }
+
+        /* Mermaid diagram */
+        .diagram-container {
+            background-color: #FFFFFF;
+            border: 2px solid rgba(255, 153, 0, 0.3);
+            border-radius: 12px;
+            padding: 25px;
+            overflow-x: auto;
+        }
+
+        .mermaid {
+            display: flex;
+            justify-content: center;
+        }
+
+        .diagram-caption {
+            font-size: 14px;
+            color: var(--text-secondary);
+            text-align: center;
+            margin-top: 12px;
+        }
+
+        /* Feature cards */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .feature-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            border-left: 3px solid var(--aws-orange);
+        }
+
+        .feature-icon {
+            font-size: 36px;
+            margin-bottom: 12px;
+        }
+
+        .feature-title {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--aws-orange);
+        }
+
+        .feature-description {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        .feature-description ul {
+            list-style: none;
+            text-align: left;
+            margin-top: 8px;
+        }
+
+        .feature-description ul li {
+            padding: 4px 0;
+            padding-left: 18px;
+            position: relative;
+        }
+
+        .feature-description ul li::before {
+            content: "\2192";
+            position: absolute;
+            left: 0;
+            color: var(--aws-orange);
+        }
+
+        /* Technical spec tables */
+        .api-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+        }
+
+        .api-table th {
+            background-color: var(--dark-squid);
+            color: var(--aws-orange);
+            padding: 10px 14px;
+            text-align: left;
+            font-size: 13px;
+            font-weight: 700;
+            border-bottom: 2px solid var(--aws-orange);
+        }
+
+        .api-table td {
+            padding: 10px 14px;
+            font-size: 13px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--light-gray);
+        }
+
+        .api-table code {
+            color: var(--aws-teal);
+            font-size: 12px;
+            font-family: 'Courier New', monospace;
+        }
+
+        /* CVE table */
+        .cve-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin: 16px 0;
+        }
+
+        @media (max-width: 768px) {
+            .cve-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .cve-badge {
+            background-color: var(--dark-squid);
+            border: 1px solid rgba(255, 153, 0, 0.3);
+            border-radius: 8px;
+            padding: 10px;
+            text-align: center;
+            font-size: 12px;
+            font-family: 'Courier New', monospace;
+            color: var(--aws-teal);
+        }
+
+        .cve-severity {
+            display: block;
+            font-size: 10px;
+            color: var(--aws-orange);
+            margin-top: 4px;
+            font-family: 'Noto Sans JP', sans-serif;
+            font-weight: 600;
+        }
+
+        /* Upgrade comparison grid */
+        .upgrade-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            margin-top: 16px;
+        }
+
+        .upgrade-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            border-top: 3px solid var(--aws-teal);
+        }
+
+        .upgrade-card-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--aws-teal);
+            margin-bottom: 8px;
+        }
+
+        .upgrade-card-detail {
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .upgrade-card-detail strong {
+            color: var(--text-primary);
+        }
+
+        /* Code blocks */
+        .code-block {
+            background: #1a1a2e;
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 16px 0;
+        }
+
+        .code-header {
+            background: #16213e;
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+        }
+
+        .code-lang {
+            color: var(--aws-orange);
+            font-weight: bold;
+        }
+
+        .code-title {
+            color: var(--light-gray);
+        }
+
+        .code-block pre {
+            margin: 0;
+            padding: 0;
+            overflow-x: auto;
+        }
+
+        .code-block code {
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            padding: 16px !important;
+        }
+
+        /* Flow diagram */
+        .flow-diagram {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin: 24px 0;
+        }
+
+        .flow-step {
+            background: var(--dark-squid);
+            border: 2px solid var(--aws-orange);
+            border-radius: 8px;
+            padding: 12px 20px;
+            text-align: center;
+            min-width: 120px;
+            font-size: 14px;
+        }
+
+        .flow-arrow {
+            color: var(--aws-orange);
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        /* Use case cards */
+        .usecase-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 3px solid var(--aws-orange);
+        }
+
+        .usecase-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .usecase-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--aws-orange);
+        }
+
+        .usecase-scenario {
+            font-size: 14px;
+            color: var(--light-gray);
+            margin-bottom: 12px;
+        }
+
+        .usecase-effect {
+            font-size: 14px;
+            color: #2ECC71;
+            padding: 10px;
+            background-color: rgba(46, 204, 113, 0.1);
+            border-radius: 8px;
+        }
+
+        .usecase-effect::before {
+            content: "\2713 ";
+            font-weight: bold;
+        }
+
+        /* Merit/Demerit */
+        .merit-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .merit-section {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .merit-section h3 {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: var(--aws-orange);
+        }
+
+        .merit-list {
+            list-style: none;
+        }
+
+        .merit-list li {
+            padding: 6px 0;
+            padding-left: 22px;
+            position: relative;
+            font-size: 14px;
+            color: var(--light-gray);
+        }
+
+        .merit-list li::before {
+            content: "\2713";
+            position: absolute;
+            left: 0;
+            color: #2ECC71;
+            font-weight: bold;
+        }
+
+        /* Constraint/Limitation */
+        .constraint-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 3px solid #E74C3C;
+        }
+
+        .constraint-title {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #E74C3C;
+        }
+
+        .constraint-list {
+            list-style: none;
+        }
+
+        .constraint-list li {
+            padding: 6px 0;
+            padding-left: 22px;
+            position: relative;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .constraint-list li::before {
+            content: "\26A0";
+            position: absolute;
+            left: 0;
+            font-size: 12px;
+        }
+
+        /* Pricing card */
+        .pricing-card {
+            background: linear-gradient(135deg, rgba(29, 129, 2, 0.15) 0%, var(--card-bg) 100%);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid rgba(29, 129, 2, 0.3);
+            text-align: center;
+        }
+
+        .pricing-highlight {
+            font-size: 22px;
+            font-weight: 700;
+            color: #2ECC71;
+            margin-bottom: 8px;
+        }
+
+        .pricing-detail {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .pricing-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+        }
+
+        .pricing-table th {
+            background-color: var(--dark-squid);
+            color: var(--aws-orange);
+            padding: 10px 14px;
+            text-align: left;
+            font-size: 13px;
+            font-weight: 700;
+            border-bottom: 2px solid var(--aws-orange);
+        }
+
+        .pricing-table td {
+            padding: 10px 14px;
+            font-size: 13px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--light-gray);
+        }
+
+        /* Region */
+        .region-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .region-highlight {
+            font-size: 16px;
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .region-note {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-top: 8px;
+        }
+
+        /* Related services */
+        .related-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+        }
+
+        @media (max-width: 768px) {
+            .related-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        .related-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+        }
+
+        .related-name {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 6px;
+        }
+
+        .related-desc {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        /* Footer */
+        footer {
+            margin-top: 50px;
+            padding-top: 30px;
+            border-top: 1px solid var(--border-color);
+            text-align: center;
+        }
+
+        .source-links {
+            list-style: none;
+            margin-bottom: 16px;
+        }
+
+        .source-links li {
+            margin-bottom: 6px;
+        }
+
+        .source-link {
+            color: var(--aws-teal);
+            text-decoration: none;
+            font-size: 14px;
+            word-break: break-all;
+        }
+
+        .source-link:hover {
+            color: var(--aws-smile-orange);
+            text-decoration: underline;
+        }
+
+        .footer-note {
+            color: var(--text-secondary);
+            font-size: 12px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <span class="service-badge">Amazon Aurora MySQL</span>
+            <h1>Aurora MySQL 3.12 - MySQL 8.0.44 互換の一般提供開始</h1>
+            <p style="color: var(--light-gray); font-size: 15px; margin-bottom: 8px;">Aurora MySQL v3.12 Generally Available with MySQL 8.0.44 Compatibility</p>
+            <p class="release-date">2026 年 2 月 17 日</p>
+        </header>
+
+        <!-- Overview -->
+        <section class="section">
+            <h2 class="section-title">概要</h2>
+            <div class="overview-card">
+                <p class="overview-text">
+                    Amazon Aurora MySQL - Compatible Edition 3 が <span class="highlight">MySQL 8.0.44</span> をサポートする <span class="highlight">Aurora MySQL v3.12</span> の一般提供を開始しました。このリリースには、多数のセキュリティ強化、バグ修正、および複数の可用性改善が含まれています。
+                </p>
+                <p class="overview-text" style="margin-top: 12px;">
+                    監査ログにおける SQL ステートメントのログ記録の問題修正や <span class="highlight">caching_sha2_password</span> プラグインのパスワード検証の一貫性向上、暗号化処理の <span class="highlight">CPU オーバーヘッド削減</span> や <span class="highlight">write IOPS パフォーマンスの向上</span> など、幅広い改善が実施されています。
+                </p>
+            </div>
+
+            <!-- Stats -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">&#128274;</div>
+                    <div class="stat-value">8 CVE</div>
+                    <div class="stat-label">セキュリティ脆弱性<br>修正済み</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">&#128737;</div>
+                    <div class="stat-value">12+</div>
+                    <div class="stat-label">可用性改善<br>修正件数</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">&#9889;</div>
+                    <div class="stat-value">v3.12.0</div>
+                    <div class="stat-label">Aurora MySQL<br>バージョン</div>
+                </div>
+            </div>
+
+            <!-- Before/After -->
+            <div class="comparison-grid">
+                <div class="comparison-card before">
+                    <div class="comparison-label">Before - アップデート前の課題</div>
+                    <ul class="comparison-list">
+                        <li>既知のセキュリティ脆弱性 (CVE-2025-53040 など複数の Medium CVE) への対応が必要だった</li>
+                        <li>セミコンシステント読み取りやバイナリログリカバリ時にデータベースインスタンスが再起動する可能性があった</li>
+                        <li>ライターとリーダー間でパスワード検証の一貫性に問題があった</li>
+                    </ul>
+                </div>
+                <div class="comparison-card after">
+                    <div class="comparison-label">After - アップデート後の改善</div>
+                    <ul class="comparison-list">
+                        <li>8 件の Medium CVE を含むセキュリティ脆弱性が修正され、セキュリティリスクが軽減</li>
+                        <li>12 件以上の可用性改善により、予期しないデータベース再起動のリスクが大幅に低減</li>
+                        <li>ストレージレイヤーとの暗号化通信における CPU オーバーヘッドが削減され、パフォーマンスが向上</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Architecture Diagram -->
+        <section class="section">
+            <h2 class="section-title">アーキテクチャ図</h2>
+            <div class="diagram-container">
+                <div class="mermaid">
+flowchart TD
+    subgraph Upgrade["&#128295; アップグレード方法"]
+        direction LR
+        Manual["&#128221; 手動マイナー&lt;br/&gt;バージョンアップグレード"]
+        Auto["&#9881;&#65039; 自動マイナー&lt;br/&gt;バージョンアップグレード"]
+        BGD["&#128260; Blue/Green&lt;br/&gt;デプロイメント"]
+        Manual ~~~ Auto ~~~ BGD
+    end
+
+    subgraph Cluster["&#128451;&#65039; Aurora MySQL クラスター"]
+        direction LR
+        Writer[("&#128203; ライター&lt;br/&gt;v3.12")]
+        Reader1[("&#128203; リーダー 1&lt;br/&gt;v3.12")]
+        Reader2[("&#128203; リーダー 2&lt;br/&gt;v3.12")]
+        Writer ~~~ Reader1 ~~~ Reader2
+    end
+
+    subgraph Improvements["&#9989; v3.12 の改善内容"]
+        direction LR
+        Security["&#128274; セキュリティ&lt;br/&gt;8 CVE 修正"]
+        Avail["&#128737;&#65039; 可用性&lt;br/&gt;12 件以上の修正"]
+        Perf["&#9889; パフォーマンス&lt;br/&gt;CPU / IOPS 改善"]
+        Security ~~~ Avail ~~~ Perf
+    end
+
+    Upgrade -->|"MySQL 8.0.44 互換"| Cluster
+    Cluster --> Improvements
+
+    classDef upgrade fill:#E8F1FF,stroke:#4A90E2,stroke-width:2px,color:#333333
+    classDef cluster fill:#FFE0B2,stroke:#FFCC80,stroke-width:2px,color:#5D4037
+    classDef improve fill:#E9F7EC,stroke:#66BB6A,stroke-width:2px,color:#333333
+    classDef db fill:#E8EAF6,stroke:#C5CAE9,stroke-width:2px,color:#283593
+
+    class Upgrade upgrade
+    class Cluster cluster
+    class Manual,Auto,BGD upgrade
+    class Writer,Reader1,Reader2 db
+    class Improvements,Security,Avail,Perf improve
+                </div>
+            </div>
+            <p class="diagram-caption">Aurora MySQL v3.12 へのアップグレードは、手動マイナーバージョンアップグレード、自動マイナーバージョンアップグレード、または Blue/Green デプロイメントを使用して実行できます。</p>
+        </section>
+
+        <!-- Key Features -->
+        <section class="section">
+            <h2 class="section-title">主要機能</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">&#128274;</div>
+                    <div class="feature-title">セキュリティ修正</div>
+                    <div class="feature-description">
+                        <ul>
+                            <li>監査ログに一部の SQL ステートメントがログ記録されない問題を修正</li>
+                            <li>caching_sha2_password プラグインでリーダーとライターのパスワード検証の一貫性を改善</li>
+                            <li>CVE-2025-53040 を含む 8 件の Medium CVE に対応</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#128737;</div>
+                    <div class="feature-title">可用性改善</div>
+                    <div class="feature-description">
+                        <ul>
+                            <li>セミコンシステント読み取り中のロックテーブル満杯時の再起動を修正</li>
+                            <li>バイナリログレプリカの再起動問題を修正</li>
+                            <li>グローバル/ローカルライトフォワーディング無効化時のライター再起動を修正</li>
+                            <li>マルチ TiB ストレージサイズのインスタンスにおける再起動時のダウンタイム増加を修正</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#9889;</div>
+                    <div class="feature-title">一般的な改善</div>
+                    <div class="feature-description">
+                        <ul>
+                            <li>暗号化通信の CPU オーバーヘッドを削減</li>
+                            <li>write IOPS パフォーマンスを向上</li>
+                            <li>rds_superuser_role に FLUSH 系権限を追加</li>
+                            <li>ZDP / ZDR 時の接続処理の問題を修正</li>
+                            <li>論理データディクショナリリカバリ時のメモリ使用量を最適化</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Technical Spec -->
+        <section class="section">
+            <h2 class="section-title">技術仕様</h2>
+
+            <h3 style="font-size: 16px; color: var(--text-primary); margin-bottom: 12px;">バージョン情報</h3>
+            <table class="api-table">
+                <thead>
+                    <tr>
+                        <th>項目</th>
+                        <th>詳細</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong style="color: var(--text-primary);">Aurora MySQL バージョン</strong></td>
+                        <td><code>3.12.0</code></td>
+                    </tr>
+                    <tr>
+                        <td><strong style="color: var(--text-primary);">互換 MySQL バージョン</strong></td>
+                        <td><code>8.0.44</code></td>
+                    </tr>
+                    <tr>
+                        <td><strong style="color: var(--text-primary);">リリース日</strong></td>
+                        <td>2026 年 2 月 17 日</td>
+                    </tr>
+                    <tr>
+                        <td><strong style="color: var(--text-primary);">対象</strong></td>
+                        <td>Aurora MySQL - Compatible Edition 3</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3 style="font-size: 16px; color: var(--text-primary); margin-top: 24px; margin-bottom: 12px;">修正された CVE</h3>
+            <div class="cve-grid">
+                <div class="cve-badge">CVE-2025-53040<span class="cve-severity">Medium</span></div>
+                <div class="cve-badge">CVE-2025-53042<span class="cve-severity">Medium</span></div>
+                <div class="cve-badge">CVE-2025-53044<span class="cve-severity">Medium</span></div>
+                <div class="cve-badge">CVE-2025-53045<span class="cve-severity">Medium</span></div>
+                <div class="cve-badge">CVE-2025-53053<span class="cve-severity">Medium</span></div>
+                <div class="cve-badge">CVE-2025-53054<span class="cve-severity">Medium</span></div>
+                <div class="cve-badge">CVE-2025-53062<span class="cve-severity">Medium</span></div>
+                <div class="cve-badge">CVE-2025-53069<span class="cve-severity">Medium</span></div>
+            </div>
+
+            <h3 style="font-size: 16px; color: var(--text-primary); margin-top: 24px; margin-bottom: 12px;">アップグレード方法の比較</h3>
+            <div class="upgrade-grid">
+                <div class="upgrade-card">
+                    <div class="upgrade-card-title">&#128221; 手動マイナーバージョンアップグレード</div>
+                    <div class="upgrade-card-detail">
+                        <strong>ダウンタイム:</strong> DB クラスター変更時に再起動<br>
+                        <strong>推奨:</strong> 即座にアップグレードしたい場合
+                    </div>
+                </div>
+                <div class="upgrade-card">
+                    <div class="upgrade-card-title">&#9881;&#65039; 自動マイナーバージョンアップグレード</div>
+                    <div class="upgrade-card-detail">
+                        <strong>ダウンタイム:</strong> メンテナンスウィンドウ中<br>
+                        <strong>推奨:</strong> 自動的にアップグレードしたい場合
+                    </div>
+                </div>
+                <div class="upgrade-card">
+                    <div class="upgrade-card-title">&#128260; Blue/Green デプロイメント</div>
+                    <div class="upgrade-card-detail">
+                        <strong>ダウンタイム:</strong> 最小限 (通常数秒)<br>
+                        <strong>推奨:</strong> ダウンタイムを最小化したい場合
+                    </div>
+                </div>
+                <div class="upgrade-card">
+                    <div class="upgrade-card-title">&#9889; ゼロダウンタイムパッチ適用</div>
+                    <div class="upgrade-card-detail">
+                        <strong>ダウンタイム:</strong> ほぼゼロ<br>
+                        <strong>推奨:</strong> 接続を維持したままアップグレードしたい場合
+                    </div>
+                </div>
+            </div>
+
+            <h3 style="font-size: 16px; color: var(--text-primary); margin-top: 24px; margin-bottom: 12px;">API 変更履歴</h3>
+            <table class="api-table">
+                <thead>
+                    <tr>
+                        <th>日付</th>
+                        <th>サービス</th>
+                        <th>変更内容</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>2026/02/17</td>
+                        <td><a href="https://awsapichanges.com/archive/changes/9d9af7-rds.html" target="_blank" style="color: var(--aws-teal); text-decoration: none;">Amazon RDS</a></td>
+                        <td>47 updated api methods - StorageEncryptionType フィールドのサポート追加</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- Configuration -->
+        <section class="section">
+            <h2 class="section-title">設定方法</h2>
+
+            <div class="overview-card" style="margin-bottom: 16px;">
+                <h3 style="font-size: 15px; color: var(--aws-orange); margin-bottom: 10px;">前提条件</h3>
+                <ul class="merit-list">
+                    <li>既存の Aurora MySQL v3.x クラスターが稼働していること</li>
+                    <li>適切な IAM 権限 (rds:ModifyDBCluster) を持つこと</li>
+                    <li>アップグレード前にスナップショットを取得しておくこと</li>
+                </ul>
+            </div>
+
+            <div class="flow-diagram">
+                <div class="flow-step">&#128270; バージョン確認</div>
+                <span class="flow-arrow">&rarr;</span>
+                <div class="flow-step">&#128260; アップグレード<br>実行</div>
+                <span class="flow-arrow">&rarr;</span>
+                <div class="flow-step">&#9989; バージョン<br>確認</div>
+            </div>
+
+            <h3 style="font-size: 16px; color: var(--text-primary); margin-top: 20px; margin-bottom: 12px;">ステップ 1: 現在のバージョンの確認</h3>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Bash</span>
+                    <span class="code-title">現在のエンジンバージョンを確認</span>
+                </div>
+                <pre><code class="language-bash">aws rds describe-db-clusters \
+  --db-cluster-identifier my-aurora-cluster \
+  --query 'DBClusters[0].EngineVersion'</code></pre>
+            </div>
+
+            <h3 style="font-size: 16px; color: var(--text-primary); margin-top: 20px; margin-bottom: 12px;">ステップ 2: 手動マイナーバージョンアップグレードの実行</h3>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Bash</span>
+                    <span class="code-title">Aurora MySQL v3.12.0 にアップグレード</span>
+                </div>
+                <pre><code class="language-bash">aws rds modify-db-cluster \
+  --db-cluster-identifier my-aurora-cluster \
+  --engine-version 8.0.mysql_aurora.3.12.0 \
+  --apply-immediately</code></pre>
+            </div>
+            <p style="font-size: 14px; color: var(--text-secondary); margin-top: 8px;"><code style="color: var(--aws-teal);">--apply-immediately</code> を指定すると即座に適用されます。省略するとメンテナンスウィンドウ中に適用されます。</p>
+
+            <h3 style="font-size: 16px; color: var(--text-primary); margin-top: 20px; margin-bottom: 12px;">ステップ 3: 自動マイナーバージョンアップグレードの有効化</h3>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Bash</span>
+                    <span class="code-title">自動マイナーバージョンアップグレードを有効化</span>
+                </div>
+                <pre><code class="language-bash">aws rds modify-db-instance \
+  --db-instance-identifier my-aurora-instance \
+  --auto-minor-version-upgrade \
+  --apply-immediately</code></pre>
+            </div>
+
+            <h3 style="font-size: 16px; color: var(--text-primary); margin-top: 20px; margin-bottom: 12px;">ステップ 4: アップグレード後のバージョン確認</h3>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Bash</span>
+                    <span class="code-title">アップグレード後のバージョンとステータスを確認</span>
+                </div>
+                <pre><code class="language-bash">aws rds describe-db-clusters \
+  --db-cluster-identifier my-aurora-cluster \
+  --query 'DBClusters[0].{EngineVersion:EngineVersion,Status:Status}'</code></pre>
+            </div>
+            <p style="font-size: 14px; color: var(--text-secondary); margin-top: 8px;">クラスターが <code style="color: var(--aws-teal);">available</code> ステータスであることを確認します。</p>
+        </section>
+
+        <!-- Benefits -->
+        <section class="section">
+            <h2 class="section-title">メリット</h2>
+            <div class="merit-grid">
+                <div class="merit-section">
+                    <h3>&#128188; ビジネス面</h3>
+                    <ul class="merit-list">
+                        <li><strong style="color: var(--text-primary);">セキュリティリスクの軽減:</strong> 8 件の Medium CVE を含むセキュリティ脆弱性が修正され、データベースのセキュリティ態勢が向上</li>
+                        <li><strong style="color: var(--text-primary);">可用性の向上:</strong> 12 件以上の再起動原因となる問題が修正され、サービスの安定稼働に貢献</li>
+                        <li><strong style="color: var(--text-primary);">運用コスト削減:</strong> 予期しない再起動による緊急対応の削減</li>
+                    </ul>
+                </div>
+                <div class="merit-section">
+                    <h3>&#128736;&#65039; 技術面</h3>
+                    <ul class="merit-list">
+                        <li><strong style="color: var(--text-primary);">パフォーマンス改善:</strong> 暗号化通信の CPU オーバーヘッド削減と write IOPS パフォーマンス向上</li>
+                        <li><strong style="color: var(--text-primary);">レプリケーションの安定性:</strong> バイナリログレプリカやライトフォワーディングに関する複数の修正</li>
+                        <li><strong style="color: var(--text-primary);">メモリ管理の改善:</strong> データディクショナリリカバリ時のメモリ使用量最適化とバッファプール操作のレースコンディション修正</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Limitations -->
+        <section class="section">
+            <h2 class="section-title">制約事項・注意点</h2>
+            <div class="constraint-card">
+                <div class="constraint-title">制限事項</div>
+                <ul class="constraint-list">
+                    <li>MySQL 8.0.44 コミュニティ版で導入された、接続失敗時に performance_schema テーブルに行が追加される変更は、過剰なメモリ消費を引き起こすため意図的に除外されている</li>
+                    <li>マイナーバージョンアップグレードにはデータベースの再起動が必要 (ZDP を除く)</li>
+                    <li>Aurora MySQL v2 からのアップグレードはメジャーバージョンアップグレードとなり、別途計画が必要</li>
+                </ul>
+            </div>
+            <div class="constraint-card">
+                <div class="constraint-title">考慮すべき点</div>
+                <ul class="constraint-list">
+                    <li>アップグレード前にアプリケーションの互換性を開発環境でテストすること</li>
+                    <li>カスタムパラメータグループの設定が新バージョンと互換性があることを確認すること</li>
+                    <li>バイナリログレプリケーションを使用している場合は、レプリカのアップグレード順序に注意すること</li>
+                    <li><code style="color: var(--aws-teal);">thread_stack</code> を大きな値に設定している場合、v3.12 ではシステムメモリを超過するとエンジンデフォルト値 (1 MB) に自動リセットされる動作に変更</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Use Cases -->
+        <section class="section">
+            <h2 class="section-title">ユースケース</h2>
+
+            <div class="usecase-card">
+                <div class="usecase-header">
+                    <span style="font-size: 24px;">&#128274;&#128640;</span>
+                    <div class="usecase-title">セキュリティ脆弱性への迅速な対応</div>
+                </div>
+                <div class="usecase-scenario">
+                    CVE-2025-53040 などのセキュリティ脆弱性に対応するため、本番環境の Aurora MySQL クラスターを早急にアップグレードしたい。
+                </div>
+                <div class="code-block" style="margin-bottom: 12px;">
+                    <div class="code-header">
+                        <span class="code-lang">Bash</span>
+                        <span class="code-title">Blue/Green デプロイメントで安全にアップグレード</span>
+                    </div>
+                    <pre><code class="language-bash"># Blue/Green デプロイメントで安全にアップグレード
+aws rds create-blue-green-deployment \
+  --blue-green-deployment-name security-upgrade \
+  --source arn:aws:rds:ap-northeast-1:123456789012:cluster:prod-aurora-cluster \
+  --target-engine-version 8.0.mysql_aurora.3.12.0
+
+# Green 環境でのテスト完了後にスイッチオーバー
+aws rds switchover-blue-green-deployment \
+  --blue-green-deployment-identifier security-upgrade \
+  --switchover-timeout 300</code></pre>
+                </div>
+                <div class="usecase-effect">
+                    Blue/Green デプロイメントにより、最小限のダウンタイムでセキュリティパッチを適用でき、問題発生時のロールバックも容易
+                </div>
+            </div>
+
+            <div class="usecase-card">
+                <div class="usecase-header">
+                    <span style="font-size: 24px;">&#127970;&#128200;</span>
+                    <div class="usecase-title">大規模環境での段階的アップグレード</div>
+                </div>
+                <div class="usecase-scenario">
+                    複数の Aurora MySQL クラスターを運用しており、開発環境から順にアップグレードを適用したい。
+                </div>
+                <div class="code-block" style="margin-bottom: 12px;">
+                    <div class="code-header">
+                        <span class="code-lang">Bash</span>
+                        <span class="code-title">開発環境から順にアップグレード</span>
+                    </div>
+                    <pre><code class="language-bash"># 開発環境のクラスターを先にアップグレード
+aws rds modify-db-cluster \
+  --db-cluster-identifier dev-aurora-cluster \
+  --engine-version 8.0.mysql_aurora.3.12.0 \
+  --apply-immediately
+
+# 開発環境での検証完了後、本番環境をアップグレード
+aws rds modify-db-cluster \
+  --db-cluster-identifier prod-aurora-cluster \
+  --engine-version 8.0.mysql_aurora.3.12.0 \
+  --apply-immediately</code></pre>
+                </div>
+                <div class="usecase-effect">
+                    開発環境で互換性を十分に検証した後に本番環境をアップグレードすることで、リスクを最小化
+                </div>
+            </div>
+
+            <div class="usecase-card">
+                <div class="usecase-header">
+                    <span style="font-size: 24px;">&#9881;&#65039;&#128260;</span>
+                    <div class="usecase-title">自動マイナーバージョンアップグレードによる運用自動化</div>
+                </div>
+                <div class="usecase-scenario">
+                    今後のマイナーバージョンリリースも含めて、自動的にアップグレードが適用されるようにしたい。
+                </div>
+                <div class="code-block" style="margin-bottom: 12px;">
+                    <div class="code-header">
+                        <span class="code-lang">Bash</span>
+                        <span class="code-title">自動マイナーバージョンアップグレードを有効化</span>
+                    </div>
+                    <pre><code class="language-bash"># 全インスタンスで自動マイナーバージョンアップグレードを有効化
+aws rds modify-db-instance \
+  --db-instance-identifier my-aurora-instance-1 \
+  --auto-minor-version-upgrade \
+  --apply-immediately</code></pre>
+                </div>
+                <div class="usecase-effect">
+                    メンテナンスウィンドウ中にセキュリティ修正やバグ修正を含むマイナーバージョンアップグレードが自動的に適用され、運用負荷を軽減
+                </div>
+            </div>
+        </section>
+
+        <!-- Pricing -->
+        <section class="section">
+            <h2 class="section-title">料金</h2>
+            <div class="pricing-card">
+                <div class="pricing-highlight">マイナーバージョンアップグレード自体に追加料金なし</div>
+                <div class="pricing-detail" style="margin-bottom: 16px;">標準の Amazon Aurora MySQL 料金が適用されます。</div>
+                <table class="pricing-table">
+                    <thead>
+                        <tr>
+                            <th>項目</th>
+                            <th>料金</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong style="color: var(--text-primary);">マイナーバージョンアップグレード</strong></td>
+                            <td>無料</td>
+                        </tr>
+                        <tr>
+                            <td><strong style="color: var(--text-primary);">Aurora MySQL クラスター</strong></td>
+                            <td><a href="https://aws.amazon.com/rds/aurora/pricing/" target="_blank" style="color: var(--aws-teal); text-decoration: none;">標準料金</a></td>
+                        </tr>
+                        <tr>
+                            <td><strong style="color: var(--text-primary);">Blue/Green デプロイメント</strong></td>
+                            <td>デプロイメント期間中の追加リソース料金</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Region -->
+        <section class="section">
+            <h2 class="section-title">利用可能リージョン</h2>
+            <div class="region-card">
+                <div style="font-size: 28px; margin-bottom: 8px;">&#127758;</div>
+                <div class="region-highlight">Aurora MySQL が利用可能なすべての AWS リージョンで利用可能</div>
+                <div class="region-note">詳細は <a href="https://aws.amazon.com/rds/aurora/pricing/" target="_blank" style="color: var(--aws-teal);">Amazon Aurora 料金ページ</a> を参照してください。</div>
+            </div>
+        </section>
+
+        <!-- Related Services -->
+        <section class="section">
+            <h2 class="section-title">関連サービス・機能</h2>
+            <div class="related-grid">
+                <div class="related-card">
+                    <div style="font-size: 24px; margin-bottom: 8px;">&#128260;</div>
+                    <div class="related-name">RDS Blue/Green Deployments</div>
+                    <div class="related-desc">最小限のダウンタイムでのデータベースアップグレード</div>
+                </div>
+                <div class="related-card">
+                    <div style="font-size: 24px; margin-bottom: 8px;">&#9889;</div>
+                    <div class="related-name">Zero Downtime Patching</div>
+                    <div class="related-desc">接続を維持したままのパッチ適用</div>
+                </div>
+                <div class="related-card">
+                    <div style="font-size: 24px; margin-bottom: 8px;">&#128200;</div>
+                    <div class="related-name">Amazon CloudWatch</div>
+                    <div class="related-desc">アップグレード中および後のデータベースモニタリング</div>
+                </div>
+                <div class="related-card">
+                    <div style="font-size: 24px; margin-bottom: 8px;">&#128190;</div>
+                    <div class="related-name">AWS Backup</div>
+                    <div class="related-desc">アップグレード前のスナップショット取得</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer>
+            <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 12px;">参考リンク</p>
+            <ul class="source-links">
+                <li><a href="https://aws.amazon.com/about-aws/whats-new/2026/02/amazon-aurora-mysql-312-available/" class="source-link" target="_blank">公式発表 - What's New</a></li>
+                <li><a href="https://docs.aws.amazon.com/AmazonRDS/latest/AuroraMySQLReleaseNotes/AuroraMySQL.Updates.3120.html" class="source-link" target="_blank">Aurora MySQL 3.12.0 リリースノート</a></li>
+                <li><a href="https://docs.aws.amazon.com/AmazonRDS/latest/AuroraMySQLReleaseNotes/AuroraMySQL.Updates.30Updates.html" class="source-link" target="_blank">Aurora MySQL バージョン 3 アップデート一覧</a></li>
+                <li><a href="https://dev.mysql.com/doc/relnotes/mysql/8.0/en/news-8-0-44.html" class="source-link" target="_blank">MySQL 8.0.44 リリースノート</a></li>
+                <li><a href="https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/CHAP_GettingStartedAurora.html" class="source-link" target="_blank">Aurora MySQL の開始方法</a></li>
+                <li><a href="https://awsapichanges.com/archive/changes/9d9af7-rds.html" class="source-link" target="_blank">API 変更履歴</a></li>
+            </ul>
+            <p class="footer-note">Amazon Aurora MySQL 3.12 - MySQL 8.0.44 互換の一般提供開始 | 2026 年 2 月 17 日</p>
+        </footer>
+    </div>
+
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'base',
+            themeVariables: {
+                primaryColor: '#FF9900',
+                primaryTextColor: '#232F3E',
+                primaryBorderColor: '#FF9900',
+                lineColor: '#FF9900',
+                secondaryColor: '#F5F5F5',
+                tertiaryColor: '#FAFAFA',
+                background: '#FFFFFF',
+                mainBkg: '#FFF3E0',
+                nodeBorder: '#FF9900',
+                clusterBkg: '#FFF8E1',
+                clusterBorder: '#FF9900',
+                edgeLabelBackground: '#FFFFFF',
+                textColor: '#232F3E'
+            },
+            flowchart: {
+                curve: 'basis',
+                padding: 20
+            }
+        });
+        hljs.highlightAll();
+    </script>
+</body>
+</html>

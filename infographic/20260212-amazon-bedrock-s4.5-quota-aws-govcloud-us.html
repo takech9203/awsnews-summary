@@ -1,0 +1,1167 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Amazon Bedrock - Claude Sonnet 4.5 GovCloud クォータ 25 倍増加</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/styles/atom-one-dark.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/highlight.min.js"></script>
+    <style>
+        :root {
+            --squid-ink: #232F3E;
+            --aws-orange: #FF9900;
+            --aws-smile-orange: #FFAD33;
+            --text-primary: #FFFFFF;
+            --text-secondary: #AAAAAA;
+            --light-gray: #D5DBDB;
+            --card-bg: #2D3A4A;
+            --dark-squid: #1A242F;
+            --border-color: #3D4A5A;
+            --aws-teal: #00A1C9;
+            --aws-purple: #8C4FFF;
+            --aws-green: #1D8102;
+            --aws-red: #D13212;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            background-color: var(--squid-ink);
+            color: var(--light-gray);
+            line-height: 1.8;
+            font-size: 16px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+            padding-bottom: 30px;
+            border-bottom: 3px solid var(--aws-orange);
+        }
+
+        .service-badge {
+            display: inline-block;
+            background-color: var(--aws-orange);
+            color: var(--squid-ink);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+        }
+
+        .release-date {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--aws-orange);
+            margin-bottom: 20px;
+            padding-left: 15px;
+            border-left: 4px solid var(--aws-orange);
+        }
+
+        .overview-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .overview-text {
+            font-size: 16px;
+            line-height: 1.9;
+        }
+
+        .highlight {
+            background-color: rgba(255, 153, 0, 0.2);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+            color: var(--aws-orange);
+        }
+
+        /* Stats grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, var(--card-bg) 0%, var(--dark-squid) 100%);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid rgba(255, 153, 0, 0.2);
+        }
+
+        .stat-icon {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--aws-orange);
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        /* Before/After comparison */
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .comparison-grid {
+                grid-template-columns: 1fr;
+            }
+            .features-grid {
+                grid-template-columns: 1fr !important;
+            }
+            .merit-grid {
+                grid-template-columns: 1fr;
+            }
+            .related-grid {
+                grid-template-columns: 1fr !important;
+            }
+            .quota-comparison {
+                grid-template-columns: 1fr !important;
+            }
+        }
+
+        .comparison-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .comparison-card.before {
+            border-top: 4px solid #E74C3C;
+        }
+
+        .comparison-card.after {
+            border-top: 4px solid #2ECC71;
+        }
+
+        .comparison-label {
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        .comparison-card.before .comparison-label {
+            color: #E74C3C;
+        }
+
+        .comparison-card.after .comparison-label {
+            color: #2ECC71;
+        }
+
+        .comparison-list {
+            list-style: none;
+        }
+
+        .comparison-list li {
+            padding: 8px 0;
+            padding-left: 25px;
+            position: relative;
+            font-size: 14px;
+        }
+
+        .comparison-card.before .comparison-list li::before {
+            content: "\2717";
+            position: absolute;
+            left: 0;
+            color: #E74C3C;
+            font-weight: bold;
+        }
+
+        .comparison-card.after .comparison-list li::before {
+            content: "\2713";
+            position: absolute;
+            left: 0;
+            color: #2ECC71;
+            font-weight: bold;
+        }
+
+        /* Mermaid diagram */
+        .diagram-container {
+            background-color: #FFFFFF;
+            border: 2px solid rgba(255, 153, 0, 0.3);
+            border-radius: 12px;
+            padding: 25px;
+            overflow-x: auto;
+        }
+
+        .mermaid {
+            display: flex;
+            justify-content: center;
+        }
+
+        .diagram-caption {
+            font-size: 14px;
+            color: var(--text-secondary);
+            text-align: center;
+            margin-top: 12px;
+        }
+
+        /* Feature cards */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .feature-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            border-left: 3px solid var(--aws-orange);
+        }
+
+        .feature-icon {
+            font-size: 36px;
+            margin-bottom: 12px;
+        }
+
+        .feature-title {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--aws-orange);
+        }
+
+        .feature-description {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        /* Quota comparison visual */
+        .quota-comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .quota-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .quota-card .quota-metric-label {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+
+        .quota-bar-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+
+        .quota-bar-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            min-width: 50px;
+            text-align: right;
+        }
+
+        .quota-bar-track {
+            flex: 1;
+            height: 24px;
+            background-color: var(--dark-squid);
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .quota-bar-fill {
+            height: 100%;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 8px;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--squid-ink);
+        }
+
+        .quota-bar-fill.before-bar {
+            background-color: #E74C3C;
+            width: 4%;
+        }
+
+        .quota-bar-fill.after-bar {
+            background: linear-gradient(90deg, #2ECC71, #27AE60);
+            width: 100%;
+        }
+
+        .quota-multiplier {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--aws-orange);
+            margin-top: 10px;
+        }
+
+        /* Technical spec tables */
+        .api-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+        }
+
+        .api-table th {
+            background-color: var(--dark-squid);
+            color: var(--aws-orange);
+            padding: 10px 14px;
+            text-align: left;
+            font-size: 13px;
+            font-weight: 700;
+            border-bottom: 2px solid var(--aws-orange);
+        }
+
+        .api-table td {
+            padding: 10px 14px;
+            font-size: 13px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--light-gray);
+        }
+
+        .api-table code {
+            color: var(--aws-teal);
+            font-size: 12px;
+            font-family: 'Courier New', monospace;
+        }
+
+        /* Code blocks */
+        .code-block {
+            background: #1a1a2e;
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 16px 0;
+        }
+
+        .code-header {
+            background: #16213e;
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+        }
+
+        .code-lang {
+            color: var(--aws-orange);
+            font-weight: bold;
+        }
+
+        .code-title {
+            color: var(--light-gray);
+        }
+
+        .code-block pre {
+            margin: 0;
+            padding: 0;
+            overflow-x: auto;
+        }
+
+        .code-block code {
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            padding: 16px !important;
+        }
+
+        /* Flow diagram */
+        .flow-diagram {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin: 24px 0;
+        }
+
+        .flow-step {
+            background: var(--dark-squid);
+            border: 2px solid var(--aws-orange);
+            border-radius: 8px;
+            padding: 12px 20px;
+            text-align: center;
+            min-width: 120px;
+            font-size: 14px;
+        }
+
+        .flow-arrow {
+            color: var(--aws-orange);
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        /* Use case cards */
+        .usecase-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 3px solid var(--aws-orange);
+        }
+
+        .usecase-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .usecase-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--aws-orange);
+        }
+
+        .usecase-scenario {
+            font-size: 14px;
+            color: var(--light-gray);
+            margin-bottom: 12px;
+        }
+
+        .usecase-effect {
+            font-size: 14px;
+            color: #2ECC71;
+            padding: 10px;
+            background-color: rgba(46, 204, 113, 0.1);
+            border-radius: 8px;
+        }
+
+        .usecase-effect::before {
+            content: "\2713 ";
+            font-weight: bold;
+        }
+
+        /* Merit/Demerit */
+        .merit-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .merit-section {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .merit-section h3 {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: var(--aws-orange);
+        }
+
+        .merit-list {
+            list-style: none;
+        }
+
+        .merit-list li {
+            padding: 6px 0;
+            padding-left: 22px;
+            position: relative;
+            font-size: 14px;
+            color: var(--light-gray);
+        }
+
+        .merit-list li::before {
+            content: "\2713";
+            position: absolute;
+            left: 0;
+            color: #2ECC71;
+            font-weight: bold;
+        }
+
+        /* Constraint/Limitation */
+        .constraint-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 3px solid #E74C3C;
+        }
+
+        .constraint-title {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #E74C3C;
+        }
+
+        .constraint-list {
+            list-style: none;
+        }
+
+        .constraint-list li {
+            padding: 6px 0;
+            padding-left: 22px;
+            position: relative;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .constraint-list li::before {
+            content: "\26A0";
+            position: absolute;
+            left: 0;
+            font-size: 12px;
+        }
+
+        /* Pricing card */
+        .pricing-card {
+            background: linear-gradient(135deg, rgba(29, 129, 2, 0.15) 0%, var(--card-bg) 100%);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid rgba(29, 129, 2, 0.3);
+            text-align: center;
+        }
+
+        .pricing-highlight {
+            font-size: 22px;
+            font-weight: 700;
+            color: #2ECC71;
+            margin-bottom: 8px;
+        }
+
+        .pricing-detail {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        /* Region */
+        .region-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .region-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .region-highlight {
+            font-size: 16px;
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .region-code {
+            font-size: 13px;
+            color: var(--aws-teal);
+            font-family: 'Courier New', monospace;
+            margin-top: 6px;
+        }
+
+        /* Related services */
+        .related-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+        }
+
+        .related-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+        }
+
+        .related-name {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 6px;
+        }
+
+        .related-desc {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        /* Footer */
+        footer {
+            margin-top: 50px;
+            padding-top: 30px;
+            border-top: 1px solid var(--border-color);
+            text-align: center;
+        }
+
+        .source-links {
+            list-style: none;
+            margin-bottom: 16px;
+        }
+
+        .source-links li {
+            margin-bottom: 6px;
+        }
+
+        .source-link {
+            color: var(--aws-teal);
+            text-decoration: none;
+            font-size: 14px;
+            word-break: break-all;
+        }
+
+        .source-link:hover {
+            color: var(--aws-smile-orange);
+            text-decoration: underline;
+        }
+
+        .footer-note {
+            color: var(--text-secondary);
+            font-size: 12px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <span class="service-badge">Amazon Bedrock</span>
+            <h1>Claude Sonnet 4.5 のデフォルトクォータが AWS GovCloud (US) で 25 倍に増加</h1>
+            <p style="color: var(--light-gray); font-size: 15px; margin-bottom: 8px;">Default Quota 25x Increase for Claude Sonnet 4.5 in AWS GovCloud (US)</p>
+            <p class="release-date">2026 年 2 月 12 日</p>
+        </header>
+
+        <!-- Overview -->
+        <section class="section">
+            <h2 class="section-title">概要</h2>
+            <div class="overview-card">
+                <p class="overview-text">
+                    Amazon Bedrock が、AWS GovCloud (US-West) および AWS GovCloud (US-East) における Anthropic Claude Sonnet 4.5 のデフォルトクォータを <span class="highlight">25 倍</span> に引き上げました。新しいクォータは、<span class="highlight">毎分 5,000,000 トークン</span> (TPM) および <span class="highlight">毎分 1,000 リクエスト</span> (RPM) となり、商用 AWS リージョンと同等の水準に統一されました。
+                </p>
+                <p class="overview-text" style="margin-top: 12px;">
+                    Claude Sonnet 4.5 は Anthropic の最新 Sonnet モデルであり、複雑なエージェントの構築、コーディング、長期的なタスクの処理に優れ、大量のユースケースに対して最適な速度とコスト効率を提供します。
+                </p>
+            </div>
+
+            <!-- Stats -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">&#128640;</div>
+                    <div class="stat-value">25x</div>
+                    <div class="stat-label">クォータ<br>増加倍率</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">&#9889;</div>
+                    <div class="stat-value">5,000,000</div>
+                    <div class="stat-label">トークン/分<br>TPM</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">&#128232;</div>
+                    <div class="stat-value">1,000</div>
+                    <div class="stat-label">リクエスト/分<br>RPM</div>
+                </div>
+            </div>
+
+            <!-- Before/After -->
+            <div class="comparison-grid">
+                <div class="comparison-card before">
+                    <div class="comparison-label">Before - アップデート前の課題</div>
+                    <ul class="comparison-list">
+                        <li>GovCloud のデフォルトクォータが商用リージョンより大幅に低く、AI ワークロードのスケーリングに制約があった</li>
+                        <li>大規模なエージェントワークフローやバッチ処理でクォータ上限に達しやすくスループットが制限されていた</li>
+                        <li>クォータ引き上げリクエストを個別に申請する必要があり、迅速なスケーリングが困難だった</li>
+                    </ul>
+                </div>
+                <div class="comparison-card after">
+                    <div class="comparison-label">After - アップデート後の改善</div>
+                    <ul class="comparison-list">
+                        <li>デフォルトクォータが 25 倍に増加し、毎分 5,000,000 トークン、毎分 1,000 リクエストが利用可能</li>
+                        <li>商用 AWS リージョンと同等のクォータとなり、GovCloud でも大規模な AI ワークロードを効率的にスケーリング可能</li>
+                        <li>クォータ引き上げリクエストなしで、より多くのワークロードに対応可能</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Architecture Diagram -->
+        <section class="section">
+            <h2 class="section-title">アーキテクチャ図</h2>
+            <div class="diagram-container">
+                <pre class="mermaid">
+flowchart TD
+    subgraph GovCloud["&#9729;&#65039; AWS GovCloud US"]
+        direction LR
+        West["&#127963;&#65039; GovCloud&lt;br/&gt;US-West"]
+        East["&#127963;&#65039; GovCloud&lt;br/&gt;US-East"]
+        West ~~~ East
+    end
+
+    subgraph Bedrock["&#129302; Amazon Bedrock"]
+        Sonnet["&#129504; Claude Sonnet 4.5"]
+    end
+
+    subgraph Quota["&#128202; 新しいデフォルトクォータ"]
+        direction LR
+        TPM["&#9889; 5,000,000&lt;br/&gt;トークン/分"]
+        RPM["&#128232; 1,000&lt;br/&gt;リクエスト/分"]
+        TPM ~~~ RPM
+    end
+
+    subgraph UseCases["&#128203; ユースケース"]
+        direction LR
+        Agent["&#129302; エージェント構築"]
+        Coding["&#128187; コーディング"]
+        LongTask["&#128221; 長期タスク"]
+        Agent ~~~ Coding ~~~ LongTask
+    end
+
+    GovCloud --> Bedrock
+    Bedrock --> Quota
+    Sonnet --> UseCases
+
+    classDef cloud fill:none,stroke:#CCCCCC,stroke-width:2px,color:#666666
+    classDef layer fill:none,stroke:#E1BEE7,stroke-width:2px,color:#666666
+    classDef compute fill:#FFE0B2,stroke:#FFCC80,stroke-width:2px,color:#5D4037
+    classDef govcloud fill:#E8EAF6,stroke:#C5CAE9,stroke-width:2px,color:#283593
+    classDef quota fill:#E9F7EC,stroke:#66BB6A,stroke-width:2px,color:#333333
+    classDef user fill:#E3F2FD,stroke:#BBDEFB,stroke-width:2px,color:#1565C0
+
+    class GovCloud cloud
+    class Bedrock layer
+    class Sonnet compute
+    class West,East govcloud
+    class Quota,TPM,RPM quota
+    class UseCases,Agent,Coding,LongTask user
+                </pre>
+            </div>
+            <p class="diagram-caption">AWS GovCloud (US) の両リージョンで Claude Sonnet 4.5 のデフォルトクォータが商用リージョンと同等に引き上げられ、規制環境での大規模 AI ワークロードの実行が可能になりました。</p>
+        </section>
+
+        <!-- Key Features -->
+        <section class="section">
+            <h2 class="section-title">主要機能</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">&#128640;</div>
+                    <div class="feature-title">デフォルトクォータの 25 倍増加</div>
+                    <div class="feature-description">
+                        毎分トークン数が 5,000,000 に、毎分リクエスト数が 1,000 に増加。クォータ引き上げリクエストなしでデフォルトで利用可能です。
+                    </div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#128260;</div>
+                    <div class="feature-title">商用リージョンとの統一</div>
+                    <div class="feature-description">
+                        AWS GovCloud (US-West) と (US-East) の両方で適用。商用 AWS リージョンと同じクォータ水準に統一され、スケーラビリティが大幅に向上しました。
+                    </div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#129504;</div>
+                    <div class="feature-title">Claude Sonnet 4.5 の特長</div>
+                    <div class="feature-description">
+                        複雑なエージェント構築に最適化。コーディングタスクで高い性能を発揮し、長期的なタスク処理に優れた持続性を提供します。
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Technical Spec: Quota Comparison -->
+        <section class="section">
+            <h2 class="section-title">技術仕様</h2>
+
+            <h3 style="font-size: 16px; color: var(--text-primary); margin-bottom: 12px;">クォータ比較</h3>
+            <table class="api-table">
+                <thead>
+                    <tr>
+                        <th>項目</th>
+                        <th>アップデート前</th>
+                        <th>アップデート後</th>
+                        <th>増加倍率</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong style="color: var(--text-primary);">トークン/分 (TPM)</strong></td>
+                        <td>200,000</td>
+                        <td><strong style="color: #2ECC71;">5,000,000</strong></td>
+                        <td><strong style="color: var(--aws-orange);">25 倍</strong></td>
+                    </tr>
+                    <tr>
+                        <td><strong style="color: var(--text-primary);">リクエスト/分 (RPM)</strong></td>
+                        <td>40</td>
+                        <td><strong style="color: #2ECC71;">1,000</strong></td>
+                        <td><strong style="color: var(--aws-orange);">25 倍</strong></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- Visual Quota Comparison -->
+            <div class="quota-comparison">
+                <div class="quota-card">
+                    <div class="quota-metric-label">トークン/分 (TPM)</div>
+                    <div class="quota-bar-container">
+                        <span class="quota-bar-label">Before</span>
+                        <div class="quota-bar-track">
+                            <div class="quota-bar-fill before-bar">200K</div>
+                        </div>
+                    </div>
+                    <div class="quota-bar-container">
+                        <span class="quota-bar-label">After</span>
+                        <div class="quota-bar-track">
+                            <div class="quota-bar-fill after-bar">5,000K</div>
+                        </div>
+                    </div>
+                    <div class="quota-multiplier">25x</div>
+                </div>
+                <div class="quota-card">
+                    <div class="quota-metric-label">リクエスト/分 (RPM)</div>
+                    <div class="quota-bar-container">
+                        <span class="quota-bar-label">Before</span>
+                        <div class="quota-bar-track">
+                            <div class="quota-bar-fill before-bar">40</div>
+                        </div>
+                    </div>
+                    <div class="quota-bar-container">
+                        <span class="quota-bar-label">After</span>
+                        <div class="quota-bar-track">
+                            <div class="quota-bar-fill after-bar">1,000</div>
+                        </div>
+                    </div>
+                    <div class="quota-multiplier">25x</div>
+                </div>
+            </div>
+
+            <h3 style="font-size: 16px; color: var(--text-primary); margin-top: 24px; margin-bottom: 12px;">対象リージョン</h3>
+            <table class="api-table">
+                <thead>
+                    <tr>
+                        <th>リージョン</th>
+                        <th>リージョンコード</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong style="color: var(--text-primary);">AWS GovCloud (US-West)</strong></td>
+                        <td><code>us-gov-west-1</code></td>
+                    </tr>
+                    <tr>
+                        <td><strong style="color: var(--text-primary);">AWS GovCloud (US-East)</strong></td>
+                        <td><code>us-gov-east-1</code></td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- Configuration -->
+        <section class="section">
+            <h2 class="section-title">設定方法</h2>
+
+            <div class="overview-card" style="margin-bottom: 16px;">
+                <h3 style="font-size: 15px; color: var(--aws-orange); margin-bottom: 10px;">前提条件</h3>
+                <ul class="merit-list">
+                    <li>AWS GovCloud (US) アカウントを保有していること</li>
+                    <li>Amazon Bedrock へのアクセス権限があること</li>
+                    <li>Claude Sonnet 4.5 のモデルアクセスが有効化されていること</li>
+                </ul>
+            </div>
+
+            <div class="overview-card" style="margin-bottom: 16px; border: 1px solid rgba(46, 204, 113, 0.3);">
+                <p style="font-size: 14px; color: #2ECC71; text-align: center;">
+                    &#10004; このアップデートはデフォルトクォータの引き上げであるため、ユーザー側の設定変更は不要です。クォータは自動的に適用されます。
+                </p>
+            </div>
+
+            <div class="flow-diagram">
+                <div class="flow-step">&#128270; 現在のクォータ<br>確認</div>
+                <span class="flow-arrow">&rarr;</span>
+                <div class="flow-step">&#129302; Claude Sonnet 4.5<br>呼び出し</div>
+                <span class="flow-arrow">&rarr;</span>
+                <div class="flow-step">&#128202; トークン使用量<br>モニタリング</div>
+            </div>
+
+            <h3 style="font-size: 16px; color: var(--text-primary); margin-top: 20px; margin-bottom: 12px;">ステップ 1: 現在のクォータの確認</h3>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Bash</span>
+                    <span class="code-title">AWS Service Quotas でクォータを確認</span>
+                </div>
+                <pre><code class="language-bash">aws service-quotas get-service-quota \
+  --service-code bedrock \
+  --quota-code &lt;quota-code&gt; \
+  --region us-gov-west-1</code></pre>
+            </div>
+
+            <h3 style="font-size: 16px; color: var(--text-primary); margin-top: 20px; margin-bottom: 12px;">ステップ 2: Claude Sonnet 4.5 の呼び出し</h3>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Python</span>
+                    <span class="code-title">Bedrock Runtime で Claude Sonnet 4.5 を呼び出す例</span>
+                </div>
+                <pre><code class="language-python">import boto3
+import json
+
+bedrock_runtime = boto3.client('bedrock-runtime', region_name='us-gov-west-1')
+
+response = bedrock_runtime.invoke_model(
+    modelId='anthropic.claude-sonnet-4-5-v1:0',
+    body=json.dumps({
+        "anthropic_version": "bedrock-2023-05-31",
+        "max_tokens": 1024,
+        "messages": [
+            {
+                "role": "user",
+                "content": "Hello, Claude!"
+            }
+        ]
+    })
+)
+
+result = json.loads(response['body'].read())
+print(result['content'][0]['text'])</code></pre>
+            </div>
+
+            <h3 style="font-size: 16px; color: var(--text-primary); margin-top: 20px; margin-bottom: 12px;">ステップ 3: トークン使用量のモニタリング</h3>
+            <p style="font-size: 14px; color: var(--text-secondary);">Amazon CloudWatch を使用して、トークン使用量とリクエスト数をモニタリングし、クォータの利用状況を把握します。</p>
+        </section>
+
+        <!-- Benefits -->
+        <section class="section">
+            <h2 class="section-title">メリット</h2>
+            <div class="merit-grid">
+                <div class="merit-section">
+                    <h3>&#128188; ビジネス面</h3>
+                    <ul class="merit-list">
+                        <li><strong style="color: var(--text-primary);">スケーラビリティの向上:</strong> 規制環境においても商用リージョンと同等の規模で AI ワークロードを実行可能</li>
+                        <li><strong style="color: var(--text-primary);">迅速な展開:</strong> クォータ引き上げリクエストの待ち時間なしで、大規模なワークロードをすぐに開始可能</li>
+                        <li><strong style="color: var(--text-primary);">コンプライアンスの維持:</strong> GovCloud 環境のセキュリティとコンプライアンス要件を満たしながら、AI の活用を拡大可能</li>
+                    </ul>
+                </div>
+                <div class="merit-section">
+                    <h3>&#128736;&#65039; 技術面</h3>
+                    <ul class="merit-list">
+                        <li><strong style="color: var(--text-primary);">スループットの改善:</strong> 毎分 5,000,000 トークンにより、大量の推論リクエストを処理可能</li>
+                        <li><strong style="color: var(--text-primary);">並行処理の強化:</strong> 毎分 1,000 リクエストにより、多数の同時リクエストを効率的に処理</li>
+                        <li><strong style="color: var(--text-primary);">商用リージョンとの一貫性:</strong> 商用リージョンと GovCloud 間でアプリケーションの動作を統一しやすくなる</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Limitations -->
+        <section class="section">
+            <h2 class="section-title">制約事項・注意点</h2>
+            <div class="constraint-card">
+                <div class="constraint-title">制限事項</div>
+                <ul class="constraint-list">
+                    <li>AWS GovCloud (US) アカウントが必要であり、一般の AWS アカウントからは利用不可</li>
+                    <li>デフォルトクォータの引き上げは Claude Sonnet 4.5 に対するものであり、他のモデルのクォータは別途確認が必要</li>
+                    <li>さらに高いクォータが必要な場合は、AWS Service Quotas を通じて個別にリクエストする必要がある</li>
+                </ul>
+            </div>
+            <div class="constraint-card">
+                <div class="constraint-title">考慮すべき点</div>
+                <ul class="constraint-list">
+                    <li>トークン使用量が増加するとコストも比例して増加するため、CloudWatch でのモニタリングと予算管理が重要</li>
+                    <li>出力トークンのバーンダウンレートがモデルによって異なる場合があるため、実効的なクォータを確認すること</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Use Cases -->
+        <section class="section">
+            <h2 class="section-title">ユースケース</h2>
+
+            <div class="usecase-card">
+                <div class="usecase-header">
+                    <span style="font-size: 24px;">&#127963;&#65039;&#128196;</span>
+                    <div class="usecase-title">政府機関のドキュメント処理</div>
+                </div>
+                <div class="usecase-scenario">
+                    政府機関が大量の機密文書の分類、要約、分析を AI で自動化したい。
+                </div>
+                <div class="usecase-effect">
+                    25 倍に引き上げられたクォータにより、毎分 5,000,000 トークンの処理が可能となり、大量のドキュメントを効率的にバッチ処理できる。GovCloud 環境でデータの機密性を保ちながら、大規模な AI ワークロードを実行可能。
+                </div>
+            </div>
+
+            <div class="usecase-card">
+                <div class="usecase-header">
+                    <span style="font-size: 24px;">&#128737;&#65039;&#129302;</span>
+                    <div class="usecase-title">規制環境でのエージェントワークフロー</div>
+                </div>
+                <div class="usecase-scenario">
+                    防衛関連企業が、セキュリティ要件を満たした環境で複雑なマルチステップ AI エージェントを運用したい。
+                </div>
+                <div class="usecase-effect">
+                    毎分 1,000 リクエストのクォータにより、複数のエージェントが同時に動作するワークフローを GovCloud 環境内で安定して実行できる。商用リージョンと同等のパフォーマンスで、規制要件を満たした AI ソリューションを構築可能。
+                </div>
+            </div>
+
+            <div class="usecase-card">
+                <div class="usecase-header">
+                    <span style="font-size: 24px;">&#128187;&#128104;&#8205;&#128187;</span>
+                    <div class="usecase-title">コーディング支援の大規模展開</div>
+                </div>
+                <div class="usecase-scenario">
+                    政府系 IT 組織が、開発者向けの AI コーディング支援ツールを GovCloud 環境で展開したい。
+                </div>
+                <div class="usecase-effect">
+                    引き上げられたクォータにより、多数の開発者が同時に AI コーディング支援を利用しても、レート制限に達することなく安定したサービスを提供できる。
+                </div>
+            </div>
+        </section>
+
+        <!-- Pricing -->
+        <section class="section">
+            <h2 class="section-title">料金</h2>
+            <div class="pricing-card">
+                <div class="pricing-highlight">クォータ引き上げ自体に追加料金なし</div>
+                <div class="pricing-detail" style="margin-bottom: 12px;">Amazon Bedrock の Claude Sonnet 4.5 の使用料金は、入力トークンと出力トークンの使用量に基づくオンデマンド方式です。</div>
+                <div class="pricing-detail">詳細は <a href="https://aws.amazon.com/bedrock/pricing/" target="_blank" style="color: var(--aws-teal);">Amazon Bedrock 料金ページ</a> を参照してください。</div>
+            </div>
+        </section>
+
+        <!-- Region -->
+        <section class="section">
+            <h2 class="section-title">利用可能リージョン</h2>
+            <div class="region-grid">
+                <div class="region-card">
+                    <div style="font-size: 28px; margin-bottom: 8px;">&#127963;&#65039;</div>
+                    <div class="region-highlight">AWS GovCloud (US-West)</div>
+                    <div class="region-code">us-gov-west-1</div>
+                </div>
+                <div class="region-card">
+                    <div style="font-size: 28px; margin-bottom: 8px;">&#127963;&#65039;</div>
+                    <div class="region-highlight">AWS GovCloud (US-East)</div>
+                    <div class="region-code">us-gov-east-1</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Related Services -->
+        <section class="section">
+            <h2 class="section-title">関連サービス・機能</h2>
+            <div class="related-grid">
+                <div class="related-card">
+                    <div style="font-size: 24px; margin-bottom: 8px;">&#128176;</div>
+                    <div class="related-name">Bedrock Reserved Tier</div>
+                    <div class="related-desc">GovCloud で予測可能なパフォーマンスと保証された容量を提供</div>
+                </div>
+                <div class="related-card">
+                    <div style="font-size: 24px; margin-bottom: 8px;">&#128202;</div>
+                    <div class="related-name">AWS Service Quotas</div>
+                    <div class="related-desc">クォータの確認と引き上げリクエストを管理するサービス</div>
+                </div>
+                <div class="related-card">
+                    <div style="font-size: 24px; margin-bottom: 8px;">&#128200;</div>
+                    <div class="related-name">Amazon CloudWatch</div>
+                    <div class="related-desc">トークン使用量やリクエスト数のモニタリングに使用</div>
+                </div>
+                <div class="related-card">
+                    <div style="font-size: 24px; margin-bottom: 8px;">&#129504;</div>
+                    <div class="related-name">Claude Sonnet 4.5</div>
+                    <div class="related-desc">Amazon Bedrock で利用可能な Anthropic の最新 Sonnet モデル</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer>
+            <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 12px;">参考リンク</p>
+            <ul class="source-links">
+                <li><a href="https://aws.amazon.com/about-aws/whats-new/2026/02/amazon-bedrock-s4.5-quota-aws-govcloud-us/" class="source-link" target="_blank">公式発表 - What's New</a></li>
+                <li><a href="https://docs.aws.amazon.com/bedrock/latest/userguide/quotas.html" class="source-link" target="_blank">Amazon Bedrock クォータドキュメント</a></li>
+                <li><a href="https://aws.amazon.com/bedrock/claude/" class="source-link" target="_blank">Anthropic Claude in Amazon Bedrock</a></li>
+                <li><a href="https://aws.amazon.com/bedrock/pricing/" class="source-link" target="_blank">Amazon Bedrock 料金ページ</a></li>
+                <li><a href="https://aws.amazon.com/blogs/aws/introducing-claude-sonnet-4-5-in-amazon-bedrock-anthropics-most-intelligent-model-best-for-coding-and-complex-agents/" class="source-link" target="_blank">Claude Sonnet 4.5 紹介ブログ</a></li>
+            </ul>
+            <p class="footer-note">Amazon Bedrock - Claude Sonnet 4.5 GovCloud クォータ 25 倍増加 | 2026 年 2 月 12 日</p>
+        </footer>
+    </div>
+
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'base',
+            themeVariables: {
+                primaryColor: '#FF9900',
+                primaryTextColor: '#232F3E',
+                primaryBorderColor: '#FF9900',
+                lineColor: '#FF9900',
+                secondaryColor: '#F5F5F5',
+                tertiaryColor: '#FAFAFA',
+                background: '#FFFFFF',
+                mainBkg: '#FFF3E0',
+                nodeBorder: '#FF9900',
+                clusterBkg: '#FFF8E1',
+                clusterBorder: '#FF9900',
+                edgeLabelBackground: '#FFFFFF',
+                textColor: '#232F3E'
+            },
+            flowchart: {
+                curve: 'basis',
+                padding: 20
+            }
+        });
+        hljs.highlightAll();
+    </script>
+</body>
+</html>

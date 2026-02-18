@@ -1,0 +1,1483 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Amazon OpenSearch Service - i7i インスタンスのサポート開始</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/styles/atom-one-dark.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/highlight.min.js"></script>
+    <style>
+        :root {
+            --squid-ink: #232F3E;
+            --aws-orange: #FF9900;
+            --aws-smile-orange: #FFAD33;
+            --text-primary: #FFFFFF;
+            --text-secondary: #AAAAAA;
+            --light-gray: #D5DBDB;
+            --card-bg: #2D3A4A;
+            --dark-squid: #1A242F;
+            --border-color: #3D4A5A;
+            --aws-teal: #00A1C9;
+            --aws-purple: #8C4FFF;
+            --aws-green: #1D8102;
+            --aws-red: #D13212;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            background-color: var(--squid-ink);
+            color: var(--light-gray);
+            line-height: 1.8;
+            font-size: 16px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+            padding-bottom: 30px;
+            border-bottom: 3px solid var(--aws-orange);
+        }
+
+        .service-badge {
+            display: inline-block;
+            background-color: var(--aws-orange);
+            color: var(--squid-ink);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+        }
+
+        .release-date {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--aws-orange);
+            margin-bottom: 20px;
+            padding-left: 15px;
+            border-left: 4px solid var(--aws-orange);
+        }
+
+        .overview-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .overview-text {
+            font-size: 16px;
+            line-height: 1.9;
+        }
+
+        .highlight {
+            background-color: rgba(255, 153, 0, 0.2);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+            color: var(--aws-orange);
+        }
+
+        /* Stats grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, var(--card-bg) 0%, var(--dark-squid) 100%);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid rgba(255, 153, 0, 0.2);
+        }
+
+        .stat-icon {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--aws-orange);
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        /* Before/After comparison */
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .comparison-grid {
+                grid-template-columns: 1fr;
+            }
+            .features-grid {
+                grid-template-columns: 1fr !important;
+            }
+            .merit-grid {
+                grid-template-columns: 1fr;
+            }
+            .related-grid {
+                grid-template-columns: 1fr !important;
+            }
+            .spec-comparison-grid {
+                grid-template-columns: 1fr !important;
+            }
+        }
+
+        .comparison-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .comparison-card.before {
+            border-top: 4px solid #E74C3C;
+        }
+
+        .comparison-card.after {
+            border-top: 4px solid #2ECC71;
+        }
+
+        .comparison-label {
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        .comparison-card.before .comparison-label {
+            color: #E74C3C;
+        }
+
+        .comparison-card.after .comparison-label {
+            color: #2ECC71;
+        }
+
+        .comparison-list {
+            list-style: none;
+        }
+
+        .comparison-list li {
+            padding: 8px 0;
+            padding-left: 25px;
+            position: relative;
+            font-size: 14px;
+        }
+
+        .comparison-card.before .comparison-list li::before {
+            content: "\2717";
+            position: absolute;
+            left: 0;
+            color: #E74C3C;
+            font-weight: bold;
+        }
+
+        .comparison-card.after .comparison-list li::before {
+            content: "\2713";
+            position: absolute;
+            left: 0;
+            color: #2ECC71;
+            font-weight: bold;
+        }
+
+        /* Mermaid diagram */
+        .diagram-container {
+            background-color: #FFFFFF;
+            border: 2px solid rgba(255, 153, 0, 0.3);
+            border-radius: 12px;
+            padding: 25px;
+            overflow-x: auto;
+        }
+
+        .mermaid {
+            display: flex;
+            justify-content: center;
+        }
+
+        .diagram-caption {
+            font-size: 14px;
+            color: var(--text-secondary);
+            text-align: center;
+            margin-top: 12px;
+        }
+
+        /* Feature cards */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .feature-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            border-left: 3px solid var(--aws-orange);
+        }
+
+        .feature-icon {
+            font-size: 36px;
+            margin-bottom: 12px;
+        }
+
+        .feature-title {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--aws-orange);
+        }
+
+        .feature-description {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        .feature-detail {
+            font-size: 13px;
+            color: var(--light-gray);
+            margin-top: 8px;
+            padding-left: 16px;
+        }
+
+        .feature-detail li {
+            margin-bottom: 4px;
+        }
+
+        /* Technical spec tables */
+        .api-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+        }
+
+        .api-table th {
+            background-color: var(--dark-squid);
+            color: var(--aws-orange);
+            padding: 10px 14px;
+            text-align: left;
+            font-size: 13px;
+            font-weight: 700;
+            border-bottom: 2px solid var(--aws-orange);
+            white-space: nowrap;
+        }
+
+        .api-table td {
+            padding: 10px 14px;
+            font-size: 13px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--light-gray);
+        }
+
+        .api-table code {
+            color: var(--aws-teal);
+            font-size: 12px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .api-table tr:hover td {
+            background-color: rgba(255, 153, 0, 0.05);
+        }
+
+        .table-scroll {
+            overflow-x: auto;
+            margin: 16px 0;
+        }
+
+        /* Spec comparison grid */
+        .spec-comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 16px;
+        }
+
+        .spec-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .spec-card.old-gen {
+            border-top: 3px solid var(--text-secondary);
+        }
+
+        .spec-card.new-gen {
+            border-top: 3px solid var(--aws-orange);
+        }
+
+        .spec-label {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        .spec-card.old-gen .spec-label {
+            color: var(--text-secondary);
+        }
+
+        .spec-card.new-gen .spec-label {
+            color: var(--aws-orange);
+        }
+
+        .spec-detail {
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.7;
+            text-align: left;
+        }
+
+        .spec-detail li {
+            margin-bottom: 4px;
+            list-style: none;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .spec-card.old-gen .spec-detail li::before {
+            content: "-";
+            position: absolute;
+            left: 0;
+            color: var(--text-secondary);
+        }
+
+        .spec-card.new-gen .spec-detail li::before {
+            content: "\2713";
+            position: absolute;
+            left: 0;
+            color: #2ECC71;
+            font-weight: bold;
+        }
+
+        /* Performance bar */
+        .perf-bar-container {
+            margin: 12px 0;
+        }
+
+        .perf-bar-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            margin-bottom: 6px;
+        }
+
+        .perf-bar-name {
+            color: var(--light-gray);
+        }
+
+        .perf-bar-value {
+            color: var(--aws-orange);
+            font-weight: 700;
+        }
+
+        .perf-bar-track {
+            background-color: var(--dark-squid);
+            border-radius: 6px;
+            height: 12px;
+            overflow: hidden;
+        }
+
+        .perf-bar-fill {
+            height: 100%;
+            border-radius: 6px;
+            background: linear-gradient(90deg, var(--aws-orange), var(--aws-smile-orange));
+            transition: width 0.5s ease;
+        }
+
+        /* Code blocks */
+        .code-block {
+            background: #1a1a2e;
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 16px 0;
+        }
+
+        .code-header {
+            background: #16213e;
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+        }
+
+        .code-lang {
+            color: var(--aws-orange);
+            font-weight: bold;
+        }
+
+        .code-title {
+            color: var(--light-gray);
+        }
+
+        .code-block pre {
+            margin: 0;
+            padding: 0;
+            overflow-x: auto;
+        }
+
+        .code-block code {
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            padding: 16px !important;
+        }
+
+        .code-note {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-top: 8px;
+        }
+
+        .code-note code {
+            color: var(--aws-teal);
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+        }
+
+        /* Flow diagram */
+        .flow-diagram {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin: 24px 0;
+        }
+
+        .flow-step {
+            background: var(--dark-squid);
+            border: 2px solid var(--aws-orange);
+            border-radius: 8px;
+            padding: 12px 20px;
+            text-align: center;
+            min-width: 120px;
+            font-size: 14px;
+        }
+
+        .flow-arrow {
+            color: var(--aws-orange);
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        /* Use case cards */
+        .usecase-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 3px solid var(--aws-orange);
+        }
+
+        .usecase-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .usecase-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--aws-orange);
+        }
+
+        .usecase-scenario {
+            font-size: 14px;
+            color: var(--light-gray);
+            margin-bottom: 12px;
+        }
+
+        .usecase-effect {
+            font-size: 14px;
+            color: #2ECC71;
+            padding: 10px;
+            background-color: rgba(46, 204, 113, 0.1);
+            border-radius: 8px;
+        }
+
+        .usecase-effect::before {
+            content: "\2713 ";
+            font-weight: bold;
+        }
+
+        /* Merit/Demerit */
+        .merit-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .merit-section {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .merit-section h3 {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: var(--aws-orange);
+        }
+
+        .merit-list {
+            list-style: none;
+        }
+
+        .merit-list li {
+            padding: 6px 0;
+            padding-left: 22px;
+            position: relative;
+            font-size: 14px;
+            color: var(--light-gray);
+        }
+
+        .merit-list li::before {
+            content: "\2713";
+            position: absolute;
+            left: 0;
+            color: #2ECC71;
+            font-weight: bold;
+        }
+
+        /* Constraint/Limitation */
+        .constraint-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 3px solid #E74C3C;
+        }
+
+        .constraint-title {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #E74C3C;
+        }
+
+        .constraint-list {
+            list-style: none;
+        }
+
+        .constraint-list li {
+            padding: 6px 0;
+            padding-left: 22px;
+            position: relative;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .constraint-list li::before {
+            content: "\26A0";
+            position: absolute;
+            left: 0;
+            font-size: 12px;
+        }
+
+        /* Pricing */
+        .pricing-card {
+            background: linear-gradient(135deg, rgba(29, 129, 2, 0.15) 0%, var(--card-bg) 100%);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid rgba(29, 129, 2, 0.3);
+        }
+
+        .pricing-highlight {
+            font-size: 22px;
+            font-weight: 700;
+            color: #2ECC71;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+
+        .pricing-detail {
+            font-size: 14px;
+            color: var(--text-secondary);
+            text-align: center;
+        }
+
+        .pricing-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+        }
+
+        .pricing-table th {
+            background-color: var(--dark-squid);
+            color: var(--aws-orange);
+            padding: 10px 14px;
+            text-align: left;
+            font-size: 13px;
+            font-weight: 700;
+            border-bottom: 2px solid var(--aws-orange);
+        }
+
+        .pricing-table td {
+            padding: 10px 14px;
+            font-size: 13px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--light-gray);
+        }
+
+        .pricing-table td.discount {
+            color: #2ECC71;
+            font-weight: 700;
+        }
+
+        /* Region */
+        .region-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .region-highlight {
+            font-size: 16px;
+            color: var(--text-primary);
+            font-weight: 600;
+            text-align: center;
+            margin-bottom: 16px;
+        }
+
+        .region-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        @media (max-width: 480px) {
+            .region-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .region-group {
+            background-color: var(--dark-squid);
+            border-radius: 8px;
+            padding: 12px;
+        }
+
+        .region-group-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--aws-orange);
+            margin-bottom: 6px;
+        }
+
+        .region-list {
+            list-style: none;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .region-list li {
+            padding: 2px 0;
+        }
+
+        /* Related services */
+        .related-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+
+        .related-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+        }
+
+        .related-name {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 6px;
+        }
+
+        .related-desc {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        /* Footer */
+        footer {
+            margin-top: 50px;
+            padding-top: 30px;
+            border-top: 1px solid var(--border-color);
+            text-align: center;
+        }
+
+        .source-links {
+            list-style: none;
+            margin-bottom: 16px;
+        }
+
+        .source-links li {
+            margin-bottom: 6px;
+        }
+
+        .source-link {
+            color: var(--aws-teal);
+            text-decoration: none;
+            font-size: 14px;
+            word-break: break-all;
+        }
+
+        .source-link:hover {
+            color: var(--aws-smile-orange);
+            text-decoration: underline;
+        }
+
+        .footer-note {
+            color: var(--text-secondary);
+            font-size: 12px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <span class="service-badge">Amazon OpenSearch Service</span>
+            <h1>i7i インスタンスのサポート開始</h1>
+            <p style="color: var(--light-gray); font-size: 15px; margin-bottom: 8px;">Storage Optimized i7i Instances for Amazon OpenSearch Service</p>
+            <p class="release-date">2026 年 2 月 18 日</p>
+        </header>
+
+        <!-- Overview -->
+        <section class="section">
+            <h2 class="section-title">概要</h2>
+            <div class="overview-card">
+                <p class="overview-text">
+                    Amazon OpenSearch Service が、最新世代の x86 ベース高性能ストレージ最適化 <span class="highlight">i7i インスタンス</span> のサポートを開始しました。<span class="highlight">第 5 世代 Intel Xeon Scalable プロセッサ</span> (Emerald Rapids) を搭載し、前世代の I4i インスタンスと比較して最大 <span class="highlight">23% のコンピューティング性能向上</span> と <span class="highlight">10% 以上の価格性能改善</span> を実現します。
+                </p>
+                <p class="overview-text" style="margin-top: 12px;">
+                    <span class="highlight">第 3 世代 AWS Nitro SSD</span> を搭載し、リアルタイムストレージ性能が最大 50% 向上。AWS Nitro System により CPU 仮想化、ストレージ、ネットワーキング機能を専用ハードウェアにオフロードすることで、ワークロードのパフォーマンスとセキュリティを向上させます。
+                </p>
+            </div>
+
+            <!-- Stats -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">&#9889;</div>
+                    <div class="stat-value">+23%</div>
+                    <div class="stat-label">コンピューティング<br>性能向上</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">&#128190;</div>
+                    <div class="stat-value">-50%</div>
+                    <div class="stat-label">ストレージ I/O<br>レイテンシー低減</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">&#128200;</div>
+                    <div class="stat-value">-60%</div>
+                    <div class="stat-label">I/O レイテンシー<br>ばらつき低減</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">&#128176;</div>
+                    <div class="stat-value">+10%</div>
+                    <div class="stat-label">価格性能<br>改善</div>
+                </div>
+            </div>
+
+            <!-- Before/After -->
+            <div class="comparison-grid">
+                <div class="comparison-card before">
+                    <div class="comparison-label">Before - I4i インスタンスの課題</div>
+                    <ul class="comparison-list">
+                        <li>ストレージ最適化インスタンスとして I4i が最新世代であり、ストレージ I/O レイテンシーやコンピューティング性能に改善の余地があった</li>
+                        <li>I/O 集約型ワークロードにおいて、ストレージ I/O のレイテンシーとばらつきがパフォーマンスのボトルネックとなる場合があった</li>
+                        <li>大規模データセットに対するインデキシングや検索操作で、より高いコンピューティング性能と価格性能比が求められていた</li>
+                    </ul>
+                </div>
+                <div class="comparison-card after">
+                    <div class="comparison-label">After - i7i インスタンスによる改善</div>
+                    <ul class="comparison-list">
+                        <li>最大 23% のコンピューティング性能向上により、インデキシングスループットや検索クエリの処理速度が改善</li>
+                        <li>第 3 世代 AWS Nitro SSD により、ストレージ I/O レイテンシーが最大 50% 低減し、ばらつきも最大 60% 改善</li>
+                        <li>10% 以上の価格性能改善により、同等のワークロードをより低コストで実行可能に</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Architecture Diagram -->
+        <section class="section">
+            <h2 class="section-title">アーキテクチャ図</h2>
+            <div class="diagram-container">
+                <div class="mermaid">
+flowchart TD
+    subgraph AWS["&#9729;&#65039; AWS Cloud"]
+        subgraph OpenSearch["&#128269; Amazon OpenSearch Service"]
+            subgraph Domain["&#128230; OpenSearch Domain"]
+                direction LR
+                Master["&#127899;&#65039; Dedicated Master Nodes"]
+                subgraph DataNodes["&#128190; Data Nodes - i7i Instances"]
+                    direction LR
+                    Node1["&#9889; i7i Node 1&lt;br/&gt;NVMe SSD"]
+                    Node2["&#9889; i7i Node 2&lt;br/&gt;NVMe SSD"]
+                    Node3["&#9889; i7i Node 3&lt;br/&gt;NVMe SSD"]
+                    Node1 ~~~ Node2 ~~~ Node3
+                end
+                Master ~~~ DataNodes
+            end
+        end
+
+        subgraph NitroSystem["&#128295; AWS Nitro System"]
+            direction LR
+            NitroSSD["&#128191; 3rd Gen Nitro SSD&lt;br/&gt;50% Better Storage Perf"]
+            NitroCard["&#128268; Nitro Card&lt;br/&gt;Offloaded Networking"]
+            IntelCPU["&#128421;&#65039; 5th Gen Intel Xeon&lt;br/&gt;23% Better Compute"]
+            NitroSSD ~~~ NitroCard ~~~ IntelCPU
+        end
+    end
+
+    App(["&#128100; Application"]) -->|Search / Index| Domain
+    Domain -->|High-Speed I/O| NitroSystem
+    Domain -->|Results| App
+
+    classDef aws fill:none,stroke:#CCCCCC,stroke-width:2px,color:#666666
+    classDef opensearch fill:none,stroke:#E1BEE7,stroke-width:2px,color:#666666
+    classDef domain fill:none,stroke:#BBDEFB,stroke-width:2px,color:#666666
+    classDef nitro fill:#FFF3E0,stroke:#FFB74D,stroke-width:2px,color:#5D4037
+    classDef node fill:#E8F1FF,stroke:#4A90E2,stroke-width:2px,color:#333333
+    classDef master fill:#E9F7EC,stroke:#66BB6A,stroke-width:2px,color:#333333
+    classDef user fill:#E3F2FD,stroke:#BBDEFB,stroke-width:2px,color:#1565C0
+
+    class AWS aws
+    class OpenSearch opensearch
+    class Domain,DataNodes domain
+    class NitroSystem,NitroSSD,NitroCard,IntelCPU nitro
+    class Node1,Node2,Node3 node
+    class Master master
+    class App user
+                </div>
+            </div>
+            <p class="diagram-caption">Amazon OpenSearch Service ドメインが i7i インスタンスをデータノードとして使用し、AWS Nitro System と連携してアプリケーションからの検索・インデキシングリクエストを処理するアーキテクチャ</p>
+        </section>
+
+        <!-- Key Features -->
+        <section class="section">
+            <h2 class="section-title">主要機能</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">&#128187;</div>
+                    <div class="feature-title">第 5 世代 Intel Xeon Scalable プロセッサ</div>
+                    <div class="feature-description">
+                        オールコアターボ周波数 3.2 GHz、最大コアターボ周波数 4.0 GHz で動作。I4i と比較して最大 23% のコンピューティング性能向上を実現。
+                    </div>
+                    <ul class="feature-detail">
+                        <li>Intel Total Memory Encryption (TME) による常時メモリ暗号化</li>
+                        <li>Advanced Matrix Extensions (AMX) 含む 4 つのビルトインアクセラレータ搭載</li>
+                    </ul>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#128191;</div>
+                    <div class="feature-title">第 3 世代 AWS Nitro SSD</div>
+                    <div class="feature-description">
+                        PCIe Gen5 ベースの NVMe ストレージを提供。リアルタイムストレージ性能が最大 50% 向上。
+                    </div>
+                    <ul class="feature-detail">
+                        <li>ストレージ I/O レイテンシーが最大 50% 低減</li>
+                        <li>I/O レイテンシーのばらつきが最大 60% 低減</li>
+                        <li>常時 AES-256 暗号化をサポート</li>
+                    </ul>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#128295;</div>
+                    <div class="feature-title">AWS Nitro System</div>
+                    <div class="feature-description">
+                        CPU 仮想化、ストレージ、ネットワーキング機能を専用ハードウェアにオフロード。ホストハードウェアのリソースをほぼすべてインスタンスに提供。
+                    </div>
+                    <ul class="feature-detail">
+                        <li>パフォーマンスとセキュリティの両方を強化</li>
+                    </ul>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#128176;</div>
+                    <div class="feature-title">価格性能の改善</div>
+                    <div class="feature-description">
+                        I4i インスタンスと比較して 10% 以上の価格性能改善。同等のワークロードをより低コストで実行可能。
+                    </div>
+                    <ul class="feature-detail">
+                        <li>NVMe ローカルストレージのため EBS 追加料金なし</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Performance Comparison -->
+        <section class="section">
+            <h2 class="section-title">I4i vs i7i 性能比較</h2>
+            <div class="overview-card">
+                <div class="spec-comparison-grid">
+                    <div class="spec-card old-gen">
+                        <div class="spec-label">I4i</div>
+                        <ul class="spec-detail">
+                            <li>第 3 世代 Intel Xeon</li>
+                            <li>第 2 世代 Nitro SSD</li>
+                            <li>ベースラインのコンピューティング性能</li>
+                            <li>ベースラインの価格性能</li>
+                        </ul>
+                    </div>
+                    <div class="spec-card new-gen">
+                        <div class="spec-label">i7i</div>
+                        <ul class="spec-detail">
+                            <li>第 5 世代 Intel Xeon</li>
+                            <li>第 3 世代 Nitro SSD</li>
+                            <li>コンピューティング性能 +23%</li>
+                            <li>価格性能 +10% 以上</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div style="margin-top: 24px;">
+                    <div class="perf-bar-container">
+                        <div class="perf-bar-label">
+                            <span class="perf-bar-name">コンピューティング性能</span>
+                            <span class="perf-bar-value">+23%</span>
+                        </div>
+                        <div class="perf-bar-track">
+                            <div class="perf-bar-fill" style="width: 80%;"></div>
+                        </div>
+                    </div>
+                    <div class="perf-bar-container">
+                        <div class="perf-bar-label">
+                            <span class="perf-bar-name">リアルタイムストレージ性能</span>
+                            <span class="perf-bar-value">+50%</span>
+                        </div>
+                        <div class="perf-bar-track">
+                            <div class="perf-bar-fill" style="width: 90%;"></div>
+                        </div>
+                    </div>
+                    <div class="perf-bar-container">
+                        <div class="perf-bar-label">
+                            <span class="perf-bar-name">ストレージ I/O レイテンシー低減</span>
+                            <span class="perf-bar-value">-50%</span>
+                        </div>
+                        <div class="perf-bar-track">
+                            <div class="perf-bar-fill" style="width: 90%;"></div>
+                        </div>
+                    </div>
+                    <div class="perf-bar-container">
+                        <div class="perf-bar-label">
+                            <span class="perf-bar-name">I/O レイテンシーのばらつき低減</span>
+                            <span class="perf-bar-value">-60%</span>
+                        </div>
+                        <div class="perf-bar-track">
+                            <div class="perf-bar-fill" style="width: 95%;"></div>
+                        </div>
+                    </div>
+                    <div class="perf-bar-container">
+                        <div class="perf-bar-label">
+                            <span class="perf-bar-name">価格性能改善</span>
+                            <span class="perf-bar-value">+10% 以上</span>
+                        </div>
+                        <div class="perf-bar-track">
+                            <div class="perf-bar-fill" style="width: 65%;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Technical Specs -->
+        <section class="section">
+            <h2 class="section-title">技術仕様</h2>
+
+            <h3 style="font-size: 16px; color: var(--text-primary); margin-bottom: 12px;">i7i インスタンスサイズ一覧</h3>
+            <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 12px;">OpenSearch Service で使用する場合、インスタンスタイプは <code style="color: var(--aws-teal);">i7i.&lt;size&gt;.search</code> の形式になります。</p>
+            <div class="table-scroll">
+                <table class="api-table">
+                    <thead>
+                        <tr>
+                            <th>インスタンスサイズ</th>
+                            <th>vCPU</th>
+                            <th>メモリ (GiB)</th>
+                            <th>ストレージ (GB)</th>
+                            <th>NW (Gbps)</th>
+                            <th>EBS (Gbps)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>i7i.large</code></td>
+                            <td>2</td>
+                            <td>16</td>
+                            <td>468</td>
+                            <td>~10</td>
+                            <td>~10</td>
+                        </tr>
+                        <tr>
+                            <td><code>i7i.xlarge</code></td>
+                            <td>4</td>
+                            <td>32</td>
+                            <td>937.5</td>
+                            <td>~10</td>
+                            <td>~10</td>
+                        </tr>
+                        <tr>
+                            <td><code>i7i.2xlarge</code></td>
+                            <td>8</td>
+                            <td>64</td>
+                            <td>1,875</td>
+                            <td>~12</td>
+                            <td>~10</td>
+                        </tr>
+                        <tr>
+                            <td><code>i7i.4xlarge</code></td>
+                            <td>16</td>
+                            <td>128</td>
+                            <td>3,750</td>
+                            <td>~25</td>
+                            <td>~10</td>
+                        </tr>
+                        <tr>
+                            <td><code>i7i.8xlarge</code></td>
+                            <td>32</td>
+                            <td>256</td>
+                            <td>7,500</td>
+                            <td>25</td>
+                            <td>10</td>
+                        </tr>
+                        <tr>
+                            <td><code>i7i.12xlarge</code></td>
+                            <td>48</td>
+                            <td>384</td>
+                            <td>11,250</td>
+                            <td>28.125</td>
+                            <td>15</td>
+                        </tr>
+                        <tr>
+                            <td><code>i7i.16xlarge</code></td>
+                            <td>64</td>
+                            <td>512</td>
+                            <td>15,000</td>
+                            <td>37.5</td>
+                            <td>20</td>
+                        </tr>
+                        <tr>
+                            <td><code>i7i.24xlarge</code></td>
+                            <td>96</td>
+                            <td>768</td>
+                            <td>22,500</td>
+                            <td>56.25</td>
+                            <td>30</td>
+                        </tr>
+                        <tr>
+                            <td><code>i7i.48xlarge</code></td>
+                            <td>192</td>
+                            <td>1,536</td>
+                            <td>45,000</td>
+                            <td>100</td>
+                            <td>60</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Configuration -->
+        <section class="section">
+            <h2 class="section-title">設定方法</h2>
+
+            <div class="overview-card" style="margin-bottom: 16px;">
+                <h3 style="font-size: 15px; color: var(--aws-orange); margin-bottom: 10px;">前提条件</h3>
+                <ul class="merit-list">
+                    <li>AWS アカウントが有効化されている</li>
+                    <li>Amazon OpenSearch Service への適切な IAM 権限が設定されている</li>
+                    <li>i7i インスタンスがサポートされているリージョンを使用する</li>
+                </ul>
+            </div>
+
+            <div class="flow-diagram">
+                <div class="flow-step">&#128221; 新規ドメインの<br>作成</div>
+                <span class="flow-arrow">&rarr;</span>
+                <div class="flow-step">&#128260; 既存ドメインの<br>インスタンス変更</div>
+                <span class="flow-arrow">&rarr;</span>
+                <div class="flow-step">&#128270; ドメイン状態の<br>確認</div>
+            </div>
+
+            <h3 style="font-size: 16px; color: var(--text-primary); margin-top: 20px; margin-bottom: 12px;">ステップ 1: 新規ドメインで i7i インスタンスを使用して作成</h3>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Bash</span>
+                    <span class="code-title">i7i.2xlarge.search を 3 ノードで作成</span>
+                </div>
+                <pre><code class="language-bash">aws opensearch create-domain \
+  --domain-name my-opensearch-domain \
+  --engine-version OpenSearch_2.17 \
+  --cluster-config \
+    InstanceType=i7i.2xlarge.search,InstanceCount=3,\
+DedicatedMasterEnabled=true,\
+DedicatedMasterType=c7g.large.search,\
+DedicatedMasterCount=3,\
+ZoneAwarenessEnabled=true,\
+ZoneAwarenessConfig='{AvailabilityZoneCount=3}' \
+  --node-to-node-encryption-options Enabled=true \
+  --encrypt-at-rest-options Enabled=true \
+  --domain-endpoint-options EnforceHTTPS=true \
+  --advanced-security-options \
+    Enabled=true,InternalUserDatabaseEnabled=true,\
+MasterUserOptions='{MasterUserName=admin,MasterUserPassword=MyStr0ngP@ss!}'</code></pre>
+            </div>
+            <p class="code-note">i7i インスタンスは NVMe ローカルストレージを使用するため、EBS ボリュームの設定は不要です。3 つの AZ にまたがるドメインが作成されます。</p>
+
+            <h3 style="font-size: 16px; color: var(--text-primary); margin-top: 20px; margin-bottom: 12px;">ステップ 2: 既存ドメインのインスタンスタイプを i7i に変更</h3>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Bash</span>
+                    <span class="code-title">Blue/Green デプロイメントによるダウンタイムなしの変更</span>
+                </div>
+                <pre><code class="language-bash">aws opensearch update-domain-config \
+  --domain-name my-existing-domain \
+  --cluster-config \
+    InstanceType=i7i.4xlarge.search,InstanceCount=3</code></pre>
+            </div>
+            <p class="code-note">Blue/Green デプロイメントにより、ダウンタイムなしでインスタンスタイプの変更が実行されます。</p>
+
+            <h3 style="font-size: 16px; color: var(--text-primary); margin-top: 20px; margin-bottom: 12px;">ステップ 3: ドメインの状態を確認</h3>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Bash</span>
+                    <span class="code-title">ドメインの状態、インスタンスタイプ、ノード数を確認</span>
+                </div>
+                <pre><code class="language-bash">aws opensearch describe-domain \
+  --domain-name my-opensearch-domain \
+  --query "DomainStatus.{Name:DomainName,\
+Status:Processing,\
+InstanceType:ClusterConfig.InstanceType,\
+InstanceCount:ClusterConfig.InstanceCount}" \
+  --output table</code></pre>
+            </div>
+            <p class="code-note"><code>Processing</code> が <code>true</code> の場合、設定変更が進行中です。</p>
+        </section>
+
+        <!-- Benefits -->
+        <section class="section">
+            <h2 class="section-title">メリット</h2>
+            <div class="merit-grid">
+                <div class="merit-section">
+                    <h3>&#128188; ビジネス面</h3>
+                    <ul class="merit-list">
+                        <li><strong style="color: var(--text-primary);">コスト最適化:</strong> I4i と比較して 10% 以上の価格性能改善により、同等のパフォーマンスをより低コストで実現可能</li>
+                        <li><strong style="color: var(--text-primary);">SLA の達成:</strong> ストレージ I/O レイテンシーの低減とばらつきの改善により、厳格な SLA 要件を持つアプリケーションの安定運用を支援</li>
+                        <li><strong style="color: var(--text-primary);">幅広いリージョン対応:</strong> 30 以上の AWS リージョンで利用可能なため、データレジデンシー要件への対応が容易</li>
+                    </ul>
+                </div>
+                <div class="merit-section">
+                    <h3>&#128736;&#65039; 技術面</h3>
+                    <ul class="merit-list">
+                        <li><strong style="color: var(--text-primary);">高速なインデキシング:</strong> 23% 向上したコンピューティング性能により、大量のデータ取り込みとインデキシングスループットが改善</li>
+                        <li><strong style="color: var(--text-primary);">低レイテンシー検索:</strong> 50% 低減されたストレージ I/O レイテンシーにより、検索クエリの応答時間が短縮</li>
+                        <li><strong style="color: var(--text-primary);">安定したパフォーマンス:</strong> I/O レイテンシーのばらつきが 60% 低減され、ワークロードのパフォーマンスがより予測可能に</li>
+                        <li><strong style="color: var(--text-primary);">大容量 NVMe ストレージ:</strong> 最大 45TB の NVMe ストレージにより、大規模データセットをローカルストレージで処理可能</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Limitations -->
+        <section class="section">
+            <h2 class="section-title">制約事項・注意点</h2>
+            <div class="constraint-card">
+                <div class="constraint-title">制限事項</div>
+                <ul class="constraint-list">
+                    <li>i7i インスタンスは NVMe ローカルストレージを使用するため、EBS ボリュームストレージはサポートされない</li>
+                    <li>ノード障害時にはローカルストレージのデータが失われるため、レプリカシャードによるデータ冗長性の確保が重要</li>
+                    <li>ストレージ I/O を多用しないワークロードでは、汎用 (m7i) やメモリ最適化 (r7i) インスタンスの方がコスト効率が良い場合がある</li>
+                </ul>
+            </div>
+            <div class="constraint-card">
+                <div class="constraint-title">考慮すべき点</div>
+                <ul class="constraint-list">
+                    <li>I4i から i7i への移行では Blue/Green デプロイメントが実行されるため、移行中のリソース消費を考慮する必要がある</li>
+                    <li>NVMe ストレージ容量はインスタンスサイズに応じて固定されるため、ストレージ要件に基づいて適切なサイズを選択することが重要</li>
+                    <li>I4i のリザーブドインスタンスは i7i には適用されないため、新たなリザーブドインスタンスの購入を検討する</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Use Cases -->
+        <section class="section">
+            <h2 class="section-title">ユースケース</h2>
+
+            <div class="usecase-card">
+                <div class="usecase-header">
+                    <span style="font-size: 24px;">&#128274;&#128200;</span>
+                    <div class="usecase-title">大規模ログ分析基盤 (SIEM)</div>
+                </div>
+                <div class="usecase-scenario">
+                    セキュリティ運用チームが数十 TB のログデータをリアルタイムで取り込み、検索・分析するセキュリティ情報イベント管理基盤を運用。i7i.8xlarge を 6 ノードで構成し、合計約 45 TB のストレージ容量を確保。
+                </div>
+                <div class="usecase-effect">
+                    50% 向上したリアルタイムストレージ性能により、大量のログの取り込みと検索を高速に処理可能
+                </div>
+            </div>
+
+            <div class="usecase-card">
+                <div class="usecase-header">
+                    <span style="font-size: 24px;">&#128722;&#128269;</span>
+                    <div class="usecase-title">E コマース商品検索エンジン</div>
+                </div>
+                <div class="usecase-scenario">
+                    E コマースプラットフォームが数百万件の商品カタログに対する全文検索とファセット検索を低レイテンシーで提供。i7i.4xlarge を 3 ノードで 3 AZ にまたがる構成。
+                </div>
+                <div class="usecase-effect">
+                    50% 低減されたストレージ I/O レイテンシーと 60% 低減されたレイテンシーのばらつきにより、商品検索のレスポンスタイムが安定し、ユーザーエクスペリエンスが向上
+                </div>
+            </div>
+
+            <div class="usecase-card">
+                <div class="usecase-header">
+                    <span style="font-size: 24px;">&#9881;&#65039;&#128225;</span>
+                    <div class="usecase-title">IoT データのリアルタイム分析</div>
+                </div>
+                <div class="usecase-scenario">
+                    製造業の企業が数千台の IoT デバイスから送信されるセンサーデータをリアルタイムで取り込み、異常検知と分析を実行。i7i.2xlarge を 3 ノードで構成。
+                </div>
+                <div class="usecase-effect">
+                    23% 向上したコンピューティング性能により、高頻度のデータ取り込みとリアルタイムのインデキシング処理が効率化。低レイテンシーの I/O により異常検知クエリの応答速度が向上
+                </div>
+            </div>
+        </section>
+
+        <!-- Pricing -->
+        <section class="section">
+            <h2 class="section-title">料金</h2>
+            <div class="pricing-card">
+                <div class="pricing-highlight">NVMe ローカルストレージのため EBS 追加料金なし</div>
+                <div class="pricing-detail" style="margin-bottom: 16px;">料金はインスタンスタイプとリージョンによって異なります。</div>
+
+                <h3 style="font-size: 15px; color: var(--text-primary); margin-bottom: 12px; text-align: left;">料金体系</h3>
+                <table class="pricing-table">
+                    <thead>
+                        <tr>
+                            <th>項目</th>
+                            <th>詳細</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong style="color: var(--text-primary);">オンデマンドインスタンス</strong></td>
+                            <td>使用したインスタンス時間に基づいて課金</td>
+                        </tr>
+                        <tr>
+                            <td><strong style="color: var(--text-primary);">リザーブドインスタンス</strong></td>
+                            <td>1 年または 3 年の期間で予約し、最大 52% のコスト削減</td>
+                        </tr>
+                        <tr>
+                            <td><strong style="color: var(--text-primary);">データ転送</strong></td>
+                            <td>AWS リージョン間のデータ転送には追加料金が発生</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3 style="font-size: 15px; color: var(--text-primary); margin-top: 20px; margin-bottom: 12px; text-align: left;">リザーブドインスタンスの割引率</h3>
+                <table class="pricing-table">
+                    <thead>
+                        <tr>
+                            <th>支払いオプション</th>
+                            <th>1 年契約</th>
+                            <th>3 年契約</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong style="color: var(--text-primary);">前払いなし (NURI)</strong></td>
+                            <td class="discount">31% 割引</td>
+                            <td class="discount">48% 割引</td>
+                        </tr>
+                        <tr>
+                            <td><strong style="color: var(--text-primary);">一部前払い (PURI)</strong></td>
+                            <td class="discount">33% 割引</td>
+                            <td class="discount">50% 割引</td>
+                        </tr>
+                        <tr>
+                            <td><strong style="color: var(--text-primary);">全額前払い (AURI)</strong></td>
+                            <td class="discount">35% 割引</td>
+                            <td class="discount">52% 割引</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="pricing-detail" style="margin-top: 12px;">詳細は <a href="https://aws.amazon.com/opensearch-service/pricing/" target="_blank" style="color: var(--aws-teal);">Amazon OpenSearch Service 料金ページ</a> を参照してください。</div>
+            </div>
+        </section>
+
+        <!-- Region -->
+        <section class="section">
+            <h2 class="section-title">利用可能リージョン</h2>
+            <div class="region-card">
+                <div style="font-size: 28px; margin-bottom: 8px; text-align: center;">&#127758;</div>
+                <div class="region-highlight">30 以上の AWS リージョンで利用可能</div>
+                <div class="region-grid">
+                    <div class="region-group">
+                        <div class="region-group-title">北米 (6 リージョン)</div>
+                        <ul class="region-list">
+                            <li>us-east-1 / us-east-2</li>
+                            <li>us-west-1 / us-west-2</li>
+                            <li>ca-central-1 / ca-west-1</li>
+                        </ul>
+                    </div>
+                    <div class="region-group">
+                        <div class="region-group-title">ヨーロッパ (7 リージョン)</div>
+                        <ul class="region-list">
+                            <li>eu-central-1 / eu-central-2</li>
+                            <li>eu-west-1 / eu-west-2</li>
+                            <li>eu-south-1 / eu-south-2</li>
+                            <li>eu-north-1</li>
+                        </ul>
+                    </div>
+                    <div class="region-group">
+                        <div class="region-group-title">アジアパシフィック (11 リージョン)</div>
+                        <ul class="region-list">
+                            <li>ap-northeast-1 / 2 / 3</li>
+                            <li>ap-southeast-1 / 2 / 3 / 4 / 5</li>
+                            <li>ap-south-1 / 2 / ap-east-1</li>
+                        </ul>
+                    </div>
+                    <div class="region-group">
+                        <div class="region-group-title">その他 (4 リージョン)</div>
+                        <ul class="region-list">
+                            <li>af-south-1</li>
+                            <li>me-central-1</li>
+                            <li>sa-east-1</li>
+                            <li>us-gov-west-1</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Related Services -->
+        <section class="section">
+            <h2 class="section-title">関連サービス・機能</h2>
+            <div class="related-grid">
+                <div class="related-card">
+                    <div style="font-size: 24px; margin-bottom: 8px;">&#128187;</div>
+                    <div class="related-name">Amazon EC2 I7i</div>
+                    <div class="related-desc">OpenSearch Service の i7i の基盤となるストレージ集約型ワークロード向け EC2 インスタンスタイプ</div>
+                </div>
+                <div class="related-card">
+                    <div style="font-size: 24px; margin-bottom: 8px;">&#128295;</div>
+                    <div class="related-name">AWS Nitro System</div>
+                    <div class="related-desc">CPU 仮想化、ストレージ、ネットワーキングを専用ハードウェアにオフロードする基盤技術</div>
+                </div>
+                <div class="related-card">
+                    <div style="font-size: 24px; margin-bottom: 8px;">&#9889;</div>
+                    <div class="related-name">OpenSearch Serverless</div>
+                    <div class="related-desc">サーバーレスでの OpenSearch 利用が必要な場合の代替オプション</div>
+                </div>
+                <div class="related-card">
+                    <div style="font-size: 24px; margin-bottom: 8px;">&#128640;</div>
+                    <div class="related-name">OpenSearch Ingestion</div>
+                    <div class="related-desc">OpenSearch Service へのデータ取り込みパイプラインを構築するフルマネージドサービス</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer>
+            <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 12px;">参考リンク</p>
+            <ul class="source-links">
+                <li><a href="https://aws.amazon.com/about-aws/whats-new/2026/02/amazon-opensearch-service-supports-i7i-instances/" class="source-link" target="_blank">公式発表 - What's New</a></li>
+                <li><a href="https://aws.amazon.com/opensearch-service/pricing/" class="source-link" target="_blank">Amazon OpenSearch Service 料金ページ</a></li>
+                <li><a href="https://aws.amazon.com/opensearch-service/" class="source-link" target="_blank">Amazon OpenSearch Service 製品ページ</a></li>
+                <li><a href="https://docs.aws.amazon.com/opensearch-service/latest/developerguide/supported-instance-types.html" class="source-link" target="_blank">サポートされるインスタンスタイプ</a></li>
+                <li><a href="https://aws.amazon.com/ec2/instance-types/i7i/" class="source-link" target="_blank">Amazon EC2 I7i インスタンス</a></li>
+            </ul>
+            <p class="footer-note">Amazon OpenSearch Service - i7i インスタンスのサポート開始 | 2026 年 2 月 18 日</p>
+        </footer>
+    </div>
+
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'base',
+            themeVariables: {
+                primaryColor: '#FF9900',
+                primaryTextColor: '#232F3E',
+                primaryBorderColor: '#FF9900',
+                lineColor: '#FF9900',
+                secondaryColor: '#F5F5F5',
+                tertiaryColor: '#FAFAFA',
+                background: '#FFFFFF',
+                mainBkg: '#FFF3E0',
+                nodeBorder: '#FF9900',
+                clusterBkg: '#FFF8E1',
+                clusterBorder: '#FF9900',
+                edgeLabelBackground: '#FFFFFF',
+                textColor: '#232F3E'
+            },
+            flowchart: {
+                curve: 'basis',
+                padding: 20
+            }
+        });
+        hljs.highlightAll();
+    </script>
+</body>
+</html>
