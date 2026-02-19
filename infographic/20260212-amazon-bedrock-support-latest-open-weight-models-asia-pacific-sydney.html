@@ -1,0 +1,1142 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Amazon Bedrock - 最新オープンウェイトモデルが Asia Pacific (Sydney) で利用可能に</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/styles/atom-one-dark.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/highlight.min.js"></script>
+    <style>
+        :root {
+            --squid-ink: #232F3E;
+            --aws-orange: #FF9900;
+            --aws-smile-orange: #FFAD33;
+            --text-primary: #FFFFFF;
+            --text-secondary: #AAAAAA;
+            --light-gray: #D5DBDB;
+            --card-bg: #2D3A4A;
+            --dark-squid: #1A242F;
+            --border-color: #3D4A5A;
+            --aws-teal: #00A1C9;
+            --aws-purple: #8C4FFF;
+            --aws-green: #1D8102;
+            --aws-red: #D13212;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            background-color: var(--squid-ink);
+            color: var(--light-gray);
+            line-height: 1.8;
+            font-size: 16px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+            padding-bottom: 30px;
+            border-bottom: 3px solid var(--aws-orange);
+        }
+
+        .service-badge {
+            display: inline-block;
+            background-color: var(--aws-orange);
+            color: var(--squid-ink);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+        }
+
+        .release-date {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--aws-orange);
+            margin-bottom: 20px;
+            padding-left: 15px;
+            border-left: 4px solid var(--aws-orange);
+        }
+
+        .overview-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .overview-text {
+            font-size: 16px;
+            line-height: 1.9;
+        }
+
+        .highlight {
+            background-color: rgba(255, 153, 0, 0.2);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+            color: var(--aws-orange);
+        }
+
+        /* Stats grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, var(--card-bg) 0%, var(--dark-squid) 100%);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid rgba(255, 153, 0, 0.2);
+        }
+
+        .stat-icon {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--aws-orange);
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        /* Before/After comparison */
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .comparison-grid {
+                grid-template-columns: 1fr;
+            }
+            .features-grid {
+                grid-template-columns: 1fr !important;
+            }
+            .merit-grid {
+                grid-template-columns: 1fr;
+            }
+            .related-grid {
+                grid-template-columns: 1fr 1fr !important;
+            }
+            .provider-grid {
+                grid-template-columns: repeat(2, 1fr) !important;
+            }
+            .endpoint-grid {
+                grid-template-columns: 1fr !important;
+            }
+        }
+
+        .comparison-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .comparison-card.before {
+            border-top: 4px solid #E74C3C;
+        }
+
+        .comparison-card.after {
+            border-top: 4px solid #2ECC71;
+        }
+
+        .comparison-label {
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        .comparison-card.before .comparison-label {
+            color: #E74C3C;
+        }
+
+        .comparison-card.after .comparison-label {
+            color: #2ECC71;
+        }
+
+        .comparison-list {
+            list-style: none;
+        }
+
+        .comparison-list li {
+            padding: 8px 0;
+            padding-left: 25px;
+            position: relative;
+            font-size: 14px;
+        }
+
+        .comparison-card.before .comparison-list li::before {
+            content: "\2717";
+            position: absolute;
+            left: 0;
+            color: #E74C3C;
+            font-weight: bold;
+        }
+
+        .comparison-card.after .comparison-list li::before {
+            content: "\2713";
+            position: absolute;
+            left: 0;
+            color: #2ECC71;
+            font-weight: bold;
+        }
+
+        /* Mermaid diagram */
+        .diagram-container {
+            background-color: #FFFFFF;
+            border: 2px solid rgba(255, 153, 0, 0.3);
+            border-radius: 12px;
+            padding: 25px;
+            overflow-x: auto;
+        }
+
+        .mermaid {
+            display: flex;
+            justify-content: center;
+        }
+
+        .diagram-caption {
+            font-size: 14px;
+            color: var(--text-secondary);
+            text-align: center;
+            margin-top: 12px;
+        }
+
+        /* Feature cards */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .feature-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            border-left: 3px solid var(--aws-orange);
+        }
+
+        .feature-icon {
+            font-size: 36px;
+            margin-bottom: 12px;
+        }
+
+        .feature-title {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--aws-orange);
+        }
+
+        .feature-description {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        /* Provider grid */
+        .provider-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin: 20px 0;
+        }
+
+        .provider-card {
+            background: linear-gradient(135deg, var(--card-bg) 0%, var(--dark-squid) 100%);
+            border-radius: 10px;
+            padding: 16px;
+            text-align: center;
+            border: 1px solid rgba(255, 153, 0, 0.2);
+            transition: border-color 0.2s;
+        }
+
+        .provider-card:hover {
+            border-color: var(--aws-orange);
+        }
+
+        .provider-icon {
+            font-size: 28px;
+            margin-bottom: 6px;
+        }
+
+        .provider-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        /* Endpoint grid */
+        .endpoint-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .endpoint-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            border-top: 3px solid var(--aws-teal);
+        }
+
+        .endpoint-name {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--aws-teal);
+            margin-bottom: 10px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .endpoint-api {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .endpoint-api code {
+            color: var(--aws-orange);
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+        }
+
+        .endpoint-desc {
+            font-size: 14px;
+            color: var(--light-gray);
+            line-height: 1.7;
+        }
+
+        /* Technical spec tables */
+        .api-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+        }
+
+        .api-table th {
+            background-color: var(--dark-squid);
+            color: var(--aws-orange);
+            padding: 10px 14px;
+            text-align: left;
+            font-size: 13px;
+            font-weight: 700;
+            border-bottom: 2px solid var(--aws-orange);
+        }
+
+        .api-table td {
+            padding: 10px 14px;
+            font-size: 13px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--light-gray);
+        }
+
+        .api-table code {
+            color: var(--aws-teal);
+            font-size: 12px;
+            font-family: 'Courier New', monospace;
+        }
+
+        /* Flow diagram */
+        .flow-diagram {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin: 24px 0;
+        }
+
+        .flow-step {
+            background: var(--dark-squid);
+            border: 2px solid var(--aws-orange);
+            border-radius: 8px;
+            padding: 12px 20px;
+            text-align: center;
+            min-width: 120px;
+            font-size: 14px;
+        }
+
+        .flow-arrow {
+            color: var(--aws-orange);
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        /* Use case cards */
+        .usecase-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 3px solid var(--aws-orange);
+        }
+
+        .usecase-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .usecase-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--aws-orange);
+        }
+
+        .usecase-scenario {
+            font-size: 14px;
+            color: var(--light-gray);
+            margin-bottom: 12px;
+        }
+
+        .usecase-effect {
+            font-size: 14px;
+            color: #2ECC71;
+            padding: 10px;
+            background-color: rgba(46, 204, 113, 0.1);
+            border-radius: 8px;
+        }
+
+        .usecase-effect::before {
+            content: "\2713 ";
+            font-weight: bold;
+        }
+
+        /* Merit/Demerit */
+        .merit-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .merit-section {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .merit-section h3 {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: var(--aws-orange);
+        }
+
+        .merit-list {
+            list-style: none;
+        }
+
+        .merit-list li {
+            padding: 6px 0;
+            padding-left: 22px;
+            position: relative;
+            font-size: 14px;
+            color: var(--light-gray);
+        }
+
+        .merit-list li::before {
+            content: "\2713";
+            position: absolute;
+            left: 0;
+            color: #2ECC71;
+            font-weight: bold;
+        }
+
+        /* Constraint/Limitation */
+        .constraint-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 3px solid #E74C3C;
+        }
+
+        .constraint-title {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #E74C3C;
+        }
+
+        .constraint-list {
+            list-style: none;
+        }
+
+        .constraint-list li {
+            padding: 6px 0;
+            padding-left: 22px;
+            position: relative;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .constraint-list li::before {
+            content: "\26A0";
+            position: absolute;
+            left: 0;
+            font-size: 12px;
+        }
+
+        /* Pricing card */
+        .pricing-card {
+            background: linear-gradient(135deg, rgba(29, 129, 2, 0.15) 0%, var(--card-bg) 100%);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid rgba(29, 129, 2, 0.3);
+            text-align: center;
+        }
+
+        .pricing-highlight {
+            font-size: 22px;
+            font-weight: 700;
+            color: #2ECC71;
+            margin-bottom: 8px;
+        }
+
+        .pricing-detail {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        /* Region */
+        .region-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .region-highlight {
+            font-size: 16px;
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .region-code {
+            font-size: 13px;
+            color: var(--aws-teal);
+            font-family: 'Courier New', monospace;
+            margin-top: 6px;
+        }
+
+        /* Related services */
+        .related-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+
+        .related-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+        }
+
+        .related-name {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 6px;
+        }
+
+        .related-desc {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        /* Code blocks */
+        .code-block {
+            background: #1a1a2e;
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 16px 0;
+        }
+
+        .code-header {
+            background: #16213e;
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+        }
+
+        .code-lang {
+            color: var(--aws-orange);
+            font-weight: bold;
+        }
+
+        .code-title {
+            color: var(--light-gray);
+        }
+
+        .code-block pre {
+            margin: 0;
+            padding: 0;
+            overflow-x: auto;
+        }
+
+        .code-block code {
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            padding: 16px !important;
+        }
+
+        /* Footer */
+        footer {
+            margin-top: 50px;
+            padding-top: 30px;
+            border-top: 1px solid var(--border-color);
+            text-align: center;
+        }
+
+        .source-links {
+            list-style: none;
+            margin-bottom: 16px;
+        }
+
+        .source-links li {
+            margin-bottom: 6px;
+        }
+
+        .source-link {
+            color: var(--aws-teal);
+            text-decoration: none;
+            font-size: 14px;
+            word-break: break-all;
+        }
+
+        .source-link:hover {
+            color: var(--aws-smile-orange);
+            text-decoration: underline;
+        }
+
+        .footer-note {
+            color: var(--text-secondary);
+            font-size: 12px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <span class="service-badge">Amazon Bedrock</span>
+            <h1>最新オープンウェイトモデルが Asia Pacific (Sydney) で利用可能に</h1>
+            <p style="color: var(--light-gray); font-size: 15px; margin-bottom: 8px;">Latest Open Weight Models Now Available in Asia Pacific (Sydney)</p>
+            <p class="release-date">2026 年 2 月 12 日</p>
+        </header>
+
+        <!-- Overview -->
+        <section class="section">
+            <h2 class="section-title">&#128203; 概要</h2>
+            <div class="overview-card">
+                <p class="overview-text">
+                    Amazon Bedrock が <span class="highlight">Asia Pacific (Sydney)</span> リージョンで最新のオープンウェイトモデルのサポートを開始。<span class="highlight">bedrock-runtime</span> エンドポイントと <span class="highlight">bedrock-mantle</span> エンドポイントの両方を使用して、DeepSeek、Google、MiniMax、Mistral、Moonshot AI、Nvidia、OpenAI など <span class="highlight">7 社</span> のプロバイダのモデルが利用可能になりました。
+                </p>
+            </div>
+
+            <!-- Stats -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">&#129302;</div>
+                    <div class="stat-value">7</div>
+                    <div class="stat-label">モデル<br>プロバイダ</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">&#128268;</div>
+                    <div class="stat-value">2</div>
+                    <div class="stat-label">エンドポイント<br>タイプ</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">&#127758;</div>
+                    <div class="stat-value">Sydney</div>
+                    <div class="stat-label">新規対応<br>リージョン</div>
+                </div>
+            </div>
+
+            <!-- Before/After -->
+            <div class="comparison-grid">
+                <div class="comparison-card before">
+                    <div class="comparison-label">&#10060; Before - アップデート前の課題</div>
+                    <ul class="comparison-list">
+                        <li>Asia Pacific (Sydney) で最新のオープンウェイトモデルが利用できなかった</li>
+                        <li>Oceania 地域のお客様は他のリージョンにリクエストを送信する必要があった</li>
+                        <li>レイテンシの増加とデータ主権要件への対応が困難だった</li>
+                    </ul>
+                </div>
+                <div class="comparison-card after">
+                    <div class="comparison-label">&#9989; After - アップデート後の改善</div>
+                    <ul class="comparison-list">
+                        <li>Sydney リージョンで複数プロバイダの最新オープンウェイトモデルが利用可能に</li>
+                        <li>bedrock-runtime と bedrock-mantle の両エンドポイントに対応</li>
+                        <li>データ主権要件を満たしつつ低レイテンシで推論を実行可能</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Architecture Diagram -->
+        <section class="section">
+            <h2 class="section-title">&#128736;&#65039; アーキテクチャ図</h2>
+            <div class="diagram-container">
+                <pre class="mermaid">
+flowchart TD
+    subgraph Sydney["&#127758; Asia Pacific - Sydney"]
+        subgraph Endpoints["&#128268; エンドポイント"]
+            direction LR
+            Runtime["&#9889; bedrock-runtime&lt;br/&gt;InvokeModel / Converse&lt;br/&gt;Chat Completions API"]
+            Mantle["&#128640; bedrock-mantle&lt;br/&gt;OpenAI 互換 API&lt;br/&gt;Project Mantle"]
+            Runtime ~~~ Mantle
+        end
+
+        subgraph Providers["&#129302; モデルプロバイダ"]
+            direction LR
+            DS["DeepSeek"]
+            GG["Google"]
+            MM["MiniMax"]
+            MS["Mistral"]
+            MA["Moonshot AI"]
+            NV["Nvidia"]
+            OA["OpenAI"]
+            DS ~~~ GG ~~~ MM ~~~ MS
+            MA ~~~ NV ~~~ OA
+        end
+    end
+
+    User(["&#128100; Oceania ユーザー"]) --> Endpoints
+    Endpoints --> Providers
+
+    classDef cloud fill:none,stroke:#CCCCCC,stroke-width:2px,color:#666666
+    classDef layer fill:none,stroke:#E1BEE7,stroke-width:2px,color:#666666
+    classDef compute fill:#FFE0B2,stroke:#FFCC80,stroke-width:2px,color:#5D4037
+    classDef user fill:#E3F2FD,stroke:#BBDEFB,stroke-width:2px,color:#1565C0
+    classDef provider fill:#E8EAF6,stroke:#C5CAE9,stroke-width:2px,color:#283593
+    classDef endpoint fill:#E9F7EC,stroke:#66BB6A,stroke-width:2px,color:#333333
+
+    class Sydney cloud
+    class Endpoints layer
+    class Providers layer
+    class Runtime,Mantle endpoint
+    class DS,GG,MM,MS,MA,NV,OA provider
+    class User user
+                </pre>
+            </div>
+            <p class="diagram-caption">Asia Pacific (Sydney) リージョンにおける Amazon Bedrock オープンウェイトモデルのアーキテクチャ構成。bedrock-runtime と bedrock-mantle の 2 つのエンドポイントから 7 社のプロバイダモデルにアクセス可能です。</p>
+        </section>
+
+        <!-- Model Providers -->
+        <section class="section">
+            <h2 class="section-title">&#129302; 対応モデルプロバイダ</h2>
+            <div class="provider-grid">
+                <div class="provider-card">
+                    <div class="provider-icon">&#129504;</div>
+                    <div class="provider-name">DeepSeek</div>
+                </div>
+                <div class="provider-card">
+                    <div class="provider-icon">&#128270;</div>
+                    <div class="provider-name">Google</div>
+                </div>
+                <div class="provider-card">
+                    <div class="provider-icon">&#128171;</div>
+                    <div class="provider-name">MiniMax</div>
+                </div>
+                <div class="provider-card">
+                    <div class="provider-icon">&#127890;</div>
+                    <div class="provider-name">Mistral</div>
+                </div>
+                <div class="provider-card">
+                    <div class="provider-icon">&#127769;</div>
+                    <div class="provider-name">Moonshot AI</div>
+                </div>
+                <div class="provider-card">
+                    <div class="provider-icon">&#128187;</div>
+                    <div class="provider-name">Nvidia</div>
+                </div>
+                <div class="provider-card">
+                    <div class="provider-icon">&#129302;</div>
+                    <div class="provider-name">OpenAI</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Key Features -->
+        <section class="section">
+            <h2 class="section-title">&#9889; 主要機能</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">&#128268;</div>
+                    <div class="feature-title">bedrock-runtime エンドポイント</div>
+                    <div class="feature-description">
+                        InvokeModel、Converse、Chat Completions API を使用したリージョン固有の推論リクエスト用エンドポイント。標準的な Bedrock API として利用可能です。
+                    </div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#128640;</div>
+                    <div class="feature-title">bedrock-mantle エンドポイント</div>
+                    <div class="feature-description">
+                        OpenAI 互換エンドポイントを使用した推論リクエスト用。Project Mantle ベースの分散推論エンジンによって駆動されます。
+                    </div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#9881;&#65039;</div>
+                    <div class="feature-title">Project Mantle</div>
+                    <div class="feature-description">
+                        大規模 ML モデル提供のための分散推論エンジン。高パフォーマンスかつ信頼性の高いサーバーレス推論と OpenAI API 互換性を提供します。
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Technical Spec -->
+        <section class="section">
+            <h2 class="section-title">&#128202; 技術仕様</h2>
+
+            <h3 style="font-size: 16px; color: var(--text-primary); margin-bottom: 12px;">エンドポイント比較</h3>
+            <table class="api-table">
+                <thead>
+                    <tr>
+                        <th>エンドポイント</th>
+                        <th>API</th>
+                        <th>特徴</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>bedrock-runtime</code></td>
+                        <td>InvokeModel, Converse, Chat Completions</td>
+                        <td>標準的な Bedrock API</td>
+                    </tr>
+                    <tr>
+                        <td><code>bedrock-mantle</code></td>
+                        <td>OpenAI 互換</td>
+                        <td>Project Mantle ベース、高パフォーマンス</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="endpoint-grid" style="margin-top: 20px;">
+                <div class="endpoint-card">
+                    <div class="endpoint-name">bedrock-runtime</div>
+                    <div class="endpoint-api">対応 API:</div>
+                    <div class="endpoint-api"><code>InvokeModel</code> / <code>Converse</code> / <code>Chat Completions</code></div>
+                    <div class="endpoint-desc" style="margin-top: 10px;">
+                        リージョン固有の推論リクエスト用の標準エンドポイント。既存の Bedrock アプリケーションとの互換性を維持します。
+                    </div>
+                </div>
+                <div class="endpoint-card">
+                    <div class="endpoint-name">bedrock-mantle</div>
+                    <div class="endpoint-api">対応 API:</div>
+                    <div class="endpoint-api"><code>OpenAI 互換 API</code></div>
+                    <div class="endpoint-desc" style="margin-top: 10px;">
+                        Project Mantle による分散推論エンジンベース。OpenAI SDK からの移行が容易で、高パフォーマンスなサーバーレス推論を提供します。
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Configuration -->
+        <section class="section">
+            <h2 class="section-title">&#128736;&#65039; 設定方法</h2>
+
+            <div class="overview-card" style="margin-bottom: 16px;">
+                <h3 style="font-size: 15px; color: var(--aws-orange); margin-bottom: 10px;">前提条件</h3>
+                <ul class="merit-list">
+                    <li>Asia Pacific (Sydney) リージョンで Amazon Bedrock が有効であること</li>
+                    <li>使用するモデルへのアクセスが許可されていること</li>
+                </ul>
+            </div>
+
+            <div class="flow-diagram">
+                <div class="flow-step">&#128270; モデルアクセス<br>有効化</div>
+                <span class="flow-arrow">&rarr;</span>
+                <div class="flow-step">&#128268; エンドポイント<br>選択</div>
+                <span class="flow-arrow">&rarr;</span>
+                <div class="flow-step">&#9889; 推論リクエスト<br>送信</div>
+            </div>
+
+            <h3 style="font-size: 16px; color: var(--text-primary); margin-top: 20px; margin-bottom: 12px;">ステップ 1: モデルアクセスの有効化</h3>
+            <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 16px;">Amazon Bedrock コンソールで Asia Pacific (Sydney) リージョンを選択し、使用するオープンウェイトモデルへのアクセスをリクエストします。</p>
+
+            <h3 style="font-size: 16px; color: var(--text-primary); margin-top: 20px; margin-bottom: 12px;">ステップ 2: bedrock-runtime での呼び出し例</h3>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Python</span>
+                    <span class="code-title">bedrock-runtime エンドポイントでの Converse API 使用例</span>
+                </div>
+                <pre><code class="language-python">import boto3
+import json
+
+bedrock_runtime = boto3.client(
+    'bedrock-runtime',
+    region_name='ap-southeast-2'  # Sydney
+)
+
+# Converse API を使用した推論リクエスト
+response = bedrock_runtime.converse(
+    modelId='&lt;model-id&gt;',
+    messages=[
+        {
+            'role': 'user',
+            'content': [
+                {'text': 'Hello, how are you?'}
+            ]
+        }
+    ]
+)
+
+print(response['output']['message']['content'][0]['text'])</code></pre>
+            </div>
+
+            <h3 style="font-size: 16px; color: var(--text-primary); margin-top: 20px; margin-bottom: 12px;">ステップ 3: bedrock-mantle での呼び出し例</h3>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Python</span>
+                    <span class="code-title">bedrock-mantle エンドポイントでの OpenAI 互換 API 使用例</span>
+                </div>
+                <pre><code class="language-python">from openai import OpenAI
+
+# bedrock-mantle エンドポイントを使用
+client = OpenAI(
+    base_url='https://bedrock-mantle.ap-southeast-2.amazonaws.com/v1',
+    api_key='&lt;credentials&gt;'
+)
+
+response = client.chat.completions.create(
+    model='&lt;model-id&gt;',
+    messages=[
+        {'role': 'user', 'content': 'Hello, how are you?'}
+    ]
+)
+
+print(response.choices[0].message.content)</code></pre>
+            </div>
+        </section>
+
+        <!-- Benefits -->
+        <section class="section">
+            <h2 class="section-title">&#128188; メリット</h2>
+            <div class="merit-grid">
+                <div class="merit-section">
+                    <h3>&#128188; ビジネス面</h3>
+                    <ul class="merit-list">
+                        <li><strong style="color: var(--text-primary);">データ主権:</strong> Oceania 地域のデータ主権要件を満たしながらモデルを利用可能</li>
+                        <li><strong style="color: var(--text-primary);">低レイテンシ:</strong> ローカルリージョンからの推論で応答時間が改善</li>
+                        <li><strong style="color: var(--text-primary);">選択肢の拡大:</strong> 複数プロバイダの最新モデルから最適なものを選択可能</li>
+                    </ul>
+                </div>
+                <div class="merit-section">
+                    <h3>&#128736;&#65039; 技術面</h3>
+                    <ul class="merit-list">
+                        <li><strong style="color: var(--text-primary);">OpenAI 互換 API:</strong> bedrock-mantle による OpenAI API 互換性で既存コードの移行が容易</li>
+                        <li><strong style="color: var(--text-primary);">Project Mantle:</strong> 分散推論エンジンによる高パフォーマンスなサーバーレス推論</li>
+                        <li><strong style="color: var(--text-primary);">複数エンドポイント:</strong> ユースケースに応じて最適なエンドポイントを選択可能</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Limitations -->
+        <section class="section">
+            <h2 class="section-title">&#9888;&#65039; 制約事項・注意点</h2>
+            <div class="constraint-card">
+                <div class="constraint-title">制限事項</div>
+                <ul class="constraint-list">
+                    <li>一部のモデルはリージョンによって利用可能性が異なる場合がある</li>
+                </ul>
+            </div>
+            <div class="constraint-card">
+                <div class="constraint-title">考慮すべき点</div>
+                <ul class="constraint-list">
+                    <li>モデルごとの料金とクォータを確認すること</li>
+                    <li>bedrock-runtime と bedrock-mantle のどちらのエンドポイントがユースケースに適しているかを事前に検討すること</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Use Cases -->
+        <section class="section">
+            <h2 class="section-title">&#127919; ユースケース</h2>
+
+            <div class="usecase-card">
+                <div class="usecase-header">
+                    <span style="font-size: 24px;">&#127758;&#128202;</span>
+                    <div class="usecase-title">Oceania 地域のデータ主権要件を満たす AI アプリケーション</div>
+                </div>
+                <div class="usecase-scenario">
+                    オーストラリアの企業がデータ主権要件を満たしつつ、最新の AI モデルを活用したアプリケーションを構築したい。
+                </div>
+                <div class="usecase-effect">
+                    Sydney リージョンでオープンウェイトモデルが利用可能になったことで、データを国外に送信することなく、複数プロバイダの最新モデルから最適なものを選択して低レイテンシで推論を実行できます。
+                </div>
+            </div>
+
+            <div class="usecase-card">
+                <div class="usecase-header">
+                    <span style="font-size: 24px;">&#128260;&#129302;</span>
+                    <div class="usecase-title">OpenAI SDK からの移行</div>
+                </div>
+                <div class="usecase-scenario">
+                    既存の OpenAI API ベースのアプリケーションを AWS マネージド環境に移行したい。
+                </div>
+                <div class="usecase-effect">
+                    bedrock-mantle の OpenAI 互換エンドポイントを使用することで、最小限のコード変更で既存アプリケーションを Amazon Bedrock に移行でき、Project Mantle による高パフォーマンスな分散推論の恩恵を受けられます。
+                </div>
+            </div>
+
+            <div class="usecase-card">
+                <div class="usecase-header">
+                    <span style="font-size: 24px;">&#128171;&#9889;</span>
+                    <div class="usecase-title">マルチモデル比較・最適化</div>
+                </div>
+                <div class="usecase-scenario">
+                    複数のオープンウェイトモデルを評価し、特定のユースケースに最適なモデルを選択したい。
+                </div>
+                <div class="usecase-effect">
+                    7 社のプロバイダのモデルが同一リージョンで利用可能なため、統一された API を通じて簡単にモデルを切り替え、パフォーマンスやコストを比較検証できます。
+                </div>
+            </div>
+        </section>
+
+        <!-- Pricing -->
+        <section class="section">
+            <h2 class="section-title">&#128176; 料金</h2>
+            <div class="pricing-card">
+                <div class="pricing-highlight">Amazon Bedrock 標準料金が適用</div>
+                <div class="pricing-detail" style="margin-bottom: 12px;">モデルとリージョンに応じた Amazon Bedrock の標準料金が適用されます。</div>
+                <div class="pricing-detail">詳細は <a href="https://aws.amazon.com/bedrock/pricing/" target="_blank" style="color: var(--aws-teal);">Amazon Bedrock 料金ページ</a> を参照してください。</div>
+            </div>
+        </section>
+
+        <!-- Region -->
+        <section class="section">
+            <h2 class="section-title">&#127758; 利用可能リージョン</h2>
+            <div class="region-card">
+                <div style="font-size: 28px; margin-bottom: 8px;">&#127466;&#127482;</div>
+                <div class="region-highlight">Asia Pacific (Sydney)</div>
+                <div class="region-code">ap-southeast-2</div>
+                <p style="font-size: 13px; color: var(--text-secondary); margin-top: 10px;">今回新たに追加されたリージョン</p>
+            </div>
+        </section>
+
+        <!-- Related Services -->
+        <section class="section">
+            <h2 class="section-title">&#128279; 関連サービス・機能</h2>
+            <div class="related-grid">
+                <div class="related-card">
+                    <div style="font-size: 24px; margin-bottom: 8px;">&#129302;</div>
+                    <div class="related-name">Amazon Bedrock</div>
+                    <div class="related-desc">フルマネージドの基盤モデルサービス</div>
+                </div>
+                <div class="related-card">
+                    <div style="font-size: 24px; margin-bottom: 8px;">&#128640;</div>
+                    <div class="related-name">Project Mantle</div>
+                    <div class="related-desc">Bedrock の分散推論エンジン</div>
+                </div>
+                <div class="related-card">
+                    <div style="font-size: 24px; margin-bottom: 8px;">&#128274;</div>
+                    <div class="related-name">Bedrock PrivateLink</div>
+                    <div class="related-desc">プライベートアクセス対応</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer>
+            <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 12px;">参考リンク</p>
+            <ul class="source-links">
+                <li><a href="https://aws.amazon.com/about-aws/whats-new/2026/02/amazon-bedrock-support-latest-open-weight-models-asia-pacific-sydney/" class="source-link" target="_blank">公式発表 - What's New</a></li>
+                <li><a href="https://docs.aws.amazon.com/bedrock/latest/userguide/what-is-bedrock.html" class="source-link" target="_blank">Amazon Bedrock ドキュメント</a></li>
+            </ul>
+            <p class="footer-note">Amazon Bedrock - 最新オープンウェイトモデルが Asia Pacific (Sydney) で利用可能に | 2026 年 2 月 12 日</p>
+        </footer>
+    </div>
+
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'base',
+            themeVariables: {
+                primaryColor: '#FF9900',
+                primaryTextColor: '#232F3E',
+                primaryBorderColor: '#FF9900',
+                lineColor: '#FF9900',
+                secondaryColor: '#F5F5F5',
+                tertiaryColor: '#FAFAFA',
+                background: '#FFFFFF',
+                mainBkg: '#FFF3E0',
+                nodeBorder: '#FF9900',
+                clusterBkg: '#FFF8E1',
+                clusterBorder: '#FF9900',
+                edgeLabelBackground: '#FFFFFF',
+                textColor: '#232F3E'
+            },
+            flowchart: {
+                curve: 'basis',
+                padding: 20
+            }
+        });
+        hljs.highlightAll();
+    </script>
+</body>
+</html>

@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Amazon Managed Grafana - AWS KMS CMK サポート</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/styles/atom-one-dark.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/highlight.min.js"></script>
+    <style>
+        :root {
+            --squid-ink: #232F3E;
+            --aws-orange: #FF9900;
+            --aws-smile-orange: #FFAD33;
+            --text-primary: #FFFFFF;
+            --text-secondary: #AAAAAA;
+            --light-gray: #D5DBDB;
+            --card-bg: #2D3A4A;
+            --dark-squid: #1A242F;
+            --border-color: #3D4A5A;
+            --aws-teal: #00A1C9;
+            --aws-purple: #8C4FFF;
+            --aws-green: #1D8102;
+            --aws-red: #D13212;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            background-color: var(--squid-ink);
+            color: var(--light-gray);
+            line-height: 1.8;
+            font-size: 16px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+            padding-bottom: 30px;
+            border-bottom: 3px solid var(--aws-orange);
+        }
+
+        .service-badge {
+            display: inline-block;
+            background-color: var(--aws-orange);
+            color: var(--squid-ink);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+        }
+
+        .release-date {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--aws-orange);
+            margin-bottom: 20px;
+            padding-left: 15px;
+            border-left: 4px solid var(--aws-orange);
+        }
+
+        .overview-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .overview-text {
+            font-size: 16px;
+            line-height: 1.9;
+        }
+
+        .highlight {
+            background-color: rgba(255, 153, 0, 0.2);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+            color: var(--aws-orange);
+        }
+
+        /* Stats grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, var(--card-bg) 0%, var(--dark-squid) 100%);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid rgba(255, 153, 0, 0.2);
+        }
+
+        .stat-icon {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--aws-orange);
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        /* Before/After comparison */
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .comparison-grid {
+                grid-template-columns: 1fr;
+            }
+            .features-grid {
+                grid-template-columns: 1fr !important;
+            }
+            .merit-grid {
+                grid-template-columns: 1fr;
+            }
+            .related-grid {
+                grid-template-columns: 1fr !important;
+            }
+            .encryption-grid {
+                grid-template-columns: 1fr !important;
+            }
+        }
+
+        .comparison-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .comparison-card.before {
+            border-top: 4px solid #E74C3C;
+        }
+
+        .comparison-card.after {
+            border-top: 4px solid #2ECC71;
+        }
+
+        .comparison-label {
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        .comparison-card.before .comparison-label {
+            color: #E74C3C;
+        }
+
+        .comparison-card.after .comparison-label {
+            color: #2ECC71;
+        }
+
+        .comparison-list {
+            list-style: none;
+        }
+
+        .comparison-list li {
+            padding: 8px 0;
+            padding-left: 25px;
+            position: relative;
+            font-size: 14px;
+        }
+
+        .comparison-card.before .comparison-list li::before {
+            content: "\2717";
+            position: absolute;
+            left: 0;
+            color: #E74C3C;
+            font-weight: bold;
+        }
+
+        .comparison-card.after .comparison-list li::before {
+            content: "\2713";
+            position: absolute;
+            left: 0;
+            color: #2ECC71;
+            font-weight: bold;
+        }
+
+        /* Mermaid diagram */
+        .diagram-container {
+            background-color: #FFFFFF;
+            border: 2px solid rgba(255, 153, 0, 0.3);
+            border-radius: 12px;
+            padding: 25px;
+            overflow-x: auto;
+        }
+
+        .mermaid {
+            display: flex;
+            justify-content: center;
+        }
+
+        .diagram-caption {
+            font-size: 14px;
+            color: var(--text-secondary);
+            text-align: center;
+            margin-top: 12px;
+        }
+
+        /* Feature cards */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .feature-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            border-left: 3px solid var(--aws-orange);
+        }
+
+        .feature-icon {
+            font-size: 36px;
+            margin-bottom: 12px;
+        }
+
+        .feature-title {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--aws-orange);
+        }
+
+        .feature-description {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        /* Technical spec tables */
+        .api-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+        }
+
+        .api-table th {
+            background-color: var(--dark-squid);
+            color: var(--aws-orange);
+            padding: 10px 14px;
+            text-align: left;
+            font-size: 13px;
+            font-weight: 700;
+            border-bottom: 2px solid var(--aws-orange);
+        }
+
+        .api-table td {
+            padding: 10px 14px;
+            font-size: 13px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--light-gray);
+        }
+
+        .api-table code {
+            color: var(--aws-teal);
+            font-size: 12px;
+            font-family: 'Courier New', monospace;
+        }
+
+        /* Encryption comparison grid */
+        .encryption-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            margin-top: 16px;
+        }
+
+        .encryption-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .encryption-card.aws-owned {
+            border-top: 3px solid var(--text-secondary);
+        }
+
+        .encryption-card.customer-managed {
+            border-top: 3px solid var(--aws-purple);
+        }
+
+        .encryption-type-name {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .encryption-card.aws-owned .encryption-type-name {
+            color: var(--text-secondary);
+        }
+
+        .encryption-card.customer-managed .encryption-type-name {
+            color: var(--aws-purple);
+        }
+
+        .encryption-detail {
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-top: 6px;
+        }
+
+        .encryption-badge {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 700;
+            margin-top: 8px;
+        }
+
+        .encryption-card.aws-owned .encryption-badge {
+            background-color: rgba(170, 170, 170, 0.15);
+            color: var(--text-secondary);
+        }
+
+        .encryption-card.customer-managed .encryption-badge {
+            background-color: rgba(140, 79, 255, 0.15);
+            color: var(--aws-purple);
+        }
+
+        /* Flow diagram */
+        .flow-diagram {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin: 24px 0;
+        }
+
+        .flow-step {
+            background: var(--dark-squid);
+            border: 2px solid var(--aws-orange);
+            border-radius: 8px;
+            padding: 12px 20px;
+            text-align: center;
+            min-width: 120px;
+            font-size: 14px;
+        }
+
+        .flow-arrow {
+            color: var(--aws-orange);
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        /* Use case cards */
+        .usecase-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 3px solid var(--aws-orange);
+        }
+
+        .usecase-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .usecase-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--aws-orange);
+        }
+
+        .usecase-scenario {
+            font-size: 14px;
+            color: var(--light-gray);
+            margin-bottom: 12px;
+        }
+
+        .usecase-effect {
+            font-size: 14px;
+            color: #2ECC71;
+            padding: 10px;
+            background-color: rgba(46, 204, 113, 0.1);
+            border-radius: 8px;
+        }
+
+        .usecase-effect::before {
+            content: "\2713 ";
+            font-weight: bold;
+        }
+
+        /* Merit/Demerit */
+        .merit-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .merit-section {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .merit-section h3 {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: var(--aws-orange);
+        }
+
+        .merit-list {
+            list-style: none;
+        }
+
+        .merit-list li {
+            padding: 6px 0;
+            padding-left: 22px;
+            position: relative;
+            font-size: 14px;
+            color: var(--light-gray);
+        }
+
+        .merit-list li::before {
+            content: "\2713";
+            position: absolute;
+            left: 0;
+            color: #2ECC71;
+            font-weight: bold;
+        }
+
+        /* Constraint/Limitation */
+        .constraint-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 3px solid #E74C3C;
+        }
+
+        .constraint-title {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #E74C3C;
+        }
+
+        .constraint-list {
+            list-style: none;
+        }
+
+        .constraint-list li {
+            padding: 6px 0;
+            padding-left: 22px;
+            position: relative;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .constraint-list li::before {
+            content: "\26A0";
+            position: absolute;
+            left: 0;
+            font-size: 12px;
+        }
+
+        /* Pricing */
+        .pricing-card {
+            background: linear-gradient(135deg, rgba(29, 129, 2, 0.15) 0%, var(--card-bg) 100%);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid rgba(29, 129, 2, 0.3);
+        }
+
+        .pricing-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+        }
+
+        .pricing-table th {
+            background-color: var(--dark-squid);
+            color: var(--aws-orange);
+            padding: 10px 14px;
+            text-align: left;
+            font-size: 13px;
+            font-weight: 700;
+            border-bottom: 2px solid var(--aws-orange);
+        }
+
+        .pricing-table td {
+            padding: 10px 14px;
+            font-size: 13px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--light-gray);
+        }
+
+        /* Region */
+        .region-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .region-highlight {
+            font-size: 16px;
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .region-note {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-top: 8px;
+        }
+
+        /* Related services */
+        .related-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+
+        .related-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+        }
+
+        .related-name {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 6px;
+        }
+
+        .related-desc {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        /* Footer */
+        footer {
+            margin-top: 50px;
+            padding-top: 30px;
+            border-top: 1px solid var(--border-color);
+            text-align: center;
+        }
+
+        .source-links {
+            list-style: none;
+            margin-bottom: 16px;
+        }
+
+        .source-links li {
+            margin-bottom: 6px;
+        }
+
+        .source-link {
+            color: var(--aws-teal);
+            text-decoration: none;
+            font-size: 14px;
+            word-break: break-all;
+        }
+
+        .source-link:hover {
+            color: var(--aws-smile-orange);
+            text-decoration: underline;
+        }
+
+        .footer-note {
+            color: var(--text-secondary);
+            font-size: 12px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <span class="service-badge">Amazon Managed Grafana</span>
+            <h1>AWS KMS カスタマーマネージドキーサポート</h1>
+            <p style="color: var(--light-gray); font-size: 15px; margin-bottom: 8px;">Customer Managed Keys for Workspace Encryption</p>
+            <p class="release-date">2026 年 2 月 18 日</p>
+        </header>
+
+        <!-- Overview -->
+        <section class="section">
+            <h2 class="section-title">概要</h2>
+            <div class="overview-card">
+                <p class="overview-text">
+                    Amazon Managed Grafana が <span class="highlight">AWS KMS カスタマーマネージドキー</span> をサポートしました。これにより、ワークスペースに保存されるデータを <span class="highlight">独自の暗号化キー</span> で暗号化できるようになります。
+                </p>
+                <p class="overview-text" style="margin-top: 12px;">
+                    従来はデフォルトの AWS 所有キーによる暗号化のみでしたが、今回のアップデートでワークスペース作成時にカスタマーマネージドキーを選択できるオプションが追加されました。組織のコンプライアンスおよび規制要件を満たすための <span class="highlight">自己管理型のセキュリティレイヤ</span> を追加できます。
+                </p>
+            </div>
+
+            <!-- Stats -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">&#128274;</div>
+                    <div class="stat-value">CMK</div>
+                    <div class="stat-label">カスタマーマネージドキー<br>による暗号化</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">&#128260;</div>
+                    <div class="stat-value">自己管理</div>
+                    <div class="stat-label">キーローテーション<br>アクセス制御</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">&#128203;</div>
+                    <div class="stat-value">6</div>
+                    <div class="stat-label">更新された<br>API メソッド</div>
+                </div>
+            </div>
+
+            <!-- Before/After -->
+            <div class="comparison-grid">
+                <div class="comparison-card before">
+                    <div class="comparison-label">Before - アップデート前の課題</div>
+                    <ul class="comparison-list">
+                        <li>ワークスペースの暗号化に AWS 所有キーのみ使用可能だった</li>
+                        <li>独自の暗号化キーによるデータ保護の制御ができなかった</li>
+                        <li>特定のコンプライアンス要件で CMK が必須の場合に対応できなかった</li>
+                    </ul>
+                </div>
+                <div class="comparison-card after">
+                    <div class="comparison-label">After - アップデート後の改善</div>
+                    <ul class="comparison-list">
+                        <li>ワークスペース作成時にカスタマーマネージドキーを指定可能</li>
+                        <li>キーローテーションやアクセス制御を自己管理可能</li>
+                        <li>コンプライアンスおよび規制要件への対応が容易に</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Architecture Diagram -->
+        <section class="section">
+            <h2 class="section-title">アーキテクチャ図</h2>
+            <div class="diagram-container">
+                <pre class="mermaid">
+flowchart LR
+    subgraph Grafana["&#128202; Amazon Managed Grafana"]
+        WS["&#128421;&#65039; ワークスペース"]
+        Data["&#128451;&#65039; 保存データ"]
+        WS --> Data
+    end
+
+    subgraph KMS["&#128272; AWS KMS"]
+        CMK["&#128273; カスタマーマネージドキー"]
+    end
+
+    Data -->|暗号化| CMK
+
+    classDef grafana fill:#FFE0B2,stroke:#FFCC80,stroke-width:2px,color:#5D4037
+    classDef kms fill:#E8EAF6,stroke:#C5CAE9,stroke-width:2px,color:#283593
+    classDef container fill:none,stroke:#CCCCCC,stroke-width:2px,color:#666666
+
+    class WS,Data grafana
+    class CMK kms
+    class Grafana,KMS container
+                </pre>
+            </div>
+            <p class="diagram-caption">Amazon Managed Grafana ワークスペースのデータが AWS KMS のカスタマーマネージドキーで暗号化される。</p>
+        </section>
+
+        <!-- Key Features -->
+        <section class="section">
+            <h2 class="section-title">主要機能</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">&#128274;</div>
+                    <div class="feature-title">CMK による暗号化</div>
+                    <div class="feature-description">
+                        ワークスペース作成時にカスタマーマネージドキーを指定可能。AWS KMS との統合により暗号化キーを管理。既存の AWS 所有キー暗号化も引き続き利用可能です。
+                    </div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#9881;&#65039;</div>
+                    <div class="feature-title">キー管理の自己制御</div>
+                    <div class="feature-description">
+                        キーローテーションポリシーの設定、キーアクセスポリシーの管理、監査ログによるキー使用の追跡が可能です。
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Technical Spec -->
+        <section class="section">
+            <h2 class="section-title">技術仕様</h2>
+
+            <h3 style="font-size: 16px; color: var(--text-primary); margin-bottom: 12px;">暗号化オプション比較</h3>
+            <div class="encryption-grid">
+                <div class="encryption-card aws-owned">
+                    <div style="font-size: 28px; margin-bottom: 8px;">&#128274;</div>
+                    <div class="encryption-type-name">AWS 所有キー</div>
+                    <div class="encryption-detail"><strong style="color: var(--text-primary);">キー管理:</strong> AWS が管理</div>
+                    <div class="encryption-detail"><strong style="color: var(--text-primary);">キーローテーション:</strong> AWS が自動実行</div>
+                    <div class="encryption-detail"><strong style="color: var(--text-primary);">アクセスポリシー:</strong> 設定不可</div>
+                    <div class="encryption-detail"><strong style="color: var(--text-primary);">コスト:</strong> 無料</div>
+                    <div class="encryption-detail"><strong style="color: var(--text-primary);">用途:</strong> 基本的な暗号化要件</div>
+                    <span class="encryption-badge">デフォルト</span>
+                </div>
+                <div class="encryption-card customer-managed">
+                    <div style="font-size: 28px; margin-bottom: 8px;">&#128273;</div>
+                    <div class="encryption-type-name">カスタマーマネージドキー</div>
+                    <div class="encryption-detail"><strong style="color: var(--text-primary);">キー管理:</strong> お客様が管理</div>
+                    <div class="encryption-detail"><strong style="color: var(--text-primary);">キーローテーション:</strong> お客様が制御</div>
+                    <div class="encryption-detail"><strong style="color: var(--text-primary);">アクセスポリシー:</strong> お客様が設定</div>
+                    <div class="encryption-detail"><strong style="color: var(--text-primary);">コスト:</strong> KMS キー料金が発生</div>
+                    <div class="encryption-detail"><strong style="color: var(--text-primary);">用途:</strong> 厳格なコンプライアンス要件対応</div>
+                    <span class="encryption-badge">新規オプション</span>
+                </div>
+            </div>
+
+            <h3 style="font-size: 16px; color: var(--text-primary); margin-top: 24px; margin-bottom: 12px;">API 変更履歴</h3>
+            <table class="api-table">
+                <thead>
+                    <tr>
+                        <th>日付</th>
+                        <th>サービス</th>
+                        <th>変更内容</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong style="color: var(--text-primary);">2026/02/17</strong></td>
+                        <td><a href="https://awsapichanges.com/archive/changes/9d9af7-grafana.html" target="_blank" style="color: var(--aws-teal); text-decoration: none;">Amazon Managed Grafana</a></td>
+                        <td>6 updated API methods - CMK サポートのための API 更新</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- Configuration -->
+        <section class="section">
+            <h2 class="section-title">設定方法</h2>
+
+            <div class="overview-card" style="margin-bottom: 16px;">
+                <h3 style="font-size: 15px; color: var(--aws-orange); margin-bottom: 10px;">前提条件</h3>
+                <ul class="merit-list">
+                    <li>AWS KMS でカスタマーマネージドキーが作成済みであること</li>
+                    <li>Amazon Managed Grafana ワークスペースの作成権限があること</li>
+                    <li>KMS キーポリシーで Grafana サービスへのアクセスが許可されていること</li>
+                </ul>
+            </div>
+
+            <div class="flow-diagram">
+                <div class="flow-step">&#128273; KMS キーの<br>準備</div>
+                <span class="flow-arrow">&rarr;</span>
+                <div class="flow-step">&#128221; ワークスペース<br>の作成</div>
+                <span class="flow-arrow">&rarr;</span>
+                <div class="flow-step">&#128274; CMK で<br>暗号化完了</div>
+            </div>
+
+            <h3 style="font-size: 16px; color: var(--text-primary); margin-top: 20px; margin-bottom: 12px;">ステップ 1: KMS キーの準備</h3>
+            <div class="overview-card">
+                <p style="font-size: 14px; color: var(--light-gray); line-height: 1.8;">
+                    AWS KMS コンソールでカスタマーマネージドキーを作成し、Amazon Managed Grafana サービスへのアクセスを許可するキーポリシーを設定します。
+                </p>
+            </div>
+
+            <h3 style="font-size: 16px; color: var(--text-primary); margin-top: 20px; margin-bottom: 12px;">ステップ 2: ワークスペースの作成</h3>
+            <div class="overview-card">
+                <p style="font-size: 14px; color: var(--light-gray); line-height: 1.8;">
+                    Amazon Managed Grafana コンソールで新しいワークスペースを作成する際に、暗号化設定でカスタマーマネージドキーを選択し、作成した KMS キーの ARN を指定します。
+                </p>
+            </div>
+        </section>
+
+        <!-- Benefits -->
+        <section class="section">
+            <h2 class="section-title">メリット</h2>
+            <div class="merit-grid">
+                <div class="merit-section">
+                    <h3>&#128188; ビジネス面</h3>
+                    <ul class="merit-list">
+                        <li><strong style="color: var(--text-primary);">コンプライアンス対応:</strong> HIPAA、PCI DSS 等の規制要件で CMK が必須な場合に対応</li>
+                        <li><strong style="color: var(--text-primary);">データ主権の強化:</strong> 暗号化キーの完全な制御による機密データの保護</li>
+                        <li><strong style="color: var(--text-primary);">監査対応:</strong> CloudTrail を通じたキー使用の完全な監査証跡</li>
+                    </ul>
+                </div>
+                <div class="merit-section">
+                    <h3>&#128736;&#65039; 技術面</h3>
+                    <ul class="merit-list">
+                        <li><strong style="color: var(--text-primary);">キーローテーション制御:</strong> セキュリティポリシーに合わせたキーローテーション</li>
+                        <li><strong style="color: var(--text-primary);">アクセス制御の細粒度化:</strong> KMS キーポリシーによる精密なアクセス管理</li>
+                        <li><strong style="color: var(--text-primary);">キー無効化によるデータ保護:</strong> 緊急時にキーを無効化してデータアクセスを即座に遮断可能</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Limitations -->
+        <section class="section">
+            <h2 class="section-title">制約事項・注意点</h2>
+            <div class="constraint-card">
+                <div class="constraint-title">制限事項</div>
+                <ul class="constraint-list">
+                    <li>AWS GovCloud (US) リージョンでは利用不可</li>
+                    <li>CMK はワークスペース作成時にのみ指定可能 (既存ワークスペースへの後付けは不可)</li>
+                </ul>
+            </div>
+            <div class="constraint-card">
+                <div class="constraint-title">考慮すべき点</div>
+                <ul class="constraint-list">
+                    <li>KMS キーの料金が追加で発生する</li>
+                    <li>キーを誤って削除するとデータにアクセスできなくなる</li>
+                    <li>キーポリシーの設定ミスによるサービス中断のリスク</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Use Cases -->
+        <section class="section">
+            <h2 class="section-title">ユースケース</h2>
+
+            <div class="usecase-card">
+                <div class="usecase-header">
+                    <span style="font-size: 24px;">&#127974;&#128179;</span>
+                    <div class="usecase-title">金融サービスのモニタリング</div>
+                </div>
+                <div class="usecase-scenario">
+                    PCI DSS 準拠が必要な金融サービス企業が Grafana でシステムモニタリングを行うシナリオ。
+                </div>
+                <div class="usecase-effect">
+                    CMK を使用することで暗号化キーの管理要件を満たし、コンプライアンスを確保
+                </div>
+            </div>
+
+            <div class="usecase-card">
+                <div class="usecase-header">
+                    <span style="font-size: 24px;">&#127973;&#128138;</span>
+                    <div class="usecase-title">ヘルスケアデータの可視化</div>
+                </div>
+                <div class="usecase-scenario">
+                    HIPAA 対応が必要なヘルスケア企業が患者データ関連のメトリクスを可視化するシナリオ。
+                </div>
+                <div class="usecase-effect">
+                    独自の暗号化キーによるデータ保護で規制要件に対応
+                </div>
+            </div>
+        </section>
+
+        <!-- Pricing -->
+        <section class="section">
+            <h2 class="section-title">料金</h2>
+            <div class="pricing-card">
+                <p style="font-size: 14px; color: var(--light-gray); margin-bottom: 16px;">
+                    Amazon Managed Grafana の通常料金に加えて、AWS KMS カスタマーマネージドキーの料金が発生します。
+                </p>
+                <table class="pricing-table">
+                    <thead>
+                        <tr>
+                            <th>項目</th>
+                            <th>料金</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong style="color: var(--text-primary);">KMS キー</strong></td>
+                            <td style="color: var(--aws-orange); font-weight: 700;">$1/月</td>
+                        </tr>
+                        <tr>
+                            <td><strong style="color: var(--text-primary);">API リクエスト</strong></td>
+                            <td style="color: var(--aws-orange); font-weight: 700;">$0.03/10,000 リクエスト</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Region -->
+        <section class="section">
+            <h2 class="section-title">利用可能リージョン</h2>
+            <div class="region-card">
+                <div style="font-size: 28px; margin-bottom: 8px;">&#127758;</div>
+                <div class="region-highlight">Amazon Managed Grafana が一般提供されているすべてのリージョンで利用可能</div>
+                <div class="region-note">ただし、AWS GovCloud (US) リージョンは除きます。</div>
+            </div>
+        </section>
+
+        <!-- Related Services -->
+        <section class="section">
+            <h2 class="section-title">関連サービス・機能</h2>
+            <div class="related-grid">
+                <div class="related-card">
+                    <div style="font-size: 24px; margin-bottom: 8px;">&#128273;</div>
+                    <div class="related-name">AWS KMS</div>
+                    <div class="related-desc">カスタマーマネージドキーの作成・管理サービス</div>
+                </div>
+                <div class="related-card">
+                    <div style="font-size: 24px; margin-bottom: 8px;">&#128202;</div>
+                    <div class="related-name">Amazon CloudWatch</div>
+                    <div class="related-desc">Grafana と連携するモニタリングサービス</div>
+                </div>
+                <div class="related-card">
+                    <div style="font-size: 24px; margin-bottom: 8px;">&#128203;</div>
+                    <div class="related-name">AWS CloudTrail</div>
+                    <div class="related-desc">KMS キー使用の監査ログ</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer>
+            <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 12px;">参考リンク</p>
+            <ul class="source-links">
+                <li><a href="https://aws.amazon.com/about-aws/whats-new/2026/02/amazon-managed-grafana-customer-managed-keys/" class="source-link" target="_blank">公式発表 - What's New</a></li>
+                <li><a href="https://docs.aws.amazon.com/grafana/latest/userguide/what-is-Amazon-Managed-Service-Grafana.html" class="source-link" target="_blank">Amazon Managed Grafana ユーザーガイド</a></li>
+                <li><a href="https://aws.amazon.com/grafana/" class="source-link" target="_blank">Amazon Managed Grafana 製品ページ</a></li>
+                <li><a href="https://aws.amazon.com/grafana/pricing/" class="source-link" target="_blank">Amazon Managed Grafana 料金ページ</a></li>
+            </ul>
+            <p class="footer-note">Amazon Managed Grafana - AWS KMS カスタマーマネージドキーサポート | 2026 年 2 月 18 日</p>
+        </footer>
+    </div>
+
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'base',
+            themeVariables: {
+                primaryColor: '#FF9900',
+                primaryTextColor: '#232F3E',
+                primaryBorderColor: '#FF9900',
+                lineColor: '#FF9900',
+                secondaryColor: '#F5F5F5',
+                tertiaryColor: '#FAFAFA',
+                background: '#FFFFFF',
+                mainBkg: '#FFF3E0',
+                nodeBorder: '#FF9900',
+                clusterBkg: '#FFF8E1',
+                clusterBorder: '#FF9900',
+                edgeLabelBackground: '#FFFFFF',
+                textColor: '#232F3E'
+            },
+            flowchart: {
+                curve: 'basis',
+                padding: 20
+            }
+        });
+        hljs.highlightAll();
+    </script>
+</body>
+</html>

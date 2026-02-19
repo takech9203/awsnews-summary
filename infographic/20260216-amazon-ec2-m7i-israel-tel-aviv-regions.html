@@ -1,0 +1,968 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Amazon EC2 - M7i インスタンスが Israel (Tel Aviv) で利用可能に</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/styles/atom-one-dark.min.css">
+    <style>
+        :root {
+            --squid-ink: #232F3E;
+            --dark-squid: #1A242F;
+            --aws-orange: #FF9900;
+            --smile-orange: #FFAD33;
+            --text-primary: #FFFFFF;
+            --text-secondary: #D5DBDB;
+            --text-muted: #AAAAAA;
+            --card-bg: #2D3A4A;
+            --border-color: #3D4A5A;
+            --aws-teal: #00A1C9;
+            --aws-green: #1D8102;
+            --aws-red: #D13212;
+            --aws-purple: #8C4FFF;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            background-color: var(--squid-ink);
+            color: var(--text-secondary);
+            line-height: 1.8;
+            font-size: 16px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+            padding-bottom: 30px;
+            border-bottom: 3px solid var(--aws-orange);
+        }
+
+        .badge-row {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+
+        .service-badge {
+            display: inline-block;
+            background-color: var(--aws-orange);
+            color: var(--squid-ink);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .feature-badge {
+            display: inline-block;
+            background-color: var(--aws-teal);
+            color: #FFFFFF;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .region-badge {
+            display: inline-block;
+            background-color: var(--aws-purple);
+            color: #FFFFFF;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+            line-height: 1.4;
+        }
+
+        .release-date {
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--aws-orange);
+            margin-bottom: 20px;
+            padding-left: 15px;
+            border-left: 4px solid var(--aws-orange);
+        }
+
+        .overview-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .overview-text {
+            font-size: 16px;
+            line-height: 1.9;
+        }
+
+        .highlight {
+            color: var(--aws-orange);
+            font-weight: 700;
+        }
+
+        /* Comparison Grid */
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .comparison-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .comparison-card.before {
+            border-top: 4px solid #E74C3C;
+        }
+
+        .comparison-card.after {
+            border-top: 4px solid #2ECC71;
+        }
+
+        .comparison-label {
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        .comparison-card.before .comparison-label {
+            color: #E74C3C;
+        }
+
+        .comparison-card.after .comparison-label {
+            color: #2ECC71;
+        }
+
+        .comparison-list {
+            list-style: none;
+        }
+
+        .comparison-list li {
+            padding: 8px 0;
+            padding-left: 25px;
+            position: relative;
+            font-size: 14px;
+        }
+
+        .comparison-card.before .comparison-list li::before {
+            content: "\2717";
+            position: absolute;
+            left: 0;
+            color: #E74C3C;
+            font-weight: bold;
+        }
+
+        .comparison-card.after .comparison-list li::before {
+            content: "\2713";
+            position: absolute;
+            left: 0;
+            color: #2ECC71;
+            font-weight: bold;
+        }
+
+        /* Statistics Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, var(--card-bg) 0%, var(--dark-squid) 100%);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid rgba(255, 153, 0, 0.2);
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--aws-orange);
+            line-height: 1.2;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 6px;
+        }
+
+        .stat-sublabel {
+            font-size: 11px;
+            color: var(--text-muted);
+            opacity: 0.7;
+        }
+
+        /* Features Grid */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .feature-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .feature-icon {
+            font-size: 36px;
+            margin-bottom: 15px;
+        }
+
+        .feature-title {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--aws-orange);
+        }
+
+        .feature-description {
+            font-size: 14px;
+            color: var(--text-muted);
+            line-height: 1.7;
+        }
+
+        /* Accelerator Cards */
+        .accelerator-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-top: 20px;
+        }
+
+        .accelerator-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            border-top: 3px solid var(--aws-teal);
+        }
+
+        .accelerator-icon {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .accelerator-name {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--aws-teal);
+            margin-bottom: 8px;
+        }
+
+        .accelerator-desc {
+            font-size: 13px;
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+
+        /* Technical Table */
+        .tech-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            font-size: 14px;
+        }
+
+        .tech-table th,
+        .tech-table td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .tech-table th {
+            color: var(--aws-orange);
+            font-weight: 700;
+            background-color: var(--dark-squid);
+            font-size: 13px;
+        }
+
+        .tech-table td {
+            color: var(--text-secondary);
+        }
+
+        .tech-table .tech-value {
+            color: var(--aws-orange);
+            font-weight: 700;
+        }
+
+        .tech-table tr:hover {
+            background-color: rgba(255, 153, 0, 0.05);
+        }
+
+        /* Use Cases */
+        .usecase-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 3px solid var(--smile-orange);
+        }
+
+        .usecase-title {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 6px;
+            color: var(--aws-orange);
+        }
+
+        .usecase-description {
+            font-size: 14px;
+            color: var(--text-muted);
+            line-height: 1.7;
+        }
+
+        .usecase-effect {
+            font-size: 13px;
+            color: #2ECC71;
+            margin-top: 8px;
+            font-weight: 500;
+        }
+
+        /* Benefits Grid */
+        .benefits-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .benefit-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 25px;
+            border-left: 4px solid var(--aws-orange);
+        }
+
+        .benefit-card-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--aws-orange);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .benefit-list {
+            list-style: none;
+        }
+
+        .benefit-list li {
+            padding: 6px 0;
+            padding-left: 22px;
+            position: relative;
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .benefit-list li::before {
+            content: "\2713";
+            position: absolute;
+            left: 0;
+            color: var(--aws-orange);
+            font-weight: bold;
+        }
+
+        /* Considerations */
+        .consideration-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+        }
+
+        .consideration-card.warning {
+            border-left: 4px solid #F39C12;
+        }
+
+        .consideration-card.info {
+            border-left: 4px solid var(--aws-teal);
+        }
+
+        .consideration-title {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+        }
+
+        .consideration-list {
+            list-style: none;
+        }
+
+        .consideration-list li {
+            padding: 6px 0;
+            padding-left: 22px;
+            position: relative;
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        .consideration-card.warning .consideration-list li::before {
+            content: "\26A0";
+            position: absolute;
+            left: 0;
+            color: #F39C12;
+        }
+
+        .consideration-card.info .consideration-list li::before {
+            content: "\2139";
+            position: absolute;
+            left: 0;
+            color: var(--aws-teal);
+            font-weight: bold;
+        }
+
+        /* Flow Diagram */
+        .flow-diagram {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin: 24px 0;
+        }
+
+        .flow-step {
+            background: var(--dark-squid);
+            border: 2px solid var(--aws-orange);
+            border-radius: 8px;
+            padding: 12px 20px;
+            text-align: center;
+            min-width: 100px;
+            font-size: 14px;
+        }
+
+        .flow-arrow {
+            color: var(--aws-orange);
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        /* Mermaid Container */
+        .mermaid-container {
+            background: #FFFFFF;
+            border-radius: 12px;
+            padding: 24px;
+            margin: 20px 0;
+            border: 2px solid rgba(255, 153, 0, 0.3);
+            overflow-x: auto;
+        }
+        .mermaid {
+            display: flex;
+            justify-content: center;
+        }
+
+        /* Related Services */
+        .related-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+
+        .related-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 18px;
+            text-align: center;
+        }
+
+        .related-icon {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        .related-name {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .related-desc {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        /* Region Map */
+        .region-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 25px;
+            text-align: center;
+        }
+
+        .region-highlight {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--aws-orange), var(--smile-orange));
+            color: var(--squid-ink);
+            padding: 10px 30px;
+            border-radius: 8px;
+            font-size: 20px;
+            font-weight: 700;
+            margin: 15px 0;
+        }
+
+        /* Pricing */
+        .pricing-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 25px;
+        }
+
+        /* Footer */
+        footer {
+            margin-top: 50px;
+            padding-top: 30px;
+            border-top: 1px solid var(--border-color);
+            text-align: center;
+        }
+
+        .source-link {
+            color: var(--aws-teal);
+            text-decoration: none;
+            font-size: 14px;
+            display: inline-block;
+            margin-bottom: 8px;
+        }
+
+        .source-link:hover {
+            color: var(--smile-orange);
+            text-decoration: underline;
+        }
+
+        .footer-note {
+            color: var(--text-muted);
+            font-size: 12px;
+            margin-top: 15px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .comparison-grid {
+                grid-template-columns: 1fr;
+            }
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr) !important;
+            }
+            .features-grid {
+                grid-template-columns: 1fr !important;
+            }
+            .benefits-grid {
+                grid-template-columns: 1fr !important;
+            }
+            .related-grid {
+                grid-template-columns: 1fr !important;
+            }
+            .accelerator-grid {
+                grid-template-columns: 1fr !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="badge-row">
+                <span class="service-badge">Amazon EC2</span>
+                <span class="feature-badge">M7i Instances</span>
+                <span class="region-badge">Israel (Tel Aviv)</span>
+            </div>
+            <h1>Amazon EC2 M7i インスタンスが<br>Israel (Tel Aviv) リージョンで利用可能に</h1>
+            <p class="release-date">2026 年 2 月 16 日</p>
+        </header>
+
+        <!-- Overview Section -->
+        <section class="section">
+            <h2 class="section-title">&#9729;&#65039; 概要</h2>
+            <div class="overview-card">
+                <p class="overview-text">
+                    Amazon EC2 <span class="highlight">M7i インスタンス</span>が <span class="highlight">Israel (Tel Aviv) リージョン</span>で利用可能になりました。M7i インスタンスはカスタム<span class="highlight">第 4 世代 Intel Xeon Scalable プロセッサ (Sapphire Rapids)</span> を搭載し、M6i と比較して最大 <span class="highlight">15%</span> のプライスパフォーマンス向上を提供します。
+                </p>
+                <p class="overview-text" style="margin-top: 12px;">
+                    M7i は <span class="highlight">48xlarge</span> までの大型サイズとベアメタル 2 サイズ (<span class="highlight">metal-24xl</span>、<span class="highlight">metal-48xl</span>) を提供し、ベアメタルサイズでは Intel Data Streaming Accelerator、In-Memory Analytics Accelerator、QuickAssist Technology などの<span class="highlight">組み込みアクセラレータ</span>が利用可能です。
+                </p>
+            </div>
+
+            <div class="comparison-grid">
+                <div class="comparison-card before">
+                    <div class="comparison-label">&#10060; Before - アップデート前の課題</div>
+                    <ul class="comparison-list">
+                        <li>Israel (Tel Aviv) リージョンでは M7i が利用できなかった</li>
+                        <li>高パフォーマンスな汎用インスタンスの選択肢が限られていた</li>
+                    </ul>
+                </div>
+                <div class="comparison-card after">
+                    <div class="comparison-label">&#9989; After - アップデート後の改善</div>
+                    <ul class="comparison-list">
+                        <li>Israel (Tel Aviv) で M7i が利用可能になった</li>
+                        <li>48xlarge やベアメタルサイズが利用可能になった</li>
+                        <li>Intel 組み込みアクセラレータが利用可能になった</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Stats Section -->
+        <section class="section">
+            <h2 class="section-title">&#128202; 数字で見るアップデート</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value">15%</div>
+                    <div class="stat-label">プライスパフォーマンス向上</div>
+                    <div class="stat-sublabel">M6i 比</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">48xl</div>
+                    <div class="stat-label">最大インスタンスサイズ</div>
+                    <div class="stat-sublabel">+ ベアメタル 2 サイズ</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">3</div>
+                    <div class="stat-label">Intel 組み込みアクセラレータ</div>
+                    <div class="stat-sublabel">ベアメタルで利用可能</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Architecture Diagram Section -->
+        <section class="section">
+            <h2 class="section-title">&#128736;&#65039; アーキテクチャ図</h2>
+            <div class="mermaid-container">
+                <pre class="mermaid">
+flowchart TD
+    subgraph Region["&#127470;&#127473; Israel Tel Aviv Region"]
+        subgraph M7i["&#9881;&#65039; M7i インスタンス"]
+            direction LR
+            CPU["&#128187; カスタム第 4 世代&lt;br/&gt;Intel Xeon Scalable&lt;br/&gt;Sapphire Rapids"]
+            Sizes["&#128200; サイズ範囲&lt;br/&gt;large ~ 48xlarge"]
+            BM["&#128295; ベアメタル&lt;br/&gt;metal-24xl&lt;br/&gt;metal-48xl"]
+            CPU ~~~ Sizes ~~~ BM
+        end
+
+        subgraph Accelerators["&#9889; Intel 組み込みアクセラレータ&lt;br/&gt;ベアメタルのみ"]
+            direction LR
+            DSA["&#128640; Data Streaming&lt;br/&gt;Accelerator&lt;br/&gt;データ操作オフロード"]
+            IAX["&#128202; In-Memory Analytics&lt;br/&gt;Accelerator&lt;br/&gt;インメモリ分析高速化"]
+            QAT["&#128274; QuickAssist&lt;br/&gt;Technology&lt;br/&gt;暗号化・圧縮加速"]
+            DSA ~~~ IAX ~~~ QAT
+        end
+    end
+
+    BM -->|"ベアメタルで利用可能"| Accelerators
+
+    classDef region fill:none,stroke:#8C4FFF,stroke-width:2px,color:#666666
+    classDef instance fill:#FFF3E0,stroke:#FF9900,stroke-width:2px,color:#5D4037
+    classDef accel fill:#E3F2FD,stroke:#42A5F5,stroke-width:2px,color:#0D47A1
+    classDef component fill:#FFFFFF,stroke:#4A90E2,stroke-width:2px,color:#333333
+
+    class Region region
+    class M7i instance
+    class Accelerators accel
+    class CPU,Sizes,BM,DSA,IAX,QAT component
+                </pre>
+            </div>
+            <p style="font-size: 14px; color: var(--text-muted); text-align: center; margin-top: 10px;">
+                M7i インスタンスは large から 48xlarge までのサイズと 2 つのベアメタルサイズを提供し、ベアメタルでは 3 つの Intel 組み込みアクセラレータが利用可能です。
+            </p>
+        </section>
+
+        <!-- Key Features Section -->
+        <section class="section">
+            <h2 class="section-title">&#128273; 主要機能</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">&#128187;</div>
+                    <div class="feature-title">M7i インスタンス</div>
+                    <div class="feature-description">カスタム第 4 世代 Intel Xeon Scalable プロセッサ (Sapphire Rapids) を搭載。M6i 比で最大 15% のプライスパフォーマンス向上を実現。</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#128200;</div>
+                    <div class="feature-title">幅広いサイズ展開</div>
+                    <div class="feature-description">large から 48xlarge までの大型サイズと、metal-24xl、metal-48xl の 2 つのベアメタルサイズを提供。</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#9889;</div>
+                    <div class="feature-title">Intel 組み込みアクセラレータ</div>
+                    <div class="feature-description">ベアメタルサイズでは Data Streaming Accelerator、In-Memory Analytics Accelerator、QuickAssist Technology が利用可能。</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#127470;&#127473;</div>
+                    <div class="feature-title">Israel リージョン展開</div>
+                    <div class="feature-description">Israel (Tel Aviv) リージョンで M7i が利用可能になり、ローカルリージョンでの最新汎用インスタンスの選択肢が拡大。</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Intel Accelerators Section -->
+        <section class="section">
+            <h2 class="section-title">&#128640; Intel 組み込みアクセラレータ</h2>
+            <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 15px; text-align: center;">ベアメタルサイズ (metal-24xl、metal-48xl) で利用可能な 3 つのアクセラレータ</p>
+            <div class="accelerator-grid">
+                <div class="accelerator-card">
+                    <div class="accelerator-icon">&#128640;</div>
+                    <div class="accelerator-name">Data Streaming Accelerator</div>
+                    <div class="accelerator-desc">データ移動やデータ変換などのデータ操作をプロセッサからオフロードし、CPU リソースをアプリケーション処理に集中可能</div>
+                </div>
+                <div class="accelerator-card">
+                    <div class="accelerator-icon">&#128202;</div>
+                    <div class="accelerator-name">In-Memory Analytics Accelerator</div>
+                    <div class="accelerator-desc">インメモリデータベースやアナリティクスワークロードを高速化し、大規模データセットの分析パフォーマンスを向上</div>
+                </div>
+                <div class="accelerator-card">
+                    <div class="accelerator-icon">&#128274;</div>
+                    <div class="accelerator-name">QuickAssist Technology</div>
+                    <div class="accelerator-desc">暗号化とデータ圧縮をハードウェアで加速し、セキュリティ処理やストレージの効率を向上</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Technical Specifications -->
+        <section class="section">
+            <h2 class="section-title">&#128203; 技術仕様</h2>
+            <div class="overview-card">
+                <div style="font-size: 15px; font-weight: 700; color: var(--text-primary); margin-bottom: 12px;">M7i インスタンス仕様</div>
+                <table class="tech-table">
+                    <thead>
+                        <tr>
+                            <th>項目</th>
+                            <th>詳細</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>プロセッサ</td>
+                            <td class="tech-value">カスタム第 4 世代 Intel Xeon Scalable (Sapphire Rapids)</td>
+                        </tr>
+                        <tr>
+                            <td>サイズ範囲</td>
+                            <td class="tech-value">large ~ 48xlarge</td>
+                        </tr>
+                        <tr>
+                            <td>ベアメタルサイズ</td>
+                            <td class="tech-value">metal-24xl、metal-48xl</td>
+                        </tr>
+                        <tr>
+                            <td>M6i 比パフォーマンス</td>
+                            <td class="tech-value">最大 15% 向上</td>
+                        </tr>
+                        <tr>
+                            <td>Intel アクセラレータ</td>
+                            <td>ベアメタルサイズでのみ利用可能</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Setup Section -->
+        <section class="section">
+            <h2 class="section-title">&#128295; 設定方法</h2>
+            <div class="overview-card">
+                <div style="font-size: 15px; font-weight: 700; color: var(--text-primary); margin-bottom: 12px;">前提条件</div>
+                <ul class="benefit-list" style="margin-bottom: 20px;">
+                    <li>Israel (Tel Aviv) リージョンの AWS アカウントを保有していること</li>
+                </ul>
+
+                <div style="font-size: 15px; font-weight: 700; color: var(--text-primary); margin-bottom: 12px;">ステップ 1: インスタンスの起動</div>
+                <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 12px;">
+                    AWS マネジメントコンソールで Israel (Tel Aviv) リージョンを選択し、M7i インスタンスタイプを指定して起動します。
+                </p>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">Bash</span>
+                        <span class="code-title">Israel (Tel Aviv) で M7i インスタンスを起動</span>
+                    </div>
+                    <pre><code class="language-bash">aws ec2 run-instances \
+    --region il-central-1 \
+    --image-id ami-0abcdef1234567890 \
+    --instance-type m7i.xlarge \
+    --key-name my-key-pair \
+    --tag-specifications 'ResourceType=instance,Tags=[{Key=Name,Value=m7i-tel-aviv}]'</code></pre>
+                </div>
+                <p style="font-size: 14px; color: var(--text-muted); margin-top: 8px;">
+                    <code style="color: var(--aws-orange);">--region il-central-1</code> を指定して Israel (Tel Aviv) リージョンにインスタンスを起動します。インスタンスタイプは <code style="color: var(--aws-orange);">m7i.large</code> から <code style="color: var(--aws-orange);">m7i.48xlarge</code>、またはベアメタル (<code style="color: var(--aws-orange);">m7i.metal-24xl</code>、<code style="color: var(--aws-orange);">m7i.metal-48xl</code>) を選択できます。
+                </p>
+            </div>
+        </section>
+
+        <!-- Use Cases Section -->
+        <section class="section">
+            <h2 class="section-title">&#127919; ユースケース</h2>
+            <div class="usecase-card">
+                <div class="usecase-title">&#127758; ユースケース 1: Israel 国内データレジデンシー要件への対応</div>
+                <div class="usecase-description">Israel 国内のデータレジデンシー要件を満たしつつ、最新の高パフォーマンスな汎用インスタンスを利用したいワークロードに最適です。M7i の高いプライスパフォーマンスにより、コスト効率も向上します。</div>
+                <div class="usecase-effect">&#10004; ローカルリージョンで最新の汎用インスタンスを利用でき、データレジデンシー要件とパフォーマンスの両立が可能</div>
+            </div>
+            <div class="usecase-card">
+                <div class="usecase-title">&#128274; ユースケース 2: ベアメタルでの暗号化・圧縮集約ワークロード</div>
+                <div class="usecase-description">metal-24xl や metal-48xl のベアメタルサイズを使用して、Intel QuickAssist Technology による暗号化・圧縮のハードウェアアクセラレーションを活用し、セキュリティ処理やデータ圧縮が多いワークロードを効率的に実行できます。</div>
+                <div class="usecase-effect">&#10004; Intel 組み込みアクセラレータにより、CPU リソースをアプリケーション処理に集中しつつ暗号化・圧縮を加速</div>
+            </div>
+            <div class="usecase-card">
+                <div class="usecase-title">&#128200; ユースケース 3: M6i からの移行によるコスト最適化</div>
+                <div class="usecase-description">現在 Israel (Tel Aviv) リージョンで M6i インスタンスを使用しているワークロードを M7i に移行することで、最大 15% のプライスパフォーマンス向上を実現できます。</div>
+                <div class="usecase-effect">&#10004; M6i からの移行で追加投資なしにパフォーマンス向上とコスト削減を同時に達成</div>
+            </div>
+        </section>
+
+        <!-- Benefits Section -->
+        <section class="section">
+            <h2 class="section-title">&#128170; メリット</h2>
+            <div class="benefits-grid">
+                <div class="benefit-card">
+                    <div class="benefit-card-title">&#128176; ビジネス面</div>
+                    <ul class="benefit-list">
+                        <li>Israel リージョンの選択肢拡大: ローカルリージョンで最新の汎用インスタンスが利用可能</li>
+                        <li>コスト効率: M6i 比で最大 15% のプライスパフォーマンス向上</li>
+                    </ul>
+                </div>
+                <div class="benefit-card">
+                    <div class="benefit-card-title">&#9889; 技術面</div>
+                    <ul class="benefit-list">
+                        <li>ベアメタルサイズ: 大規模ワークロードに対応する 48xlarge とベアメタルサイズ</li>
+                        <li>Intel アクセラレータ: データ処理と暗号化の加速</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Constraints Section -->
+        <section class="section">
+            <h2 class="section-title">&#9888;&#65039; 制約事項</h2>
+            <div class="consideration-card warning">
+                <div class="consideration-title">&#9888; 制限事項</div>
+                <ul class="consideration-list">
+                    <li>Intel 組み込みアクセラレータはベアメタルサイズ (metal-24xl、metal-48xl) でのみ利用可能</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Pricing Section -->
+        <section class="section">
+            <h2 class="section-title">&#128176; 料金</h2>
+            <div class="pricing-card">
+                <p style="font-size: 14px; margin-bottom: 15px;">リージョン固有の料金が適用されます。詳細は EC2 料金ページを参照してください。</p>
+                <p style="font-size: 12px; color: var(--text-muted);">
+                    最新の料金については <a href="https://aws.amazon.com/ec2/pricing/" target="_blank" rel="noopener noreferrer" style="color: var(--aws-teal); text-decoration: none;">Amazon EC2 料金ページ</a>をご確認ください。
+                </p>
+            </div>
+        </section>
+
+        <!-- Available Regions Section -->
+        <section class="section">
+            <h2 class="section-title">&#127758; 利用可能リージョン</h2>
+            <div class="region-card">
+                <p style="font-size: 14px; margin-bottom: 10px;">今回追加されたリージョン</p>
+                <div class="region-highlight">&#127470;&#127473; Israel (Tel Aviv)</div>
+                <p style="font-size: 13px; color: var(--text-muted); margin-top: 10px;">il-central-1</p>
+            </div>
+        </section>
+
+        <!-- Related Services Section -->
+        <section class="section">
+            <h2 class="section-title">&#128279; 関連サービス</h2>
+            <div class="related-grid">
+                <div class="related-card">
+                    <div class="related-icon">&#128187;</div>
+                    <div class="related-name">Amazon EC2 M8i</div>
+                    <div class="related-desc">次世代の汎用インスタンス。さらなるパフォーマンス向上を提供</div>
+                </div>
+                <div class="related-card">
+                    <div class="related-icon">&#9881;&#65039;</div>
+                    <div class="related-name">Amazon EC2 M7i-flex</div>
+                    <div class="related-desc">M7i の Flex バリアント。バースト可能なパフォーマンスで柔軟なワークロードに対応</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer>
+            <div>
+                <a href="https://aws.amazon.com/about-aws/whats-new/2026/02/amazon-ec2-m7i-israel-tel-aviv-regions" class="source-link" target="_blank" rel="noopener noreferrer">
+                    &#128279; 公式発表 (What's New) を見る
+                </a>
+            </div>
+            <div>
+                <a href="https://aws.amazon.com/ec2/instance-types/m7i/" class="source-link" target="_blank" rel="noopener noreferrer">
+                    &#128196; M7i インスタンスページ
+                </a>
+            </div>
+            <div>
+                <a href="https://aws.amazon.com/ec2/pricing/" class="source-link" target="_blank" rel="noopener noreferrer">
+                    &#128176; Amazon EC2 料金ページ
+                </a>
+            </div>
+            <p class="footer-note">M7i インスタンスが Israel (Tel Aviv) リージョンで利用可能になりました。M6i からの移行でプライスパフォーマンスが最大 15% 向上し、ベアメタルサイズでは Intel 組み込みアクセラレータも利用できます。Israel リージョンで汎用インスタンスを使用しているお客様は、M7i への移行を検討することを推奨します。</p>
+        </footer>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'base',
+            themeVariables: {
+                primaryColor: '#FF9900',
+                primaryTextColor: '#232F3E',
+                primaryBorderColor: '#FF9900',
+                lineColor: '#FF9900',
+                secondaryColor: '#F5F5F5',
+                tertiaryColor: '#FAFAFA',
+                background: '#FFFFFF',
+                mainBkg: '#FFF3E0',
+                nodeBorder: '#FF9900',
+                clusterBkg: '#FFF8E1',
+                clusterBorder: '#FF9900',
+                edgeLabelBackground: '#FFFFFF',
+                textColor: '#232F3E'
+            }
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/highlight.min.js"></script>
+    <script>hljs.highlightAll();</script>
+</body>
+</html>

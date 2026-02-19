@@ -1,0 +1,1069 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aurora DSQL - Go, Python, Node.js Connectors</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/styles/atom-one-dark.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/highlight.min.js"></script>
+    <style>
+        :root {
+            --squid-ink: #232F3E;
+            --aws-orange: #FF9900;
+            --aws-smile-orange: #FFAD33;
+            --text-primary: #FFFFFF;
+            --text-secondary: #AAAAAA;
+            --light-gray: #D5DBDB;
+            --card-bg: #2D3A4A;
+            --dark-squid: #1A242F;
+            --border-color: #3D4A5A;
+            --aws-teal: #00A1C9;
+            --aws-purple: #8C4FFF;
+            --aws-green: #1D8102;
+            --aws-red: #D13212;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            background-color: var(--squid-ink);
+            color: var(--light-gray);
+            line-height: 1.8;
+            font-size: 16px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+            padding-bottom: 30px;
+            border-bottom: 3px solid var(--aws-orange);
+        }
+
+        .service-badge {
+            display: inline-block;
+            background-color: var(--aws-orange);
+            color: var(--squid-ink);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+        }
+
+        .release-date {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--aws-orange);
+            margin-bottom: 20px;
+            padding-left: 15px;
+            border-left: 4px solid var(--aws-orange);
+        }
+
+        .overview-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .overview-text {
+            font-size: 16px;
+            line-height: 1.9;
+        }
+
+        .highlight {
+            background-color: rgba(255, 153, 0, 0.2);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+            color: var(--aws-orange);
+        }
+
+        /* Stats grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, var(--card-bg) 0%, var(--dark-squid) 100%);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid rgba(255, 153, 0, 0.2);
+        }
+
+        .stat-icon {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--aws-orange);
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        /* Before/After comparison */
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .comparison-grid {
+                grid-template-columns: 1fr;
+            }
+            .features-grid {
+                grid-template-columns: 1fr !important;
+            }
+            .lang-grid {
+                grid-template-columns: 1fr !important;
+            }
+            .related-grid {
+                grid-template-columns: repeat(2, 1fr) !important;
+            }
+            .merit-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .comparison-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .comparison-card.before {
+            border-top: 4px solid #E74C3C;
+        }
+
+        .comparison-card.after {
+            border-top: 4px solid #2ECC71;
+        }
+
+        .comparison-label {
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        .comparison-card.before .comparison-label {
+            color: #E74C3C;
+        }
+
+        .comparison-card.after .comparison-label {
+            color: #2ECC71;
+        }
+
+        .comparison-list {
+            list-style: none;
+        }
+
+        .comparison-list li {
+            padding: 8px 0;
+            padding-left: 25px;
+            position: relative;
+            font-size: 14px;
+        }
+
+        .comparison-card.before .comparison-list li::before {
+            content: "\2717";
+            position: absolute;
+            left: 0;
+            color: #E74C3C;
+            font-weight: bold;
+        }
+
+        .comparison-card.after .comparison-list li::before {
+            content: "\2713";
+            position: absolute;
+            left: 0;
+            color: #2ECC71;
+            font-weight: bold;
+        }
+
+        /* Mermaid diagram */
+        .diagram-container {
+            background-color: #FFFFFF;
+            border: 2px solid rgba(255, 153, 0, 0.3);
+            border-radius: 12px;
+            padding: 25px;
+            overflow-x: auto;
+        }
+
+        .mermaid {
+            display: flex;
+            justify-content: center;
+        }
+
+        .diagram-caption {
+            font-size: 14px;
+            color: var(--text-secondary);
+            text-align: center;
+            margin-top: 12px;
+        }
+
+        /* Feature cards */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .feature-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            border-left: 3px solid var(--aws-orange);
+        }
+
+        .feature-icon {
+            font-size: 36px;
+            margin-bottom: 12px;
+        }
+
+        .feature-title {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--aws-orange);
+        }
+
+        .feature-description {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        /* Language connector grid */
+        .lang-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-top: 16px;
+        }
+
+        .lang-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            border-top: 3px solid var(--aws-teal);
+        }
+
+        .lang-icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+
+        .lang-name {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .lang-driver {
+            font-size: 14px;
+            color: var(--aws-teal);
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .lang-protocol {
+            display: inline-block;
+            background-color: rgba(0, 161, 201, 0.15);
+            color: var(--aws-teal);
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .lang-desc {
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        /* Technical spec tables */
+        .api-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+        }
+
+        .api-table th {
+            background-color: var(--dark-squid);
+            color: var(--aws-orange);
+            padding: 10px 14px;
+            text-align: left;
+            font-size: 13px;
+            font-weight: 700;
+            border-bottom: 2px solid var(--aws-orange);
+        }
+
+        .api-table td {
+            padding: 10px 14px;
+            font-size: 13px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--light-gray);
+        }
+
+        .api-table code {
+            color: var(--aws-teal);
+            font-size: 12px;
+            font-family: 'Courier New', monospace;
+        }
+
+        /* Code blocks */
+        .code-block {
+            background: #1a1a2e;
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 16px 0;
+        }
+
+        .code-header {
+            background: #16213e;
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+        }
+
+        .code-lang {
+            color: var(--aws-orange);
+            font-weight: bold;
+        }
+
+        .code-title {
+            color: var(--light-gray);
+        }
+
+        .code-block pre {
+            margin: 0;
+            padding: 0;
+            overflow-x: auto;
+        }
+
+        .code-block code {
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            padding: 16px !important;
+        }
+
+        /* Flow diagram */
+        .flow-diagram {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin: 24px 0;
+        }
+
+        .flow-step {
+            background: var(--dark-squid);
+            border: 2px solid var(--aws-orange);
+            border-radius: 8px;
+            padding: 12px 20px;
+            text-align: center;
+            min-width: 120px;
+            font-size: 14px;
+        }
+
+        .flow-arrow {
+            color: var(--aws-orange);
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        /* Use case cards */
+        .usecase-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 3px solid var(--aws-orange);
+        }
+
+        .usecase-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .usecase-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--aws-orange);
+        }
+
+        .usecase-scenario {
+            font-size: 14px;
+            color: var(--light-gray);
+            margin-bottom: 12px;
+        }
+
+        .usecase-effect {
+            font-size: 14px;
+            color: #2ECC71;
+            padding: 10px;
+            background-color: rgba(46, 204, 113, 0.1);
+            border-radius: 8px;
+        }
+
+        .usecase-effect::before {
+            content: "\2713 ";
+            font-weight: bold;
+        }
+
+        /* Merit/Demerit */
+        .merit-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .merit-section {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .merit-section h3 {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: var(--aws-orange);
+        }
+
+        .merit-list {
+            list-style: none;
+        }
+
+        .merit-list li {
+            padding: 6px 0;
+            padding-left: 22px;
+            position: relative;
+            font-size: 14px;
+            color: var(--light-gray);
+        }
+
+        .merit-list li::before {
+            content: "\2713";
+            position: absolute;
+            left: 0;
+            color: #2ECC71;
+            font-weight: bold;
+        }
+
+        /* Constraint/Limitation */
+        .constraint-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 3px solid #E74C3C;
+        }
+
+        .constraint-title {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #E74C3C;
+        }
+
+        .constraint-list {
+            list-style: none;
+        }
+
+        .constraint-list li {
+            padding: 6px 0;
+            padding-left: 22px;
+            position: relative;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .constraint-list li::before {
+            content: "\26A0";
+            position: absolute;
+            left: 0;
+            font-size: 12px;
+        }
+
+        /* Pricing card */
+        .pricing-card {
+            background: linear-gradient(135deg, rgba(29, 129, 2, 0.15) 0%, var(--card-bg) 100%);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid rgba(29, 129, 2, 0.3);
+            text-align: center;
+        }
+
+        .pricing-highlight {
+            font-size: 22px;
+            font-weight: 700;
+            color: #2ECC71;
+            margin-bottom: 8px;
+        }
+
+        .pricing-detail {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        /* Region */
+        .region-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .region-highlight {
+            font-size: 16px;
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .region-note {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-top: 8px;
+        }
+
+        /* Related services */
+        .related-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+
+        .related-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+        }
+
+        .related-name {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 6px;
+        }
+
+        .related-desc {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        /* Footer */
+        footer {
+            margin-top: 50px;
+            padding-top: 30px;
+            border-top: 1px solid var(--border-color);
+            text-align: center;
+        }
+
+        .source-links {
+            list-style: none;
+            margin-bottom: 16px;
+        }
+
+        .source-links li {
+            margin-bottom: 6px;
+        }
+
+        .source-link {
+            color: var(--aws-teal);
+            text-decoration: none;
+            font-size: 14px;
+            word-break: break-all;
+        }
+
+        .source-link:hover {
+            color: var(--aws-smile-orange);
+            text-decoration: underline;
+        }
+
+        .footer-note {
+            color: var(--text-secondary);
+            font-size: 12px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <span class="service-badge">Amazon Aurora DSQL</span>
+            <h1>Go, Python, Node.js Connectors</h1>
+            <p style="color: var(--light-gray); font-size: 15px; margin-bottom: 8px;">IAM 認証を自動化する Aurora DSQL 専用コネクタ</p>
+            <p class="release-date">2026 年 2 月 19 日</p>
+        </header>
+
+        <!-- Overview -->
+        <section class="section">
+            <h2 class="section-title">概要</h2>
+            <div class="overview-card">
+                <p class="overview-text">
+                    Aurora DSQL 向けの新しいコネクタが <span class="highlight">Go (pgx)</span>、<span class="highlight">Python (asyncpg)</span>、<span class="highlight">Node.js (Postgres.js)</span> の 3 言語でリリースされました。これらのコネクタは透過的な認証レイヤとして機能し、<span class="highlight">IAM トークンの生成を自動的に処理</span>します。
+                </p>
+                <p class="overview-text" style="margin-top: 12px;">
+                    開発者がトークン生成コードを記述する必要がなくなり、接続ごとにトークンが自動生成されるため、常に有効なトークンが使用されます。Postgres.js コネクタは <span class="highlight">WebSocket プロトコル</span> もサポートしており、TCP 接続が利用できない環境でも DSQL クラスタへの接続が可能になります。
+                </p>
+            </div>
+
+            <!-- Stats -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">&#128268;</div>
+                    <div class="stat-value">3</div>
+                    <div class="stat-label">対応言語<br>Go / Python / Node.js</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">&#128274;</div>
+                    <div class="stat-value">0</div>
+                    <div class="stat-label">認証コード<br>の実装量</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">&#128176;</div>
+                    <div class="stat-value">$0</div>
+                    <div class="stat-label">コネクタ<br>追加料金</div>
+                </div>
+            </div>
+
+            <!-- Before/After -->
+            <div class="comparison-grid">
+                <div class="comparison-card before">
+                    <div class="comparison-label">Before - アップデート前の課題</div>
+                    <ul class="comparison-list">
+                        <li>IAM トークンの生成コードを各アプリケーションに実装する必要があった</li>
+                        <li>トークンの有効期限管理を開発者が手動で行う必要があった</li>
+                        <li>WebSocket 環境では DSQL への接続手段が限られていた</li>
+                    </ul>
+                </div>
+                <div class="comparison-card after">
+                    <div class="comparison-label">After - アップデート後の改善</div>
+                    <ul class="comparison-list">
+                        <li>コネクタが IAM トークン生成を自動化し、認証コードの実装が不要になった</li>
+                        <li>接続ごとに有効なトークンが自動生成され、セキュリティリスクが低減した</li>
+                        <li>WebSocket プロトコル対応により、ブラウザや Edge 環境からの接続が可能になった</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Architecture Diagram -->
+        <section class="section">
+            <h2 class="section-title">アーキテクチャ図</h2>
+            <div class="diagram-container">
+                <div class="mermaid">
+flowchart LR
+    subgraph App["&#9881;&#65039; アプリケーション"]
+        direction LR
+        Go["&#128309; Go pgx"]
+        Py["&#128992; Python asyncpg"]
+        Node["&#128994; Node.js Postgres.js"]
+    end
+
+    subgraph Connector["&#128268; Aurora DSQL Connectors"]
+        direction LR
+        Auth["&#128273; IAM トークン自動生成"]
+    end
+
+    subgraph AWS["&#9729;&#65039; AWS"]
+        direction LR
+        STS["&#127915; AWS STS"]
+        DSQL[("&#128203; Aurora DSQL")]
+    end
+
+    Go --> Auth
+    Py --> Auth
+    Node --> Auth
+    Auth --> STS
+    Auth --> DSQL
+
+    classDef app fill:#E3F2FD,stroke:#BBDEFB,stroke-width:2px,color:#1565C0
+    classDef connector fill:#FFF3E0,stroke:#FFCC80,stroke-width:2px,color:#5D4037
+    classDef aws fill:#E8F5E9,stroke:#C8E6C9,stroke-width:2px,color:#2E7D32
+    classDef cloud fill:none,stroke:#CCCCCC,stroke-width:2px,color:#666666
+
+    class Go,Py,Node app
+    class Auth connector
+    class STS,DSQL aws
+    class App,Connector,AWS cloud
+                </div>
+            </div>
+            <p class="diagram-caption">コネクタがアプリケーションと Aurora DSQL の間で IAM トークン生成を透過的に処理する。</p>
+        </section>
+
+        <!-- Key Features -->
+        <section class="section">
+            <h2 class="section-title">主要機能</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">&#128309;</div>
+                    <div class="feature-title">Go コネクタ pgx</div>
+                    <div class="feature-description">
+                        pgx ドライバ向けの認証プラグイン。IAM トークンの自動生成と接続管理を提供し、カスタム IAM クレデンシャルプロバイダをサポート。
+                    </div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#128992;</div>
+                    <div class="feature-title">Python コネクタ asyncpg</div>
+                    <div class="feature-description">
+                        asyncpg ドライバ向けの非同期認証レイヤ。非同期 I/O ベースの接続管理を行い、既存の asyncpg 機能と完全互換。
+                    </div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#128994;</div>
+                    <div class="feature-title">Node.js コネクタ<br>WebSocket for Postgres.js</div>
+                    <div class="feature-description">
+                        Postgres.js ドライバ向けの WebSocket 対応コネクタ。TCP 接続が利用できない環境でも接続可能で、ブラウザや Edge 環境での利用を想定。
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Technical Spec -->
+        <section class="section">
+            <h2 class="section-title">技術仕様</h2>
+
+            <h3 style="font-size: 16px; color: var(--text-primary); margin-bottom: 12px;">コネクタ対応状況</h3>
+            <div class="lang-grid">
+                <div class="lang-card">
+                    <div class="lang-icon">&#128309;</div>
+                    <div class="lang-name">Go</div>
+                    <div class="lang-driver">pgx</div>
+                    <div class="lang-protocol">TCP</div>
+                    <div class="lang-desc">
+                        <a href="https://github.com/awslabs/aurora-dsql-connectors/tree/main/go/pgx" target="_blank" style="color: var(--aws-teal); text-decoration: none; font-size: 12px;">GitHub</a>
+                    </div>
+                </div>
+                <div class="lang-card">
+                    <div class="lang-icon">&#128992;</div>
+                    <div class="lang-name">Python</div>
+                    <div class="lang-driver">asyncpg</div>
+                    <div class="lang-protocol">TCP</div>
+                    <div class="lang-desc">
+                        <a href="https://github.com/awslabs/aurora-dsql-connectors/tree/main/python/connector" target="_blank" style="color: var(--aws-teal); text-decoration: none; font-size: 12px;">GitHub</a>
+                    </div>
+                </div>
+                <div class="lang-card">
+                    <div class="lang-icon">&#128994;</div>
+                    <div class="lang-name">Node.js</div>
+                    <div class="lang-driver">Postgres.js</div>
+                    <div class="lang-protocol">WebSocket</div>
+                    <div class="lang-desc">
+                        <a href="https://github.com/awslabs/aurora-dsql-connectors/tree/main/node/postgres-js" target="_blank" style="color: var(--aws-teal); text-decoration: none; font-size: 12px;">GitHub</a>
+                    </div>
+                </div>
+            </div>
+
+            <h3 style="font-size: 16px; color: var(--text-primary); margin-top: 24px; margin-bottom: 12px;">共通仕様</h3>
+            <table class="api-table">
+                <thead>
+                    <tr>
+                        <th>項目</th>
+                        <th>詳細</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong style="color: var(--text-primary);">認証方式</strong></td>
+                        <td>IAM トークン自動生成</td>
+                    </tr>
+                    <tr>
+                        <td><strong style="color: var(--text-primary);">クレデンシャル</strong></td>
+                        <td>カスタム IAM クレデンシャルプロバイダ対応</td>
+                    </tr>
+                    <tr>
+                        <td><strong style="color: var(--text-primary);">PostgreSQL 互換性</strong></td>
+                        <td>既存ドライバ機能と完全互換</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- Configuration -->
+        <section class="section">
+            <h2 class="section-title">設定方法</h2>
+
+            <div class="overview-card" style="margin-bottom: 16px;">
+                <h3 style="font-size: 15px; color: var(--aws-orange); margin-bottom: 10px;">前提条件</h3>
+                <ul class="merit-list">
+                    <li>Aurora DSQL クラスタが作成済みであること</li>
+                    <li>適切な IAM ポリシーが設定されていること</li>
+                    <li>対応言語のランタイム環境が用意されていること</li>
+                </ul>
+            </div>
+
+            <div class="flow-diagram">
+                <div class="flow-step">&#128230; コネクタの<br>インストール</div>
+                <span class="flow-arrow">&rarr;</span>
+                <div class="flow-step">&#128268; 接続の設定</div>
+                <span class="flow-arrow">&rarr;</span>
+                <div class="flow-step">&#9889; Aurora DSQL に<br>接続開始</div>
+            </div>
+
+            <h3 style="font-size: 16px; color: var(--text-primary); margin-top: 20px; margin-bottom: 12px;">ステップ 1: コネクタのインストール</h3>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Bash</span>
+                    <span class="code-title">Go</span>
+                </div>
+                <pre><code class="language-bash">go get github.com/awslabs/aurora-dsql-connectors/go/pgx</code></pre>
+            </div>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Bash</span>
+                    <span class="code-title">Python</span>
+                </div>
+                <pre><code class="language-bash">pip install aurora-dsql-connector</code></pre>
+            </div>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Bash</span>
+                    <span class="code-title">Node.js</span>
+                </div>
+                <pre><code class="language-bash">npm install @awslabs/aurora-dsql-connector</code></pre>
+            </div>
+
+            <h3 style="font-size: 16px; color: var(--text-primary); margin-top: 20px; margin-bottom: 12px;">ステップ 2: 接続の設定</h3>
+            <div class="overview-card">
+                <p class="overview-text" style="font-size: 14px;">
+                    コネクタを使用して Aurora DSQL クラスタに接続します。従来の手動トークン生成コードは不要になり、コネクタが自動的に IAM 認証を処理します。
+                </p>
+            </div>
+        </section>
+
+        <!-- Benefits -->
+        <section class="section">
+            <h2 class="section-title">メリット</h2>
+            <div class="merit-grid">
+                <div class="merit-section">
+                    <h3>&#128188; ビジネス面</h3>
+                    <ul class="merit-list">
+                        <li><strong style="color: var(--text-primary);">開発生産性の向上:</strong> 認証コードの実装が不要になり、ビジネスロジックに集中できる</li>
+                        <li><strong style="color: var(--text-primary);">セキュリティリスクの低減:</strong> パスワードベースの認証から IAM トークンベースの認証へ移行が容易になる</li>
+                        <li><strong style="color: var(--text-primary);">マルチプラットフォーム対応:</strong> WebSocket サポートによりブラウザや Edge 環境からも接続可能</li>
+                    </ul>
+                </div>
+                <div class="merit-section">
+                    <h3>&#128736;&#65039; 技術面</h3>
+                    <ul class="merit-list">
+                        <li><strong style="color: var(--text-primary);">透過的な認証:</strong> 既存の PostgreSQL ドライバコードを最小限の変更で IAM 認証に移行できる</li>
+                        <li><strong style="color: var(--text-primary);">トークン管理の自動化:</strong> トークンの有効期限切れを心配する必要がなくなる</li>
+                        <li><strong style="color: var(--text-primary);">カスタムクレデンシャル対応:</strong> 柔軟な AWS クレデンシャル管理が可能</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Limitations -->
+        <section class="section">
+            <h2 class="section-title">制約事項・注意点</h2>
+            <div class="constraint-card">
+                <div class="constraint-title">制限事項</div>
+                <ul class="constraint-list">
+                    <li>対応ドライバが各言語 1 つに限定されている</li>
+                    <li>WebSocket プロトコルは Node.js コネクタのみ対応</li>
+                    <li>従来の JDBC コネクタとは別リリース</li>
+                </ul>
+            </div>
+            <div class="constraint-card">
+                <div class="constraint-title">考慮すべき点</div>
+                <ul class="constraint-list">
+                    <li>既存の手動トークン生成コードからの移行計画が必要</li>
+                    <li>カスタムクレデンシャルプロバイダを使用する場合は追加設定が必要</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Use Cases -->
+        <section class="section">
+            <h2 class="section-title">ユースケース</h2>
+
+            <div class="usecase-card">
+                <div class="usecase-header">
+                    <span style="font-size: 24px;">&#9889;&#128451;</span>
+                    <div class="usecase-title">ユースケース 1: サーバーレスアプリケーション</div>
+                </div>
+                <div class="usecase-scenario">
+                    <strong style="color: var(--text-primary);">シナリオ:</strong> AWS Lambda から Aurora DSQL に接続するサーバーレスアプリケーション
+                </div>
+                <div class="usecase-effect">
+                    Lambda 関数内で IAM トークン生成コードを記述する必要がなくなり、コードがシンプルになる
+                </div>
+            </div>
+
+            <div class="usecase-card">
+                <div class="usecase-header">
+                    <span style="font-size: 24px;">&#127760;&#128268;</span>
+                    <div class="usecase-title">ユースケース 2: ブラウザベースアプリケーション</div>
+                </div>
+                <div class="usecase-scenario">
+                    <strong style="color: var(--text-primary);">シナリオ:</strong> WebSocket を使用してブラウザから直接 Aurora DSQL にクエリを実行する
+                </div>
+                <div class="usecase-effect">
+                    TCP 接続が制限される環境でも DSQL へのアクセスが可能になる
+                </div>
+            </div>
+
+            <div class="usecase-card">
+                <div class="usecase-header">
+                    <span style="font-size: 24px;">&#128187;&#128260;</span>
+                    <div class="usecase-title">ユースケース 3: マイクロサービス間のデータ共有</div>
+                </div>
+                <div class="usecase-scenario">
+                    <strong style="color: var(--text-primary);">シナリオ:</strong> Go、Python、Node.js で構成されるマイクロサービス群が共通の Aurora DSQL クラスタにアクセスする
+                </div>
+                <div class="usecase-effect">
+                    各言語で統一された認証パターンが使用でき、運用の一貫性が保たれる
+                </div>
+            </div>
+        </section>
+
+        <!-- Pricing -->
+        <section class="section">
+            <h2 class="section-title">料金</h2>
+            <div class="pricing-card">
+                <div class="pricing-highlight">コネクタは無料</div>
+                <div class="pricing-detail" style="margin-bottom: 12px;">Aurora DSQL コネクタ自体は無料で利用可能です。Aurora DSQL の利用料金は通常の Aurora DSQL 料金体系に従います。</div>
+                <div class="pricing-detail">AWS Free Tier で Aurora DSQL を無料で開始できます。</div>
+            </div>
+        </section>
+
+        <!-- Region -->
+        <section class="section">
+            <h2 class="section-title">利用可能リージョン</h2>
+            <div class="region-card">
+                <div style="font-size: 28px; margin-bottom: 8px;">&#127758;</div>
+                <div class="region-highlight">Aurora DSQL が利用可能なすべての AWS リージョンで使用可能</div>
+                <div class="region-note">詳細は <a href="https://aws.amazon.com/rds/aurora/dsql/" target="_blank" style="color: var(--aws-teal);">Aurora DSQL 製品ページ</a> を参照してください。</div>
+            </div>
+        </section>
+
+        <!-- Related Services -->
+        <section class="section">
+            <h2 class="section-title">関連サービス・機能</h2>
+            <div class="related-grid">
+                <div class="related-card">
+                    <div style="font-size: 24px; margin-bottom: 8px;">&#9729;&#65039;</div>
+                    <div class="related-name">Amazon Aurora DSQL</div>
+                    <div class="related-desc">サーバーレス分散 SQL データベース</div>
+                </div>
+                <div class="related-card">
+                    <div style="font-size: 24px; margin-bottom: 8px;">&#128274;</div>
+                    <div class="related-name">AWS IAM</div>
+                    <div class="related-desc">コネクタが使用する認証基盤</div>
+                </div>
+                <div class="related-card">
+                    <div style="font-size: 24px; margin-bottom: 8px;">&#127915;</div>
+                    <div class="related-name">AWS STS</div>
+                    <div class="related-desc">IAM トークンの生成に使用</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer>
+            <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 12px;">参考リンク</p>
+            <ul class="source-links">
+                <li><a href="https://aws.amazon.com/about-aws/whats-new/2026/02/aurora-dsql-launches-go-python-nodejs-connectors/" class="source-link" target="_blank">公式発表 - What's New</a></li>
+                <li><a href="https://docs.aws.amazon.com/aurora-dsql/latest/userguide/SECTION_connectors.html" class="source-link" target="_blank">ドキュメント: Aurora DSQL Connectors</a></li>
+                <li><a href="https://github.com/awslabs/aurora-dsql-connectors/tree/main/go/pgx" class="source-link" target="_blank">GitHub - Go pgx</a></li>
+                <li><a href="https://github.com/awslabs/aurora-dsql-connectors/tree/main/python/connector" class="source-link" target="_blank">GitHub - Python asyncpg</a></li>
+                <li><a href="https://github.com/awslabs/aurora-dsql-connectors/tree/main/node/postgres-js" class="source-link" target="_blank">GitHub - Node.js Postgres.js</a></li>
+            </ul>
+            <p class="footer-note">Aurora DSQL - Go, Python, Node.js Connectors | 2026 年 2 月 19 日</p>
+        </footer>
+    </div>
+
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'base',
+            themeVariables: {
+                primaryColor: '#FF9900',
+                primaryTextColor: '#232F3E',
+                primaryBorderColor: '#FF9900',
+                lineColor: '#FF9900',
+                secondaryColor: '#F5F5F5',
+                tertiaryColor: '#FAFAFA',
+                background: '#FFFFFF',
+                mainBkg: '#FFF3E0',
+                nodeBorder: '#FF9900',
+                clusterBkg: '#FFF8E1',
+                clusterBorder: '#FF9900',
+                edgeLabelBackground: '#FFFFFF',
+                textColor: '#232F3E'
+            },
+            flowchart: {
+                curve: 'basis',
+                padding: 20
+            }
+        });
+        hljs.highlightAll();
+    </script>
+</body>
+</html>

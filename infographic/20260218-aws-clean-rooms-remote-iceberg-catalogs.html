@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AWS Clean Rooms - リモート Apache Iceberg REST カタログサポート</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/styles/atom-one-dark.min.css">
+    <style>
+        :root {
+            --squid-ink: #232F3E;
+            --dark-squid: #1A242F;
+            --aws-orange: #FF9900;
+            --smile-orange: #FFAD33;
+            --text-primary: #FFFFFF;
+            --text-secondary: #D5DBDB;
+            --text-muted: #AAAAAA;
+            --card-bg: #2D3A4A;
+            --border-color: #3D4A5A;
+            --aws-teal: #00A1C9;
+            --aws-green: #1D8102;
+            --aws-red: #D13212;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            background-color: var(--squid-ink);
+            color: var(--text-secondary);
+            line-height: 1.8;
+            font-size: 16px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+            padding-bottom: 30px;
+            border-bottom: 3px solid var(--aws-orange);
+        }
+
+        .badge-row {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+
+        .service-badge {
+            display: inline-block;
+            background-color: var(--aws-orange);
+            color: var(--squid-ink);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .feature-badge {
+            display: inline-block;
+            background-color: var(--aws-teal);
+            color: #FFFFFF;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .tech-badge {
+            display: inline-block;
+            background-color: #8C4FFF;
+            color: #FFFFFF;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+            line-height: 1.4;
+        }
+
+        .release-date {
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--aws-orange);
+            margin-bottom: 20px;
+            padding-left: 15px;
+            border-left: 4px solid var(--aws-orange);
+        }
+
+        .overview-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .overview-text {
+            font-size: 16px;
+            line-height: 1.9;
+        }
+
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .comparison-grid {
+                grid-template-columns: 1fr;
+            }
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr) !important;
+            }
+            .features-grid {
+                grid-template-columns: 1fr !important;
+            }
+            .benefits-grid {
+                grid-template-columns: 1fr !important;
+            }
+            .related-grid {
+                grid-template-columns: repeat(2, 1fr) !important;
+            }
+            .flow-diagram {
+                flex-direction: column;
+            }
+            .flow-arrow {
+                transform: rotate(90deg);
+            }
+        }
+
+        .comparison-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .comparison-card.before {
+            border-top: 4px solid #E74C3C;
+        }
+
+        .comparison-card.after {
+            border-top: 4px solid #2ECC71;
+        }
+
+        .comparison-label {
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        .comparison-card.before .comparison-label {
+            color: #E74C3C;
+        }
+
+        .comparison-card.after .comparison-label {
+            color: #2ECC71;
+        }
+
+        .comparison-list {
+            list-style: none;
+        }
+
+        .comparison-list li {
+            padding: 8px 0;
+            padding-left: 25px;
+            position: relative;
+            font-size: 14px;
+        }
+
+        .comparison-card.before .comparison-list li::before {
+            content: "\2717";
+            position: absolute;
+            left: 0;
+            color: #E74C3C;
+            font-weight: bold;
+        }
+
+        .comparison-card.after .comparison-list li::before {
+            content: "\2713";
+            position: absolute;
+            left: 0;
+            color: #2ECC71;
+            font-weight: bold;
+        }
+
+        /* Statistics Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, var(--card-bg) 0%, var(--dark-squid) 100%);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid rgba(255, 153, 0, 0.2);
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--aws-orange);
+            line-height: 1.2;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 6px;
+        }
+
+        .stat-sublabel {
+            font-size: 11px;
+            color: var(--text-muted);
+            opacity: 0.7;
+        }
+
+        /* Mermaid */
+        .mermaid-container {
+            background: #FFFFFF;
+            border-radius: 12px;
+            padding: 24px;
+            margin: 20px 0;
+            border: 2px solid rgba(255, 153, 0, 0.3);
+            overflow-x: auto;
+        }
+        .mermaid {
+            display: flex;
+            justify-content: center;
+        }
+
+        /* Features Grid */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .feature-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            border-left: 4px solid var(--aws-orange);
+        }
+
+        .feature-icon {
+            font-size: 36px;
+            margin-bottom: 12px;
+        }
+
+        .feature-title {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--aws-orange);
+        }
+
+        .feature-description {
+            font-size: 14px;
+            color: var(--text-muted);
+            line-height: 1.7;
+        }
+
+        .feature-detail-list {
+            list-style: none;
+            margin-top: 10px;
+        }
+
+        .feature-detail-list li {
+            padding: 4px 0;
+            padding-left: 22px;
+            position: relative;
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .feature-detail-list li::before {
+            content: "\2713";
+            position: absolute;
+            left: 0;
+            color: var(--aws-orange);
+            font-weight: bold;
+        }
+
+        /* Spec Table */
+        .spec-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            font-size: 14px;
+        }
+
+        .spec-table th,
+        .spec-table td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .spec-table th {
+            color: var(--aws-orange);
+            font-weight: 700;
+            background-color: var(--dark-squid);
+            font-size: 13px;
+        }
+
+        .spec-table td {
+            color: var(--text-secondary);
+        }
+
+        /* Use Cases */
+        .usecase-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 3px solid var(--smile-orange);
+        }
+
+        .usecase-title {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: var(--aws-orange);
+        }
+
+        .usecase-scenario {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+            line-height: 1.7;
+        }
+
+        .usecase-effect {
+            font-size: 14px;
+            color: var(--text-muted);
+            line-height: 1.7;
+            padding-left: 15px;
+            border-left: 2px solid var(--aws-orange);
+        }
+
+        /* Benefits */
+        .benefits-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .benefit-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .benefit-icon {
+            font-size: 36px;
+            margin-bottom: 12px;
+        }
+
+        .benefit-title {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+
+        .benefit-desc {
+            font-size: 13px;
+            color: var(--text-muted);
+            line-height: 1.7;
+        }
+
+        /* Considerations */
+        .consideration-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+        }
+
+        .consideration-card.warning {
+            border-left: 4px solid #F39C12;
+        }
+
+        .consideration-card.info {
+            border-left: 4px solid var(--aws-teal);
+        }
+
+        .consideration-title {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+        }
+
+        .consideration-list {
+            list-style: none;
+        }
+
+        .consideration-list li {
+            padding: 6px 0;
+            padding-left: 22px;
+            position: relative;
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        .consideration-card.warning .consideration-list li::before {
+            content: "\26A0";
+            position: absolute;
+            left: 0;
+            color: #F39C12;
+        }
+
+        .consideration-card.info .consideration-list li::before {
+            content: "\2139";
+            position: absolute;
+            left: 0;
+            color: var(--aws-teal);
+            font-weight: bold;
+        }
+
+        /* Flow Diagram */
+        .flow-diagram {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin: 24px 0;
+        }
+
+        .flow-step {
+            background: var(--dark-squid);
+            border: 2px solid var(--aws-orange);
+            border-radius: 8px;
+            padding: 12px 20px;
+            text-align: center;
+            min-width: 100px;
+            font-size: 14px;
+        }
+
+        .flow-arrow {
+            color: var(--aws-orange);
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        /* Pricing */
+        .pricing-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 25px;
+            text-align: center;
+        }
+
+        /* Related Services */
+        .related-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+
+        .related-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 18px;
+            text-align: center;
+        }
+
+        .related-icon {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        .related-name {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .related-desc {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        /* Footer */
+        footer {
+            margin-top: 50px;
+            padding-top: 30px;
+            border-top: 1px solid var(--border-color);
+            text-align: center;
+        }
+
+        .source-link {
+            color: var(--aws-teal);
+            text-decoration: none;
+            font-size: 14px;
+            display: inline-block;
+            margin-bottom: 8px;
+        }
+
+        .source-link:hover {
+            color: var(--smile-orange);
+            text-decoration: underline;
+        }
+
+        .footer-note {
+            color: var(--text-muted);
+            font-size: 12px;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="badge-row">
+                <span class="service-badge">AWS Clean Rooms</span>
+                <span class="feature-badge">Catalog Federation</span>
+                <span class="tech-badge">Apache Iceberg REST</span>
+            </div>
+            <h1>AWS Clean Rooms<br>&#12522;&#12514;&#12540;&#12488; Apache Iceberg REST &#12459;&#12479;&#12525;&#12464;&#12469;&#12509;&#12540;&#12488;</h1>
+            <p class="release-date">2026 &#24180; 2 &#26376; 18 &#26085;</p>
+        </header>
+
+        <!-- Overview Section -->
+        <section class="section">
+            <h2 class="section-title">&#9729;&#65039; &#27010;&#35201;</h2>
+            <div class="overview-card">
+                <p class="overview-text">
+                    AWS Clean Rooms &#12364;&#12522;&#12514;&#12540;&#12488; Iceberg &#12459;&#12479;&#12525;&#12464;&#12398;<span style="color: var(--aws-orange); font-weight: 700;">&#12459;&#12479;&#12525;&#12464;&#12501;&#12455;&#12487;&#12524;&#12540;&#12471;&#12519;&#12531;</span>&#12434;&#12469;&#12509;&#12540;&#12488;&#12375;&#12414;&#12375;&#12383;&#12290;Amazon S3 &#12395;&#20445;&#23384;&#12373;&#12428;&#12289;&#12522;&#12514;&#12540;&#12488;&#12459;&#12479;&#12525;&#12464;&#12391;&#31649;&#29702;&#12373;&#12428;&#12390;&#12356;&#12427; Iceberg &#12486;&#12540;&#12502;&#12523;&#12408;&#12398;&#30452;&#25509;&#30340;&#12363;&#12388;&#23433;&#20840;&#12394;&#12450;&#12463;&#12475;&#12473;&#12364;&#21487;&#33021;&#12395;&#12394;&#12426;&#12289;<span style="color: #2ECC71; font-weight: 700;">&#12486;&#12540;&#12502;&#12523;&#12513;&#12479;&#12487;&#12540;&#12479;&#12398;&#12524;&#12503;&#12522;&#12465;&#12540;&#12471;&#12519;&#12531;&#12364;&#19981;&#35201;</span>&#12395;&#12394;&#12426;&#12414;&#12377;&#12290;
+                </p>
+                <p class="overview-text" style="margin-top: 15px;">
+                    &#32068;&#32340;&#12399; AWS Glue &#12459;&#12479;&#12525;&#12464;&#12501;&#12455;&#12487;&#12524;&#12540;&#12471;&#12519;&#12531;&#12434;&#20351;&#29992;&#12375;&#12390;&#12289;&#26082;&#23384;&#12398; Iceberg REST &#12459;&#12479;&#12525;&#12464;&#12408;&#12398;&#30452;&#25509;&#12450;&#12463;&#12475;&#12473;&#12434; Clean Rooms &#12467;&#12521;&#12508;&#12524;&#12540;&#12471;&#12519;&#12531;&#12395;&#25552;&#20379;&#12391;&#12365;&#12414;&#12377;&#12290;&#20363;&#12360;&#12400;&#12289;AWS Glue Data Catalog &#12391;&#12487;&#12540;&#12479;&#12434;&#31649;&#29702;&#12377;&#12427;&#12513;&#12487;&#12451;&#12450;&#12497;&#12502;&#12522;&#12483;&#12471;&#12515;&#12540;&#12392;&#12289;&#12522;&#12514;&#12540;&#12488; Iceberg &#12459;&#12479;&#12525;&#12464;&#12391;&#12487;&#12540;&#12479;&#12434;&#31649;&#29702;&#12377;&#12427;&#24195;&#21578;&#20027;&#12364;&#12289;ETL &#12487;&#12540;&#12479;&#12497;&#12452;&#12503;&#12521;&#12452;&#12531;&#12398;&#27083;&#31689;&#12420;&#12487;&#12540;&#12479;&#20849;&#26377;&#12394;&#12375;&#12395;&#12289;&#24195;&#21578;&#21177;&#26524;&#12398;&#20998;&#26512;&#12434;&#20849;&#21516;&#12391;&#34892;&#12358;&#12371;&#12392;&#12364;&#21487;&#33021;&#12395;&#12394;&#12426;&#12414;&#12377;&#12290;
+                </p>
+            </div>
+
+            <div class="comparison-grid">
+                <div class="comparison-card before">
+                    <div class="comparison-label">Before - &#12450;&#12483;&#12503;&#12487;&#12540;&#12488;&#21069;&#12398;&#35506;&#38988;</div>
+                    <ul class="comparison-list">
+                        <li>&#12522;&#12514;&#12540;&#12488; Iceberg &#12459;&#12479;&#12525;&#12464;&#12398;&#12486;&#12540;&#12502;&#12523;&#12434; Clean Rooms &#12391;&#20351;&#29992;&#12377;&#12427;&#12395;&#12399;&#12289;&#12513;&#12479;&#12487;&#12540;&#12479;&#12398;&#12524;&#12503;&#12522;&#12465;&#12540;&#12471;&#12519;&#12531;&#12364;&#24517;&#35201;&#12384;&#12387;&#12383;</li>
+                        <li>ETL &#12497;&#12452;&#12503;&#12521;&#12452;&#12531;&#12434;&#27083;&#31689;&#12375;&#12390;&#12487;&#12540;&#12479;&#12434;&#31227;&#21205;&#12377;&#12427;&#24517;&#35201;&#12364;&#12354;&#12387;&#12383;</li>
+                        <li>&#30064;&#12394;&#12427;&#12459;&#12479;&#12525;&#12464;&#38291;&#12398;&#12487;&#12540;&#12479;&#12467;&#12521;&#12508;&#12524;&#12540;&#12471;&#12519;&#12531;&#12364;&#35079;&#38609;&#12384;&#12387;&#12383;</li>
+                    </ul>
+                </div>
+                <div class="comparison-card after">
+                    <div class="comparison-label">After - &#12450;&#12483;&#12503;&#12487;&#12540;&#12488;&#24460;&#12398;&#25913;&#21892;</div>
+                    <ul class="comparison-list">
+                        <li>&#12522;&#12514;&#12540;&#12488; Iceberg &#12459;&#12479;&#12525;&#12464;&#12408;&#12398;&#30452;&#25509;&#12450;&#12463;&#12475;&#12473;&#12364;&#21487;&#33021;&#12395;&#12394;&#12387;&#12383;</li>
+                        <li>&#12513;&#12479;&#12487;&#12540;&#12479;&#12398;&#12524;&#12503;&#12522;&#12465;&#12540;&#12471;&#12519;&#12531;&#12364;&#19981;&#35201;&#12395;&#12394;&#12426;&#12475;&#12483;&#12488;&#12450;&#12483;&#12503;&#12364;&#31777;&#32032;&#21270;&#12373;&#12428;&#12383;</li>
+                        <li>AWS Glue &#12459;&#12479;&#12525;&#12464;&#12501;&#12455;&#12487;&#12524;&#12540;&#12471;&#12519;&#12531;&#12395;&#12424;&#12427;&#23433;&#20840;&#12394;&#12450;&#12463;&#12475;&#12473;&#12364;&#23455;&#29694;&#12375;&#12383;</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Stats Section -->
+        <section class="section">
+            <h2 class="section-title">&#128202; &#25968;&#23383;&#12391;&#35211;&#12427;&#12450;&#12483;&#12503;&#12487;&#12540;&#12488;&#21177;&#26524;</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value">0</div>
+                    <div class="stat-label">ETL &#12497;&#12452;&#12503;&#12521;&#12452;&#12531;</div>
+                    <div class="stat-sublabel">&#27083;&#31689;&#19981;&#35201;</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">0</div>
+                    <div class="stat-label">&#12513;&#12479;&#12487;&#12540;&#12479;&#12524;&#12503;&#12522;&#12465;&#12540;&#12471;&#12519;&#12531;</div>
+                    <div class="stat-sublabel">&#30452;&#25509;&#12450;&#12463;&#12475;&#12473;</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">3</div>
+                    <div class="stat-label">API &#12513;&#12477;&#12483;&#12489;&#26356;&#26032;</div>
+                    <div class="stat-sublabel">&#12501;&#12455;&#12487;&#12524;&#12540;&#12471;&#12519;&#12531;&#12469;&#12509;&#12540;&#12488;&#36861;&#21152;</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Architecture Diagram -->
+        <section class="section">
+            <h2 class="section-title">&#128736;&#65039; &#12450;&#12540;&#12461;&#12486;&#12463;&#12481;&#12515;&#22259;</h2>
+            <div class="mermaid-container">
+                <pre class="mermaid">
+flowchart TD
+    subgraph OrgA["&#127970; &#32068;&#32340; A"]
+        GlueCat["&#128218; AWS Glue Data Catalog"]
+        S3A[("&#127875; Amazon S3")]
+    end
+
+    subgraph OrgB["&#127970; &#32068;&#32340; B"]
+        RemoteCat["&#128218; &#12522;&#12514;&#12540;&#12488; Iceberg REST &#12459;&#12479;&#12525;&#12464;"]
+        S3B[("&#127875; Amazon S3")]
+    end
+
+    subgraph CR["&#128274; AWS Clean Rooms"]
+        Collab["&#129309; &#12467;&#12521;&#12508;&#12524;&#12540;&#12471;&#12519;&#12531;"]
+        Fed["&#128279; &#12459;&#12479;&#12525;&#12464;&#12501;&#12455;&#12487;&#12524;&#12540;&#12471;&#12519;&#12531;"]
+    end
+
+    GlueCat --> Collab
+    RemoteCat -->|&#12501;&#12455;&#12487;&#12524;&#12540;&#12471;&#12519;&#12531;| Fed
+    Fed --> Collab
+    S3A -.-> GlueCat
+    S3B -.-> RemoteCat
+
+    classDef org fill:#E3F2FD,stroke:#BBDEFB,stroke-width:2px,color:#1565C0
+    classDef cr fill:#E8F5E9,stroke:#C8E6C9,stroke-width:2px,color:#2E7D32
+    classDef storage fill:#DCEDC8,stroke:#C5E1A5,stroke-width:2px,color:#33691E
+    classDef container fill:none,stroke:#CCCCCC,stroke-width:2px,color:#666666
+
+    class GlueCat,RemoteCat org
+    class Collab,Fed cr
+    class S3A,S3B storage
+    class OrgA,OrgB,CR container
+                </pre>
+            </div>
+            <p style="font-size: 14px; color: var(--text-muted); text-align: center; margin-top: 10px;">
+                AWS Glue &#12459;&#12479;&#12525;&#12464;&#12501;&#12455;&#12487;&#12524;&#12540;&#12471;&#12519;&#12531;&#12434;&#36890;&#12376;&#12390;&#12289;&#12522;&#12514;&#12540;&#12488; Iceberg &#12459;&#12479;&#12525;&#12464;&#12392; AWS Glue Data Catalog &#12398;&#12487;&#12540;&#12479;&#12434; Clean Rooms &#12391;&#20849;&#21516;&#20998;&#26512;&#12377;&#12427;
+            </p>
+        </section>
+
+        <!-- Key Features Section -->
+        <section class="section">
+            <h2 class="section-title">&#9889; &#20027;&#35201;&#27231;&#33021;</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">&#128279;</div>
+                    <div class="feature-title">&#12459;&#12479;&#12525;&#12464;&#12501;&#12455;&#12487;&#12524;&#12540;&#12471;&#12519;&#12531;</div>
+                    <div class="feature-description">&#12522;&#12514;&#12540;&#12488; Iceberg REST &#12459;&#12479;&#12525;&#12464;&#12408;&#12398;&#30452;&#25509;&#12450;&#12463;&#12475;&#12473;&#12434;&#23455;&#29694;&#12290;</div>
+                    <ul class="feature-detail-list">
+                        <li>&#12522;&#12514;&#12540;&#12488; Iceberg REST &#12459;&#12479;&#12525;&#12464;&#12408;&#12398;&#30452;&#25509;&#12450;&#12463;&#12475;&#12473;</li>
+                        <li>AWS Glue &#12459;&#12479;&#12525;&#12464;&#12501;&#12455;&#12487;&#12524;&#12540;&#12471;&#12519;&#12531;&#12392;&#12398;&#32113;&#21512;</li>
+                        <li>&#12486;&#12540;&#12502;&#12523;&#12513;&#12479;&#12487;&#12540;&#12479;&#12398;&#12524;&#12503;&#12522;&#12465;&#12540;&#12471;&#12519;&#12531;&#19981;&#35201;</li>
+                    </ul>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#128202;</div>
+                    <div class="feature-title">Athena &#12477;&#12540;&#12473;&#12398;&#27083;&#25104;&#28168;&#12415;&#12486;&#12540;&#12502;&#12523;</div>
+                    <div class="feature-description">&#12501;&#12455;&#12487;&#12524;&#12540;&#12471;&#12519;&#12531;&#12459;&#12479;&#12525;&#12464;&#23550;&#24540;&#12398; Athena &#12477;&#12540;&#12473;&#27083;&#25104;&#28168;&#12415;&#12486;&#12540;&#12502;&#12523;&#12290;</div>
+                    <ul class="feature-detail-list">
+                        <li>&#12501;&#12455;&#12487;&#12524;&#12540;&#12471;&#12519;&#12531;&#12459;&#12479;&#12525;&#12464;&#23550;&#24540;</li>
+                        <li>&#23433;&#20840;&#12394;&#12487;&#12540;&#12479;&#12450;&#12463;&#12475;&#12473;&#12398;&#32173;&#25345;</li>
+                    </ul>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#128274;</div>
+                    <div class="feature-title">&#12487;&#12540;&#12479;&#12503;&#12521;&#12452;&#12496;&#12471;&#12540;&#12398;&#20445;&#25345;</div>
+                    <div class="feature-description">&#22522;&#30436;&#12392;&#12394;&#12427;&#12487;&#12540;&#12479;&#12434;&#30456;&#20114;&#12395;&#20844;&#38283;&#12379;&#12378;&#12395;&#20849;&#21516;&#20998;&#26512;&#12290;</div>
+                    <ul class="feature-detail-list">
+                        <li>&#12487;&#12540;&#12479;&#38750;&#20844;&#38283;&#12391;&#12398;&#20849;&#21516;&#20998;&#26512;</li>
+                        <li>ETL &#12497;&#12452;&#12503;&#12521;&#12452;&#12531;&#12420;&#12487;&#12540;&#12479;&#20849;&#26377;&#12364;&#19981;&#35201;</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Technical Specs Section -->
+        <section class="section">
+            <h2 class="section-title">&#128196; &#25216;&#34899;&#20181;&#27096;</h2>
+            <div class="overview-card">
+                <div style="font-size: 15px; font-weight: 700; color: var(--text-primary); margin-bottom: 12px;">API &#22793;&#26356;&#23653;&#27508;</div>
+                <table class="spec-table">
+                    <thead>
+                        <tr>
+                            <th>&#26085;&#20184;</th>
+                            <th>&#12469;&#12540;&#12499;&#12473;</th>
+                            <th>&#22793;&#26356;&#20869;&#23481;</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>2026/02/18</td>
+                            <td><a href="https://awsapichanges.com/archive/changes/7cdfaf-cleanrooms.html" target="_blank" rel="noopener noreferrer" style="color: var(--aws-teal); text-decoration: none;">AWS Clean Rooms Service</a></td>
+                            <td>3 updated api methods - &#12501;&#12455;&#12487;&#12524;&#12540;&#12471;&#12519;&#12531;&#12459;&#12479;&#12525;&#12464;&#12398;&#12469;&#12509;&#12540;&#12488;&#36861;&#21152;</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Setup Section -->
+        <section class="section">
+            <h2 class="section-title">&#9881;&#65039; &#35373;&#23450;&#26041;&#27861;</h2>
+            <div class="overview-card">
+                <div style="font-size: 15px; font-weight: 700; color: var(--text-primary); margin-bottom: 12px;">&#21069;&#25552;&#26465;&#20214;</div>
+                <ul class="feature-detail-list" style="margin-bottom: 0;">
+                    <li>AWS Clean Rooms &#12398;&#12467;&#12521;&#12508;&#12524;&#12540;&#12471;&#12519;&#12531;&#12364;&#35373;&#23450;&#28168;&#12415;&#12391;&#12354;&#12427;&#12371;&#12392;</li>
+                    <li>AWS Glue &#12459;&#12479;&#12525;&#12464;&#12501;&#12455;&#12487;&#12524;&#12540;&#12471;&#12519;&#12531;&#12364;&#27083;&#25104;&#28168;&#12415;&#12391;&#12354;&#12427;&#12371;&#12392;</li>
+                    <li>&#12522;&#12514;&#12540;&#12488; Iceberg REST &#12459;&#12479;&#12525;&#12464;&#12408;&#12398;&#12450;&#12463;&#12475;&#12473;&#27177;&#38480;&#12364;&#12354;&#12427;&#12371;&#12392;</li>
+                </ul>
+            </div>
+
+            <div class="overview-card">
+                <div class="flow-diagram">
+                    <div class="flow-step">&#128218; Step 1<br>&#12459;&#12479;&#12525;&#12464;<br>&#12501;&#12455;&#12487;&#12524;&#12540;&#12471;&#12519;&#12531;<br>&#12398;&#35373;&#23450;</div>
+                    <span class="flow-arrow">&#8594;</span>
+                    <div class="flow-step">&#128196; Step 2<br>&#27083;&#25104;&#28168;&#12415;<br>&#12486;&#12540;&#12502;&#12523;&#12398;<br>&#20316;&#25104;</div>
+                    <span class="flow-arrow">&#8594;</span>
+                    <div class="flow-step">&#9989; &#23436;&#20102;<br>&#12467;&#12521;&#12508;&#12524;&#12540;&#12471;&#12519;&#12531;<br>&#38283;&#22987;</div>
+                </div>
+                <div style="margin-top: 15px;">
+                    <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 10px;"><strong style="color: var(--aws-orange);">Step 1:</strong> AWS Glue &#12391;&#12522;&#12514;&#12540;&#12488; Iceberg REST &#12459;&#12479;&#12525;&#12464;&#12408;&#12398;&#12501;&#12455;&#12487;&#12524;&#12540;&#12471;&#12519;&#12531;&#25509;&#32154;&#12434;&#35373;&#23450;&#12377;&#12427;&#12290;</p>
+                    <p style="font-size: 14px; color: var(--text-secondary);"><strong style="color: var(--aws-orange);">Step 2:</strong> Clean Rooms &#12467;&#12531;&#12477;&#12540;&#12523;&#12391;&#12289;&#12501;&#12455;&#12487;&#12524;&#12540;&#12471;&#12519;&#12531;&#12459;&#12479;&#12525;&#12464;&#12434;&#20351;&#29992;&#12375;&#12383; Athena &#12477;&#12540;&#12473;&#12398;&#27083;&#25104;&#28168;&#12415;&#12486;&#12540;&#12502;&#12523;&#12434;&#20316;&#25104;&#12377;&#12427;&#12290;</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Use Cases Section -->
+        <section class="section">
+            <h2 class="section-title">&#127919; &#12518;&#12540;&#12473;&#12465;&#12540;&#12473;</h2>
+            <div class="usecase-card">
+                <div class="usecase-title">&#128250; &#12518;&#12540;&#12473;&#12465;&#12540;&#12473; 1: &#24195;&#21578;&#21177;&#26524;&#28204;&#23450;</div>
+                <div class="usecase-scenario">
+                    &#12513;&#12487;&#12451;&#12450;&#12497;&#12502;&#12522;&#12483;&#12471;&#12515;&#12540;&#12392;&#24195;&#21578;&#20027;&#12364;&#12289;&#12381;&#12428;&#12382;&#12428;&#30064;&#12394;&#12427;&#12459;&#12479;&#12525;&#12464;&#12391;&#31649;&#29702;&#12377;&#12427;&#12487;&#12540;&#12479;&#12434;&#20351;&#29992;&#12375;&#12390;&#24195;&#21578;&#21177;&#26524;&#12434;&#20849;&#21516;&#20998;&#26512;&#12290;
+                </div>
+                <div class="usecase-effect">
+                    &#12487;&#12540;&#12479;&#12434;&#20849;&#26377;&#12379;&#12378;&#12395;&#12452;&#12531;&#12469;&#12452;&#12488;&#12434;&#24471;&#12425;&#12428;&#12289;&#12503;&#12521;&#12452;&#12496;&#12471;&#12540;&#12434;&#20445;&#35703;&#12375;&#12394;&#12364;&#12425;&#24195;&#21578;&#25237;&#36039;&#23550;&#21177;&#26524;&#12434;&#35413;&#20385;&#12290;
+                </div>
+            </div>
+            <div class="usecase-card">
+                <div class="usecase-title">&#128666; &#12518;&#12540;&#12473;&#12465;&#12540;&#12473; 2: &#12469;&#12503;&#12521;&#12452;&#12481;&#12455;&#12540;&#12531;&#20998;&#26512;</div>
+                <div class="usecase-scenario">
+                    &#12469;&#12503;&#12521;&#12452;&#12481;&#12455;&#12540;&#12531;&#12398;&#35079;&#25968;&#12497;&#12540;&#12488;&#12490;&#12540;&#12364;&#12289;&#21508;&#31038;&#12398;&#12522;&#12514;&#12540;&#12488; Iceberg &#12459;&#12479;&#12525;&#12464;&#12398;&#12487;&#12540;&#12479;&#12434;&#20351;&#29992;&#12375;&#12390;&#20379;&#32102;&#26368;&#36969;&#21270;&#12434;&#20998;&#26512;&#12290;
+                </div>
+                <div class="usecase-effect">
+                    ETL &#12394;&#12375;&#12391;&#21363;&#24231;&#12395;&#12467;&#12521;&#12508;&#12524;&#12540;&#12471;&#12519;&#12531;&#20998;&#26512;&#12434;&#38283;&#22987;&#21487;&#33021;&#12290;
+                </div>
+            </div>
+        </section>
+
+        <!-- Benefits Section -->
+        <section class="section">
+            <h2 class="section-title">&#128640; &#12513;&#12522;&#12483;&#12488;</h2>
+            <div style="font-size: 15px; font-weight: 700; color: var(--text-primary); margin-bottom: 15px;">&#12499;&#12472;&#12493;&#12473;&#38754;</div>
+            <div class="benefits-grid" style="margin-bottom: 25px;">
+                <div class="benefit-card">
+                    <div class="benefit-icon">&#9889;</div>
+                    <div class="benefit-title">&#12475;&#12483;&#12488;&#12450;&#12483;&#12503;&#12398;&#31777;&#32032;&#21270;</div>
+                    <div class="benefit-desc">&#12513;&#12479;&#12487;&#12540;&#12479;&#12524;&#12503;&#12522;&#12465;&#12540;&#12471;&#12519;&#12531;&#12364;&#19981;&#35201;&#12391;&#12467;&#12521;&#12508;&#12524;&#12540;&#12471;&#12519;&#12531;&#38283;&#22987;&#12364;&#36805;&#36895;&#12290;</div>
+                </div>
+                <div class="benefit-card">
+                    <div class="benefit-icon">&#128274;</div>
+                    <div class="benefit-title">&#12487;&#12540;&#12479;&#12503;&#12521;&#12452;&#12496;&#12471;&#12540;&#12398;&#20445;&#35703;</div>
+                    <div class="benefit-desc">&#22522;&#30436;&#12487;&#12540;&#12479;&#12434;&#30456;&#20114;&#12395;&#20844;&#38283;&#12379;&#12378;&#12395;&#20998;&#26512;&#21487;&#33021;&#12290;</div>
+                </div>
+                <div class="benefit-card">
+                    <div class="benefit-icon">&#128176;</div>
+                    <div class="benefit-title">&#12467;&#12473;&#12488;&#21066;&#28187;</div>
+                    <div class="benefit-desc">ETL &#12497;&#12452;&#12503;&#12521;&#12452;&#12531;&#12398;&#27083;&#31689;&#12539;&#36939;&#29992;&#12467;&#12473;&#12488;&#12364;&#19981;&#35201;&#12290;</div>
+                </div>
+            </div>
+            <div style="font-size: 15px; font-weight: 700; color: var(--text-primary); margin-bottom: 15px;">&#25216;&#34899;&#38754;</div>
+            <div class="benefits-grid">
+                <div class="benefit-card">
+                    <div class="benefit-icon">&#128339;</div>
+                    <div class="benefit-title">&#12522;&#12450;&#12523;&#12479;&#12452;&#12512;&#12450;&#12463;&#12475;&#12473;</div>
+                    <div class="benefit-desc">&#12522;&#12514;&#12540;&#12488;&#12459;&#12479;&#12525;&#12464;&#12398;&#12487;&#12540;&#12479;&#12395;&#30452;&#25509;&#12450;&#12463;&#12475;&#12473;&#12375;&#12390;&#12524;&#12452;&#12486;&#12531;&#12471;&#12540;&#12434;&#21066;&#28187;&#12290;</div>
+                </div>
+                <div class="benefit-card">
+                    <div class="benefit-icon">&#128196;</div>
+                    <div class="benefit-title">&#12513;&#12479;&#12487;&#12540;&#12479;&#12398;&#19968;&#36011;&#24615;</div>
+                    <div class="benefit-desc">&#12524;&#12503;&#12522;&#12465;&#12540;&#12471;&#12519;&#12531;&#12395;&#12424;&#12427;&#12513;&#12479;&#12487;&#12540;&#12479;&#12398;&#20055;&#38626;&#12522;&#12473;&#12463;&#12364;&#12394;&#12367;&#12394;&#12427;&#12290;</div>
+                </div>
+                <div class="benefit-card">
+                    <div class="benefit-icon">&#128215;</div>
+                    <div class="benefit-title">Iceberg &#27161;&#28310;&#28310;&#25312;</div>
+                    <div class="benefit-desc">Apache Iceberg REST &#12459;&#12479;&#12525;&#12464;&#20181;&#27096;&#12395;&#22522;&#12389;&#12367;&#27161;&#28310;&#30340;&#12394;&#32113;&#21512;&#12290;</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Considerations Section -->
+        <section class="section">
+            <h2 class="section-title">&#9888;&#65039; &#21046;&#32004;&#20107;&#38917;&#12539;&#32771;&#24942;&#28857;</h2>
+            <div class="consideration-card warning">
+                <div class="consideration-title">&#9888; &#21046;&#38480;&#20107;&#38917;</div>
+                <ul class="consideration-list">
+                    <li>&#23550;&#24540;&#12501;&#12457;&#12540;&#12510;&#12483;&#12488;&#12399; Apache Iceberg &#12486;&#12540;&#12502;&#12523;&#12395;&#38480;&#23450;</li>
+                    <li>AWS Glue &#12459;&#12479;&#12525;&#12464;&#12501;&#12455;&#12487;&#12524;&#12540;&#12471;&#12519;&#12531;&#12398;&#35373;&#23450;&#12364;&#24517;&#35201;</li>
+                </ul>
+            </div>
+            <div class="consideration-card info">
+                <div class="consideration-title">&#8505; &#32771;&#24942;&#12377;&#12409;&#12365;&#28857;</div>
+                <ul class="consideration-list">
+                    <li>&#12522;&#12514;&#12540;&#12488;&#12459;&#12479;&#12525;&#12464;&#12408;&#12398;&#12493;&#12483;&#12488;&#12527;&#12540;&#12463;&#25509;&#32154;&#12398;&#20449;&#38972;&#24615;&#12364;&#24517;&#35201;</li>
+                    <li>&#22823;&#37327;&#12487;&#12540;&#12479;&#12398;&#20998;&#26512;&#26178;&#12399;&#12463;&#12456;&#12522;&#12497;&#12501;&#12457;&#12540;&#12510;&#12531;&#12473;&#12398;&#26908;&#35388;&#12434;&#25512;&#22888;</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Pricing Section -->
+        <section class="section">
+            <h2 class="section-title">&#128176; &#26009;&#37329;</h2>
+            <div class="pricing-card">
+                <p style="font-size: 14px; margin-bottom: 15px;">AWS Clean Rooms &#12398;&#36890;&#24120;&#26009;&#37329;&#12395;&#24467;&#12358;&#12290;&#12459;&#12479;&#12525;&#12464;&#12501;&#12455;&#12487;&#12524;&#12540;&#12471;&#12519;&#12531;&#33258;&#20307;&#12398;&#36861;&#21152;&#26009;&#37329;&#12399;&#12394;&#12356;&#12364;&#12289;&#12463;&#12456;&#12522;&#23455;&#34892;&#26178;&#12398; Clean Rooms &#20966;&#29702;&#26009;&#37329;&#12364;&#30330;&#29983;&#12377;&#12427;&#12290;</p>
+                <a href="https://aws.amazon.com/clean-rooms/pricing/" target="_blank" rel="noopener noreferrer" style="color: var(--aws-teal); text-decoration: none; font-size: 14px; font-weight: 700;">&#128279; AWS Clean Rooms &#26009;&#37329;&#12506;&#12540;&#12472;</a>
+            </div>
+        </section>
+
+        <!-- Available Regions Section -->
+        <section class="section">
+            <h2 class="section-title">&#127757; &#21033;&#29992;&#21487;&#33021;&#12522;&#12540;&#12472;&#12519;&#12531;</h2>
+            <div class="overview-card" style="text-align: center;">
+                <p style="font-size: 14px; margin-bottom: 10px;">AWS Clean Rooms &#12364;&#21033;&#29992;&#21487;&#33021;&#12394;&#12522;&#12540;&#12472;&#12519;&#12531;&#12391;&#20351;&#29992;&#21487;&#33021;&#12290;</p>
+                <a href="https://docs.aws.amazon.com/general/latest/gr/clean-rooms.html#clean-rooms_region" target="_blank" rel="noopener noreferrer" style="color: var(--aws-teal); text-decoration: none; font-size: 14px; font-weight: 700;">&#128279; AWS &#12522;&#12540;&#12472;&#12519;&#12531;&#12486;&#12540;&#12502;&#12523;&#12391;&#30906;&#35469;</a>
+            </div>
+        </section>
+
+        <!-- Related Services Section -->
+        <section class="section">
+            <h2 class="section-title">&#128295; &#38306;&#36899;&#12469;&#12540;&#12499;&#12473;</h2>
+            <div class="related-grid">
+                <div class="related-card">
+                    <div class="related-icon">&#128218;</div>
+                    <div class="related-name">AWS Glue Data Catalog</div>
+                    <div class="related-desc">&#12459;&#12479;&#12525;&#12464;&#12501;&#12455;&#12487;&#12524;&#12540;&#12471;&#12519;&#12531;&#12398;&#22522;&#30436;</div>
+                </div>
+                <div class="related-card">
+                    <div class="related-icon">&#128269;</div>
+                    <div class="related-name">Amazon Athena</div>
+                    <div class="related-desc">Clean Rooms &#12398;&#12463;&#12456;&#12522;&#23455;&#34892;&#12456;&#12531;&#12472;&#12531;</div>
+                </div>
+                <div class="related-card">
+                    <div class="related-icon">&#10052;&#65039;</div>
+                    <div class="related-name">Apache Iceberg</div>
+                    <div class="related-desc">&#12458;&#12540;&#12503;&#12531;&#12486;&#12540;&#12502;&#12523;&#12501;&#12457;&#12540;&#12510;&#12483;&#12488;</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer>
+            <div>
+                <a href="https://aws.amazon.com/about-aws/whats-new/2026/02/aws-clean-rooms-remote-iceberg-catalogs/" class="source-link" target="_blank" rel="noopener noreferrer">
+                    &#128279; &#20844;&#24335;&#30330;&#34920; (What's New) &#12434;&#35211;&#12427;
+                </a>
+            </div>
+            <div>
+                <a href="https://docs.aws.amazon.com/clean-rooms/latest/userguide/create-config-table-athena.html" class="source-link" target="_blank" rel="noopener noreferrer">
+                    &#128196; &#12522;&#12514;&#12540;&#12488; Iceberg &#12459;&#12479;&#12525;&#12464;&#12489;&#12461;&#12517;&#12513;&#12531;&#12488;
+                </a>
+            </div>
+            <div>
+                <a href="https://aws.amazon.com/clean-rooms/" class="source-link" target="_blank" rel="noopener noreferrer">
+                    &#128214; AWS Clean Rooms &#35069;&#21697;&#12506;&#12540;&#12472;
+                </a>
+            </div>
+            <p class="footer-note">AWS Clean Rooms &#12398;&#12522;&#12514;&#12540;&#12488; Iceberg REST &#12459;&#12479;&#12525;&#12464;&#12469;&#12509;&#12540;&#12488;&#12395;&#12424;&#12426;&#12289;&#30064;&#12394;&#12427;&#12459;&#12479;&#12525;&#12464;&#38291;&#12398;&#12487;&#12540;&#12479;&#12467;&#12521;&#12508;&#12524;&#12540;&#12471;&#12519;&#12531;&#12364;&#22823;&#24133;&#12395;&#31777;&#32032;&#21270;&#12373;&#12428;&#12414;&#12375;&#12383;&#12290;&#12513;&#12479;&#12487;&#12540;&#12479;&#12398;&#12524;&#12503;&#12522;&#12465;&#12540;&#12471;&#12519;&#12531;&#12420; ETL &#12497;&#12452;&#12503;&#12521;&#12452;&#12531;&#12364;&#19981;&#35201;&#12395;&#12394;&#12426;&#12289;&#12487;&#12540;&#12479;&#12503;&#12521;&#12452;&#12496;&#12471;&#12540;&#12434;&#20445;&#35703;&#12375;&#12394;&#12364;&#12425;&#36805;&#36895;&#12395;&#12467;&#12521;&#12508;&#12524;&#12540;&#12471;&#12519;&#12531;&#20998;&#26512;&#12434;&#38283;&#22987;&#12391;&#12365;&#12414;&#12377;&#12290;</p>
+        </footer>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'base',
+            themeVariables: {
+                primaryColor: '#FF9900',
+                primaryTextColor: '#232F3E',
+                primaryBorderColor: '#FF9900',
+                lineColor: '#FF9900',
+                secondaryColor: '#F5F5F5',
+                tertiaryColor: '#FAFAFA',
+                background: '#FFFFFF',
+                mainBkg: '#FFF3E0',
+                nodeBorder: '#FF9900',
+                clusterBkg: '#FFF8E1',
+                clusterBorder: '#FF9900',
+                edgeLabelBackground: '#FFFFFF',
+                textColor: '#232F3E'
+            }
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/highlight.min.js"></script>
+    <script>hljs.highlightAll();</script>
+</body>
+</html>
