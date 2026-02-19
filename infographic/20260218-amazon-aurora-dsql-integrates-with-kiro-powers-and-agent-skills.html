@@ -1,0 +1,1017 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aurora DSQL - Kiro Powers / AI エージェントスキル統合</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/styles/atom-one-dark.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/highlight.min.js"></script>
+    <style>
+        :root {
+            --squid-ink: #232F3E;
+            --aws-orange: #FF9900;
+            --aws-smile-orange: #FFAD33;
+            --text-primary: #FFFFFF;
+            --text-secondary: #AAAAAA;
+            --light-gray: #D5DBDB;
+            --card-bg: #2D3A4A;
+            --dark-squid: #1A242F;
+            --border-color: #3D4A5A;
+            --aws-teal: #00A1C9;
+            --aws-purple: #8C4FFF;
+            --aws-green: #1D8102;
+            --aws-red: #D13212;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            background-color: var(--squid-ink);
+            color: var(--light-gray);
+            line-height: 1.8;
+            font-size: 16px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+            padding-bottom: 30px;
+            border-bottom: 3px solid var(--aws-orange);
+        }
+
+        .service-badge {
+            display: inline-block;
+            background-color: var(--aws-orange);
+            color: var(--squid-ink);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+        }
+
+        .release-date {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--aws-orange);
+            margin-bottom: 20px;
+            padding-left: 15px;
+            border-left: 4px solid var(--aws-orange);
+        }
+
+        .overview-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .overview-text {
+            font-size: 16px;
+            line-height: 1.9;
+        }
+
+        .highlight {
+            background-color: rgba(255, 153, 0, 0.2);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+            color: var(--aws-orange);
+        }
+
+        /* Stats grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, var(--card-bg) 0%, var(--dark-squid) 100%);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid rgba(255, 153, 0, 0.2);
+        }
+
+        .stat-icon {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--aws-orange);
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        /* Before/After comparison */
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .comparison-grid {
+                grid-template-columns: 1fr;
+            }
+            .features-grid {
+                grid-template-columns: 1fr !important;
+            }
+            .agent-grid {
+                grid-template-columns: 1fr !important;
+            }
+            .related-grid {
+                grid-template-columns: repeat(2, 1fr) !important;
+            }
+            .merit-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .comparison-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .comparison-card.before {
+            border-top: 4px solid #E74C3C;
+        }
+
+        .comparison-card.after {
+            border-top: 4px solid #2ECC71;
+        }
+
+        .comparison-label {
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        .comparison-card.before .comparison-label {
+            color: #E74C3C;
+        }
+
+        .comparison-card.after .comparison-label {
+            color: #2ECC71;
+        }
+
+        .comparison-list {
+            list-style: none;
+        }
+
+        .comparison-list li {
+            padding: 8px 0;
+            padding-left: 25px;
+            position: relative;
+            font-size: 14px;
+        }
+
+        .comparison-card.before .comparison-list li::before {
+            content: "\2717";
+            position: absolute;
+            left: 0;
+            color: #E74C3C;
+            font-weight: bold;
+        }
+
+        .comparison-card.after .comparison-list li::before {
+            content: "\2713";
+            position: absolute;
+            left: 0;
+            color: #2ECC71;
+            font-weight: bold;
+        }
+
+        /* Mermaid diagram */
+        .diagram-container {
+            background-color: #FFFFFF;
+            border: 2px solid rgba(255, 153, 0, 0.3);
+            border-radius: 12px;
+            padding: 25px;
+            overflow-x: auto;
+        }
+
+        .mermaid {
+            display: flex;
+            justify-content: center;
+        }
+
+        .diagram-caption {
+            font-size: 14px;
+            color: var(--text-secondary);
+            text-align: center;
+            margin-top: 12px;
+        }
+
+        /* Feature cards */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .feature-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            border-left: 3px solid var(--aws-orange);
+        }
+
+        .feature-icon {
+            font-size: 36px;
+            margin-bottom: 12px;
+        }
+
+        .feature-title {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--aws-orange);
+        }
+
+        .feature-description {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        /* Agent support table */
+        .agent-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+
+        .agent-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border: 1px solid var(--border-color);
+        }
+
+        .agent-icon {
+            font-size: 24px;
+            min-width: 32px;
+            text-align: center;
+        }
+
+        .agent-info {
+            flex: 1;
+        }
+
+        .agent-name {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .agent-method {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        /* Code blocks */
+        .code-block {
+            background: #1a1a2e;
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 16px 0;
+        }
+
+        .code-header {
+            background: #16213e;
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+        }
+
+        .code-lang {
+            color: var(--aws-orange);
+            font-weight: bold;
+        }
+
+        .code-title {
+            color: var(--light-gray);
+        }
+
+        .code-block pre {
+            margin: 0;
+            padding: 0;
+            overflow-x: auto;
+        }
+
+        .code-block code {
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            padding: 16px !important;
+        }
+
+        /* Flow diagram */
+        .flow-diagram {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin: 24px 0;
+        }
+
+        .flow-step {
+            background: var(--dark-squid);
+            border: 2px solid var(--aws-orange);
+            border-radius: 8px;
+            padding: 12px 20px;
+            text-align: center;
+            min-width: 120px;
+            font-size: 14px;
+        }
+
+        .flow-arrow {
+            color: var(--aws-orange);
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        /* Use case cards */
+        .usecase-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 3px solid var(--aws-orange);
+        }
+
+        .usecase-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .usecase-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--aws-orange);
+        }
+
+        .usecase-scenario {
+            font-size: 14px;
+            color: var(--light-gray);
+            margin-bottom: 12px;
+        }
+
+        .usecase-effect {
+            font-size: 14px;
+            color: #2ECC71;
+            padding: 10px;
+            background-color: rgba(46, 204, 113, 0.1);
+            border-radius: 8px;
+        }
+
+        .usecase-effect::before {
+            content: "\2713 ";
+            font-weight: bold;
+        }
+
+        /* Merit/Demerit */
+        .merit-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .merit-section {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .merit-section h3 {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: var(--aws-orange);
+        }
+
+        .merit-list {
+            list-style: none;
+        }
+
+        .merit-list li {
+            padding: 6px 0;
+            padding-left: 22px;
+            position: relative;
+            font-size: 14px;
+            color: var(--light-gray);
+        }
+
+        .merit-list li::before {
+            content: "\2713";
+            position: absolute;
+            left: 0;
+            color: #2ECC71;
+            font-weight: bold;
+        }
+
+        /* Constraint/Limitation */
+        .constraint-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 3px solid #E74C3C;
+        }
+
+        .constraint-title {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #E74C3C;
+        }
+
+        .constraint-list {
+            list-style: none;
+        }
+
+        .constraint-list li {
+            padding: 6px 0;
+            padding-left: 22px;
+            position: relative;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .constraint-list li::before {
+            content: "\26A0";
+            position: absolute;
+            left: 0;
+            font-size: 12px;
+        }
+
+        /* Pricing card */
+        .pricing-card {
+            background: linear-gradient(135deg, rgba(29, 129, 2, 0.15) 0%, var(--card-bg) 100%);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid rgba(29, 129, 2, 0.3);
+            text-align: center;
+        }
+
+        .pricing-highlight {
+            font-size: 22px;
+            font-weight: 700;
+            color: #2ECC71;
+            margin-bottom: 8px;
+        }
+
+        .pricing-detail {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        /* Region */
+        .region-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .region-highlight {
+            font-size: 16px;
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .region-note {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-top: 8px;
+        }
+
+        /* Related services */
+        .related-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+
+        .related-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+        }
+
+        .related-name {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 6px;
+        }
+
+        .related-desc {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        /* Footer */
+        footer {
+            margin-top: 50px;
+            padding-top: 30px;
+            border-top: 1px solid var(--border-color);
+            text-align: center;
+        }
+
+        .source-links {
+            list-style: none;
+            margin-bottom: 16px;
+        }
+
+        .source-links li {
+            margin-bottom: 6px;
+        }
+
+        .source-link {
+            color: var(--aws-teal);
+            text-decoration: none;
+            font-size: 14px;
+            word-break: break-all;
+        }
+
+        .source-link:hover {
+            color: var(--aws-smile-orange);
+            text-decoration: underline;
+        }
+
+        .footer-note {
+            color: var(--text-secondary);
+            font-size: 12px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <span class="service-badge">Amazon Aurora DSQL</span>
+            <h1>Kiro Powers / AI エージェントスキル統合</h1>
+            <p style="color: var(--light-gray); font-size: 15px; margin-bottom: 8px;">Kiro Powers and AI Agent Skills Integration</p>
+            <p class="release-date">2026 年 2 月 18 日</p>
+        </header>
+
+        <!-- Overview -->
+        <section class="section">
+            <h2 class="section-title">概要</h2>
+            <div class="overview-card">
+                <p class="overview-text">
+                    Amazon Aurora DSQL が <span class="highlight">Kiro powers</span> および <span class="highlight">AI エージェントスキル</span> と統合されました。この統合により、Aurora DSQL の <span class="highlight">MCP サーバー</span> と開発ベストプラクティスがバンドルされ、AI エージェントが Aurora DSQL のスキーマ設計、パフォーマンス最適化、データベース操作をすぐに支援できるようになりました。
+                </p>
+                <p class="overview-text" style="margin-top: 12px;">
+                    Kiro powers は、キュレーションされた MCP サーバー、ステアリングファイル、エージェントフックのレジストリで、ソフトウェア開発とデプロイのユースケースを加速します。また、Aurora DSQL スキルは Skills CLI を通じて <span class="highlight">10 以上の AI コーディングエージェント</span> に対応します。
+                </p>
+            </div>
+
+            <!-- Stats -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">&#129302;</div>
+                    <div class="stat-value">10+</div>
+                    <div class="stat-label">対応 AI<br>コーディングエージェント</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">&#9889;</div>
+                    <div class="stat-value">1</div>
+                    <div class="stat-label">クリックで<br>インストール</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">&#128736;</div>
+                    <div class="stat-value">3</div>
+                    <div class="stat-label">MCP サーバー機能<br>スキーマ / 最適化 / 操作</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">&#128176;</div>
+                    <div class="stat-value">$0</div>
+                    <div class="stat-label">スキル利用<br>追加料金</div>
+                </div>
+            </div>
+
+            <!-- Before/After -->
+            <div class="comparison-grid">
+                <div class="comparison-card before">
+                    <div class="comparison-label">Before - アップデート前の課題</div>
+                    <ul class="comparison-list">
+                        <li>Aurora DSQL の開発にはデータベース設計の専門知識を開発者が個別に持つ必要があった</li>
+                        <li>AI エージェントに Aurora DSQL の Postgres 互換パターンや分散データベース設計のコンテキストを毎回提供する必要があった</li>
+                        <li>MCP サーバーのセットアップを開発者が手動で行う必要があった</li>
+                    </ul>
+                </div>
+                <div class="comparison-card after">
+                    <div class="comparison-label">After - アップデート後の改善</div>
+                    <ul class="comparison-list">
+                        <li>Kiro IDE でワンクリックインストールが可能になった</li>
+                        <li>AI エージェントがデータベースタスク時に関連するスキルガイダンスを動的にロードする</li>
+                        <li>複数の AI コーディングエージェントで共通のスキルを利用可能になった</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Architecture Diagram -->
+        <section class="section">
+            <h2 class="section-title">アーキテクチャ図</h2>
+            <div class="diagram-container">
+                <pre class="mermaid">
+flowchart TD
+    subgraph Agents["&#129302; AI コーディングエージェント"]
+        direction LR
+        Kiro["&#128309; Kiro IDE"]
+        Claude["&#128995; Claude Code"]
+        Others["&#9898; Cursor, Copilot 等"]
+        Kiro ~~~ Claude ~~~ Others
+    end
+
+    subgraph Integration["&#128268; 統合レイヤ"]
+        direction LR
+        KP["&#9889; Kiro Powers"]
+        Skills["&#128203; Skills CLI"]
+        KP ~~~ Skills
+    end
+
+    subgraph MCP["&#128295; MCP サーバー"]
+        direction LR
+        Schema["&#128208; スキーマ設計"]
+        Perf["&#128202; パフォーマンス最適化"]
+        Ops["&#128260; DB 操作"]
+        Schema ~~~ Perf ~~~ Ops
+    end
+
+    DSQL[("&#128203; Aurora DSQL")]
+
+    Kiro --> KP
+    Claude --> Skills
+    Others --> Skills
+    KP --> MCP
+    Skills --> MCP
+    MCP --> DSQL
+
+    classDef agent fill:#E3F2FD,stroke:#BBDEFB,stroke-width:2px,color:#1565C0
+    classDef integration fill:#FFF3E0,stroke:#FFCC80,stroke-width:2px,color:#5D4037
+    classDef mcp fill:#F3E5F5,stroke:#CE93D8,stroke-width:2px,color:#4A148C
+    classDef db fill:#E8F5E9,stroke:#C8E6C9,stroke-width:2px,color:#2E7D32
+    classDef container fill:none,stroke:#CCCCCC,stroke-width:2px,color:#666666
+
+    class Kiro,Claude,Others agent
+    class KP,Skills integration
+    class Schema,Perf,Ops mcp
+    class DSQL db
+    class Agents,Integration,MCP container
+                </pre>
+            </div>
+            <p class="diagram-caption">AI コーディングエージェントが Kiro powers または Skills CLI を通じて Aurora DSQL の MCP サーバーに接続し、専門的な開発支援を受ける</p>
+        </section>
+
+        <!-- Key Features -->
+        <section class="section">
+            <h2 class="section-title">主要機能</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">&#9889;</div>
+                    <div class="feature-title">Kiro Power for Aurora DSQL</div>
+                    <div class="feature-description">
+                        Kiro IDE でのワンクリックインストール。MCP サーバー、ステアリングファイル、エージェントフックの統合パッケージ。コンテキストキーワードによる動的アクティベーション。
+                    </div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#128203;</div>
+                    <div class="feature-title">Aurora DSQL Skill</div>
+                    <div class="feature-description">
+                        Skills CLI によるマルチエージェント対応。単一コマンドでインストール可能。Kiro CLI、Claude Code、Gemini、Codex、Cursor、Copilot 他をサポート。
+                    </div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#128161;</div>
+                    <div class="feature-title">動的スキルガイダンス</div>
+                    <div class="feature-description">
+                        Aurora DSQL の Postgres 互換 SQL パターン、分散データベース設計のベストプラクティス、IAM 認証のガイダンス。新機能追加時にスキルも自動更新。
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Supported Agents -->
+        <section class="section">
+            <h2 class="section-title">対応エージェント</h2>
+            <div class="agent-grid">
+                <div class="agent-card">
+                    <div class="agent-icon">&#128309;</div>
+                    <div class="agent-info">
+                        <div class="agent-name">Kiro IDE</div>
+                        <div class="agent-method">Kiro Powers レジストリからワンクリック</div>
+                    </div>
+                </div>
+                <div class="agent-card">
+                    <div class="agent-icon">&#128995;</div>
+                    <div class="agent-info">
+                        <div class="agent-name">Claude Code</div>
+                        <div class="agent-method">Skills CLI</div>
+                    </div>
+                </div>
+                <div class="agent-card">
+                    <div class="agent-icon">&#127775;</div>
+                    <div class="agent-info">
+                        <div class="agent-name">Gemini</div>
+                        <div class="agent-method">Skills CLI</div>
+                    </div>
+                </div>
+                <div class="agent-card">
+                    <div class="agent-icon">&#128187;</div>
+                    <div class="agent-info">
+                        <div class="agent-name">Cursor</div>
+                        <div class="agent-method">Skills CLI</div>
+                    </div>
+                </div>
+                <div class="agent-card">
+                    <div class="agent-icon">&#129302;</div>
+                    <div class="agent-info">
+                        <div class="agent-name">Copilot</div>
+                        <div class="agent-method">Skills CLI</div>
+                    </div>
+                </div>
+                <div class="agent-card">
+                    <div class="agent-icon">&#128268;</div>
+                    <div class="agent-info">
+                        <div class="agent-name">Codex, Cline, Windsurf, Roo, OpenCode 他</div>
+                        <div class="agent-method">Skills CLI</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Installation -->
+        <section class="section">
+            <h2 class="section-title">設定方法</h2>
+
+            <div class="overview-card" style="margin-bottom: 16px;">
+                <h3 style="font-size: 15px; color: var(--aws-orange); margin-bottom: 10px;">前提条件</h3>
+                <ul class="merit-list">
+                    <li>Kiro IDE または対応 AI コーディングエージェントがインストール済みであること</li>
+                    <li>Aurora DSQL クラスタが作成済みであること</li>
+                    <li>Node.js がインストール済みであること (Skills CLI 使用時)</li>
+                </ul>
+            </div>
+
+            <div class="flow-diagram">
+                <div class="flow-step">&#128268; Kiro Power<br>または Skills CLI<br>をインストール</div>
+                <span class="flow-arrow">&rarr;</span>
+                <div class="flow-step">&#129302; AI エージェントが<br>スキルを動的に<br>ロード</div>
+                <span class="flow-arrow">&rarr;</span>
+                <div class="flow-step">&#128451; Aurora DSQL<br>開発を<br>AI が支援</div>
+            </div>
+
+            <h3 style="font-size: 16px; color: var(--text-primary); margin-top: 20px; margin-bottom: 12px;">ステップ 1: Kiro Power のインストール (Kiro IDE)</h3>
+            <div class="overview-card">
+                <p style="font-size: 14px; color: var(--light-gray);">
+                    Kiro IDE で Aurora DSQL Power をインストールします。<a href="https://kiro.dev/launch/powers/amazon-aurora-dsql/" target="_blank" style="color: var(--aws-teal);">Kiro Powers レジストリ</a>からワンクリックでインストール可能です。
+                </p>
+            </div>
+
+            <h3 style="font-size: 16px; color: var(--text-primary); margin-top: 20px; margin-bottom: 12px;">ステップ 2: Skills CLI でのインストール (その他のエージェント)</h3>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Bash</span>
+                    <span class="code-title">Skills CLI による Aurora DSQL スキルのインストール</span>
+                </div>
+                <pre><code class="language-bash">npx skills add awslabs/mcp --skill dsql</code></pre>
+            </div>
+            <p style="font-size: 14px; color: var(--text-secondary); margin-top: 8px;">
+                Skills CLI を実行し、対話的にエージェントとスコープを選択してスキルをインストールします。
+            </p>
+        </section>
+
+        <!-- Benefits -->
+        <section class="section">
+            <h2 class="section-title">メリット</h2>
+            <div class="merit-grid">
+                <div class="merit-section">
+                    <h3>&#128188; ビジネス面</h3>
+                    <ul class="merit-list">
+                        <li><strong style="color: var(--text-primary);">開発速度の向上:</strong> AI エージェントが Aurora DSQL のベストプラクティスを即座に提供</li>
+                        <li><strong style="color: var(--text-primary);">学習コストの削減:</strong> 分散データベース設計の専門知識がなくても AI 支援で開発可能</li>
+                        <li><strong style="color: var(--text-primary);">エージェント選択の自由:</strong> 10 以上の AI コーディングエージェントをサポート</li>
+                    </ul>
+                </div>
+                <div class="merit-section">
+                    <h3>&#128736;&#65039; 技術面</h3>
+                    <ul class="merit-list">
+                        <li><strong style="color: var(--text-primary);">コンテキスト効率:</strong> 毎回同じコンテキストを提供する必要がなくなる</li>
+                        <li><strong style="color: var(--text-primary);">継続的な更新:</strong> 新機能追加時にスキルも自動的に更新される</li>
+                        <li><strong style="color: var(--text-primary);">MCP 標準準拠:</strong> Model Context Protocol に基づく標準的な統合</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Limitations -->
+        <section class="section">
+            <h2 class="section-title">制約事項・注意点</h2>
+            <div class="constraint-card">
+                <div class="constraint-title">制限事項</div>
+                <ul class="constraint-list">
+                    <li>AI エージェントの出力は常に検証が必要</li>
+                    <li>一部のエージェントでは MCP サポートが必要</li>
+                </ul>
+            </div>
+            <div class="constraint-card">
+                <div class="constraint-title">考慮すべき点</div>
+                <ul class="constraint-list">
+                    <li>スキルが提供するガイダンスは推奨事項であり、本番環境への適用前に検証が必要</li>
+                    <li>エージェントの出力品質はモデルと設定に依存</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Use Cases -->
+        <section class="section">
+            <h2 class="section-title">ユースケース</h2>
+
+            <div class="usecase-card">
+                <div class="usecase-header">
+                    <span style="font-size: 24px;">&#128640;&#128451;</span>
+                    <div class="usecase-title">ユースケース 1: 新規アプリケーション開発</div>
+                </div>
+                <div class="usecase-scenario">
+                    Aurora DSQL を使用した新しいサーバーレスアプリケーションの開発を AI エージェントの支援で行う。
+                </div>
+                <div class="usecase-effect">
+                    スキーマ設計から IAM 認証設定まで、AI エージェントがベストプラクティスに基づいた提案を提供します。
+                </div>
+            </div>
+
+            <div class="usecase-card">
+                <div class="usecase-header">
+                    <span style="font-size: 24px;">&#128260;&#128451;</span>
+                    <div class="usecase-title">ユースケース 2: PostgreSQL からの移行</div>
+                </div>
+                <div class="usecase-scenario">
+                    既存の PostgreSQL アプリケーションを Aurora DSQL に移行する際の SQL パターン変換。
+                </div>
+                <div class="usecase-effect">
+                    AI エージェントが Postgres 互換パターンと分散データベース固有の考慮事項を自動的にガイドします。
+                </div>
+            </div>
+
+            <div class="usecase-card">
+                <div class="usecase-header">
+                    <span style="font-size: 24px;">&#128202;&#9889;</span>
+                    <div class="usecase-title">ユースケース 3: パフォーマンスチューニング</div>
+                </div>
+                <div class="usecase-scenario">
+                    Aurora DSQL のクエリパフォーマンスを最適化したい。
+                </div>
+                <div class="usecase-effect">
+                    AI エージェントが分散データベースに最適なインデックス設計やクエリパターンを提案します。
+                </div>
+            </div>
+        </section>
+
+        <!-- Pricing -->
+        <section class="section">
+            <h2 class="section-title">料金</h2>
+            <div class="pricing-card">
+                <div class="pricing-highlight">Kiro Power / Skills は無料</div>
+                <div class="pricing-detail" style="margin-bottom: 12px;">Aurora DSQL の Kiro power および Skills は無料で利用可能です。Aurora DSQL の利用料金は通常の料金体系に従います。</div>
+                <div class="pricing-detail">AWS Free Tier で Aurora DSQL を無料で開始できます。</div>
+            </div>
+        </section>
+
+        <!-- Region -->
+        <section class="section">
+            <h2 class="section-title">利用可能リージョン</h2>
+            <div class="region-card">
+                <div style="font-size: 28px; margin-bottom: 8px;">&#127758;</div>
+                <div class="region-highlight">Aurora DSQL が利用可能なすべての AWS リージョンで提供</div>
+                <div class="region-note">詳細は <a href="https://aws.amazon.com/rds/aurora/dsql/" target="_blank" style="color: var(--aws-teal);">Aurora DSQL 製品ページ</a> を参照してください。</div>
+            </div>
+        </section>
+
+        <!-- Related Services -->
+        <section class="section">
+            <h2 class="section-title">関連サービス・機能</h2>
+            <div class="related-grid">
+                <div class="related-card">
+                    <div style="font-size: 24px; margin-bottom: 8px;">&#9729;&#65039;</div>
+                    <div class="related-name">Amazon Aurora DSQL</div>
+                    <div class="related-desc">サーバーレス分散 SQL データベース</div>
+                </div>
+                <div class="related-card">
+                    <div style="font-size: 24px; margin-bottom: 8px;">&#128309;</div>
+                    <div class="related-name">Kiro</div>
+                    <div class="related-desc">AWS が提供する AI 搭載 IDE</div>
+                </div>
+                <div class="related-card">
+                    <div style="font-size: 24px; margin-bottom: 8px;">&#128268;</div>
+                    <div class="related-name">Model Context Protocol</div>
+                    <div class="related-desc">AI エージェントとツールの標準統合プロトコル</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer>
+            <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 12px;">参考リンク</p>
+            <ul class="source-links">
+                <li><a href="https://aws.amazon.com/about-aws/whats-new/2026/02/amazon-aurora-dsql-integrates-with-kiro-powers-and-agent-skills/" class="source-link" target="_blank">公式発表 - What's New</a></li>
+                <li><a href="https://docs.aws.amazon.com/aurora-dsql/latest/userguide/SECTION_aurora-dsql-steering.html" class="source-link" target="_blank">Aurora DSQL ステアリングドキュメント</a></li>
+                <li><a href="https://github.com/awslabs/mcp/tree/main/src/aurora-dsql-mcp-server" class="source-link" target="_blank">GitHub - Aurora DSQL MCP サーバー</a></li>
+                <li><a href="https://kiro.dev/launch/powers/amazon-aurora-dsql/" class="source-link" target="_blank">Kiro Power for Aurora DSQL</a></li>
+                <li><a href="https://skills.sh/docs/cli" class="source-link" target="_blank">Skills CLI ドキュメント</a></li>
+            </ul>
+            <p class="footer-note">Aurora DSQL - Kiro Powers / AI エージェントスキル統合 | 2026 年 2 月 18 日</p>
+        </footer>
+    </div>
+
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'base',
+            themeVariables: {
+                primaryColor: '#FF9900',
+                primaryTextColor: '#232F3E',
+                primaryBorderColor: '#FF9900',
+                lineColor: '#FF9900',
+                secondaryColor: '#F5F5F5',
+                tertiaryColor: '#FAFAFA',
+                background: '#FFFFFF',
+                mainBkg: '#FFF3E0',
+                nodeBorder: '#FF9900',
+                clusterBkg: '#FFF8E1',
+                clusterBorder: '#FF9900',
+                edgeLabelBackground: '#FFFFFF',
+                textColor: '#232F3E'
+            },
+            flowchart: {
+                curve: 'basis',
+                padding: 20
+            }
+        });
+        hljs.highlightAll();
+    </script>
+</body>
+</html>

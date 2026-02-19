@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kiro - 新しい Spec タイプ: バグ修正と Design-First 開発</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/styles/atom-one-dark.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap');
+
+        :root {
+            --aws-squid-ink: #232F3E;
+            --aws-dark-squid: #1A242F;
+            --aws-orange: #FF9900;
+            --aws-smile-orange: #FFAD33;
+            --aws-white: #FFFFFF;
+            --aws-light-gray: #D5DBDB;
+            --aws-teal: #00A1C9;
+            --aws-purple: #8C4FFF;
+            --aws-green: #1D8102;
+            --aws-red: #D13212;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background-color: var(--aws-squid-ink);
+            font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            color: var(--aws-light-gray);
+            font-size: 16px;
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 32px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .header-left { flex: 1; min-width: 280px; }
+
+        .service-badge {
+            display: inline-block;
+            background: var(--aws-orange);
+            color: var(--aws-squid-ink);
+            padding: 4px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        h1 {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--aws-white);
+            line-height: 1.3;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            font-size: 16px;
+            color: var(--aws-light-gray);
+        }
+
+        .header-right {
+            text-align: right;
+            font-size: 14px;
+            color: var(--aws-light-gray);
+        }
+
+        .date-badge {
+            background: rgba(255, 153, 0, 0.15);
+            border: 1px solid rgba(255, 153, 0, 0.3);
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-size: 14px;
+            color: var(--aws-orange);
+            font-weight: 600;
+        }
+
+        /* Section */
+        .section {
+            background: var(--aws-dark-squid);
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        h2 {
+            font-size: 22px;
+            font-weight: 600;
+            color: var(--aws-orange);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        h3 {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--aws-white);
+            margin-bottom: 12px;
+            margin-top: 20px;
+        }
+
+        p { margin-bottom: 12px; }
+
+        .highlight {
+            background-color: rgba(255, 153, 0, 0.2);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+            color: var(--aws-orange);
+        }
+
+        /* Before/After */
+        .before-after-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin: 16px 0;
+        }
+
+        .before-card {
+            background: rgba(209, 50, 18, 0.1);
+            border: 1px solid rgba(209, 50, 18, 0.4);
+            border-radius: 8px;
+            padding: 16px;
+        }
+
+        .before-card .card-label {
+            color: var(--aws-red);
+            font-weight: 700;
+            font-size: 14px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .after-card {
+            background: rgba(29, 129, 2, 0.1);
+            border: 1px solid rgba(29, 129, 2, 0.4);
+            border-radius: 8px;
+            padding: 16px;
+        }
+
+        .after-card .card-label {
+            color: var(--aws-green);
+            font-weight: 700;
+            font-size: 14px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .before-card ul, .after-card ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .before-card li, .after-card li {
+            padding: 4px 0;
+            font-size: 14px;
+            display: flex;
+            align-items: flex-start;
+            gap: 6px;
+        }
+
+        .before-card li::before { content: "\2717"; color: var(--aws-red); font-weight: bold; }
+        .after-card li::before { content: "\2713"; color: var(--aws-green); font-weight: bold; }
+
+        /* Feature Cards */
+        .feature-card {
+            background: rgba(255, 153, 0, 0.05);
+            border-left: 4px solid var(--aws-orange);
+            border-radius: 0 8px 8px 0;
+            padding: 16px 20px;
+            margin: 12px 0;
+        }
+
+        .feature-card-title {
+            font-weight: 700;
+            color: var(--aws-white);
+            font-size: 16px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .feature-card p, .feature-card ul {
+            font-size: 14px;
+            color: var(--aws-light-gray);
+        }
+
+        .feature-card ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .feature-card li {
+            padding: 3px 0;
+            padding-left: 18px;
+            position: relative;
+        }
+
+        .feature-card li::before {
+            content: "\2192";
+            color: var(--aws-orange);
+            position: absolute;
+            left: 0;
+        }
+
+        /* Tables */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+            font-size: 14px;
+        }
+
+        .data-table th {
+            background: rgba(255, 153, 0, 0.2);
+            color: var(--aws-orange);
+            padding: 10px 12px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid rgba(255, 153, 0, 0.3);
+        }
+
+        .data-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            color: var(--aws-light-gray);
+        }
+
+        .data-table tr:hover td {
+            background: rgba(255, 153, 0, 0.05);
+        }
+
+        /* Use Cases */
+        .usecase-card {
+            background: rgba(255, 153, 0, 0.08);
+            border: 1px solid rgba(255, 153, 0, 0.2);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 12px 0;
+        }
+
+        .usecase-card-title {
+            font-weight: 700;
+            color: var(--aws-orange);
+            font-size: 16px;
+            margin-bottom: 4px;
+        }
+
+        .usecase-scenario {
+            font-size: 14px;
+            color: var(--aws-light-gray);
+            margin-bottom: 12px;
+            font-style: italic;
+        }
+
+        .usecase-effect {
+            font-size: 14px;
+            color: var(--aws-green);
+            font-weight: 500;
+            margin-top: 8px;
+        }
+
+        /* Mermaid */
+        .mermaid-container {
+            background: #FFFFFF;
+            border-radius: 12px;
+            padding: 24px;
+            margin: 20px 0;
+            border: 2px solid rgba(255, 153, 0, 0.3);
+            overflow-x: auto;
+        }
+
+        .mermaid {
+            display: flex;
+            justify-content: center;
+        }
+
+        /* Flow Diagram */
+        .flow-diagram {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin: 24px 0;
+        }
+
+        .flow-step {
+            background: var(--aws-dark-squid);
+            border: 2px solid var(--aws-orange);
+            border-radius: 8px;
+            padding: 12px 20px;
+            text-align: center;
+            min-width: 100px;
+        }
+
+        .flow-arrow {
+            color: var(--aws-orange);
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        /* Merit/Demerit */
+        .merit-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin: 16px 0;
+        }
+
+        .merit-card {
+            background: rgba(29, 129, 2, 0.08);
+            border: 1px solid rgba(29, 129, 2, 0.3);
+            border-radius: 8px;
+            padding: 16px;
+        }
+
+        .merit-card h4 {
+            color: var(--aws-green);
+            font-size: 15px;
+            margin-bottom: 8px;
+        }
+
+        .merit-card li {
+            font-size: 14px;
+            padding: 3px 0;
+        }
+
+        .demerit-card {
+            background: rgba(255, 153, 0, 0.08);
+            border: 1px solid rgba(255, 153, 0, 0.3);
+            border-radius: 8px;
+            padding: 16px;
+        }
+
+        .demerit-card h4 {
+            color: var(--aws-orange);
+            font-size: 15px;
+            margin-bottom: 8px;
+        }
+
+        .demerit-card li {
+            font-size: 14px;
+            padding: 3px 0;
+        }
+
+        .merit-card ul, .demerit-card ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .merit-card li::before { content: "\2705 "; }
+        .demerit-card li::before { content: "\26A0\FE0F "; }
+
+        /* Stats */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin: 16px 0;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, rgba(255, 153, 0, 0.15), rgba(255, 153, 0, 0.05));
+            border: 1px solid rgba(255, 153, 0, 0.3);
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--aws-orange);
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: var(--aws-light-gray);
+            margin-top: 4px;
+        }
+
+        /* Impact List */
+        .impact-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .impact-list li {
+            padding: 6px 0;
+            padding-left: 24px;
+            position: relative;
+            font-size: 14px;
+        }
+
+        .impact-list li::before {
+            content: "\2022";
+            color: var(--aws-orange);
+            position: absolute;
+            left: 8px;
+            font-weight: bold;
+        }
+
+        /* Related Services */
+        .related-service {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .related-service:last-child { border-bottom: none; }
+
+        .related-service-name {
+            font-weight: 600;
+            color: var(--aws-teal);
+            font-size: 14px;
+            min-width: 200px;
+        }
+
+        .related-service-desc {
+            font-size: 14px;
+            color: var(--aws-light-gray);
+        }
+
+        /* Region */
+        .region-badge {
+            display: inline-block;
+            background: rgba(0, 161, 201, 0.15);
+            border: 1px solid rgba(0, 161, 201, 0.3);
+            color: var(--aws-teal);
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        /* Summary Box */
+        .summary-box {
+            background: linear-gradient(135deg, rgba(255, 153, 0, 0.12), rgba(140, 79, 255, 0.08));
+            border: 1px solid rgba(255, 153, 0, 0.3);
+            border-radius: 8px;
+            padding: 20px;
+            font-size: 15px;
+            line-height: 1.7;
+        }
+
+        /* Setup Steps */
+        .setup-step {
+            background: rgba(255, 153, 0, 0.05);
+            border-left: 3px solid var(--aws-teal);
+            border-radius: 0 8px 8px 0;
+            padding: 14px 18px;
+            margin: 10px 0;
+        }
+
+        .setup-step-title {
+            font-weight: 700;
+            color: var(--aws-teal);
+            font-size: 15px;
+            margin-bottom: 6px;
+        }
+
+        .setup-step p {
+            font-size: 14px;
+            margin-bottom: 0;
+        }
+
+        /* Footer */
+        footer {
+            margin-top: 24px;
+            padding-top: 16px;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            font-size: 12px;
+            color: var(--aws-light-gray);
+        }
+
+        footer a {
+            color: var(--aws-teal);
+            text-decoration: none;
+            word-break: break-all;
+        }
+
+        footer a:hover { color: var(--aws-smile-orange); }
+
+        footer ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        footer li {
+            padding: 3px 0;
+        }
+
+        /* Responsive */
+        @media (max-width: 700px) {
+            h1 { font-size: 24px; }
+            .before-after-grid, .merit-grid { grid-template-columns: 1fr; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .header { flex-direction: column; }
+            .header-right { text-align: left; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+
+        <!-- Header -->
+        <div class="header">
+            <div class="header-left">
+                <span class="service-badge">Kiro 0.10</span>
+                <h1>📝 新しい Spec タイプ: バグ修正と Design-First 開発</h1>
+                <p class="subtitle">構造化されたワークフローでバグ修正と新機能開発の品質を向上</p>
+            </div>
+            <div class="header-right">
+                <span class="date-badge">📅 2026 年 2 月 18 日</span>
+            </div>
+        </div>
+
+        <!-- 概要 -->
+        <div class="section">
+            <h2>📋 概要</h2>
+            <p>Kiro に新しい Spec ワークフローが追加されました。<span class="highlight">Design-First Feature Spec</span> と <span class="highlight">Bugfix Spec</span> の 2 つの新しい Spec タイプにより、既存のアプリケーションに対してより構造化されたアプローチでバグ修正や新機能の実装が可能になりました。</p>
+            <p>Design-First Feature Spec はアーキテクチャを先に設計してから実装する開発ワークフローを提供し、Bugfix Spec は構造化された根本原因分析を通じてバグを修正するワークフローを提供します。さらに、Kiro 0.10 には <span class="highlight">Hunk ベースの編集</span>、<span class="highlight">タスクフック</span>、<span class="highlight">MCP プロンプトサポート</span>などの機能も含まれています。</p>
+
+            <div class="before-after-grid">
+                <div class="before-card">
+                    <div class="card-label">❌ アップデート前の課題</div>
+                    <ul>
+                        <li>既存アプリケーションへの機能追加やバグ修正を構造化されたワークフローで行う手段が限られていた</li>
+                        <li>AI エージェントとの協働でアーキテクチャファーストのアプローチを取ることが困難だった</li>
+                        <li>バグ修正時の根本原因分析を体系的に行うフレームワークがなかった</li>
+                    </ul>
+                </div>
+                <div class="after-card">
+                    <div class="card-label">✅ アップデート後の改善</div>
+                    <ul>
+                        <li>Design-First Feature Spec でアーキテクチャファーストの開発が可能になった</li>
+                        <li>Bugfix Spec で構造化された根本原因分析とバグ修正が可能になった</li>
+                        <li>Supervised モードで Hunk レベルの変更レビューが可能になった</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- アーキテクチャ図 -->
+        <div class="section">
+            <h2>🏗️ Spec ワークフローの全体像</h2>
+            <p>Kiro 0.10 の新しい Spec タイプは、開発者が目的に応じて最適なワークフローを選択できるようにします。Design-First Feature Spec はアーキテクチャ設計から実装へ、Bugfix Spec は根本原因分析から外科的修正へと導きます。</p>
+            <div class="mermaid-container">
+                <pre class="mermaid">
+flowchart TD
+    subgraph Developer["👤 開発者"]
+        direction LR
+        D_Input(["💬 タスク開始"])
+    end
+
+    subgraph SpecSelection["📋 Spec タイプ選択"]
+        direction LR
+        DF["🏗️ Design-First<br/>Feature Spec"]
+        BF["🐛 Bugfix<br/>Spec"]
+        DF ~~~ BF
+    end
+
+    subgraph DesignFirst["🏗️ Design-First ワークフロー"]
+        direction LR
+        Arch["📐 アーキテクチャ<br/>設計"]
+        Impl["⚡ 実装<br/>タスク生成"]
+        Review1["🔍 Hunk ベース<br/>レビュー"]
+        Arch ~~~ Impl ~~~ Review1
+    end
+
+    subgraph BugfixFlow["🐛 Bugfix ワークフロー"]
+        direction LR
+        RCA["🔬 根本原因<br/>分析"]
+        Fix["🔧 外科的<br/>修正"]
+        Review2["🔍 Hunk ベース<br/>レビュー"]
+        RCA ~~~ Fix ~~~ Review2
+    end
+
+    subgraph Automation["⚙️ 自動化"]
+        direction LR
+        Hook1["🪝 タスクフック<br/>テスト実行"]
+        Hook2["🪝 タスクフック<br/>リンターチェック"]
+        MCP["🔌 MCP<br/>プロンプト"]
+        Hook1 ~~~ Hook2 ~~~ MCP
+    end
+
+    D_Input --> DF
+    D_Input --> BF
+    DF --> Arch
+    Arch --> Impl
+    Impl --> Review1
+    BF --> RCA
+    RCA --> Fix
+    Fix --> Review2
+    Review1 --> Hook1
+    Review1 --> Hook2
+    Review2 --> Hook1
+    Review2 --> Hook2
+    Hook1 -.-> MCP
+    Hook2 -.-> MCP
+
+    classDef cloud fill:none,stroke:#CCCCCC,stroke-width:2px,color:#666666
+    classDef process fill:#FFFFFF,stroke:#4A90E2,stroke-width:2px,color:#333333
+    classDef internal fill:#E8F1FF,stroke:#4A90E2,stroke-width:2px,color:#333333
+    classDef input fill:#E9F7EC,stroke:#66BB6A,stroke-width:2px,color:#333333
+    classDef decision fill:#F3E5F5,stroke:#7B61FF,stroke-width:2px,color:#333333
+    classDef user fill:#E3F2FD,stroke:#BBDEFB,stroke-width:2px,color:#1565C0
+    classDef warning fill:#FFF3E0,stroke:#FF9800,stroke-width:2px,color:#333333
+
+    class Developer,SpecSelection,DesignFirst,BugfixFlow,Automation cloud
+    class DF,BF decision
+    class Arch,RCA input
+    class Impl,Fix process
+    class Review1,Review2 internal
+    class Hook1,Hook2,MCP warning
+    class D_Input user
+                </pre>
+            </div>
+        </div>
+
+        <!-- 統計情報 -->
+        <div class="section">
+            <h2>📊 数字で見る Kiro 0.10</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <span class="stat-value">2</span>
+                    <span class="stat-label">新しい Spec タイプ</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-value">5</span>
+                    <span class="stat-label">主要新機能</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-value">0</span>
+                    <span class="stat-label">追加料金</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-value">🌐</span>
+                    <span class="stat-label">グローバル利用可能</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 主要機能 -->
+        <div class="section">
+            <h2>⚡ 主要機能</h2>
+
+            <div class="feature-card">
+                <div class="feature-card-title">🏗️ Design-First Feature Spec</div>
+                <p>アーキテクチャを先に設計してから実装するワークフローです。</p>
+                <ul>
+                    <li>既存のアプリケーションに新機能を追加する際に最適</li>
+                    <li>レイテンシ要件や非同期メッセージングなどのアーキテクチャ決定を事前に定義</li>
+                    <li>AI エージェントと協働でアーキテクチャファーストの開発を実現</li>
+                </ul>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-card-title">🐛 Bugfix Spec</div>
+                <p>構造化された根本原因分析によるバグ修正ワークフローです。</p>
+                <ul>
+                    <li>バグの発生原因を体系的に特定</li>
+                    <li>既存の動作を維持しながら外科的な修正を実施</li>
+                    <li>根本原因分析のプロセスを再現可能な形で記録</li>
+                </ul>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-card-title">🔍 Hunk ベースの編集</div>
+                <p>Supervised モードで精密な変更制御を提供します。</p>
+                <ul>
+                    <li>Hunk レベルの変更レビューが可能</li>
+                    <li>意図しない変更を防止する精密な制御</li>
+                    <li>コードレビューの粒度を向上</li>
+                </ul>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-card-title">🪝 タスクフック</div>
+                <p>Spec タスクの前後に自動化された作業を実行します。</p>
+                <ul>
+                    <li>テスト実行やリンターチェックの自動化</li>
+                    <li>開発ワークフローのカスタマイズ</li>
+                    <li>品質ゲートの自動適用</li>
+                </ul>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-card-title">🔌 MCP プロンプトサポート</div>
+                <p>MCP サーバーとの統合がさらに強化されました。</p>
+                <ul>
+                    <li>MCP サーバーがプロンプト、テンプレート、エリシテーションをチャットに直接表示</li>
+                    <li>外部ツールとの統合がさらに強化</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 技術仕様 -->
+        <div class="section">
+            <h2>📐 技術仕様</h2>
+            <p>Kiro 0.10 の主要変更点を一覧で確認できます。</p>
+
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>機能</th>
+                        <th>説明</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Design-First Feature Spec</strong></td>
+                        <td>アーキテクチャファーストの機能開発ワークフロー</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Bugfix Spec</strong></td>
+                        <td>構造化された根本原因分析によるバグ修正</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Hunk ベース編集</strong></td>
+                        <td>Supervised モードでの精密な変更レビュー</td>
+                    </tr>
+                    <tr>
+                        <td><strong>タスクフック</strong></td>
+                        <td>Spec タスクの自動化</td>
+                    </tr>
+                    <tr>
+                        <td><strong>MCP プロンプト</strong></td>
+                        <td>MCP サーバーからのプロンプト表示</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Spec ワークフローのシーケンス -->
+        <div class="section">
+            <h2>🔄 Design-First Feature Spec のワークフロー</h2>
+            <p>Design-First Feature Spec では、まずアーキテクチャを設計し、その設計に基づいてタスクが生成されます。Hunk ベースのレビューとタスクフックにより、品質を維持しながら効率的に実装を進めることができます。</p>
+            <div class="mermaid-container">
+                <pre class="mermaid">
+sequenceDiagram
+    participant D as 👤 開発者
+    participant K as ⚙️ Kiro
+    participant S as 📋 Spec
+    participant H as 🪝 フック
+
+    D->>K: 新機能の要件を入力
+    K->>S: Design-First Feature Spec を作成
+    S->>S: アーキテクチャ設計を生成
+    S-->>D: 設計をレビュー依頼
+    D->>S: 設計を承認
+    S->>K: 実装タスクを生成
+    loop 各タスク
+        K->>K: Hunk ベースで変更を適用
+        K-->>D: 変更を Supervised レビュー
+        D->>K: 変更を承認
+        K->>H: タスクフック実行
+        H-->>K: テスト・リンター結果
+    end
+    K-->>D: 実装完了
+                </pre>
+            </div>
+        </div>
+
+        <!-- Bugfix Spec フロー -->
+        <div class="section">
+            <h2>🐛 Bugfix Spec のワークフロー</h2>
+            <p>Bugfix Spec では、構造化された根本原因分析を通じて、バグの原因を体系的に特定し、既存の動作を維持しながら外科的に修正します。</p>
+            <div class="flow-diagram">
+                <div class="flow-step">🐛 バグ報告<br/>入力</div>
+                <span class="flow-arrow">&rarr;</span>
+                <div class="flow-step">🔬 根本原因<br/>分析</div>
+                <span class="flow-arrow">&rarr;</span>
+                <div class="flow-step">🔧 外科的<br/>修正</div>
+                <span class="flow-arrow">&rarr;</span>
+                <div class="flow-step">🔍 Hunk<br/>レビュー</div>
+                <span class="flow-arrow">&rarr;</span>
+                <div class="flow-step">✅ 検証<br/>完了</div>
+            </div>
+        </div>
+
+        <!-- メリット・デメリット -->
+        <div class="section">
+            <h2>⚖️ メリット・デメリット</h2>
+
+            <div class="merit-grid">
+                <div class="merit-card">
+                    <h4>💼 ビジネス面のメリット</h4>
+                    <ul>
+                        <li>構造化されたワークフローにより、バグ修正や機能追加の品質が向上</li>
+                        <li>アーキテクチャファーストのアプローチで設計ミスを早期に発見</li>
+                        <li>Spec ベースの開発でチーム内の共通理解を促進</li>
+                    </ul>
+                </div>
+                <div class="merit-card">
+                    <h4>🔧 技術面のメリット</h4>
+                    <ul>
+                        <li>Hunk ベースの編集で意図しない変更を防止</li>
+                        <li>タスクフックにより開発ワークフローを自動化</li>
+                        <li>MCP プロンプトサポートで外部ツールとの連携が強化</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="demerit-card" style="margin-top: 16px;">
+                <h4>⚠️ 制限事項・考慮点</h4>
+                <ul>
+                    <li>新しい Spec タイプは Kiro 0.10 以降でのみ利用可能</li>
+                    <li>タスクフックのカスタマイズには設定ファイルの編集が必要</li>
+                    <li>新しい Spec ワークフローへの習熟に時間が必要</li>
+                    <li>既存の Spec を新しいタイプに変換する機能は提供されていない</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- ユースケース -->
+        <div class="section">
+            <h2>🎯 ユースケース</h2>
+
+            <div class="usecase-card">
+                <div class="usecase-card-title">🏗️ ユースケース 1: マイクロサービスへの移行</div>
+                <p class="usecase-scenario">モノリスからマイクロサービスへの移行で、イベント駆動型の非同期メッセージングアーキテクチャを実装</p>
+                <p class="usecase-effect">✅ 効果: Design-First Feature Spec でアーキテクチャを事前に設計し、AI エージェントの支援で効率的に実装</p>
+            </div>
+
+            <div class="usecase-card">
+                <div class="usecase-card-title">🐛 ユースケース 2: 本番バグの修正</div>
+                <p class="usecase-scenario">本番環境で発生したバグの根本原因を特定し、既存の動作を維持しながら修正</p>
+                <p class="usecase-effect">✅ 効果: Bugfix Spec の構造化された根本原因分析で、外科的かつ安全なバグ修正を実施</p>
+            </div>
+
+            <div class="usecase-card">
+                <div class="usecase-card-title">⚙️ ユースケース 3: CI/CD 統合</div>
+                <p class="usecase-scenario">Spec タスクの完了時に自動的にテストとリンターを実行</p>
+                <p class="usecase-effect">✅ 効果: タスクフックにより開発フローが自動化され、品質ゲートが組み込まれる</p>
+            </div>
+        </div>
+
+        <!-- 設定方法 -->
+        <div class="section">
+            <h2>🛠️ セットアップ手順</h2>
+
+            <h3>📋 前提条件</h3>
+            <ul class="impact-list">
+                <li>Kiro IDE が最新バージョン 0.10 にアップデートされていること</li>
+                <li>Kiro アカウントにサインイン済みであること</li>
+            </ul>
+
+            <div class="setup-step" style="margin-top: 16px;">
+                <div class="setup-step-title">ステップ 1: Kiro のアップデート</div>
+                <p>Kiro IDE を最新バージョンにアップデートします。自動更新が有効な場合は自動的にアップデートされます。</p>
+            </div>
+
+            <div class="setup-step">
+                <div class="setup-step-title">ステップ 2: Spec タイプの選択</div>
+                <p>新しいタスクを開始する際に、Design-First Feature Spec または Bugfix Spec を選択してワークフローを開始します。</p>
+            </div>
+        </div>
+
+        <!-- 料金 -->
+        <div class="section">
+            <h2>💰 料金</h2>
+            <p>Kiro の利用プランに従います。Spec ワークフロー機能自体の追加料金は発生しません。詳しくは <a href="https://kiro.dev/pricing/" style="color: var(--aws-teal);">Kiro 料金ページ</a>を参照してください。</p>
+        </div>
+
+        <!-- 利用可能リージョン -->
+        <div class="section">
+            <h2>🌍 利用可能リージョン</h2>
+            <p><span class="region-badge">🌐 グローバル</span></p>
+            <p style="margin-top: 8px; font-size: 14px;">Kiro は全世界で利用可能です。</p>
+        </div>
+
+        <!-- 関連サービス -->
+        <div class="section">
+            <h2>🔗 関連サービス・機能</h2>
+            <div class="related-service">
+                <span class="related-service-name">🤖 Kiro IDE</span>
+                <span class="related-service-desc">AI 搭載統合開発環境</span>
+            </div>
+            <div class="related-service">
+                <span class="related-service-name">⚡ Kiro Powers</span>
+                <span class="related-service-desc">MCP サーバーとステアリングファイルのレジストリ</span>
+            </div>
+            <div class="related-service">
+                <span class="related-service-name">🔌 Model Context Protocol</span>
+                <span class="related-service-desc">AI エージェントとツールの統合プロトコル</span>
+            </div>
+        </div>
+
+        <!-- まとめ -->
+        <div class="section">
+            <h2>📝 まとめ</h2>
+            <div class="summary-box">
+                <p>Kiro 0.10 の新しい Spec タイプにより、バグ修正と新機能開発がより構造化されたワークフローで行えるようになりました。<span class="highlight">Design-First Feature Spec</span> はアーキテクチャファーストの開発を支援し、<span class="highlight">Bugfix Spec</span> は根本原因分析を体系化します。</p>
+                <p>既存アプリケーションに対して AI エージェントと協働で開発を行う際に、これらの新しい Spec タイプの活用を推奨します。Hunk ベースの編集やタスクフックと組み合わせることで、品質と効率の両面で大きな改善が期待できます。</p>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer>
+            <p><strong>📎 出典:</strong></p>
+            <ul>
+                <li>📝 <a href="https://kiro.dev/blog/specs-bugfix-and-design-first/" target="_blank" rel="noopener noreferrer">Kiro Blog - New spec types: Bugfix and Design-First</a></li>
+                <li>📖 <a href="https://kiro.dev/changelog/" target="_blank" rel="noopener noreferrer">Kiro Changelog 0.10</a></li>
+            </ul>
+        </footer>
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'base',
+            themeVariables: {
+                primaryColor: '#FF9900',
+                primaryTextColor: '#232F3E',
+                primaryBorderColor: '#FF9900',
+                lineColor: '#FF9900',
+                secondaryColor: '#F5F5F5',
+                tertiaryColor: '#FAFAFA',
+                background: '#FFFFFF',
+                mainBkg: '#FFF3E0',
+                nodeBorder: '#FF9900',
+                clusterBkg: '#FFF8E1',
+                clusterBorder: '#FF9900',
+                edgeLabelBackground: '#FFFFFF',
+                textColor: '#232F3E'
+            }
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/highlight.min.js"></script>
+    <script>hljs.highlightAll();</script>
+</body>
+</html>
