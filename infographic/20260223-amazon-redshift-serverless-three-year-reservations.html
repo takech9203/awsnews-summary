@@ -1,0 +1,1289 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Amazon Redshift Serverless - 3 年間の Serverless Reservations</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/styles/atom-one-dark.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/highlight.min.js"></script>
+    <style>
+        :root {
+            --squid-ink: #232F3E;
+            --aws-orange: #FF9900;
+            --aws-smile-orange: #FFAD33;
+            --text-primary: #FFFFFF;
+            --text-secondary: #AAAAAA;
+            --light-gray: #D5DBDB;
+            --card-bg: #2D3A4A;
+            --dark-squid: #1A242F;
+            --border-color: #3D4A5A;
+            --aws-teal: #00A1C9;
+            --aws-purple: #8C4FFF;
+            --aws-green: #1D8102;
+            --aws-red: #D13212;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            background-color: var(--squid-ink);
+            color: var(--light-gray);
+            line-height: 1.8;
+            font-size: 16px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+            padding-bottom: 30px;
+            border-bottom: 3px solid var(--aws-orange);
+        }
+
+        .service-badge {
+            display: inline-block;
+            background-color: var(--aws-orange);
+            color: var(--squid-ink);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+        }
+
+        .release-date {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--aws-orange);
+            margin-bottom: 20px;
+            padding-left: 15px;
+            border-left: 4px solid var(--aws-orange);
+        }
+
+        .overview-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .overview-text {
+            font-size: 16px;
+            line-height: 1.9;
+        }
+
+        .highlight {
+            background-color: rgba(255, 153, 0, 0.2);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+            color: var(--aws-orange);
+        }
+
+        /* Stats grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, var(--card-bg) 0%, var(--dark-squid) 100%);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid rgba(255, 153, 0, 0.2);
+        }
+
+        .stat-icon {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--aws-orange);
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        /* Before/After comparison */
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .comparison-grid {
+                grid-template-columns: 1fr;
+            }
+            .features-grid {
+                grid-template-columns: 1fr !important;
+            }
+            .merit-grid {
+                grid-template-columns: 1fr;
+            }
+            .related-grid {
+                grid-template-columns: 1fr !important;
+            }
+            .pricing-comparison-grid {
+                grid-template-columns: 1fr !important;
+            }
+        }
+
+        .comparison-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .comparison-card.before {
+            border-top: 4px solid #E74C3C;
+        }
+
+        .comparison-card.after {
+            border-top: 4px solid #2ECC71;
+        }
+
+        .comparison-label {
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        .comparison-card.before .comparison-label {
+            color: #E74C3C;
+        }
+
+        .comparison-card.after .comparison-label {
+            color: #2ECC71;
+        }
+
+        .comparison-list {
+            list-style: none;
+        }
+
+        .comparison-list li {
+            padding: 8px 0;
+            padding-left: 25px;
+            position: relative;
+            font-size: 14px;
+        }
+
+        .comparison-card.before .comparison-list li::before {
+            content: "\2717";
+            position: absolute;
+            left: 0;
+            color: #E74C3C;
+            font-weight: bold;
+        }
+
+        .comparison-card.after .comparison-list li::before {
+            content: "\2713";
+            position: absolute;
+            left: 0;
+            color: #2ECC71;
+            font-weight: bold;
+        }
+
+        /* Mermaid diagram */
+        .diagram-container {
+            background-color: #FFFFFF;
+            border: 2px solid rgba(255, 153, 0, 0.3);
+            border-radius: 12px;
+            padding: 25px;
+            overflow-x: auto;
+        }
+
+        .mermaid {
+            display: flex;
+            justify-content: center;
+        }
+
+        .diagram-caption {
+            font-size: 14px;
+            color: var(--text-secondary);
+            text-align: center;
+            margin-top: 12px;
+        }
+
+        /* Feature cards */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .feature-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            border-left: 3px solid var(--aws-orange);
+        }
+
+        .feature-icon {
+            font-size: 36px;
+            margin-bottom: 12px;
+        }
+
+        .feature-title {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--aws-orange);
+        }
+
+        .feature-description {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        /* Technical spec tables */
+        .api-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+        }
+
+        .api-table th {
+            background-color: var(--dark-squid);
+            color: var(--aws-orange);
+            padding: 10px 14px;
+            text-align: left;
+            font-size: 13px;
+            font-weight: 700;
+            border-bottom: 2px solid var(--aws-orange);
+        }
+
+        .api-table td {
+            padding: 10px 14px;
+            font-size: 13px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--light-gray);
+        }
+
+        .api-table code {
+            color: var(--aws-teal);
+            font-size: 12px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .api-table tr.highlight-row td {
+            background-color: rgba(46, 204, 113, 0.1);
+        }
+
+        /* Code blocks */
+        .code-block {
+            background: #1a1a2e;
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 16px 0;
+        }
+
+        .code-header {
+            background: #16213e;
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+        }
+
+        .code-lang {
+            color: var(--aws-orange);
+            font-weight: bold;
+        }
+
+        .code-title {
+            color: var(--light-gray);
+        }
+
+        .code-block pre {
+            margin: 0;
+            padding: 0;
+            overflow-x: auto;
+        }
+
+        .code-block code {
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            padding: 16px !important;
+        }
+
+        /* Flow diagram */
+        .flow-diagram {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin: 24px 0;
+        }
+
+        .flow-step {
+            background: var(--dark-squid);
+            border: 2px solid var(--aws-orange);
+            border-radius: 8px;
+            padding: 12px 20px;
+            text-align: center;
+            min-width: 120px;
+            font-size: 14px;
+        }
+
+        .flow-arrow {
+            color: var(--aws-orange);
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        /* Use case cards */
+        .usecase-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 3px solid var(--aws-orange);
+        }
+
+        .usecase-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .usecase-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--aws-orange);
+        }
+
+        .usecase-scenario {
+            font-size: 14px;
+            color: var(--light-gray);
+            margin-bottom: 12px;
+        }
+
+        .usecase-code {
+            margin-bottom: 12px;
+        }
+
+        .usecase-effect {
+            font-size: 14px;
+            color: #2ECC71;
+            padding: 10px;
+            background-color: rgba(46, 204, 113, 0.1);
+            border-radius: 8px;
+        }
+
+        .usecase-effect::before {
+            content: "\2713 ";
+            font-weight: bold;
+        }
+
+        /* Merit/Demerit */
+        .merit-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .merit-section {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .merit-section h3 {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: var(--aws-orange);
+        }
+
+        .merit-list {
+            list-style: none;
+        }
+
+        .merit-list li {
+            padding: 6px 0;
+            padding-left: 22px;
+            position: relative;
+            font-size: 14px;
+            color: var(--light-gray);
+        }
+
+        .merit-list li::before {
+            content: "\2713";
+            position: absolute;
+            left: 0;
+            color: #2ECC71;
+            font-weight: bold;
+        }
+
+        /* Constraint/Limitation */
+        .constraint-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 3px solid #E74C3C;
+        }
+
+        .constraint-title {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #E74C3C;
+        }
+
+        .constraint-list {
+            list-style: none;
+        }
+
+        .constraint-list li {
+            padding: 6px 0;
+            padding-left: 22px;
+            position: relative;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .constraint-list li::before {
+            content: "\26A0";
+            position: absolute;
+            left: 0;
+            font-size: 12px;
+        }
+
+        /* Pricing card */
+        .pricing-card {
+            background: linear-gradient(135deg, rgba(29, 129, 2, 0.15) 0%, var(--card-bg) 100%);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid rgba(29, 129, 2, 0.3);
+            text-align: center;
+        }
+
+        .pricing-highlight {
+            font-size: 22px;
+            font-weight: 700;
+            color: #2ECC71;
+            margin-bottom: 8px;
+        }
+
+        .pricing-detail {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .pricing-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+            text-align: left;
+        }
+
+        .pricing-table th {
+            background-color: var(--dark-squid);
+            color: var(--aws-orange);
+            padding: 10px 14px;
+            text-align: left;
+            font-size: 13px;
+            font-weight: 700;
+            border-bottom: 2px solid var(--aws-orange);
+        }
+
+        .pricing-table td {
+            padding: 10px 14px;
+            font-size: 13px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--light-gray);
+        }
+
+        .pricing-table tr.best td {
+            background-color: rgba(46, 204, 113, 0.1);
+        }
+
+        /* Pricing comparison visual */
+        .pricing-comparison-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .pricing-plan-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+            position: relative;
+        }
+
+        .pricing-plan-card.recommended {
+            border: 2px solid #2ECC71;
+        }
+
+        .pricing-plan-card .plan-badge {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .pricing-plan-card.recommended .plan-badge {
+            background-color: rgba(46, 204, 113, 0.15);
+            color: #2ECC71;
+        }
+
+        .plan-name {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 6px;
+        }
+
+        .plan-price {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--aws-orange);
+            margin-bottom: 4px;
+        }
+
+        .plan-discount {
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .plan-note {
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        /* Discount bar */
+        .discount-bar-container {
+            margin-top: 8px;
+        }
+
+        .discount-bar-bg {
+            background-color: var(--dark-squid);
+            border-radius: 6px;
+            height: 10px;
+            overflow: hidden;
+        }
+
+        .discount-bar-fill {
+            height: 100%;
+            border-radius: 6px;
+            transition: width 0.3s ease;
+        }
+
+        /* Region */
+        .region-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .region-highlight {
+            font-size: 16px;
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .region-note {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-top: 8px;
+        }
+
+        /* Related services */
+        .related-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+
+        .related-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+        }
+
+        .related-name {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 6px;
+        }
+
+        .related-desc {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        /* Footer */
+        footer {
+            margin-top: 50px;
+            padding-top: 30px;
+            border-top: 1px solid var(--border-color);
+            text-align: center;
+        }
+
+        .source-links {
+            list-style: none;
+            margin-bottom: 16px;
+        }
+
+        .source-links li {
+            margin-bottom: 6px;
+        }
+
+        .source-link {
+            color: var(--aws-teal);
+            text-decoration: none;
+            font-size: 14px;
+            word-break: break-all;
+        }
+
+        .source-link:hover {
+            color: var(--aws-smile-orange);
+            text-decoration: underline;
+        }
+
+        .footer-note {
+            color: var(--text-secondary);
+            font-size: 12px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <span class="service-badge">Amazon Redshift Serverless</span>
+            <h1>3 年間の Serverless Reservations</h1>
+            <p style="color: var(--light-gray); font-size: 15px; margin-bottom: 8px;">3-Year Serverless Reservations for RPU Cost Optimization</p>
+            <p class="release-date">2026 年 2 月 23 日</p>
+        </header>
+
+        <!-- Overview -->
+        <section class="section">
+            <h2 class="section-title">概要</h2>
+            <div class="overview-card">
+                <p class="overview-text">
+                    Amazon Redshift Serverless に <span class="highlight">3 年間の Serverless Reservations</span> が追加されました。Redshift Processing Units (RPU) を 3 年間のコミットメントで予約することで、オンデマンド料金と比較して <span class="highlight">最大 45% のコスト削減</span> を実現する新しい割引料金オプションです。<span class="highlight">前払い不要 (No Upfront)</span> の支払いオプションが提供されます。
+                </p>
+                <p class="overview-text" style="margin-top: 12px;">
+                    2025 年 4 月に導入された 1 年間の Serverless Reservations (最大 24% 割引) に加え、今回の 3 年間オプションにより、長期的な分析ワークロードを運用する組織はさらに大幅なコスト削減が可能になります。Serverless Reservations は AWS 支払者アカウントレベルで管理され、複数の AWS アカウント間で共有できます。
+                </p>
+            </div>
+
+            <!-- Stats -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">&#128184;</div>
+                    <div class="stat-value">最大 45%</div>
+                    <div class="stat-label">コスト削減率<br>3 年間コミットメント</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">&#128176;</div>
+                    <div class="stat-value">$0</div>
+                    <div class="stat-label">前払い不要<br>No Upfront オプション</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">&#127970;</div>
+                    <div class="stat-value">マルチアカウント</div>
+                    <div class="stat-label">支払者アカウントで<br>一元管理・共有</div>
+                </div>
+            </div>
+
+            <!-- Before/After -->
+            <div class="comparison-grid">
+                <div class="comparison-card before">
+                    <div class="comparison-label">Before - アップデート前の課題</div>
+                    <ul class="comparison-list">
+                        <li>Serverless Reservations は 1 年間の期間のみ対応しており、最大割引率は 24% に限定</li>
+                        <li>長期的に安定した分析ワークロードに対して、より大きなコスト削減の選択肢がなかった</li>
+                        <li>Provisioned クラスターの Reserved Instances (最大 3 年) と比較して、Serverless の割引オプションが限定的</li>
+                    </ul>
+                </div>
+                <div class="comparison-card after">
+                    <div class="comparison-label">After - アップデート後の改善</div>
+                    <ul class="comparison-list">
+                        <li>3 年間のコミットメントで最大 45% のコスト削減が可能に</li>
+                        <li>前払い不要のオプションで初期投資なしに大幅な割引を享受</li>
+                        <li>Provisioned の Reserved Instances に匹敵する長期割引が Serverless でも利用可能に</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Architecture Diagram -->
+        <section class="section">
+            <h2 class="section-title">アーキテクチャ図</h2>
+            <div class="diagram-container">
+                <pre class="mermaid">
+flowchart TD
+    subgraph PayerAccount["&#128176; AWS 支払者アカウント"]
+        Reservation["&#127915; Serverless Reservation&lt;br/&gt;3 年間 / RPU 予約"]
+        subgraph LinkedAccounts["&#127970; リンクアカウント"]
+            direction LR
+            WG1["&#128202; Workgroup A&lt;br/&gt;BI チーム"]
+            WG2["&#9881;&#65039; Workgroup B&lt;br/&gt;ETL 処理"]
+            WG3["&#128300; Workgroup C&lt;br/&gt;データサイエンス"]
+            WG1 ~~~ WG2 ~~~ WG3
+        end
+    end
+
+    subgraph Billing["&#128181; 課金"]
+        direction LR
+        Reserved["&#9989; 予約済み RPU&lt;br/&gt;最大 45% 割引"]
+        OnDemand["&#128200; 超過分 RPU&lt;br/&gt;オンデマンド料金"]
+        Reserved ~~~ OnDemand
+    end
+
+    Reservation -->|"RPU を共有"| LinkedAccounts
+    WG1 --> Billing
+    WG2 --> Billing
+    WG3 --> Billing
+
+    classDef cloud fill:none,stroke:#CCCCCC,stroke-width:2px,color:#666666
+    classDef layer fill:none,stroke:#E1BEE7,stroke-width:2px,color:#666666
+    classDef reservation fill:#E8F1FF,stroke:#4A90E2,stroke-width:2px,color:#333333
+    classDef workgroup fill:#FFE0B2,stroke:#FFCC80,stroke-width:2px,color:#5D4037
+    classDef billing fill:#E9F7EC,stroke:#66BB6A,stroke-width:2px,color:#333333
+    classDef ondemand fill:#FFF3E0,stroke:#FF9800,stroke-width:2px,color:#333333
+
+    class PayerAccount cloud
+    class LinkedAccounts layer
+    class Reservation reservation
+    class WG1,WG2,WG3 workgroup
+    class Billing layer
+    class Reserved billing
+    class OnDemand ondemand
+                </pre>
+            </div>
+            <p class="diagram-caption">支払者アカウントレベルで Serverless Reservation を購入すると、リンクアカウント内の複数のワークグループで予約済み RPU を共有できます。予約容量を超える使用分はオンデマンド料金で課金されます。</p>
+        </section>
+
+        <!-- Key Features -->
+        <section class="section">
+            <h2 class="section-title">主要機能</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">&#127915;</div>
+                    <div class="feature-title">3 年間の Serverless Reservations</div>
+                    <div class="feature-description">
+                        RPU 数を指定して 3 年間のコミットメントで予約。オンデマンド料金と比較して最大 45% のコスト削減。前払い不要 (No Upfront) の支払いオプション。
+                    </div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#127970;</div>
+                    <div class="feature-title">支払者アカウントレベルでの管理</div>
+                    <div class="feature-description">
+                        AWS Organizations の支払者アカウントレベルで予約を管理。複数の AWS アカウントおよびワークグループ間で予約を共有。予約済み RPU は自動的にワークロードに適用。
+                    </div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#9889;</div>
+                    <div class="feature-title">秒単位の課金と柔軟性の維持</div>
+                    <div class="feature-description">
+                        時間単位で請求、秒単位で計測。24 時間 365 日の一貫した課金モデル。予約容量超過分はオンデマンド料金で対応。自動スケーリング機能はそのまま維持。
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Technical Specifications -->
+        <section class="section">
+            <h2 class="section-title">技術仕様</h2>
+
+            <h3 style="font-size: 16px; color: var(--text-primary); margin-bottom: 12px;">Serverless Reservations の料金体系比較</h3>
+            <table class="api-table">
+                <thead>
+                    <tr>
+                        <th>予約期間</th>
+                        <th>支払いオプション</th>
+                        <th>最大割引率</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>1 年間</td>
+                        <td>No Upfront</td>
+                        <td>最大 20%</td>
+                    </tr>
+                    <tr>
+                        <td>1 年間</td>
+                        <td>All Upfront</td>
+                        <td>最大 24%</td>
+                    </tr>
+                    <tr class="highlight-row">
+                        <td><strong style="color: var(--text-primary);">3 年間</strong></td>
+                        <td><strong style="color: var(--text-primary);">No Upfront</strong></td>
+                        <td><strong style="color: #2ECC71;">最大 45%</strong></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3 style="font-size: 16px; color: var(--text-primary); margin-top: 24px; margin-bottom: 12px;">予約の仕組み</h3>
+            <table class="api-table">
+                <thead>
+                    <tr>
+                        <th>項目</th>
+                        <th>詳細</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong style="color: var(--text-primary);">予約単位</strong></td>
+                        <td>Redshift Processing Units (RPU)</td>
+                    </tr>
+                    <tr>
+                        <td><strong style="color: var(--text-primary);">最小予約 RPU</strong></td>
+                        <td>1 RPU</td>
+                    </tr>
+                    <tr>
+                        <td><strong style="color: var(--text-primary);">課金方式</strong></td>
+                        <td>時間単位で請求、秒単位で計測</td>
+                    </tr>
+                    <tr>
+                        <td><strong style="color: var(--text-primary);">予約の管理レベル</strong></td>
+                        <td>AWS 支払者アカウント</td>
+                    </tr>
+                    <tr>
+                        <td><strong style="color: var(--text-primary);">予約の変更・削除</strong></td>
+                        <td>不可。追加の予約を購入してレイヤリング可能</td>
+                    </tr>
+                    <tr>
+                        <td><strong style="color: var(--text-primary);">超過使用分</strong></td>
+                        <td>オンデマンド料金で課金</td>
+                    </tr>
+                    <tr>
+                        <td><strong style="color: var(--text-primary);">RPU 消費の優先順位</strong></td>
+                        <td>予約済み RPU が優先的に使用される</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- Configuration -->
+        <section class="section">
+            <h2 class="section-title">設定方法</h2>
+
+            <div class="overview-card" style="margin-bottom: 16px;">
+                <h3 style="font-size: 15px; color: var(--aws-orange); margin-bottom: 10px;">前提条件</h3>
+                <ul class="merit-list">
+                    <li>Amazon Redshift Serverless のワークグループが作成済みであること</li>
+                    <li>予約を購入するための適切な IAM 権限があること</li>
+                    <li>RPU 使用量の分析に基づいて適切な予約レベルを決定していること</li>
+                </ul>
+            </div>
+
+            <div class="flow-diagram">
+                <div class="flow-step">&#128202; RPU 使用量の<br>分析</div>
+                <span class="flow-arrow">&rarr;</span>
+                <div class="flow-step">&#127915; Reservation の<br>購入</div>
+                <span class="flow-arrow">&rarr;</span>
+                <div class="flow-step">&#9989; 予約状況の<br>確認</div>
+            </div>
+
+            <h3 style="font-size: 16px; color: var(--text-primary); margin-top: 20px; margin-bottom: 12px;">ステップ 1: RPU 使用量の分析</h3>
+            <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 12px;">Redshift Serverless ダッシュボードで直近 7 日間の RPU 使用量を確認するか、AWS Cost Explorer で長期的な使用パターンを分析して、予約すべき RPU レベルを決定します。</p>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Bash</span>
+                    <span class="code-title">AWS Cost Explorer で使用量を確認</span>
+                </div>
+                <pre><code class="language-bash"># AWS Cost Explorer で Redshift Serverless の使用量を確認
+# コンソールから以下の設定で確認:
+# - Service: Redshift
+# - Usage type: Redshift:ServerlessUsage
+# - Granularity: Hourly</code></pre>
+            </div>
+
+            <h3 style="font-size: 16px; color: var(--text-primary); margin-top: 20px; margin-bottom: 12px;">ステップ 2: Serverless Reservation の購入</h3>
+            <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 12px;">コンソールのウォークスルーに従い、予約する RPU レベルと支払いタイプを選択します。購入後、予約はすぐに有効になります。</p>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Bash</span>
+                    <span class="code-title">AWS CLI で Serverless Reservation を作成</span>
+                </div>
+                <pre><code class="language-bash"># AWS CLI で Serverless Reservation を作成
+aws redshift-serverless create-reservation \
+  --capacity 64 \
+  --offering-type no-upfront \
+  --term 3-year</code></pre>
+            </div>
+
+            <h3 style="font-size: 16px; color: var(--text-primary); margin-top: 20px; margin-bottom: 12px;">ステップ 3: 予約状況の確認</h3>
+            <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 12px;">購入した予約は Redshift コンソールの Serverless reservations ダッシュボードに表示されます。ステータスが <code style="color: var(--aws-teal);">payment-pending</code> から <code style="color: var(--aws-teal);">active</code> に変わることを確認してください。</p>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Bash</span>
+                    <span class="code-title">予約の一覧を確認</span>
+                </div>
+                <pre><code class="language-bash"># AWS CLI で予約の一覧を確認
+aws redshift-serverless list-reservations</code></pre>
+            </div>
+        </section>
+
+        <!-- Pricing -->
+        <section class="section">
+            <h2 class="section-title">料金</h2>
+            <div class="pricing-card">
+                <div class="pricing-highlight">3 年間の予約で最大 45% のコスト削減</div>
+                <div class="pricing-detail" style="margin-bottom: 16px;">Serverless Reservations は RPU の予約容量に基づいて課金されます。</div>
+
+                <table class="pricing-table">
+                    <thead>
+                        <tr>
+                            <th>予約プラン</th>
+                            <th>RPU 数</th>
+                            <th>概算月額料金</th>
+                            <th>割引率</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong style="color: var(--text-primary);">オンデマンド</strong></td>
+                            <td>64 RPU</td>
+                            <td>約 $69,120</td>
+                            <td>-</td>
+                        </tr>
+                        <tr>
+                            <td><strong style="color: var(--text-primary);">1 年間 No Upfront</strong></td>
+                            <td>64 RPU</td>
+                            <td>約 $55,296</td>
+                            <td>20%</td>
+                        </tr>
+                        <tr>
+                            <td><strong style="color: var(--text-primary);">1 年間 All Upfront</strong></td>
+                            <td>64 RPU</td>
+                            <td>約 $52,531</td>
+                            <td>24%</td>
+                        </tr>
+                        <tr class="best">
+                            <td><strong style="color: #2ECC71;">3 年間 No Upfront</strong></td>
+                            <td>64 RPU</td>
+                            <td><strong style="color: #2ECC71;">約 $38,016</strong></td>
+                            <td><strong style="color: #2ECC71;">45%</strong></td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="pricing-comparison-grid">
+                    <div class="pricing-plan-card">
+                        <div class="plan-name">オンデマンド</div>
+                        <div class="plan-discount" style="color: var(--text-secondary);">0%</div>
+                        <div class="plan-price">$69,120/月</div>
+                        <div class="discount-bar-container">
+                            <div class="discount-bar-bg">
+                                <div class="discount-bar-fill" style="width: 0%; background: var(--text-secondary);"></div>
+                            </div>
+                        </div>
+                        <div class="plan-note">コミットメントなし</div>
+                    </div>
+                    <div class="pricing-plan-card">
+                        <div class="plan-name">1 年 No Upfront</div>
+                        <div class="plan-discount" style="color: var(--aws-orange);">20% OFF</div>
+                        <div class="plan-price">$55,296/月</div>
+                        <div class="discount-bar-container">
+                            <div class="discount-bar-bg">
+                                <div class="discount-bar-fill" style="width: 44%; background: var(--aws-orange);"></div>
+                            </div>
+                        </div>
+                        <div class="plan-note">前払い不要</div>
+                    </div>
+                    <div class="pricing-plan-card">
+                        <div class="plan-name">1 年 All Upfront</div>
+                        <div class="plan-discount" style="color: var(--aws-orange);">24% OFF</div>
+                        <div class="plan-price">$52,531/月</div>
+                        <div class="discount-bar-container">
+                            <div class="discount-bar-bg">
+                                <div class="discount-bar-fill" style="width: 53%; background: var(--aws-orange);"></div>
+                            </div>
+                        </div>
+                        <div class="plan-note">全額前払い</div>
+                    </div>
+                    <div class="pricing-plan-card recommended">
+                        <span class="plan-badge">推奨</span>
+                        <div class="plan-name">3 年 No Upfront</div>
+                        <div class="plan-discount" style="color: #2ECC71;">45% OFF</div>
+                        <div class="plan-price">$38,016/月</div>
+                        <div class="discount-bar-container">
+                            <div class="discount-bar-bg">
+                                <div class="discount-bar-fill" style="width: 100%; background: #2ECC71;"></div>
+                            </div>
+                        </div>
+                        <div class="plan-note">前払い不要</div>
+                    </div>
+                </div>
+
+                <div class="pricing-detail" style="margin-top: 16px; font-size: 12px;">
+                    ※ 料金はリージョンやオンデマンド料金の変動により異なります。24/7 稼働時の概算値です。最新の料金は <a href="https://aws.amazon.com/redshift/pricing/" target="_blank" style="color: var(--aws-teal);">Redshift 料金ページ</a> を参照してください。
+                </div>
+            </div>
+        </section>
+
+        <!-- Benefits -->
+        <section class="section">
+            <h2 class="section-title">メリット</h2>
+            <div class="merit-grid">
+                <div class="merit-section">
+                    <h3>&#128188; ビジネス面</h3>
+                    <ul class="merit-list">
+                        <li><strong style="color: var(--text-primary);">大幅なコスト削減:</strong> 3 年間のコミットメントで最大 45% の割引。長期的な分析ワークロードに最適</li>
+                        <li><strong style="color: var(--text-primary);">コストの予測可能性向上:</strong> 一貫した課金モデルにより、分析インフラのコストを正確に予測可能</li>
+                        <li><strong style="color: var(--text-primary);">初期投資不要:</strong> No Upfront オプションにより、前払いなしで割引を享受可能</li>
+                    </ul>
+                </div>
+                <div class="merit-section">
+                    <h3>&#128736;&#65039; 技術面</h3>
+                    <ul class="merit-list">
+                        <li><strong style="color: var(--text-primary);">Serverless の柔軟性を維持:</strong> 自動スケーリング、自動シャットダウンなどの Serverless 機能はそのまま利用可能</li>
+                        <li><strong style="color: var(--text-primary);">マルチアカウント対応:</strong> Organizations の支払者アカウントで一元管理し、リンクアカウント間で予約を共有可能</li>
+                        <li><strong style="color: var(--text-primary);">シームレスな適用:</strong> 既存のワークグループに自動的に予約が適用され、設定変更は不要</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Limitations -->
+        <section class="section">
+            <h2 class="section-title">デメリット・制約事項</h2>
+            <div class="constraint-card">
+                <div class="constraint-title">制限事項</div>
+                <ul class="constraint-list">
+                    <li>予約の変更や削除は不可。追加の予約を購入してレイヤリングすることで容量を追加することは可能</li>
+                    <li>Amazon Redshift Serverless の無料クレジットは Serverless Reservations には適用されない (オンデマンド RPU のみに適用)</li>
+                    <li>3 年間のコミットメントが必要なため、ワークロードの変動が大きい場合はリスクがある</li>
+                </ul>
+            </div>
+            <div class="constraint-card">
+                <div class="constraint-title">考慮すべき点</div>
+                <ul class="constraint-list">
+                    <li>過去の使用パターンを十分に分析してから予約レベルを決定すべき。保守的に開始し、必要に応じて追加予約で容量を増やすアプローチが推奨される</li>
+                    <li>Provisioned Reserved Instances と Serverless Reservations の使い分けを検討する必要がある。ワークロードの特性に応じて適切な選択肢を判断する</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Use Cases -->
+        <section class="section">
+            <h2 class="section-title">ユースケース</h2>
+
+            <div class="usecase-card">
+                <div class="usecase-header">
+                    <span style="font-size: 24px;">&#128202;</span>
+                    <div class="usecase-title">BI チームの定常的な分析ワークロード</div>
+                </div>
+                <div class="usecase-scenario">
+                    企業の BI チームが Redshift Serverless を使用して日次・週次のダッシュボード更新とアドホッククエリを実行。月間の RPU 使用量が安定している。
+                </div>
+                <div class="usecase-code">
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span class="code-lang">Bash</span>
+                            <span class="code-title">安定的に 64 RPU を使用する場合</span>
+                        </div>
+                        <pre><code class="language-bash"># 安定的に 64 RPU を使用する場合
+aws redshift-serverless create-reservation \
+  --capacity 64 \
+  --offering-type no-upfront \
+  --term 3-year</code></pre>
+                    </div>
+                </div>
+                <div class="usecase-effect">
+                    安定した使用パターンに対して最大 45% のコスト削減を実現。年間数十万円規模のコスト最適化が可能。
+                </div>
+            </div>
+
+            <div class="usecase-card">
+                <div class="usecase-header">
+                    <span style="font-size: 24px;">&#127970;</span>
+                    <div class="usecase-title">マルチアカウント環境での共有利用</div>
+                </div>
+                <div class="usecase-scenario">
+                    複数の事業部門がそれぞれ異なる AWS アカウントで Redshift Serverless ワークグループを運用。支払者アカウントレベルで一括予約し、コストを最適化する。
+                </div>
+                <div class="usecase-code">
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span class="code-lang">Bash</span>
+                            <span class="code-title">支払者アカウントで複数アカウント分の RPU を一括予約</span>
+                        </div>
+                        <pre><code class="language-bash"># 支払者アカウントで複数アカウント分の RPU を一括予約
+# アカウント A: 平均 32 RPU、アカウント B: 平均 32 RPU
+aws redshift-serverless create-reservation \
+  --capacity 64 \
+  --offering-type no-upfront \
+  --term 3-year</code></pre>
+                    </div>
+                </div>
+                <div class="usecase-effect">
+                    各アカウントの使用パターンの差異を吸収し、全体として予約容量の利用率を最大化。個別に予約するよりも効率的なコスト配分が可能。
+                </div>
+            </div>
+
+            <div class="usecase-card">
+                <div class="usecase-header">
+                    <span style="font-size: 24px;">&#9881;&#65039;</span>
+                    <div class="usecase-title">ETL / ELT パイプラインの長期運用</div>
+                </div>
+                <div class="usecase-scenario">
+                    データレイクからの定期的な ETL/ELT 処理に Redshift Serverless を使用。処理は毎日決まった時間帯に実行され、ベースラインの RPU 使用量が予測可能。
+                </div>
+                <div class="usecase-code">
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span class="code-lang">Bash</span>
+                            <span class="code-title">ベースライン RPU を予約 + Max RPU でコスト制御</span>
+                        </div>
+                        <pre><code class="language-bash"># ベースライン RPU のみ予約し、ピーク時はオンデマンドで対応
+aws redshift-serverless create-reservation \
+  --capacity 48 \
+  --offering-type no-upfront \
+  --term 3-year
+
+# Max RPU 設定でコストを制御
+aws redshift-serverless update-workgroup \
+  --workgroup-name etl-workgroup \
+  --max-capacity 128</code></pre>
+                    </div>
+                </div>
+                <div class="usecase-effect">
+                    ベースラインの RPU を割引価格で確保しつつ、ピーク時の追加容量はオンデマンドで柔軟に対応。コスト予測可能性と柔軟性を両立。
+                </div>
+            </div>
+        </section>
+
+        <!-- Region -->
+        <section class="section">
+            <h2 class="section-title">利用可能リージョン</h2>
+            <div class="region-card">
+                <div style="font-size: 28px; margin-bottom: 8px;">&#127758;</div>
+                <div class="region-highlight">Amazon Redshift Serverless が利用可能なすべてのリージョンで Serverless Reservations を購入できます</div>
+                <div class="region-note">現在 Redshift Serverless が提供されているすべてのリージョンで利用可能です。</div>
+            </div>
+        </section>
+
+        <!-- Related Services -->
+        <section class="section">
+            <h2 class="section-title">関連サービス・機能</h2>
+            <div class="related-grid">
+                <div class="related-card">
+                    <div style="font-size: 24px; margin-bottom: 8px;">&#128451;</div>
+                    <div class="related-name">Amazon Redshift Provisioned<br>Reserved Instances</div>
+                    <div class="related-desc">Provisioned クラスター向けの予約インスタンス。ノードタイプを固定する場合に適切</div>
+                </div>
+                <div class="related-card">
+                    <div style="font-size: 24px; margin-bottom: 8px;">&#128202;</div>
+                    <div class="related-name">AWS Cost Explorer</div>
+                    <div class="related-desc">RPU 使用量の長期分析と予約推奨の確認に活用</div>
+                </div>
+                <div class="related-card">
+                    <div style="font-size: 24px; margin-bottom: 8px;">&#127970;</div>
+                    <div class="related-name">AWS Organizations</div>
+                    <div class="related-desc">支払者アカウントレベルで予約を管理し、リンクアカウント間で共有するために必要</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer>
+            <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 12px;">参考リンク</p>
+            <ul class="source-links">
+                <li><a href="https://aws.amazon.com/about-aws/whats-new/2026/02/amazon-redshift-serverless-three-year-reservations/" class="source-link" target="_blank">公式発表 - What's New</a></li>
+                <li><a href="https://aws.amazon.com/blogs/big-data/save-up-to-24-on-amazon-redshift-serverless-compute-costs-with-reservations/" class="source-link" target="_blank">AWS Blog - Save up to 24% on Amazon Redshift Serverless compute costs with Reservations</a></li>
+                <li><a href="https://docs.aws.amazon.com/redshift/latest/mgmt/serverless-billing-reserved.html" class="source-link" target="_blank">ドキュメント - Billing for serverless reservations</a></li>
+                <li><a href="https://aws.amazon.com/redshift/pricing/" class="source-link" target="_blank">料金ページ</a></li>
+                <li><a href="https://aws.amazon.com/redshift/redshift-serverless/" class="source-link" target="_blank">Redshift Serverless 機能ページ</a></li>
+            </ul>
+            <p class="footer-note">Amazon Redshift Serverless - 3 年間の Serverless Reservations | 2026 年 2 月 23 日</p>
+        </footer>
+    </div>
+
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'base',
+            themeVariables: {
+                primaryColor: '#FF9900',
+                primaryTextColor: '#232F3E',
+                primaryBorderColor: '#FF9900',
+                lineColor: '#FF9900',
+                secondaryColor: '#F5F5F5',
+                tertiaryColor: '#FAFAFA',
+                background: '#FFFFFF',
+                mainBkg: '#FFF3E0',
+                nodeBorder: '#FF9900',
+                clusterBkg: '#FFF8E1',
+                clusterBorder: '#FF9900',
+                edgeLabelBackground: '#FFFFFF',
+                textColor: '#232F3E'
+            },
+            flowchart: {
+                curve: 'basis',
+                padding: 20
+            }
+        });
+        hljs.highlightAll();
+    </script>
+</body>
+</html>
