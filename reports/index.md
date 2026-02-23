@@ -5,6 +5,7 @@
 
 ## 2026 年
 
+- [2026-02-23 - Amazon Redshift Serverless - 3 年間の Serverless Reservations](2026/2026-02-23-amazon-redshift-serverless-three-year-reservations.md)
 - [2026-02-20 - Amazon RDS for Oracle - 2026 年 1 月 Release Update および Spatial Patch Bundle](2026/2026-02-20-amazon-rd-for-oracle-jan-release-update-spatial-patch-bundle.md)
 - [2026-02-19 - Amazon EC2 G7e - 東京リージョンで利用可能に](2026/2026-02-19-amazon-ec2-g7e-instances-tokyo-region.md)
 - [2026-02-19 - Amazon EC2 - M8i-flex インスタンスの追加リージョン展開](2026/2026-02-19-amazon-ec2-m8i-flex-instances-FRA-ICN-KUL-NRT-SIN-YUL-region.md)
