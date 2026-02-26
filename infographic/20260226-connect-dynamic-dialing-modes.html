@@ -1,0 +1,1120 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Amazon Connect - アウトバウンドキャンペーンのダイヤルモード動的切替</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/styles/atom-one-dark.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/highlight.min.js"></script>
+    <style>
+        :root {
+            --squid-ink: #232F3E;
+            --aws-orange: #FF9900;
+            --aws-smile-orange: #FFAD33;
+            --text-primary: #FFFFFF;
+            --text-secondary: #AAAAAA;
+            --light-gray: #D5DBDB;
+            --card-bg: #2D3A4A;
+            --dark-squid: #1A242F;
+            --border-color: #3D4A5A;
+            --aws-teal: #00A1C9;
+            --aws-green: #1D8102;
+            --aws-red: #D13212;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            background-color: var(--squid-ink);
+            color: var(--light-gray);
+            line-height: 1.8;
+            font-size: 16px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+            padding-bottom: 30px;
+            border-bottom: 3px solid var(--aws-orange);
+        }
+
+        .service-badge {
+            display: inline-block;
+            background-color: var(--aws-orange);
+            color: var(--squid-ink);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+        }
+
+        .release-date {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--aws-orange);
+            margin-bottom: 20px;
+            padding-left: 15px;
+            border-left: 4px solid var(--aws-orange);
+        }
+
+        .overview-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .overview-text {
+            font-size: 16px;
+            line-height: 1.9;
+        }
+
+        .highlight {
+            background-color: rgba(255, 153, 0, 0.2);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+            color: var(--aws-orange);
+        }
+
+        /* Stats grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, var(--card-bg) 0%, var(--dark-squid) 100%);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid rgba(255, 153, 0, 0.2);
+        }
+
+        .stat-icon {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--aws-orange);
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        /* Before/After comparison */
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .comparison-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .comparison-card.before {
+            border-top: 4px solid #E74C3C;
+        }
+
+        .comparison-card.after {
+            border-top: 4px solid #2ECC71;
+        }
+
+        .comparison-label {
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        .comparison-card.before .comparison-label {
+            color: #E74C3C;
+        }
+
+        .comparison-card.after .comparison-label {
+            color: #2ECC71;
+        }
+
+        .comparison-list {
+            list-style: none;
+        }
+
+        .comparison-list li {
+            padding: 8px 0;
+            padding-left: 25px;
+            position: relative;
+            font-size: 14px;
+        }
+
+        .comparison-card.before .comparison-list li::before {
+            content: "\2717";
+            position: absolute;
+            left: 0;
+            color: #E74C3C;
+            font-weight: bold;
+        }
+
+        .comparison-card.after .comparison-list li::before {
+            content: "\2713";
+            position: absolute;
+            left: 0;
+            color: #2ECC71;
+            font-weight: bold;
+        }
+
+        /* Mermaid diagram */
+        .diagram-container {
+            background-color: #FFFFFF;
+            border: 2px solid rgba(255, 153, 0, 0.3);
+            border-radius: 12px;
+            padding: 25px;
+            overflow-x: auto;
+        }
+
+        .mermaid {
+            display: flex;
+            justify-content: center;
+        }
+
+        /* Feature cards */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .feature-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            border-left: 3px solid var(--aws-orange);
+        }
+
+        .feature-icon {
+            font-size: 36px;
+            margin-bottom: 12px;
+        }
+
+        .feature-title {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--aws-orange);
+        }
+
+        .feature-description {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        /* Dial mode comparison table */
+        .spec-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+        }
+
+        .spec-table th {
+            background-color: var(--dark-squid);
+            color: var(--aws-orange);
+            padding: 10px 14px;
+            text-align: left;
+            font-size: 13px;
+            font-weight: 700;
+            border-bottom: 2px solid var(--aws-orange);
+        }
+
+        .spec-table td {
+            padding: 10px 14px;
+            font-size: 13px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--light-gray);
+        }
+
+        /* Flow diagram */
+        .flow-diagram {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin: 24px 0;
+        }
+
+        .flow-step {
+            background: var(--dark-squid);
+            border: 2px solid var(--aws-orange);
+            border-radius: 8px;
+            padding: 12px 20px;
+            text-align: center;
+            min-width: 120px;
+            font-size: 14px;
+        }
+
+        .flow-arrow {
+            color: var(--aws-orange);
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        /* Use case cards */
+        .usecase-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 3px solid var(--aws-orange);
+        }
+
+        .usecase-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .usecase-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--aws-orange);
+        }
+
+        .usecase-scenario {
+            font-size: 14px;
+            color: var(--light-gray);
+            margin-bottom: 8px;
+        }
+
+        .usecase-impl {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+            padding: 8px 12px;
+            background-color: rgba(0, 161, 201, 0.1);
+            border-radius: 8px;
+            border-left: 3px solid var(--aws-teal);
+        }
+
+        .usecase-effect {
+            font-size: 14px;
+            color: #2ECC71;
+            padding: 10px;
+            background-color: rgba(46, 204, 113, 0.1);
+            border-radius: 8px;
+        }
+
+        .usecase-effect::before {
+            content: "\2713 ";
+            font-weight: bold;
+        }
+
+        /* Merit/Demerit */
+        .merit-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .merit-section {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .merit-section h3 {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: var(--aws-orange);
+        }
+
+        .merit-list {
+            list-style: none;
+        }
+
+        .merit-list li {
+            padding: 6px 0;
+            padding-left: 22px;
+            position: relative;
+            font-size: 14px;
+            color: var(--light-gray);
+        }
+
+        .merit-list li::before {
+            content: "\2713";
+            position: absolute;
+            left: 0;
+            color: #2ECC71;
+            font-weight: bold;
+        }
+
+        /* Constraint/Limitation */
+        .constraint-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 3px solid #E74C3C;
+        }
+
+        .constraint-title {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #E74C3C;
+        }
+
+        .constraint-list {
+            list-style: none;
+        }
+
+        .constraint-list li {
+            padding: 6px 0;
+            padding-left: 22px;
+            position: relative;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .constraint-list li::before {
+            content: "\26A0";
+            position: absolute;
+            left: 0;
+            font-size: 12px;
+        }
+
+        /* Pricing card */
+        .pricing-card {
+            background: linear-gradient(135deg, rgba(29, 129, 2, 0.15) 0%, var(--card-bg) 100%);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid rgba(29, 129, 2, 0.3);
+            text-align: center;
+        }
+
+        .pricing-highlight {
+            font-size: 22px;
+            font-weight: 700;
+            color: #2ECC71;
+            margin-bottom: 8px;
+        }
+
+        .pricing-detail {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .pricing-items {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-top: 16px;
+        }
+
+        .pricing-item {
+            background-color: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+        }
+
+        .pricing-item-icon {
+            font-size: 24px;
+            margin-bottom: 6px;
+        }
+
+        .pricing-item-label {
+            font-size: 13px;
+            color: var(--light-gray);
+            font-weight: 600;
+        }
+
+        .pricing-item-desc {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        /* Region */
+        .region-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .region-tag {
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            padding: 10px 16px;
+            font-size: 14px;
+            color: var(--light-gray);
+            text-align: center;
+            border: 1px solid var(--border-color);
+        }
+
+        .region-tag .region-flag {
+            margin-right: 6px;
+        }
+
+        /* Related services */
+        .related-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+        }
+
+        .related-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+        }
+
+        .related-name {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 6px;
+        }
+
+        .related-desc {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        /* Footer */
+        footer {
+            margin-top: 50px;
+            padding-top: 30px;
+            border-top: 1px solid var(--border-color);
+            text-align: center;
+        }
+
+        .source-links {
+            list-style: none;
+            margin-bottom: 16px;
+        }
+
+        .source-links li {
+            margin-bottom: 6px;
+        }
+
+        .source-link {
+            color: var(--aws-teal);
+            text-decoration: none;
+            font-size: 14px;
+            word-break: break-all;
+        }
+
+        .source-link:hover {
+            color: var(--aws-smile-orange);
+            text-decoration: underline;
+        }
+
+        .footer-note {
+            color: var(--text-secondary);
+            font-size: 12px;
+            margin-top: 10px;
+        }
+
+        /* Preview mode constraint table */
+        .preview-constraint-table {
+            margin-top: 16px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .comparison-grid {
+                grid-template-columns: 1fr;
+            }
+            .features-grid {
+                grid-template-columns: 1fr !important;
+            }
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr) !important;
+            }
+            .merit-grid {
+                grid-template-columns: 1fr;
+            }
+            .related-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+            .region-grid {
+                grid-template-columns: 1fr;
+            }
+            .pricing-items {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .stats-grid {
+                grid-template-columns: 1fr !important;
+            }
+            .related-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <span class="service-badge">Amazon Connect</span>
+            <h1>アウトバウンドキャンペーンのダイヤルモード動的切替</h1>
+            <p style="color: var(--light-gray); font-size: 15px; margin-bottom: 8px;">Dynamic Dialing Mode Switching for Outbound Campaigns</p>
+            <p class="release-date">2026 年 2 月 26 日</p>
+        </header>
+
+        <!-- Overview -->
+        <section class="section">
+            <h2 class="section-title">概要</h2>
+            <div class="overview-card">
+                <p class="overview-text">
+                    Amazon Connect のアウトバウンドキャンペーンにおいて、<span class="highlight">ダイヤルモードの動的切替機能</span>が一般提供 (GA) となった。この機能により、コンタクトセンターの管理者は、アクティブなキャンペーン実行中に<span class="highlight">プレビューモード</span>と<span class="highlight">非プレビューモード</span> (プログレッシブ、プレディクティブ) の間でダイヤルモードを切り替えることが可能になった。
+                </p>
+                <p class="overview-text" style="margin-top: 12px;">
+                    従来はモード変更のためにキャンペーンの停止と再作成が必要だったが、この機能によりキャンペーンを中断することなくリアルタイムで戦略を変更でき、エージェントの生産性とキャンペーン効率が向上する。<span class="highlight">追加料金なし</span>で利用可能。
+                </p>
+            </div>
+
+            <!-- Stats -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">&#128260;</div>
+                    <div class="stat-value">RT</div>
+                    <div class="stat-label">リアルタイム切替</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">&#9889;</div>
+                    <div class="stat-value">3</div>
+                    <div class="stat-label">ダイヤルモード</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">&#127758;</div>
+                    <div class="stat-value">10</div>
+                    <div class="stat-label">対応リージョン</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">&#128176;</div>
+                    <div class="stat-value">$0</div>
+                    <div class="stat-label">追加料金</div>
+                </div>
+            </div>
+
+            <!-- Before/After -->
+            <div class="comparison-grid">
+                <div class="comparison-card before">
+                    <div class="comparison-label">Before - アップデート前の課題</div>
+                    <ul class="comparison-list">
+                        <li>キャンペーン開始後にダイヤルモードを変更できず、初期設定に固定されていた</li>
+                        <li>モードを変更するにはキャンペーンを停止して再作成する必要があり、運用が非効率だった</li>
+                        <li>優先度の異なるコンタクトが混在するキャンペーンで、柔軟なダイヤル戦略を適用できなかった</li>
+                        <li>日中のエージェント稼働状況の変動に応じたリアルタイムの戦略変更ができなかった</li>
+                    </ul>
+                </div>
+                <div class="comparison-card after">
+                    <div class="comparison-label">After - アップデート後の改善</div>
+                    <ul class="comparison-list">
+                        <li>アクティブなキャンペーン実行中にダイヤルモードをリアルタイムで切替可能</li>
+                        <li>プレビューモードと非プレビューモード間の切替がシームレスに実行可能</li>
+                        <li>キャンペーンを中断することなく、コンタクトの優先度に応じた柔軟な運用が実現</li>
+                        <li>エージェントの稼働状況に応じた動的な戦略調整が可能に</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Architecture Diagram -->
+        <section class="section">
+            <h2 class="section-title">アーキテクチャ図</h2>
+            <div class="diagram-container">
+                <pre class="mermaid">
+flowchart TD
+    subgraph Campaign["&#128227; アウトバウンドキャンペーン"]
+        direction LR
+        Manager(["&#128100; 管理者"])
+        Switch["&#128260; ダイヤルモード&lt;br/&gt;動的切替"]
+        Manager ~~~ Switch
+    end
+
+    subgraph Modes["&#9881;&#65039; ダイヤルモード"]
+        direction LR
+        Progressive["&#128222; プログレッシブ&lt;br/&gt;順次発信"]
+        Predictive["&#128202; プレディクティブ&lt;br/&gt;予測発信"]
+        Preview["&#128065;&#65039; プレビュー&lt;br/&gt;事前確認"]
+        Progressive ~~~ Predictive ~~~ Preview
+    end
+
+    subgraph Contacts["&#128203; コンタクト処理"]
+        direction LR
+        Normal["&#128222; 通常コンタクト"]
+        HighPriority["&#11088; 高優先度コンタクト"]
+        Normal ~~~ HighPriority
+    end
+
+    subgraph Agents["&#127911; エージェント"]
+        direction LR
+        AutoDial["&#9889; 自動接続"]
+        ReviewFirst["&#128221; 情報確認後に発信"]
+        AutoDial ~~~ ReviewFirst
+    end
+
+    Switch -->|モード切替| Modes
+    Progressive -->|通常トラフィック| Normal
+    Predictive -->|通常トラフィック| Normal
+    Preview -->|高優先度| HighPriority
+    Normal --> AutoDial
+    HighPriority --> ReviewFirst
+
+    classDef campaign fill:#FFF3E0,stroke:#FFB74D,stroke-width:2px,color:#E65100
+    classDef modes fill:#E8F5E9,stroke:#81C784,stroke-width:2px,color:#2E7D32
+    classDef contacts fill:#E3F2FD,stroke:#64B5F6,stroke-width:2px,color:#1565C0
+    classDef agents fill:#F3E5F5,stroke:#CE93D8,stroke-width:2px,color:#6A1B9A
+    classDef container fill:none,stroke:#CCCCCC,stroke-width:2px,color:#666666
+
+    class Manager,Switch campaign
+    class Progressive,Predictive,Preview modes
+    class Normal,HighPriority contacts
+    class AutoDial,ReviewFirst agents
+    class Campaign,Modes,Contacts,Agents container
+                </pre>
+            </div>
+            <p style="font-size: 14px; color: var(--text-secondary); margin-top: 12px; text-align: center;">管理者がキャンペーン実行中にダイヤルモードを動的に切り替え、コンタクトの優先度に応じてエージェントの対応方法を変更する流れ</p>
+        </section>
+
+        <!-- Key Features -->
+        <section class="section">
+            <h2 class="section-title">主要機能</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">&#128260;</div>
+                    <div class="feature-title">リアルタイムモード切替</div>
+                    <div class="feature-description">アクティブなキャンペーンを停止せずにダイヤルモードを変更。プレビューモードと非プレビューモード間でシームレスに切替。切替時にキャンペーンの中断やデータ損失が発生しない。</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#128222;</div>
+                    <div class="feature-title">3 つのダイヤルモード</div>
+                    <div class="feature-description">プレディクティブ (予測発信)、プログレッシブ (順次発信)、プレビュー (事前確認) の 3 モードを状況に応じて使い分け。エージェントの生産性を最大化。</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#11088;</div>
+                    <div class="feature-title">優先度ベースの運用</div>
+                    <div class="feature-description">通常コンタクトにはプログレッシブ/プレディクティブモードを使用し、高優先度コンタクトに到達した際にプレビューモードへ切替。対応完了後に元のモードに復帰可能。</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#128176;</div>
+                    <div class="feature-title">追加コストなし</div>
+                    <div class="feature-description">ダイヤルモードの動的切替機能に追加料金は発生しない。既存の Amazon Connect アウトバウンドキャンペーンの料金体系がそのまま適用される。</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Dial Mode Comparison -->
+        <section class="section">
+            <h2 class="section-title">ダイヤルモードの比較</h2>
+            <div class="overview-card">
+                <table class="spec-table">
+                    <thead>
+                        <tr>
+                            <th>モード</th>
+                            <th>説明</th>
+                            <th>ユースケース</th>
+                            <th>エージェント関与</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong style="color: var(--aws-orange);">プレディクティブ</strong></td>
+                            <td>エージェントの稼働を予測し複数番号を同時発信</td>
+                            <td>大量発信、生産性重視</td>
+                            <td>自動接続</td>
+                        </tr>
+                        <tr>
+                            <td><strong style="color: var(--aws-orange);">プログレッシブ</strong></td>
+                            <td>前の通話完了後に次の番号を発信</td>
+                            <td>応答速度重視、中規模発信</td>
+                            <td>自動接続</td>
+                        </tr>
+                        <tr>
+                            <td><strong style="color: var(--aws-orange);">プレビュー</strong></td>
+                            <td>エージェントが顧客情報を確認後に発信</td>
+                            <td>高優先度、規制遵守</td>
+                            <td>事前確認後に手動発信</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Technical Specification -->
+        <section class="section">
+            <h2 class="section-title">技術仕様</h2>
+            <div class="overview-card">
+                <h3 style="font-size: 15px; color: var(--aws-orange); margin-bottom: 12px;">ダイヤルモード切替の仕様</h3>
+                <table class="spec-table">
+                    <thead>
+                        <tr>
+                            <th>項目</th>
+                            <th>詳細</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>切替方向</td>
+                            <td>プレビュー &#8596; 非プレビュー (プログレッシブ、プレディクティブ)</td>
+                        </tr>
+                        <tr>
+                            <td>切替タイミング</td>
+                            <td>キャンペーン実行中にリアルタイムで切替可能</td>
+                        </tr>
+                        <tr>
+                            <td>キャンペーン状態</td>
+                            <td>アクティブ状態のまま切替 (停止不要)</td>
+                        </tr>
+                        <tr>
+                            <td>進行中の通話への影響</td>
+                            <td>進行中の通話には影響なし (新規発信から適用)</td>
+                        </tr>
+                        <tr>
+                            <td>追加料金</td>
+                            <td>なし</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="overview-card preview-constraint-table">
+                <h3 style="font-size: 15px; color: var(--aws-orange); margin-bottom: 12px;">プレビューモードの制約事項</h3>
+                <table class="spec-table">
+                    <thead>
+                        <tr>
+                            <th>項目</th>
+                            <th>詳細</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Check call progress ブロック</td>
+                            <td>プレビューモードでは非サポート</td>
+                        </tr>
+                        <tr>
+                            <td>エージェントウィスパーフロー</td>
+                            <td>非サポート (アウトバウンドウィスパーフローを使用)</td>
+                        </tr>
+                        <tr>
+                            <td>最大リング時間の設定</td>
+                            <td>非サポート</td>
+                        </tr>
+                        <tr>
+                            <td>通話分類</td>
+                            <td>プレビューモード使用時は無効化が必要</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Configuration -->
+        <section class="section">
+            <h2 class="section-title">設定方法</h2>
+
+            <div class="overview-card" style="margin-bottom: 16px;">
+                <h3 style="font-size: 15px; color: var(--aws-orange); margin-bottom: 10px;">前提条件</h3>
+                <ul class="merit-list">
+                    <li>Amazon Connect インスタンスが作成されていること</li>
+                    <li>アウトバウンドキャンペーンが有効化されていること</li>
+                    <li>アウトバウンド発信が有効なキューとルーティングプロファイルが設定されていること</li>
+                    <li>キャンペーン用のコンタクトフローが作成されていること</li>
+                </ul>
+            </div>
+
+            <div class="flow-diagram">
+                <div class="flow-step">&#128203; キャンペーン<br>作成</div>
+                <span class="flow-arrow">&rarr;</span>
+                <div class="flow-step">&#9881;&#65039; 初期モード<br>選択</div>
+                <span class="flow-arrow">&rarr;</span>
+                <div class="flow-step">&#128260; 実行中に<br>モード切替</div>
+                <span class="flow-arrow">&rarr;</span>
+                <div class="flow-step">&#128257; モード<br>復帰</div>
+            </div>
+
+            <div class="overview-card" style="margin-bottom: 12px;">
+                <h3 style="font-size: 15px; color: var(--text-primary); margin-bottom: 8px;">Step 1: アウトバウンドキャンペーンの作成</h3>
+                <p style="font-size: 14px; color: var(--text-secondary);">Amazon Connect 管理コンソールから「Outbound campaigns」を選択し、キャンペーン名、顧客セグメント、チャネル (Agent assisted voice) を設定します。</p>
+            </div>
+
+            <div class="overview-card" style="margin-bottom: 12px;">
+                <h3 style="font-size: 15px; color: var(--text-primary); margin-bottom: 8px;">Step 2: 初期ダイヤルモードの選択</h3>
+                <p style="font-size: 14px; color: var(--text-secondary);">チャネル設定で「Agent assisted voice」を選択し、コンタクトフロー、エージェントキュー、発信元電話番号を設定。ダイヤルモード (Predictive、Progressive、Preview) を選択します。</p>
+            </div>
+
+            <div class="overview-card" style="margin-bottom: 12px;">
+                <h3 style="font-size: 15px; color: var(--text-primary); margin-bottom: 8px;">Step 3: キャンペーン実行中のモード切替</h3>
+                <p style="font-size: 14px; color: var(--text-secondary);">アクティブなキャンペーンの管理画面からダイヤルモードの設定セクションを開き、新しいダイヤルモードを選択して変更を適用します。切替は即座に反映され、新規発信から新しいモードが適用されます。</p>
+            </div>
+
+            <div class="overview-card">
+                <h3 style="font-size: 15px; color: var(--text-primary); margin-bottom: 8px;">Step 4: モードの復帰</h3>
+                <p style="font-size: 14px; color: var(--text-secondary);">高優先度コンタクトへの対応が完了したら、同じ手順で元のダイヤルモード (Progressive や Predictive) を選択し、変更を適用して復帰します。</p>
+            </div>
+        </section>
+
+        <!-- Benefits -->
+        <section class="section">
+            <h2 class="section-title">メリット</h2>
+            <div class="merit-grid">
+                <div class="merit-section">
+                    <h3>&#128188; ビジネス面</h3>
+                    <ul class="merit-list">
+                        <li><strong style="color: var(--text-primary);">キャンペーン効率の向上:</strong> キャンペーンを中断せずにダイヤル戦略を変更でき、運用効率が大幅に向上</li>
+                        <li><strong style="color: var(--text-primary);">顧客体験の改善:</strong> 高優先度コンタクトにはプレビューモードでパーソナライズされた対応を提供</li>
+                        <li><strong style="color: var(--text-primary);">運用の柔軟性:</strong> エージェント稼働状況やコンタクト優先度に応じてリアルタイムに戦略を調整</li>
+                        <li><strong style="color: var(--text-primary);">コスト効率:</strong> 追加料金なしで利用でき、キャンペーン再作成の時間と労力を削減</li>
+                    </ul>
+                </div>
+                <div class="merit-section">
+                    <h3>&#128736;&#65039; 技術面</h3>
+                    <ul class="merit-list">
+                        <li><strong style="color: var(--text-primary);">シームレスな切替:</strong> キャンペーン停止・再作成不要、ダウンタイムゼロでモード変更が可能</li>
+                        <li><strong style="color: var(--text-primary);">既存ワークフローとの互換性:</strong> 既存のコンタクトフローやキュー設定に影響を与えずに切替可能</li>
+                        <li><strong style="color: var(--text-primary);">リアルタイム適用:</strong> 切替は即座に反映され、新規発信から新しいモードが適用</li>
+                        <li><strong style="color: var(--text-primary);">規制遵守の強化:</strong> プレビューモードへの切替により、TCPA や OFCOM などの規制要件に柔軟に対応</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Limitations -->
+        <section class="section">
+            <h2 class="section-title">制約事項・注意点</h2>
+            <div class="constraint-card">
+                <div class="constraint-title">制限事項</div>
+                <ul class="constraint-list">
+                    <li>プレビューモードでは Check call progress フローブロックがサポートされない</li>
+                    <li>プレビューモードではエージェントウィスパーフローが使用できない</li>
+                    <li>プレビューモードでは最大リング時間の設定ができない</li>
+                    <li>プレビューモード使用時は通話分類を無効にする必要がある</li>
+                </ul>
+            </div>
+            <div class="constraint-card">
+                <div class="constraint-title">考慮すべき点</div>
+                <ul class="constraint-list">
+                    <li>切替時に進行中の通話には影響しないが、新規発信からモードが変更される点を考慮する必要がある</li>
+                    <li>プレビューモードと非プレビューモードではコンタクトフローの設計要件が異なるため、両モードに対応するフロー設計が必要</li>
+                    <li>頻繁なモード切替はエージェントの混乱を招く可能性があるため、切替のタイミングと頻度を計画的に管理することを推奨</li>
+                    <li>キャンペーン管理者はダイヤルモードの特性と制約を理解した上で切替を実施する必要がある</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Use Cases -->
+        <section class="section">
+            <h2 class="section-title">ユースケース</h2>
+
+            <div class="usecase-card">
+                <div class="usecase-header">
+                    <span style="font-size: 24px;">&#11088;</span>
+                    <div class="usecase-title">高優先度コンタクトへの対応</div>
+                </div>
+                <div class="usecase-scenario">
+                    <strong style="color: var(--text-primary);">シナリオ:</strong> 大規模なアウトバウンドキャンペーンをプログレッシブモードで実行中に、VIP 顧客や重要な案件のコンタクトリストが到達。エージェントに事前に顧客情報を確認させた上で発信したい。
+                </div>
+                <div class="usecase-impl">
+                    <strong style="color: var(--aws-teal);">実装例:</strong> プログレッシブモードで実行 &#8594; VIP コンタクトに到達時にプレビューモードに切替 &#8594; エージェントが顧客情報を確認 &#8594; 手動発信 &#8594; 対応完了後プログレッシブモードに復帰
+                </div>
+                <div class="usecase-effect">
+                    VIP 顧客にはパーソナライズされた高品質な対応を提供しつつ、通常のコンタクトには効率的なプログレッシブモードで対応できる
+                </div>
+            </div>
+
+            <div class="usecase-card">
+                <div class="usecase-header">
+                    <span style="font-size: 24px;">&#128200;</span>
+                    <div class="usecase-title">エージェント稼働状況に応じた動的調整</div>
+                </div>
+                <div class="usecase-scenario">
+                    <strong style="color: var(--text-primary);">シナリオ:</strong> コンタクトセンターのエージェント稼働状況が日中で変動する。ピーク時にはプレディクティブモードで効率を最大化し、閑散時にはプレビューモードでエージェントに余裕を持たせたい。
+                </div>
+                <div class="usecase-impl">
+                    <strong style="color: var(--aws-teal);">実装例:</strong> ピーク時 (午前中): プレディクティブモード &#8594; 閑散時 (午後): プレビューモード &#8594; 夕方ピーク: プログレッシブモードに切替
+                </div>
+                <div class="usecase-effect">
+                    エージェントの稼働状況に応じてダイヤル戦略を最適化し、一日を通じてキャンペーンの効率と品質のバランスを保てる
+                </div>
+            </div>
+
+            <div class="usecase-card">
+                <div class="usecase-header">
+                    <span style="font-size: 24px;">&#128220;</span>
+                    <div class="usecase-title">規制遵守を必要とするキャンペーン</div>
+                </div>
+                <div class="usecase-scenario">
+                    <strong style="color: var(--text-primary);">シナリオ:</strong> 金融サービスのアウトバウンドキャンペーンで、通常の顧客にはプログレッシブモードで効率的にアプローチしつつ、規制上の確認が必要なコンタクトにはプレビューモードで対応したい。
+                </div>
+                <div class="usecase-impl">
+                    <strong style="color: var(--aws-teal);">実装例:</strong> プログレッシブモードで発信 &#8594; 規制確認が必要なコンタクトでプレビューモードに切替 &#8594; エージェントが同意状況・規制要件を確認 &#8594; 確認後に発信 &#8594; 対応完了後プログレッシブモードに復帰
+                </div>
+                <div class="usecase-effect">
+                    TCPA や OFCOM などの通信規制に準拠しつつ、キャンペーン全体の効率を維持できる
+                </div>
+            </div>
+        </section>
+
+        <!-- Pricing -->
+        <section class="section">
+            <h2 class="section-title">料金</h2>
+            <div class="pricing-card">
+                <div class="pricing-highlight">追加料金なし</div>
+                <div class="pricing-detail">ダイヤルモードの動的切替機能に追加料金はかかりません。Amazon Connect アウトバウンドキャンペーンの標準的な料金体系が適用されます。</div>
+                <div class="pricing-items">
+                    <div class="pricing-item">
+                        <div class="pricing-item-icon">&#128222;</div>
+                        <div class="pricing-item-label">音声通話</div>
+                        <div class="pricing-item-desc">通話時間に基づく従量課金</div>
+                    </div>
+                    <div class="pricing-item">
+                        <div class="pricing-item-icon">&#128290;</div>
+                        <div class="pricing-item-label">電話番号</div>
+                        <div class="pricing-item-desc">番号の取得と維持に対する課金</div>
+                    </div>
+                    <div class="pricing-item">
+                        <div class="pricing-item-icon">&#128227;</div>
+                        <div class="pricing-item-label">キャンペーン</div>
+                        <div class="pricing-item-desc">キャンペーン実行に対する標準料金</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Region -->
+        <section class="section">
+            <h2 class="section-title">利用可能リージョン</h2>
+            <div class="region-grid">
+                <div class="region-tag"><span class="region-flag">&#127482;&#127480;</span> 米国東部 (バージニア北部)</div>
+                <div class="region-tag"><span class="region-flag">&#127482;&#127480;</span> 米国西部 (オレゴン)</div>
+                <div class="region-tag"><span class="region-flag">&#127464;&#127462;</span> カナダ (中部)</div>
+                <div class="region-tag"><span class="region-flag">&#127465;&#127466;</span> 欧州 (フランクフルト)</div>
+                <div class="region-tag"><span class="region-flag">&#127468;&#127463;</span> 欧州 (ロンドン)</div>
+                <div class="region-tag"><span class="region-flag">&#127472;&#127479;</span> アジアパシフィック (ソウル)</div>
+                <div class="region-tag"><span class="region-flag">&#127480;&#127468;</span> アジアパシフィック (シンガポール)</div>
+                <div class="region-tag"><span class="region-flag">&#127462;&#127482;</span> アジアパシフィック (シドニー)</div>
+                <div class="region-tag"><span class="region-flag">&#127471;&#127477;</span> アジアパシフィック (東京)</div>
+                <div class="region-tag"><span class="region-flag">&#127487;&#127462;</span> アフリカ (ケープタウン)</div>
+            </div>
+        </section>
+
+        <!-- Related Services -->
+        <section class="section">
+            <h2 class="section-title">関連サービス・機能</h2>
+            <div class="related-grid">
+                <div class="related-card">
+                    <div style="font-size: 24px; margin-bottom: 8px;">&#128227;</div>
+                    <div class="related-name">Amazon Connect Outbound Campaigns</div>
+                    <div class="related-desc">プロアクティブな顧客アウトリーチを実現するキャンペーン管理機能</div>
+                </div>
+                <div class="related-card">
+                    <div style="font-size: 24px; margin-bottom: 8px;">&#128100;</div>
+                    <div class="related-name">Amazon Connect Customer Profiles</div>
+                    <div class="related-desc">プレビューモードでの事前確認を強化する顧客プロファイル情報</div>
+                </div>
+                <div class="related-card">
+                    <div style="font-size: 24px; margin-bottom: 8px;">&#128202;</div>
+                    <div class="related-name">Amazon Connect Forecasting</div>
+                    <div class="related-desc">ダイヤルモード切替のタイミング判断を支援するエージェント稼働予測</div>
+                </div>
+                <div class="related-card">
+                    <div style="font-size: 24px; margin-bottom: 8px;">&#128200;</div>
+                    <div class="related-name">Amazon CloudWatch</div>
+                    <div class="related-desc">キャンペーンパフォーマンスの監視とモード切替効果の分析</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer>
+            <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 12px;">参考リンク</p>
+            <ul class="source-links">
+                <li><a href="https://aws.amazon.com/about-aws/whats-new/2026/02/connect-dynamic-dialing-modes/" class="source-link" target="_blank">公式発表 - What's New</a></li>
+                <li><a href="https://aws.amazon.com/connect/outbound/" class="source-link" target="_blank">Amazon Connect アウトバウンドキャンペーン</a></li>
+                <li><a href="https://docs.aws.amazon.com/connect/latest/adminguide/what-is-amazon-connect.html" class="source-link" target="_blank">Amazon Connect 管理者ガイド</a></li>
+                <li><a href="https://docs.aws.amazon.com/connect/latest/adminguide/outbound-campaign-best-practices.html" class="source-link" target="_blank">アウトバウンドキャンペーンのベストプラクティス</a></li>
+                <li><a href="https://aws.amazon.com/connect/pricing/" class="source-link" target="_blank">Amazon Connect 料金ページ</a></li>
+            </ul>
+            <p class="footer-note">Amazon Connect - アウトバウンドキャンペーンのダイヤルモード動的切替 | 2026 年 2 月 26 日</p>
+        </footer>
+    </div>
+
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'base',
+            themeVariables: {
+                primaryColor: '#FF9900',
+                primaryTextColor: '#232F3E',
+                primaryBorderColor: '#FF9900',
+                lineColor: '#FF9900',
+                secondaryColor: '#F5F5F5',
+                tertiaryColor: '#FAFAFA',
+                background: '#FFFFFF',
+                mainBkg: '#FFF3E0',
+                nodeBorder: '#FF9900',
+                clusterBkg: '#FFF8E1',
+                clusterBorder: '#FF9900',
+                edgeLabelBackground: '#FFFFFF',
+                textColor: '#232F3E'
+            },
+            flowchart: {
+                curve: 'basis',
+                padding: 20
+            }
+        });
+        hljs.highlightAll();
+    </script>
+</body>
+</html>
