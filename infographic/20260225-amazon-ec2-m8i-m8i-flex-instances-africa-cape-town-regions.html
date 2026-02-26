@@ -1,0 +1,1358 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Amazon EC2 M8i / M8i-flex - Africa (Cape Town) リージョンで利用可能に</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/styles/atom-one-dark.min.css">
+    <style>
+        :root {
+            --squid-ink: #232F3E;
+            --dark-squid: #1A242F;
+            --aws-orange: #FF9900;
+            --smile-orange: #FFAD33;
+            --text-primary: #FFFFFF;
+            --text-secondary: #D5DBDB;
+            --text-muted: #AAAAAA;
+            --card-bg: #2D3A4A;
+            --border-color: #3D4A5A;
+            --aws-teal: #00A1C9;
+            --aws-green: #1D8102;
+            --aws-red: #D13212;
+            --aws-purple: #8C4FFF;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            background-color: var(--squid-ink);
+            color: var(--text-secondary);
+            line-height: 1.8;
+            font-size: 16px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        /* Header */
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 32px;
+            border-bottom: 3px solid var(--aws-orange);
+        }
+
+        .service-badge {
+            display: inline-block;
+            background: var(--aws-orange);
+            color: var(--squid-ink);
+            font-size: 14px;
+            font-weight: 700;
+            padding: 4px 16px;
+            border-radius: 20px;
+            margin-bottom: 16px;
+            letter-spacing: 0.5px;
+        }
+
+        header h1 {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+            line-height: 1.4;
+        }
+
+        header .subtitle {
+            font-size: 18px;
+            color: var(--aws-orange);
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
+        header .date {
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        /* Section */
+        .section {
+            background: var(--dark-squid);
+            border-radius: 12px;
+            padding: 28px;
+            margin-bottom: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .section-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--aws-orange);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-title .icon {
+            font-size: 26px;
+        }
+
+        /* Overview */
+        .overview-text {
+            font-size: 16px;
+            color: var(--text-secondary);
+            line-height: 1.9;
+            margin-bottom: 20px;
+        }
+
+        .highlight {
+            background: rgba(255, 153, 0, 0.2);
+            color: var(--aws-orange);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin: 24px 0;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, rgba(255, 153, 0, 0.15), rgba(255, 153, 0, 0.05));
+            border: 1px solid rgba(255, 153, 0, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 36px;
+            font-weight: 700;
+            color: var(--aws-orange);
+            line-height: 1.2;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-top: 6px;
+        }
+
+        /* Before/After */
+        .before-after {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin: 20px 0;
+        }
+
+        .before-card, .after-card {
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        .before-card {
+            background: rgba(209, 50, 18, 0.1);
+            border: 1px solid rgba(209, 50, 18, 0.3);
+        }
+
+        .after-card {
+            background: rgba(29, 129, 2, 0.1);
+            border: 1px solid rgba(29, 129, 2, 0.3);
+        }
+
+        .before-card .ba-title {
+            color: var(--aws-red);
+            font-weight: 700;
+            font-size: 15px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .after-card .ba-title {
+            color: var(--aws-green);
+            font-weight: 700;
+            font-size: 15px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .ba-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .ba-list li {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .before-card .ba-list li::before {
+            content: "\2717";
+            position: absolute;
+            left: 0;
+            color: var(--aws-red);
+            font-weight: bold;
+        }
+
+        .after-card .ba-list li::before {
+            content: "\2713";
+            position: absolute;
+            left: 0;
+            color: var(--aws-green);
+            font-weight: bold;
+        }
+
+        /* Feature Cards */
+        .feature-cards {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 16px;
+        }
+
+        .feature-card {
+            background: var(--card-bg);
+            border-radius: 10px;
+            padding: 20px;
+            border-left: 4px solid var(--aws-orange);
+            transition: transform 0.2s;
+        }
+
+        .feature-card:hover {
+            transform: translateX(4px);
+        }
+
+        .feature-card .fc-title {
+            font-size: 17px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .feature-card .fc-desc {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        .feature-card .fc-detail-list {
+            list-style: none;
+            padding: 0;
+            margin-top: 8px;
+        }
+
+        .feature-card .fc-detail-list li {
+            font-size: 14px;
+            color: var(--text-secondary);
+            padding: 3px 0 3px 18px;
+            position: relative;
+        }
+
+        .feature-card .fc-detail-list li::before {
+            content: "\2192";
+            position: absolute;
+            left: 0;
+            color: var(--aws-orange);
+        }
+
+        /* Performance Table */
+        .perf-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+            font-size: 14px;
+        }
+
+        .perf-table thead th {
+            background: rgba(255, 153, 0, 0.2);
+            color: var(--aws-orange);
+            padding: 12px 16px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid rgba(255, 153, 0, 0.3);
+        }
+
+        .perf-table tbody td {
+            padding: 10px 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            color: var(--text-secondary);
+        }
+
+        .perf-table tbody tr:hover {
+            background: rgba(255, 153, 0, 0.05);
+        }
+
+        .perf-boost {
+            color: var(--aws-green);
+            font-weight: 600;
+        }
+
+        /* Instance Size Table */
+        .instance-table-wrapper {
+            overflow-x: auto;
+            margin: 16px 0;
+        }
+
+        .instance-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            white-space: nowrap;
+        }
+
+        .instance-table thead th {
+            background: rgba(255, 153, 0, 0.15);
+            color: var(--aws-orange);
+            padding: 10px 12px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid rgba(255, 153, 0, 0.3);
+        }
+
+        .instance-table tbody td {
+            padding: 8px 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            color: var(--text-secondary);
+        }
+
+        .instance-table tbody tr:hover {
+            background: rgba(255, 153, 0, 0.05);
+        }
+
+        .instance-table .type-name {
+            color: var(--aws-teal);
+            font-weight: 500;
+            font-family: 'Courier New', monospace;
+        }
+
+        .instance-table .metal-row {
+            background: rgba(140, 79, 255, 0.08);
+        }
+
+        /* Use Cases */
+        .usecase-cards {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 16px;
+        }
+
+        .usecase-card {
+            background: linear-gradient(135deg, rgba(255, 153, 0, 0.08), rgba(255, 173, 51, 0.04));
+            border: 1px solid rgba(255, 153, 0, 0.2);
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        .usecase-card .uc-title {
+            font-size: 17px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .usecase-card .uc-scenario {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+        }
+
+        .usecase-card .uc-effect {
+            font-size: 14px;
+            color: var(--aws-green);
+            font-weight: 500;
+            padding: 8px 12px;
+            background: rgba(29, 129, 2, 0.1);
+            border-radius: 6px;
+            margin-top: 10px;
+        }
+
+        /* Merits/Demerits */
+        .merit-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin: 16px 0;
+        }
+
+        .merit-col h4 {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .merit-col.business h4 { color: var(--aws-orange); }
+        .merit-col.tech h4 { color: var(--aws-teal); }
+
+        .merit-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .merit-list li {
+            font-size: 14px;
+            color: var(--text-secondary);
+            padding: 6px 0 6px 20px;
+            position: relative;
+            line-height: 1.6;
+        }
+
+        .merit-list li::before {
+            content: "\2713";
+            position: absolute;
+            left: 0;
+            color: var(--aws-green);
+            font-weight: bold;
+        }
+
+        .demerit-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .demerit-list li {
+            font-size: 14px;
+            color: var(--text-secondary);
+            padding: 6px 0 6px 20px;
+            position: relative;
+            line-height: 1.6;
+        }
+
+        .demerit-list li::before {
+            content: "\26A0";
+            position: absolute;
+            left: 0;
+            color: var(--smile-orange);
+        }
+
+        /* Region */
+        .region-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 16px 0;
+        }
+
+        .region-tag {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 6px 14px;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .region-tag.new {
+            background: rgba(255, 153, 0, 0.15);
+            border-color: var(--aws-orange);
+            color: var(--aws-orange);
+            font-weight: 600;
+        }
+
+        .region-tag.new::after {
+            content: " NEW";
+            font-size: 10px;
+            font-weight: 700;
+            margin-left: 4px;
+            background: var(--aws-orange);
+            color: var(--squid-ink);
+            padding: 1px 5px;
+            border-radius: 3px;
+        }
+
+        /* Pricing */
+        .pricing-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+            margin: 16px 0;
+        }
+
+        .pricing-option {
+            background: var(--card-bg);
+            border-radius: 8px;
+            padding: 14px;
+            border: 1px solid var(--border-color);
+            text-align: center;
+        }
+
+        .pricing-option .po-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .pricing-option .po-desc {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        /* Flow Diagram */
+        .flow-diagram {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin: 24px 0;
+        }
+
+        .flow-step {
+            background: var(--dark-squid);
+            border: 2px solid var(--aws-orange);
+            border-radius: 8px;
+            padding: 12px 18px;
+            text-align: center;
+            min-width: 100px;
+            font-size: 14px;
+            color: var(--text-primary);
+        }
+
+        .flow-arrow {
+            color: var(--aws-orange);
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        /* Code Block */
+        .code-block {
+            background: #1a1a2e;
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 16px 0;
+        }
+
+        .code-header {
+            background: #16213e;
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+        }
+
+        .code-lang {
+            color: var(--aws-orange);
+            font-weight: bold;
+        }
+
+        .code-title {
+            color: var(--text-muted);
+        }
+
+        .code-block pre {
+            margin: 0;
+            padding: 0;
+            overflow-x: auto;
+        }
+
+        .code-block code {
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            padding: 16px !important;
+        }
+
+        /* Mermaid */
+        .mermaid-container {
+            background: #FFFFFF;
+            border-radius: 12px;
+            padding: 24px;
+            margin: 20px 0;
+            border: 2px solid rgba(255, 153, 0, 0.3);
+            overflow-x: auto;
+        }
+
+        .mermaid {
+            display: flex;
+            justify-content: center;
+        }
+
+        /* Related Services */
+        .related-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 10px;
+            margin: 16px 0;
+        }
+
+        .related-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: var(--text-secondary);
+            padding: 8px 12px;
+            background: var(--card-bg);
+            border-radius: 6px;
+        }
+
+        .related-item .ri-icon {
+            color: var(--aws-teal);
+            font-size: 16px;
+        }
+
+        /* API Changes */
+        .api-info {
+            background: rgba(140, 79, 255, 0.08);
+            border: 1px solid rgba(140, 79, 255, 0.25);
+            border-radius: 10px;
+            padding: 18px;
+            margin: 16px 0;
+        }
+
+        .api-info .api-title {
+            color: var(--aws-purple);
+            font-weight: 700;
+            font-size: 15px;
+            margin-bottom: 8px;
+        }
+
+        .api-info p {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .api-info a {
+            color: var(--aws-teal);
+            text-decoration: none;
+        }
+
+        .api-info a:hover {
+            text-decoration: underline;
+        }
+
+        /* Footer */
+        footer {
+            margin-top: 32px;
+            padding-top: 20px;
+            border-top: 2px solid rgba(255, 153, 0, 0.3);
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        footer a {
+            color: var(--aws-teal);
+            text-decoration: none;
+            word-break: break-all;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        footer .link-list {
+            list-style: none;
+            padding: 0;
+            margin-top: 8px;
+        }
+
+        footer .link-list li {
+            padding: 4px 0;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 24px;
+            }
+
+            .before-after {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .merit-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .pricing-options {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .flow-diagram {
+                flex-direction: column;
+            }
+
+            .flow-arrow {
+                transform: rotate(90deg);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .pricing-options {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <span class="service-badge">Amazon EC2</span>
+            <h1>M8i / M8i-flex インスタンス<br>Africa (Cape Town) リージョンで利用可能に</h1>
+            <div class="subtitle">カスタム Intel Xeon 6 プロセッサ搭載 - 最大 60% のパフォーマンス向上</div>
+            <div class="date">2026 年 2 月 25 日</div>
+        </header>
+
+        <!-- Overview -->
+        <div class="section">
+            <div class="section-title"><span class="icon">&#x2601;&#xFE0F;</span> 概要</div>
+            <p class="overview-text">
+                Amazon EC2 <span class="highlight">M8i</span> および <span class="highlight">M8i-flex</span> インスタンスが、<span class="highlight">Africa (Cape Town) リージョン</span>で利用可能になりました。AWS 専用の<span class="highlight">カスタム Intel Xeon 6 プロセッサ</span>を搭載し、オールコアターボ周波数 <span class="highlight">3.9 GHz</span> で動作する汎用インスタンスです。クラウド上の同等の Intel プロセッサの中で最高のパフォーマンスと最速のメモリ帯域幅を提供します。
+            </p>
+
+            <!-- Stats -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value">+20%</div>
+                    <div class="stat-label">M7i/M7i-flex 比<br>全般パフォーマンス向上</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">2.5x</div>
+                    <div class="stat-label">前世代比<br>メモリ帯域幅</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">+60%</div>
+                    <div class="stat-label">NGINX<br>ウェブアプリ高速化</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">4.6x</div>
+                    <div class="stat-label">前世代比<br>L3 キャッシュ</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Before/After -->
+        <div class="section">
+            <div class="section-title"><span class="icon">&#x1F504;</span> Before / After</div>
+            <div class="before-after">
+                <div class="before-card">
+                    <div class="ba-title">&#x274C; アップデート前</div>
+                    <ul class="ba-list">
+                        <li>M8i/M8i-flex インスタンスが Africa リージョンで利用不可</li>
+                        <li>前世代の汎用インスタンスを使用する必要があった</li>
+                        <li>最新 Intel インスタンス利用にリージョン間転送コスト・遅延が発生</li>
+                    </ul>
+                </div>
+                <div class="after-card">
+                    <div class="ba-title">&#x2705; アップデート後</div>
+                    <ul class="ba-list">
+                        <li>Cape Town リージョンで M8i/M8i-flex を直接起動可能</li>
+                        <li>最新世代のパフォーマンス向上をアフリカリージョンで享受</li>
+                        <li>データローカリティとコンプライアンス要件を満たしつつ高性能利用可能</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Architecture Flow -->
+        <div class="section">
+            <div class="section-title"><span class="icon">&#x1F3D7;&#xFE0F;</span> アーキテクチャ概要</div>
+            <div class="mermaid-container">
+                <pre class="mermaid">
+flowchart TD
+    subgraph CapeTown["&#9729;&#65039; Africa Cape Town af-south-1"]
+        subgraph Compute["&#9881;&#65039; Compute Layer"]
+            direction LR
+            M8i["&#128187; M8i<br/>最大 384 vCPU<br/>最大 1,536 GiB RAM<br/>13 サイズ + ベアメタル"]
+            M8iFlex["&#128187; M8i-flex<br/>最大 64 vCPU<br/>最大 256 GiB RAM<br/>7 サイズ"]
+            M8i ~~~ M8iFlex
+        end
+        subgraph Hardware["&#128296; ハードウェア基盤"]
+            direction LR
+            Xeon["&#9889; Intel Xeon 6<br/>3.9 GHz<br/>DDR5 7200MT/s"]
+            Nitro["&#128737;&#65039; 第 6 世代 Nitro Cards<br/>2x ネットワーク帯域幅<br/>IBC 25% ブースト"]
+            Xeon ~~~ Nitro
+        end
+    end
+
+    User(["&#128100; お客様"]) --> Compute
+    Compute --> Hardware
+
+    classDef cloud fill:none,stroke:#CCCCCC,stroke-width:2px,color:#666666
+    classDef layer fill:none,stroke:#E1BEE7,stroke-width:2px,color:#666666
+    classDef compute fill:#FFE0B2,stroke:#FFCC80,stroke-width:2px,color:#5D4037
+    classDef hw fill:#E8EAF6,stroke:#C5CAE9,stroke-width:2px,color:#283593
+    classDef user fill:#E3F2FD,stroke:#BBDEFB,stroke-width:2px,color:#1565C0
+
+    class CapeTown cloud
+    class Compute,Hardware layer
+    class M8i,M8iFlex compute
+    class Xeon,Nitro hw
+    class User user
+                </pre>
+            </div>
+        </div>
+
+        <!-- Key Features -->
+        <div class="section">
+            <div class="section-title"><span class="icon">&#x2699;&#xFE0F;</span> 主要機能</div>
+            <div class="feature-cards">
+                <div class="feature-card">
+                    <div class="fc-title">&#x1F4E6; M8i-flex インスタンス</div>
+                    <div class="fc-desc">汎用ワークロードの大部分で価格パフォーマンスの恩恵を受けられる最も簡単な方法。M8i と比較して 5% 低い価格で 5% 優れた価格パフォーマンスを提供。</div>
+                    <ul class="fc-detail-list">
+                        <li>large から 16xlarge まで 7 サイズを提供</li>
+                        <li>コンピューティングリソースを完全に活用しないアプリケーションに最適</li>
+                        <li>ウェブサーバー、マイクロサービス、仮想デスクトップ、エンタープライズアプリに適合</li>
+                        <li>95% の時間でフル CPU パフォーマンスに到達可能</li>
+                    </ul>
+                </div>
+                <div class="feature-card">
+                    <div class="fc-title">&#x1F5A5;&#xFE0F; M8i インスタンス</div>
+                    <div class="fc-desc">すべての汎用ワークロードに最適。継続的な高 CPU 使用率や最大インスタンスサイズを必要とするワークロードに特に適合。</div>
+                    <ul class="fc-detail-list">
+                        <li>2 つのベアメタルサイズを含む 13 サイズを提供</li>
+                        <li>新しい 96xlarge サイズで最大規模のアプリケーションに対応</li>
+                        <li>SAP 認定取得済み</li>
+                        <li>Dedicated Instances / Dedicated Hosts に対応</li>
+                    </ul>
+                </div>
+                <div class="feature-card">
+                    <div class="fc-title">&#x26A1; カスタム Intel Xeon 6 プロセッサ</div>
+                    <div class="fc-desc">AWS 専用のプロセッサ。クラウド上の同等 Intel プロセッサの中で最高のパフォーマンスと最速のメモリ帯域幅。</div>
+                    <ul class="fc-detail-list">
+                        <li>オールコアターボ周波数 3.9 GHz</li>
+                        <li>DDR5 7200MT/s DIMM 使用</li>
+                        <li>前世代比 2.5 倍のメモリ帯域幅</li>
+                        <li>前世代比 4.6 倍の L3 キャッシュ</li>
+                        <li>常時メモリ暗号化をサポート</li>
+                    </ul>
+                </div>
+                <div class="feature-card">
+                    <div class="fc-title">&#x1F6E1;&#xFE0F; 第 6 世代 AWS Nitro Cards</div>
+                    <div class="fc-desc">前世代と比較して最大 2 倍のネットワークおよび EBS 帯域幅を実現。</div>
+                    <ul class="fc-detail-list">
+                        <li>Instance Bandwidth Configuration で帯域幅を 25% ブースト可能</li>
+                        <li>ネットワークまたは EBS いずれかの帯域幅をブースト</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Performance Comparison -->
+        <div class="section">
+            <div class="section-title"><span class="icon">&#x1F4CA;</span> パフォーマンス比較</div>
+            <table class="perf-table">
+                <thead>
+                    <tr>
+                        <th>ワークロード</th>
+                        <th>M7i/M7i-flex 比較</th>
+                        <th>前世代 Intel 比較</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>全般</td>
+                        <td><span class="perf-boost">最大 20% 高速</span></td>
+                        <td><span class="perf-boost">最大 15% 優れた価格パフォーマンス</span></td>
+                    </tr>
+                    <tr>
+                        <td>メモリ帯域幅</td>
+                        <td>-</td>
+                        <td><span class="perf-boost">2.5 倍</span></td>
+                    </tr>
+                    <tr>
+                        <td>PostgreSQL データベース</td>
+                        <td><span class="perf-boost">最大 30% 高速</span></td>
+                        <td>-</td>
+                    </tr>
+                    <tr>
+                        <td>NGINX ウェブアプリケーション</td>
+                        <td><span class="perf-boost">最大 60% 高速</span></td>
+                        <td>-</td>
+                    </tr>
+                    <tr>
+                        <td>AI ディープラーニング推奨モデル</td>
+                        <td><span class="perf-boost">最大 40% 高速</span></td>
+                        <td>-</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Instance Sizes: M8i-flex -->
+        <div class="section">
+            <div class="section-title"><span class="icon">&#x1F4D0;</span> M8i-flex インスタンスサイズ</div>
+            <div class="instance-table-wrapper">
+                <table class="instance-table">
+                    <thead>
+                        <tr>
+                            <th>インスタンスサイズ</th>
+                            <th>vCPU</th>
+                            <th>メモリ (GiB)</th>
+                            <th>ネットワーク帯域幅 (Gbps)</th>
+                            <th>EBS 帯域幅 (Gbps)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="type-name">m8i-flex.large</td>
+                            <td>2</td>
+                            <td>8</td>
+                            <td>最大 12.5</td>
+                            <td>最大 10</td>
+                        </tr>
+                        <tr>
+                            <td class="type-name">m8i-flex.xlarge</td>
+                            <td>4</td>
+                            <td>16</td>
+                            <td>最大 12.5</td>
+                            <td>最大 10</td>
+                        </tr>
+                        <tr>
+                            <td class="type-name">m8i-flex.2xlarge</td>
+                            <td>8</td>
+                            <td>32</td>
+                            <td>最大 15</td>
+                            <td>最大 10</td>
+                        </tr>
+                        <tr>
+                            <td class="type-name">m8i-flex.4xlarge</td>
+                            <td>16</td>
+                            <td>64</td>
+                            <td>最大 15</td>
+                            <td>最大 10</td>
+                        </tr>
+                        <tr>
+                            <td class="type-name">m8i-flex.8xlarge</td>
+                            <td>32</td>
+                            <td>128</td>
+                            <td>最大 15</td>
+                            <td>最大 10</td>
+                        </tr>
+                        <tr>
+                            <td class="type-name">m8i-flex.12xlarge</td>
+                            <td>48</td>
+                            <td>192</td>
+                            <td>最大 22.5</td>
+                            <td>最大 15</td>
+                        </tr>
+                        <tr>
+                            <td class="type-name">m8i-flex.16xlarge</td>
+                            <td>64</td>
+                            <td>256</td>
+                            <td>最大 30</td>
+                            <td>最大 20</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Instance Sizes: M8i -->
+        <div class="section">
+            <div class="section-title"><span class="icon">&#x1F4D0;</span> M8i インスタンスサイズ</div>
+            <div class="instance-table-wrapper">
+                <table class="instance-table">
+                    <thead>
+                        <tr>
+                            <th>インスタンスサイズ</th>
+                            <th>vCPU</th>
+                            <th>メモリ (GiB)</th>
+                            <th>ネットワーク帯域幅 (Gbps)</th>
+                            <th>EBS 帯域幅 (Gbps)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="type-name">m8i.large</td>
+                            <td>2</td>
+                            <td>8</td>
+                            <td>最大 12.5</td>
+                            <td>最大 10</td>
+                        </tr>
+                        <tr>
+                            <td class="type-name">m8i.xlarge</td>
+                            <td>4</td>
+                            <td>16</td>
+                            <td>最大 12.5</td>
+                            <td>最大 10</td>
+                        </tr>
+                        <tr>
+                            <td class="type-name">m8i.2xlarge</td>
+                            <td>8</td>
+                            <td>32</td>
+                            <td>最大 15</td>
+                            <td>最大 10</td>
+                        </tr>
+                        <tr>
+                            <td class="type-name">m8i.4xlarge</td>
+                            <td>16</td>
+                            <td>64</td>
+                            <td>最大 15</td>
+                            <td>最大 10</td>
+                        </tr>
+                        <tr>
+                            <td class="type-name">m8i.8xlarge</td>
+                            <td>32</td>
+                            <td>128</td>
+                            <td>15</td>
+                            <td>10</td>
+                        </tr>
+                        <tr>
+                            <td class="type-name">m8i.12xlarge</td>
+                            <td>48</td>
+                            <td>192</td>
+                            <td>22.5</td>
+                            <td>15</td>
+                        </tr>
+                        <tr>
+                            <td class="type-name">m8i.16xlarge</td>
+                            <td>64</td>
+                            <td>256</td>
+                            <td>30</td>
+                            <td>20</td>
+                        </tr>
+                        <tr>
+                            <td class="type-name">m8i.24xlarge</td>
+                            <td>96</td>
+                            <td>384</td>
+                            <td>40</td>
+                            <td>30</td>
+                        </tr>
+                        <tr>
+                            <td class="type-name">m8i.32xlarge</td>
+                            <td>128</td>
+                            <td>512</td>
+                            <td>50</td>
+                            <td>40</td>
+                        </tr>
+                        <tr>
+                            <td class="type-name">m8i.48xlarge</td>
+                            <td>192</td>
+                            <td>768</td>
+                            <td>75</td>
+                            <td>60</td>
+                        </tr>
+                        <tr>
+                            <td class="type-name">m8i.96xlarge</td>
+                            <td>384</td>
+                            <td>1,536</td>
+                            <td>100</td>
+                            <td>80</td>
+                        </tr>
+                        <tr class="metal-row">
+                            <td class="type-name">m8i.metal-48xl</td>
+                            <td>192</td>
+                            <td>768</td>
+                            <td>75</td>
+                            <td>60</td>
+                        </tr>
+                        <tr class="metal-row">
+                            <td class="type-name">m8i.metal-96xl</td>
+                            <td>384</td>
+                            <td>1,536</td>
+                            <td>100</td>
+                            <td>80</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Setup -->
+        <div class="section">
+            <div class="section-title"><span class="icon">&#x1F6E0;&#xFE0F;</span> 設定方法</div>
+            <p class="overview-text" style="margin-bottom:16px;">以下の前提条件を確認のうえ、AWS CLI またはマネジメントコンソールからインスタンスを起動できます。</p>
+
+            <div class="flow-diagram">
+                <div class="flow-step">&#x1F511; IAM 権限確認</div>
+                <span class="flow-arrow">&rarr;</span>
+                <div class="flow-step">&#x1F4CB; クォータ確認</div>
+                <span class="flow-arrow">&rarr;</span>
+                <div class="flow-step">&#x1F680; インスタンス起動</div>
+                <span class="flow-arrow">&rarr;</span>
+                <div class="flow-step">&#x1F4B0; 購入オプション選択</div>
+            </div>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Bash</span>
+                    <span class="code-title">ステップ 1: M8i-flex インスタンスを起動</span>
+                </div>
+                <pre><code class="language-bash"># ケープタウンリージョンで M8i-flex インスタンスを起動
+aws ec2 run-instances \
+  --image-id ami-xxxxxxxxxxxxxxxxx \
+  --instance-type m8i-flex.xlarge \
+  --region af-south-1 \
+  --subnet-id subnet-xxxxxxxxxxxxxxxxx \
+  --security-group-ids sg-xxxxxxxxxxxxxxxxx \
+  --key-name my-key-pair</code></pre>
+            </div>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Bash</span>
+                    <span class="code-title">ステップ 2: 利用可能なインスタンスサイズを確認</span>
+                </div>
+                <pre><code class="language-bash"># 利用可能な M8i インスタンスタイプを確認
+aws ec2 describe-instance-types \
+  --filters "Name=instance-type,Values=m8i*" \
+  --region af-south-1 \
+  --query "InstanceTypes[].{Type:InstanceType,vCPU:VCpuInfo.DefaultVCpus,Memory:MemoryInfo.SizeInMiB}" \
+  --output table</code></pre>
+            </div>
+        </div>
+
+        <!-- Use Cases -->
+        <div class="section">
+            <div class="section-title"><span class="icon">&#x1F3AF;</span> ユースケース</div>
+            <div class="usecase-cards">
+                <div class="usecase-card">
+                    <div class="uc-title">&#x1F310; ウェブアプリケーションサーバー</div>
+                    <div class="uc-scenario">アフリカ地域のユーザーに提供する NGINX ベースのウェブアプリケーションをケープタウンリージョンで稼働</div>
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span class="code-lang">Bash</span>
+                            <span class="code-title">実装例</span>
+                        </div>
+                        <pre><code class="language-bash">aws ec2 run-instances \
+  --instance-type m8i-flex.8xlarge \
+  --image-id ami-xxxxxxxxxxxxxxxxx \
+  --region af-south-1 \
+  --user-data file://webserver-setup.sh</code></pre>
+                    </div>
+                    <div class="uc-effect">M7i-flex と比較して最大 60% のパフォーマンス向上。より多くのリクエストを処理でき、アフリカのエンドユーザーへのレイテンシーを大幅に低減。</div>
+                </div>
+                <div class="usecase-card">
+                    <div class="uc-title">&#x1F5C4;&#xFE0F; PostgreSQL データベース</div>
+                    <div class="uc-scenario">アフリカリージョンのコンプライアンス要件を満たしつつ、PostgreSQL データベースをケープタウンで実行</div>
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span class="code-lang">Bash</span>
+                            <span class="code-title">実装例</span>
+                        </div>
+                        <pre><code class="language-bash">aws ec2 run-instances \
+  --instance-type m8i.24xlarge \
+  --image-id ami-xxxxxxxxxxxxxxxxx \
+  --region af-south-1 \
+  --block-device-mappings "DeviceName=/dev/sda1,Ebs={VolumeSize=500,VolumeType=gp3,Iops=16000}"</code></pre>
+                    </div>
+                    <div class="uc-effect">M7i と比較して最大 30% 高速な PostgreSQL パフォーマンスと 2.5 倍のメモリ帯域幅により、データベースクエリの応答時間を大幅に改善。</div>
+                </div>
+                <div class="usecase-card">
+                    <div class="uc-title">&#x1F9E0; AI 推論ワークロード</div>
+                    <div class="uc-scenario">ディープラーニングベースの推奨エンジンをケープタウンリージョンで実行し、アフリカのお客様にリアルタイムの推奨を提供</div>
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span class="code-lang">Bash</span>
+                            <span class="code-title">実装例</span>
+                        </div>
+                        <pre><code class="language-bash">aws ec2 run-instances \
+  --instance-type m8i.16xlarge \
+  --image-id ami-xxxxxxxxxxxxxxxxx \
+  --region af-south-1 \
+  --iam-instance-profile Name=ML-Inference-Role</code></pre>
+                    </div>
+                    <div class="uc-effect">M7i と比較して最大 40% 高速な AI ディープラーニング推奨モデルの処理により、推論レイテンシーを大幅に短縮。</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Merits -->
+        <div class="section">
+            <div class="section-title"><span class="icon">&#x2705;</span> メリット</div>
+            <div class="merit-grid">
+                <div class="merit-col business">
+                    <h4>&#x1F4BC; ビジネス面</h4>
+                    <ul class="merit-list">
+                        <li>前世代比で最大 15% 優れた価格パフォーマンスによるコスト効率向上</li>
+                        <li>Africa リージョン展開によるアフリカ市場へのリーチ拡大</li>
+                        <li>リージョン内のデータ主権やコンプライアンス要件を満たしつつ高性能利用</li>
+                        <li>SAP 認定取得でミッションクリティカルなエンタープライズワークロードに対応</li>
+                    </ul>
+                </div>
+                <div class="merit-col tech">
+                    <h4>&#x1F527; 技術面</h4>
+                    <ul class="merit-list">
+                        <li>M7i/M7i-flex と比較して最大 20% 高速</li>
+                        <li>DDR5 7200MT/s で 2.5 倍のメモリ帯域幅</li>
+                        <li>4.6 倍の L3 キャッシュで推論、科学計算、DB ワークロードのレイテンシー改善</li>
+                        <li>IBC 機能でネットワーク/EBS 帯域幅を 25% ブースト可能</li>
+                        <li>Intel Xeon 6 の常時メモリ暗号化をサポート</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Demerits / Considerations -->
+        <div class="section">
+            <div class="section-title"><span class="icon">&#x26A0;&#xFE0F;</span> 制約事項・考慮点</div>
+            <div class="merit-grid">
+                <div class="merit-col">
+                    <h4 style="color: var(--aws-red);">&#x1F6AB; 制限事項</h4>
+                    <ul class="demerit-list">
+                        <li>新規リージョンでの初期サービスクォータが制限される場合がある</li>
+                        <li>すべてのインスタンスサイズがすべてのリージョンで利用可能とは限らない</li>
+                        <li>既存の M7i/M7i-flex からの自動移行は未サポート</li>
+                    </ul>
+                </div>
+                <div class="merit-col">
+                    <h4 style="color: var(--smile-orange);">&#x1F4DD; 考慮すべき点</h4>
+                    <ul class="demerit-list">
+                        <li>ワークロード特性に応じて M8i-flex と M8i を適切に選択する</li>
+                        <li>M8i-flex はリソースを完全に活用しないアプリに最適</li>
+                        <li>継続的な高 CPU 使用率や最大サイズが必要なら M8i を選択</li>
+                        <li>既存の Savings Plans やリザーブドインスタンスの適用範囲を確認</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pricing -->
+        <div class="section">
+            <div class="section-title"><span class="icon">&#x1F4B0;</span> 料金情報</div>
+            <p class="overview-text" style="margin-bottom:16px;">前世代と比較して最大 15% 優れた価格パフォーマンスにより、同等の処理をより低コストで実行できます。</p>
+            <div class="pricing-options">
+                <div class="pricing-option">
+                    <div class="po-title">&#x23F0; オンデマンド</div>
+                    <div class="po-desc">時間単位の従量課金</div>
+                </div>
+                <div class="pricing-option">
+                    <div class="po-title">&#x1F4C9; Savings Plans</div>
+                    <div class="po-desc">1 年 / 3 年の利用契約で割引</div>
+                </div>
+                <div class="pricing-option">
+                    <div class="po-title">&#x26A1; スポットインスタンス</div>
+                    <div class="po-desc">余剰キャパシティで大幅割引</div>
+                </div>
+                <div class="pricing-option">
+                    <div class="po-title">&#x1F512; Dedicated</div>
+                    <div class="po-desc">M8i インスタンスのみ対応</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Regions -->
+        <div class="section">
+            <div class="section-title"><span class="icon">&#x1F30D;</span> 利用可能リージョン</div>
+            <div class="region-list">
+                <span class="region-tag">US East - N. Virginia</span>
+                <span class="region-tag">US East - Ohio</span>
+                <span class="region-tag">US West - Oregon</span>
+                <span class="region-tag">Europe - Spain</span>
+                <span class="region-tag new">Africa - Cape Town</span>
+            </div>
+        </div>
+
+        <!-- API Changes -->
+        <div class="section">
+            <div class="section-title"><span class="icon">&#x1F4E1;</span> API の変更</div>
+            <div class="api-info">
+                <div class="api-title">Amazon EC2 API 更新 - 2026 年 2 月 26 日</div>
+                <p>25 の API メソッドが更新され、c8id、m8id、hpc8a インスタンスタイプのサポートが追加されました。M8i/M8i-flex のリージョン展開に関連する API 更新です。</p>
+                <p style="margin-top:8px;"><a href="https://awsapichanges.com/archive/changes/f76046-ec2.html" target="_blank" rel="noopener noreferrer">API 変更の詳細を見る &rarr;</a></p>
+            </div>
+        </div>
+
+        <!-- Related Services -->
+        <div class="section">
+            <div class="section-title"><span class="icon">&#x1F517;</span> 関連サービス・機能</div>
+            <div class="related-grid">
+                <div class="related-item">
+                    <span class="ri-icon">&#x2699;&#xFE0F;</span>
+                    <span>Amazon EC2 Auto Scaling</span>
+                </div>
+                <div class="related-item">
+                    <span class="ri-icon">&#x2696;&#xFE0F;</span>
+                    <span>Elastic Load Balancing</span>
+                </div>
+                <div class="related-item">
+                    <span class="ri-icon">&#x1F4CA;</span>
+                    <span>AWS Compute Optimizer</span>
+                </div>
+                <div class="related-item">
+                    <span class="ri-icon">&#x26A1;</span>
+                    <span>Amazon EC2 C8i/C8i-flex</span>
+                </div>
+                <div class="related-item">
+                    <span class="ri-icon">&#x1F9E0;</span>
+                    <span>Amazon EC2 R8i/R8i-flex</span>
+                </div>
+                <div class="related-item">
+                    <span class="ri-icon">&#x1F6E1;&#xFE0F;</span>
+                    <span>AWS Nitro System</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer>
+            <p><strong>&#x1F4CE; 出典</strong></p>
+            <ul class="link-list">
+                <li>&#x1F4E2; <a href="https://aws.amazon.com/about-aws/whats-new/2026/02/amazon-ec2-m8i-m8i-flex-instances-africa-cape-town-regions/" target="_blank" rel="noopener noreferrer">What's New - Amazon EC2 M8i and M8i-flex instances in Africa (Cape Town)</a></li>
+                <li>&#x1F4DD; <a href="https://aws.amazon.com/blogs/aws/new-general-purpose-amazon-ec2-m8i-and-m8i-flex-instances-are-now-available/" target="_blank" rel="noopener noreferrer">AWS Blog - M8i and M8i-flex インスタンスの紹介</a></li>
+                <li>&#x1F4BB; <a href="https://aws.amazon.com/ec2/instance-types/m8i/" target="_blank" rel="noopener noreferrer">M8i インスタンスタイプページ</a></li>
+                <li>&#x1F4B0; <a href="https://aws.amazon.com/ec2/pricing/" target="_blank" rel="noopener noreferrer">Amazon EC2 料金ページ</a></li>
+            </ul>
+        </footer>
+    </div>
+
+    <!-- Mermaid.js -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'base',
+            themeVariables: {
+                primaryColor: '#FF9900',
+                primaryTextColor: '#232F3E',
+                primaryBorderColor: '#FF9900',
+                lineColor: '#FF9900',
+                secondaryColor: '#F5F5F5',
+                tertiaryColor: '#FAFAFA',
+                background: '#FFFFFF',
+                mainBkg: '#FFF3E0',
+                nodeBorder: '#FF9900',
+                clusterBkg: '#FFF8E1',
+                clusterBorder: '#FF9900',
+                edgeLabelBackground: '#FFFFFF',
+                textColor: '#232F3E'
+            }
+        });
+    </script>
+    <!-- highlight.js -->
+    <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/highlight.min.js"></script>
+    <script>hljs.highlightAll();</script>
+</body>
+</html>

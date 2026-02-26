@@ -1,0 +1,1279 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Amazon Aurora DSQL - Tortoise, Flyway, Prisma の新規サポート</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/styles/atom-one-dark.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/highlight.min.js"></script>
+    <style>
+        :root {
+            --squid-ink: #232F3E;
+            --aws-orange: #FF9900;
+            --aws-smile-orange: #FFAD33;
+            --text-primary: #FFFFFF;
+            --text-secondary: #AAAAAA;
+            --light-gray: #D5DBDB;
+            --card-bg: #2D3A4A;
+            --dark-squid: #1A242F;
+            --border-color: #3D4A5A;
+            --aws-teal: #00A1C9;
+            --aws-green: #1D8102;
+            --aws-red: #D13212;
+            --aws-purple: #8C4FFF;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            background-color: var(--squid-ink);
+            color: var(--light-gray);
+            line-height: 1.8;
+            font-size: 16px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 32px 20px;
+            width: 100%;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 32px;
+            border-bottom: 3px solid var(--aws-orange);
+        }
+
+        .service-badge {
+            display: inline-block;
+            background: var(--aws-orange);
+            color: var(--squid-ink);
+            font-size: 13px;
+            font-weight: 700;
+            padding: 4px 16px;
+            border-radius: 20px;
+            margin-bottom: 16px;
+            letter-spacing: 0.5px;
+        }
+
+        .header h1 {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+            line-height: 1.4;
+        }
+
+        .header-meta {
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            flex-wrap: wrap;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .header-meta span {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* Section */
+        .section {
+            background: var(--dark-squid);
+            border-radius: 12px;
+            padding: 28px;
+            margin-bottom: 28px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .section-title {
+            font-size: 22px;
+            font-weight: 600;
+            color: var(--aws-orange);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-title-icon {
+            font-size: 26px;
+        }
+
+        /* Overview */
+        .overview-text {
+            font-size: 16px;
+            color: var(--light-gray);
+            line-height: 1.9;
+            margin-bottom: 20px;
+        }
+
+        .highlight {
+            background-color: rgba(255, 153, 0, 0.2);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: 600;
+            color: var(--aws-orange);
+        }
+
+        /* Before/After */
+        .before-after {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 700px) {
+            .before-after {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .before-card, .after-card {
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        .before-card {
+            background: rgba(209, 50, 18, 0.08);
+            border: 1px solid rgba(209, 50, 18, 0.3);
+        }
+
+        .after-card {
+            background: rgba(29, 129, 2, 0.08);
+            border: 1px solid rgba(29, 129, 2, 0.3);
+        }
+
+        .before-card h4 {
+            color: var(--aws-red);
+            font-size: 15px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .after-card h4 {
+            color: var(--aws-green);
+            font-size: 15px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .before-card ul, .after-card ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .before-card li, .after-card li {
+            font-size: 14px;
+            padding: 6px 0;
+            padding-left: 20px;
+            position: relative;
+            line-height: 1.7;
+        }
+
+        .before-card li::before {
+            content: "\2717";
+            position: absolute;
+            left: 0;
+            color: var(--aws-red);
+            font-weight: bold;
+        }
+
+        .after-card li::before {
+            content: "\2713";
+            position: absolute;
+            left: 0;
+            color: var(--aws-green);
+            font-weight: bold;
+        }
+
+        /* Mermaid */
+        .mermaid-container {
+            background: #FFFFFF;
+            border-radius: 12px;
+            padding: 24px;
+            margin: 20px 0;
+            border: 2px solid rgba(255, 153, 0, 0.3);
+            overflow-x: auto;
+        }
+
+        .mermaid {
+            display: flex;
+            justify-content: center;
+        }
+
+        .diagram-caption {
+            font-size: 13px;
+            color: var(--text-secondary);
+            text-align: center;
+            margin-top: 12px;
+            font-style: italic;
+        }
+
+        /* Feature Cards */
+        .feature-cards {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 16px;
+        }
+
+        .feature-card {
+            background: var(--card-bg);
+            border-radius: 10px;
+            padding: 22px;
+            border-left: 4px solid var(--aws-orange);
+            transition: transform 0.2s;
+        }
+
+        .feature-card:hover {
+            transform: translateX(4px);
+        }
+
+        .feature-card-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .feature-card-icon {
+            font-size: 28px;
+        }
+
+        .feature-card-title {
+            font-size: 17px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .feature-card ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .feature-card li {
+            font-size: 14px;
+            padding: 4px 0;
+            padding-left: 20px;
+            position: relative;
+            color: var(--light-gray);
+        }
+
+        .feature-card li::before {
+            content: "\2192";
+            position: absolute;
+            left: 0;
+            color: var(--aws-orange);
+        }
+
+        /* Tech Specs Table */
+        .tech-table-wrapper {
+            overflow-x: auto;
+            margin: 16px 0;
+        }
+
+        .tech-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        .tech-table thead th {
+            background: rgba(255, 153, 0, 0.15);
+            color: var(--aws-orange);
+            font-weight: 600;
+            padding: 12px 14px;
+            text-align: left;
+            border-bottom: 2px solid rgba(255, 153, 0, 0.3);
+            white-space: nowrap;
+        }
+
+        .tech-table tbody td {
+            padding: 10px 14px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            color: var(--light-gray);
+        }
+
+        .tech-table tbody tr:hover {
+            background: rgba(255, 153, 0, 0.05);
+        }
+
+        /* Use Case Cards */
+        .usecase-card {
+            background: linear-gradient(135deg, rgba(255, 153, 0, 0.06) 0%, rgba(255, 153, 0, 0.02) 100%);
+            border: 1px solid rgba(255, 153, 0, 0.2);
+            border-radius: 10px;
+            padding: 22px;
+            margin-bottom: 16px;
+        }
+
+        .usecase-card-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .usecase-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            background: var(--aws-orange);
+            color: var(--squid-ink);
+            font-weight: 700;
+            font-size: 14px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .usecase-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .usecase-scenario {
+            font-size: 14px;
+            color: var(--light-gray);
+            margin-bottom: 12px;
+            line-height: 1.7;
+        }
+
+        .usecase-effect {
+            font-size: 14px;
+            color: var(--aws-green);
+            background: rgba(29, 129, 2, 0.08);
+            padding: 10px 14px;
+            border-radius: 6px;
+            border-left: 3px solid var(--aws-green);
+        }
+
+        /* Code Block */
+        .code-block {
+            background: #1a1a2e;
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 14px 0;
+        }
+
+        .code-header {
+            background: #16213e;
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+        }
+
+        .code-lang {
+            color: var(--aws-orange);
+            font-weight: bold;
+        }
+
+        .code-title {
+            color: var(--light-gray);
+        }
+
+        .code-block pre {
+            margin: 0;
+            padding: 0;
+            overflow-x: auto;
+        }
+
+        .code-block code {
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            padding: 16px !important;
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin: 20px 0;
+        }
+
+        @media (max-width: 700px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, rgba(255, 153, 0, 0.12) 0%, rgba(140, 79, 255, 0.08) 100%);
+            border: 1px solid rgba(255, 153, 0, 0.25);
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 36px;
+            font-weight: 700;
+            color: var(--aws-orange);
+            line-height: 1.2;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: var(--light-gray);
+            margin-top: 6px;
+        }
+
+        /* Merit/Demerit */
+        .merit-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 700px) {
+            .merit-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .merit-card {
+            background: var(--card-bg);
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        .merit-card h4 {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .merit-card ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .merit-card li {
+            font-size: 14px;
+            padding: 5px 0;
+            padding-left: 18px;
+            position: relative;
+            line-height: 1.7;
+        }
+
+        /* Constraints */
+        .constraint-item {
+            background: rgba(255, 153, 0, 0.05);
+            border: 1px solid rgba(255, 153, 0, 0.15);
+            border-radius: 8px;
+            padding: 14px 18px;
+            margin-bottom: 10px;
+            font-size: 14px;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .constraint-icon {
+            font-size: 18px;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        /* Pricing */
+        .pricing-highlight {
+            background: linear-gradient(135deg, rgba(29, 129, 2, 0.1) 0%, rgba(0, 161, 201, 0.08) 100%);
+            border: 1px solid rgba(29, 129, 2, 0.3);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 16px 0;
+            text-align: center;
+        }
+
+        .pricing-highlight .price-label {
+            font-size: 14px;
+            color: var(--light-gray);
+            margin-bottom: 4px;
+        }
+
+        .pricing-highlight .price-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--aws-green);
+        }
+
+        .pricing-note {
+            font-size: 14px;
+            color: var(--light-gray);
+            margin-top: 12px;
+            line-height: 1.7;
+        }
+
+        /* Flow Diagram */
+        .flow-diagram {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin: 24px 0;
+        }
+
+        .flow-step {
+            background: var(--dark-squid);
+            border: 2px solid var(--aws-orange);
+            border-radius: 8px;
+            padding: 12px 20px;
+            text-align: center;
+            min-width: 100px;
+        }
+
+        .flow-arrow {
+            color: var(--aws-orange);
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        /* Footer */
+        footer {
+            margin-top: 32px;
+            padding: 24px 28px;
+            background: var(--dark-squid);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        footer h3 {
+            font-size: 16px;
+            color: var(--aws-orange);
+            margin-bottom: 12px;
+        }
+
+        footer ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        footer li {
+            font-size: 13px;
+            padding: 4px 0;
+        }
+
+        footer a {
+            color: var(--aws-teal);
+            text-decoration: none;
+            word-break: break-all;
+        }
+
+        footer a:hover {
+            color: var(--aws-smile-orange);
+            text-decoration: underline;
+        }
+
+        .footer-note {
+            margin-top: 16px;
+            padding-top: 12px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 12px;
+            color: var(--text-secondary);
+            text-align: center;
+        }
+
+        /* Setup Steps */
+        .setup-group {
+            margin-bottom: 24px;
+        }
+
+        .setup-group-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .step-label {
+            display: inline-block;
+            background: rgba(255, 153, 0, 0.15);
+            color: var(--aws-orange);
+            font-size: 11px;
+            font-weight: 700;
+            padding: 2px 10px;
+            border-radius: 10px;
+            margin-bottom: 8px;
+        }
+
+        .step-desc {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+
+        <!-- Header -->
+        <div class="header">
+            <div class="service-badge">Amazon Aurora DSQL</div>
+            <h1>Tortoise, Flyway, Prisma の新規サポート</h1>
+            <div class="header-meta">
+                <span>&#128197; 2026 年 2 月 25 日</span>
+                <span>&#9889; ORM / マイグレーションツール統合</span>
+                <span>&#127760; Python / Java / Node.js</span>
+            </div>
+        </div>
+
+        <!-- Overview -->
+        <div class="section">
+            <h2 class="section-title"><span class="section-title-icon">&#128203;</span> 概要</h2>
+            <p class="overview-text">
+                AWS は <span class="highlight">Amazon Aurora DSQL</span> 向けに、人気の ORM ツールおよびデータベースマイグレーションツールとの統合を発表した。今回のリリースでは、<span class="highlight">Tortoise ORM</span> (Python ORM) 用アダプター、<span class="highlight">Flyway</span> (スキーマ管理ツール) 用ダイアレクト、<span class="highlight">Prisma</span> (Node.js ORM) 用 CLI ツールの 3 つの統合が提供される。これらの統合は、IAM 認証と DSQL 固有の互換性を自動的に処理する。
+            </p>
+
+            <!-- Stats -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value">3</div>
+                    <div class="stat-label">ORM / マイグレーションツール統合</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">3</div>
+                    <div class="stat-label">対応言語 / ランタイム</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">OSS</div>
+                    <div class="stat-label">無料で利用可能</div>
+                </div>
+            </div>
+
+            <!-- Before/After -->
+            <div class="before-after">
+                <div class="before-card">
+                    <h4>&#10060; Before: アップデート前の課題</h4>
+                    <ul>
+                        <li>DSQL 固有の互換性問題を手動で対処する必要があった</li>
+                        <li>IAM 認証トークンの生成と管理をアプリケーション側で独自に実装する必要があった</li>
+                        <li>DSQL の分散アーキテクチャに起因するスキーマ定義やマイグレーションの非互換性を開発者が個別に解決していた</li>
+                        <li>Python や Node.js の ORM ツールから Aurora DSQL を利用する際の導入障壁が高かった</li>
+                    </ul>
+                </div>
+                <div class="after-card">
+                    <h4>&#9989; After: アップデート後の改善</h4>
+                    <ul>
+                        <li>公式アダプター / ダイアレクト / CLI ツールで接続が簡素化された</li>
+                        <li>IAM 認証トークンの自動生成により、認証処理の実装が不要になった</li>
+                        <li>DSQL 互換のスキーマ検証とマイグレーション生成により、分散アーキテクチャ固有の問題を事前に検出 / 回避できるようになった</li>
+                        <li>Python 開発者と Node.js 開発者が使い慣れた ORM ツールで Aurora DSQL を活用できるようになった</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Architecture Diagram (Mermaid) -->
+        <div class="section">
+            <h2 class="section-title"><span class="section-title-icon">&#128736;</span> アーキテクチャ図</h2>
+            <div class="mermaid-container">
+                <pre class="mermaid">
+flowchart TD
+    subgraph DevTools["&#128736;&#65039; 開発者ツール"]
+        direction LR
+        Tortoise["&#128034; Tortoise ORM&lt;br/&gt;Python ORM"]
+        Flyway["&#9992;&#65039; Flyway&lt;br/&gt;スキーマ管理"]
+        Prisma["&#128142; Prisma&lt;br/&gt;Node.js ORM"]
+        Tortoise ~~~ Flyway ~~~ Prisma
+    end
+
+    subgraph Adapters["&#128268; DSQL 統合レイヤー"]
+        direction LR
+        TAdapter["&#128013; Tortoise アダプター&lt;br/&gt;asyncpg / psycopg"]
+        FDialect["&#9749; Flyway ダイアレクト&lt;br/&gt;分散アーキテクチャ対応"]
+        PCLI["&#128230; Prisma CLI ツール&lt;br/&gt;スキーマ検証 / マイグレーション生成"]
+        TAdapter ~~~ FDialect ~~~ PCLI
+    end
+
+    subgraph Auth["&#128272; IAM 認証"]
+        direction LR
+        Connector["&#128273; DSQL Connector&lt;br/&gt;for Python"]
+        IAMToken["&#127915; IAM トークン&lt;br/&gt;自動生成"]
+        Connector ~~~ IAMToken
+    end
+
+    subgraph AWS["&#9729;&#65039; AWS Cloud"]
+        DSQL[("&#128452;&#65039; Amazon Aurora DSQL&lt;br/&gt;PostgreSQL 互換分散 SQL")]
+    end
+
+    Tortoise --> TAdapter
+    Flyway --> FDialect
+    Prisma --> PCLI
+    TAdapter --> Auth
+    FDialect --> Auth
+    PCLI --> Auth
+    Auth --> DSQL
+
+    classDef tools fill:#E3F2FD,stroke:#BBDEFB,stroke-width:2px,color:#1565C0
+    classDef adapters fill:#FFE0B2,stroke:#FFCC80,stroke-width:2px,color:#5D4037
+    classDef auth fill:#F3E5F5,stroke:#CE93D8,stroke-width:2px,color:#4A148C
+    classDef aws fill:none,stroke:#CCCCCC,stroke-width:2px,color:#666666
+    classDef database fill:#DCEDC8,stroke:#C5E1A5,stroke-width:2px,color:#33691E
+
+    class DevTools tools
+    class Adapters adapters
+    class Auth auth
+    class AWS aws
+    class DSQL database
+    class Tortoise,Flyway,Prisma tools
+    class TAdapter,FDialect,PCLI adapters
+    class Connector,IAMToken auth
+                </pre>
+            </div>
+            <p class="diagram-caption">Tortoise ORM, Flyway, Prisma の各開発者ツールが、専用の統合レイヤーを介して IAM 認証を自動処理し Aurora DSQL に接続するアーキテクチャ</p>
+        </div>
+
+        <!-- Key Features -->
+        <div class="section">
+            <h2 class="section-title"><span class="section-title-icon">&#11088;</span> 主要機能</h2>
+            <div class="feature-cards">
+                <div class="feature-card">
+                    <div class="feature-card-header">
+                        <span class="feature-card-icon">&#128034;</span>
+                        <span class="feature-card-title">Tortoise ORM アダプター</span>
+                    </div>
+                    <ul>
+                        <li>asyncpg および psycopg ドライバーをサポート</li>
+                        <li>Aurora DSQL Connector for Python と統合し、IAM トークンを自動生成</li>
+                        <li>リッチマイグレーション向けの互換性パッチを含む</li>
+                        <li>Python の非同期フレームワークとの連携に最適化</li>
+                    </ul>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-card-header">
+                        <span class="feature-card-icon">&#9992;&#65039;</span>
+                        <span class="feature-card-title">Flyway ダイアレクト</span>
+                    </div>
+                    <ul>
+                        <li>DSQL の分散アーキテクチャに適応したスキーマ管理</li>
+                        <li>IAM ベースの認証を自動処理</li>
+                        <li>既存の Flyway マイグレーションワークフローとの統合が可能</li>
+                        <li>分散 SQL 環境でのスキーマバージョン管理を実現</li>
+                    </ul>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-card-header">
+                        <span class="feature-card-icon">&#128142;</span>
+                        <span class="feature-card-title">Prisma CLI ツール</span>
+                    </div>
+                    <ul>
+                        <li>スキーマの DSQL 互換性を検証する機能</li>
+                        <li>DSQL 互換のマイグレーションを自動生成</li>
+                        <li>Node.js エコシステムとのシームレスな統合</li>
+                        <li>型安全なデータベースアクセスを Aurora DSQL で実現</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tech Specs -->
+        <div class="section">
+            <h2 class="section-title"><span class="section-title-icon">&#128295;</span> 技術仕様</h2>
+
+            <h3 style="font-size: 17px; color: var(--text-primary); margin-bottom: 14px;">ツール比較</h3>
+            <div class="tech-table-wrapper">
+                <table class="tech-table">
+                    <thead>
+                        <tr>
+                            <th>ツール</th>
+                            <th>言語 / ランタイム</th>
+                            <th>ドライバー</th>
+                            <th>主要機能</th>
+                            <th>対象ユーザー</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Tortoise ORM アダプター</strong></td>
+                            <td>Python</td>
+                            <td>asyncpg, psycopg</td>
+                            <td>IAM トークン自動生成、互換性パッチ、非同期サポート</td>
+                            <td>Python 開発者</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Flyway ダイアレクト</strong></td>
+                            <td>Java / CLI</td>
+                            <td>JDBC</td>
+                            <td>分散アーキテクチャ対応、IAM 認証</td>
+                            <td>DBA, DevOps エンジニア</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Prisma CLI ツール</strong></td>
+                            <td>Node.js / TypeScript</td>
+                            <td>Prisma Client</td>
+                            <td>スキーマ検証、マイグレーション生成</td>
+                            <td>Node.js / TypeScript 開発者</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3 style="font-size: 17px; color: var(--text-primary); margin: 24px 0 14px;">Aurora DSQL の基盤技術</h3>
+            <div class="tech-table-wrapper">
+                <table class="tech-table">
+                    <thead>
+                        <tr>
+                            <th>項目</th>
+                            <th>詳細</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>データベースエンジン</td><td>PostgreSQL 互換</td></tr>
+                        <tr><td>アーキテクチャ</td><td>分散 SQL (Distributed SQL)</td></tr>
+                        <tr><td>トランザクション</td><td>ACID 準拠</td></tr>
+                        <tr><td>分離レベル</td><td>Repeatable Read</td></tr>
+                        <tr><td>同時実行制御</td><td>楽観的同時実行制御 (OCC)</td></tr>
+                        <tr><td>スキーマ変更</td><td>非同期 DDL</td></tr>
+                        <tr><td>認証</td><td>IAM ベース認証</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Setup Guide -->
+        <div class="section">
+            <h2 class="section-title"><span class="section-title-icon">&#128221;</span> 設定方法</h2>
+
+            <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 20px;">
+                <strong style="color: var(--text-primary);">前提条件:</strong> AWS アカウントと適切な IAM 権限、Aurora DSQL クラスター作成済み、各ツールのランタイム環境が準備されていること
+            </p>
+
+            <!-- Tortoise ORM Setup -->
+            <div class="setup-group">
+                <div class="setup-group-title">&#128034; Tortoise ORM アダプターのセットアップ</div>
+
+                <span class="step-label">Step 1: パッケージのインストール</span>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">Bash</span>
+                        <span class="code-title">Tortoise ORM アダプターのインストール</span>
+                    </div>
+                    <pre><code class="language-bash"># Tortoise ORM アダプターと DSQL Connector をインストール
+pip install tortoise-orm-dsql aurora-dsql-connector</code></pre>
+                </div>
+
+                <span class="step-label">Step 2: 接続設定</span>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">Python</span>
+                        <span class="code-title">Aurora DSQL への接続</span>
+                    </div>
+                    <pre><code class="language-python">from tortoise import Tortoise
+
+# Aurora DSQL への接続設定
+# IAM トークンは DSQL Connector により自動生成される
+await Tortoise.init(
+    db_url="dsql://your-cluster-endpoint:5432/postgres",
+    modules={"models": ["app.models"]},
+)
+
+# スキーマの生成
+await Tortoise.generate_schemas()</code></pre>
+                </div>
+            </div>
+
+            <!-- Flyway Setup -->
+            <div class="setup-group">
+                <div class="setup-group-title">&#9992;&#65039; Flyway ダイアレクトのセットアップ</div>
+
+                <span class="step-label">Step 1: ダイアレクトの配置</span>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">Bash</span>
+                        <span class="code-title">JAR ファイルの配置</span>
+                    </div>
+                    <pre><code class="language-bash"># Flyway DSQL ダイアレクトの JAR ファイルをダウンロードして配置
+cp flyway-dsql-dialect.jar /path/to/flyway/drivers/</code></pre>
+                </div>
+
+                <span class="step-label">Step 2: Flyway 設定</span>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">Properties</span>
+                        <span class="code-title">flyway.conf</span>
+                    </div>
+                    <pre><code class="language-properties"># flyway.conf
+flyway.url=jdbc:dsql://your-cluster-endpoint:5432/postgres
+flyway.user=iam_user
+# IAM 認証はダイアレクトが自動処理</code></pre>
+                </div>
+
+                <span class="step-label">Step 3: マイグレーションの実行</span>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">Bash</span>
+                        <span class="code-title">スキーママイグレーション実行</span>
+                    </div>
+                    <pre><code class="language-bash"># DSQL 対応のスキーママイグレーションを実行
+flyway migrate</code></pre>
+                </div>
+            </div>
+
+            <!-- Prisma Setup -->
+            <div class="setup-group">
+                <div class="setup-group-title">&#128142; Prisma CLI ツールのセットアップ</div>
+
+                <span class="step-label">Step 1: パッケージのインストール</span>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">Bash</span>
+                        <span class="code-title">Prisma DSQL CLI ツールのインストール</span>
+                    </div>
+                    <pre><code class="language-bash"># Prisma DSQL CLI ツールをインストール
+npm install prisma-dsql-tools --save-dev</code></pre>
+                </div>
+
+                <span class="step-label">Step 2: スキーマの DSQL 互換性検証</span>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">Bash</span>
+                        <span class="code-title">DSQL 互換性検証</span>
+                    </div>
+                    <pre><code class="language-bash"># Prisma スキーマが DSQL と互換性があるか検証
+npx prisma-dsql validate</code></pre>
+                </div>
+
+                <span class="step-label">Step 3: DSQL 互換マイグレーションの生成</span>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">Bash</span>
+                        <span class="code-title">マイグレーション生成</span>
+                    </div>
+                    <pre><code class="language-bash"># DSQL 互換のマイグレーションを生成
+npx prisma-dsql migrate</code></pre>
+                </div>
+            </div>
+        </div>
+
+        <!-- Merits -->
+        <div class="section">
+            <h2 class="section-title"><span class="section-title-icon">&#128077;</span> メリット</h2>
+            <div class="merit-grid">
+                <div class="merit-card">
+                    <h4 style="color: var(--aws-orange);">&#128188; ビジネス面</h4>
+                    <ul>
+                        <li style="padding-left: 18px; position: relative;"><span style="position: absolute; left: 0; color: var(--aws-green);">&#10003;</span>使い慣れた ORM ツールを Aurora DSQL でそのまま利用でき、学習コストを削減</li>
+                        <li style="padding-left: 18px; position: relative;"><span style="position: absolute; left: 0; color: var(--aws-green);">&#10003;</span>IAM 認証や DSQL 固有の互換性処理が自動化され、導入障壁が低減</li>
+                        <li style="padding-left: 18px; position: relative;"><span style="position: absolute; left: 0; color: var(--aws-green);">&#10003;</span>Python と Node.js の主要な ORM ツールがサポートされ、幅広い開発者コミュニティが活用可能</li>
+                        <li style="padding-left: 18px; position: relative;"><span style="position: absolute; left: 0; color: var(--aws-green);">&#10003;</span>既存アプリケーションから Aurora DSQL への移行コストが削減</li>
+                    </ul>
+                </div>
+                <div class="merit-card">
+                    <h4 style="color: var(--aws-teal);">&#128296; 技術面</h4>
+                    <ul>
+                        <li style="padding-left: 18px; position: relative;"><span style="position: absolute; left: 0; color: var(--aws-green);">&#10003;</span>各ツールのアダプター / ダイアレクトが IAM トークンの生成と管理を自動実行</li>
+                        <li style="padding-left: 18px; position: relative;"><span style="position: absolute; left: 0; color: var(--aws-green);">&#10003;</span>Prisma CLI ツールによりスキーマの互換性問題をデプロイ前に検出可能</li>
+                        <li style="padding-left: 18px; position: relative;"><span style="position: absolute; left: 0; color: var(--aws-green);">&#10003;</span>Tortoise ORM アダプターは asyncpg を通じて非同期データベースアクセスを実現</li>
+                        <li style="padding-left: 18px; position: relative;"><span style="position: absolute; left: 0; color: var(--aws-green);">&#10003;</span>Flyway ダイアレクトが DSQL の分散 SQL 特性に適応したマイグレーション管理を提供</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Constraints -->
+        <div class="section">
+            <h2 class="section-title"><span class="section-title-icon">&#9888;&#65039;</span> 制約事項・考慮点</h2>
+            <div class="constraint-item">
+                <span class="constraint-icon">&#128679;</span>
+                <span>各ツールの全機能が Aurora DSQL で利用できるわけではない可能性がある (DSQL 固有の制約による)</span>
+            </div>
+            <div class="constraint-item">
+                <span class="constraint-icon">&#128679;</span>
+                <span>Aurora DSQL の楽観的同時実行制御 (OCC) に起因するトランザクション競合のハンドリングは、アプリケーション側で考慮が必要</span>
+            </div>
+            <div class="constraint-item">
+                <span class="constraint-icon">&#128679;</span>
+                <span>DSQL の非同期 DDL 特性により、マイグレーション直後にスキーマ変更が即座に反映されない場合がある</span>
+            </div>
+            <div class="constraint-item">
+                <span class="constraint-icon">&#128161;</span>
+                <span>Aurora DSQL の分散 SQL 特性 (OCC, 非同期 DDL) を理解した上でスキーマ設計を行うことを推奨</span>
+            </div>
+            <div class="constraint-item">
+                <span class="constraint-icon">&#128161;</span>
+                <span>既存アプリケーションの移行時は、Prisma CLI ツールでスキーマ互換性を事前に検証すべき</span>
+            </div>
+            <div class="constraint-item">
+                <span class="constraint-icon">&#128161;</span>
+                <span>Tortoise ORM の一部のマイグレーション機能では互換性パッチが適用されるため、動作確認を十分に行うことを推奨</span>
+            </div>
+            <div class="constraint-item">
+                <span class="constraint-icon">&#128230;</span>
+                <span>各ツールはオープンソースとして GitHub で提供されており、バグ報告や機能リクエストはリポジトリで管理される</span>
+            </div>
+        </div>
+
+        <!-- Use Cases -->
+        <div class="section">
+            <h2 class="section-title"><span class="section-title-icon">&#127919;</span> ユースケース</h2>
+
+            <div class="usecase-card">
+                <div class="usecase-card-header">
+                    <span class="usecase-number">1</span>
+                    <span class="usecase-title">Python Web アプリケーションの Aurora DSQL 移行</span>
+                </div>
+                <p class="usecase-scenario">FastAPI と Tortoise ORM を使用した既存の Python Web アプリケーションを、高可用性と分散 SQL の利点を活かすために Aurora DSQL に移行したい。</p>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">Python</span>
+                        <span class="code-title">FastAPI + Tortoise ORM + Aurora DSQL</span>
+                    </div>
+                    <pre><code class="language-python">from tortoise import fields, models
+from tortoise.contrib.fastapi import register_tortoise
+from fastapi import FastAPI
+
+app = FastAPI()
+
+class User(models.Model):
+    id = fields.UUIDField(pk=True)
+    email = fields.CharField(max_length=255, unique=True)
+    name = fields.CharField(max_length=255)
+    created_at = fields.DatetimeField(auto_now_add=True)
+
+    class Meta:
+        table = "users"
+
+# Aurora DSQL に接続 (IAM 認証は自動処理)
+register_tortoise(
+    app,
+    db_url="dsql://your-cluster-endpoint:5432/postgres",
+    modules={"models": ["app.models"]},
+    generate_schemas=True,
+)</code></pre>
+                </div>
+                <div class="usecase-effect">&#9989; 既存の Tortoise ORM ベースのコードを最小限の変更で Aurora DSQL に移行でき、分散 SQL による高可用性とスケーラビリティを実現できる。</div>
+            </div>
+
+            <div class="usecase-card">
+                <div class="usecase-card-header">
+                    <span class="usecase-number">2</span>
+                    <span class="usecase-title">Flyway によるスキーマバージョン管理</span>
+                </div>
+                <p class="usecase-scenario">DevOps チームが Aurora DSQL のスキーマ変更を CI/CD パイプラインで自動管理し、複数環境間でスキーマの一貫性を維持したい。</p>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">SQL</span>
+                        <span class="code-title">V1__create_orders_table.sql</span>
+                    </div>
+                    <pre><code class="language-sql">-- V1__create_orders_table.sql
+CREATE TABLE orders (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    customer_id UUID NOT NULL,
+    total_amount DECIMAL(10, 2),
+    status TEXT DEFAULT 'pending',
+    created_at TIMESTAMP DEFAULT now()
+);
+
+CREATE INDEX idx_orders_customer ON orders(customer_id);</code></pre>
+                </div>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">Bash</span>
+                        <span class="code-title">CI/CD パイプラインでのマイグレーション</span>
+                    </div>
+                    <pre><code class="language-bash"># CI/CD パイプラインでマイグレーションを実行
+flyway -url="jdbc:dsql://your-cluster-endpoint:5432/postgres" migrate</code></pre>
+                </div>
+                <div class="usecase-effect">&#9989; Flyway ダイアレクトにより、DSQL の分散アーキテクチャに適応したスキーマ管理を CI/CD パイプラインに統合でき、環境間のスキーマ一貫性を自動的に維持できる。</div>
+            </div>
+
+            <div class="usecase-card">
+                <div class="usecase-card-header">
+                    <span class="usecase-number">3</span>
+                    <span class="usecase-title">Prisma による型安全な DSQL アクセス</span>
+                </div>
+                <p class="usecase-scenario">TypeScript で構築された Next.js アプリケーションから Aurora DSQL に型安全にアクセスし、DSQL 互換のスキーマ管理を行いたい。</p>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">Prisma</span>
+                        <span class="code-title">schema.prisma</span>
+                    </div>
+                    <pre><code class="language-prisma">// schema.prisma
+datasource db {
+  provider = "postgresql"
+  url      = env("DSQL_DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Product {
+  id        String   @id @default(uuid())
+  name      String
+  price     Decimal
+  createdAt DateTime @default(now())
+  orders    Order[]
+}
+
+model Order {
+  id        String   @id @default(uuid())
+  productId String
+  quantity  Int
+  product   Product  @relation(fields: [productId], references: [id])
+}</code></pre>
+                </div>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">Bash</span>
+                        <span class="code-title">DSQL 互換性検証とマイグレーション</span>
+                    </div>
+                    <pre><code class="language-bash"># DSQL 互換性を検証
+npx prisma-dsql validate
+
+# DSQL 互換マイグレーションを生成・適用
+npx prisma-dsql migrate
+npx prisma generate</code></pre>
+                </div>
+                <div class="usecase-effect">&#9989; Prisma CLI ツールにより DSQL 互換のスキーマ検証とマイグレーション生成を行い、型安全な Prisma Client で Aurora DSQL にアクセスできる。</div>
+            </div>
+        </div>
+
+        <!-- Pricing -->
+        <div class="section">
+            <h2 class="section-title"><span class="section-title-icon">&#128176;</span> 料金</h2>
+            <div class="pricing-highlight">
+                <div class="price-label">ORM ツール統合</div>
+                <div class="price-value">無料 (OSS)</div>
+            </div>
+            <p class="pricing-note">
+                Tortoise ORM アダプター、Flyway ダイアレクト、Prisma CLI ツールはオープンソースとして無料で利用可能。Aurora DSQL 自体の料金は、コンピュート、ストレージ、I/O に基づく従量課金制。AWS Free Tier の対象であり、無料利用枠内で開始可能。
+            </p>
+        </div>
+
+        <!-- Region -->
+        <div class="section">
+            <h2 class="section-title"><span class="section-title-icon">&#127760;</span> 利用可能リージョン</h2>
+            <p style="font-size: 15px; line-height: 1.8;">
+                各 ORM ツール統合はオープンソースライブラリとして提供されるため、<span class="highlight">Aurora DSQL が利用可能なすべてのリージョン</span>で使用可能。Aurora DSQL の利用可能リージョンについては、<a href="https://aws.amazon.com/rds/aurora/dsql/" target="_blank" rel="noopener noreferrer" style="color: var(--aws-teal); text-decoration: none;">Amazon Aurora DSQL 製品ページ</a>を参照。
+            </p>
+        </div>
+
+        <!-- Related Services -->
+        <div class="section">
+            <h2 class="section-title"><span class="section-title-icon">&#128279;</span> 関連サービス</h2>
+            <div class="feature-cards">
+                <div class="feature-card" style="border-left-color: var(--aws-teal);">
+                    <div class="feature-card-header">
+                        <span class="feature-card-icon">&#128452;&#65039;</span>
+                        <span class="feature-card-title">Amazon Aurora DSQL</span>
+                    </div>
+                    <p style="font-size: 14px; margin-left: 38px;">PostgreSQL 互換の分散 SQL データベースサービス。今回のツール統合の対象サービス</p>
+                </div>
+                <div class="feature-card" style="border-left-color: var(--aws-teal);">
+                    <div class="feature-card-header">
+                        <span class="feature-card-icon">&#128013;</span>
+                        <span class="feature-card-title">Aurora DSQL Connector for Python</span>
+                    </div>
+                    <p style="font-size: 14px; margin-left: 38px;">Python 向けの IAM トークン自動生成ライブラリ。Tortoise ORM アダプターが内部で使用</p>
+                </div>
+                <div class="feature-card" style="border-left-color: var(--aws-teal);">
+                    <div class="feature-card-header">
+                        <span class="feature-card-icon">&#127918;</span>
+                        <span class="feature-card-title">Aurora DSQL Playground</span>
+                    </div>
+                    <p style="font-size: 14px; margin-left: 38px;">ブラウザベースの対話的な Aurora DSQL 体験環境</p>
+                </div>
+                <div class="feature-card" style="border-left-color: var(--aws-teal);">
+                    <div class="feature-card-header">
+                        <span class="feature-card-icon">&#128272;</span>
+                        <span class="feature-card-title">AWS IAM</span>
+                    </div>
+                    <p style="font-size: 14px; margin-left: 38px;">Aurora DSQL への認証に使用される ID とアクセス管理サービス</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Summary -->
+        <div class="section" style="border: 1px solid rgba(255, 153, 0, 0.3); background: linear-gradient(135deg, rgba(255, 153, 0, 0.06) 0%, var(--dark-squid) 100%);">
+            <h2 class="section-title"><span class="section-title-icon">&#128221;</span> まとめ</h2>
+            <p style="font-size: 15px; line-height: 1.9;">
+                Amazon Aurora DSQL 向けに <span class="highlight">Tortoise ORM アダプター</span>、<span class="highlight">Flyway ダイアレクト</span>、<span class="highlight">Prisma CLI ツール</span>の 3 つの統合がリリースされた。Python 開発者は Tortoise ORM で、Node.js / TypeScript 開発者は Prisma で、DBA や DevOps エンジニアは Flyway で、それぞれ使い慣れたツールから Aurora DSQL を活用できるようになった。IAM 認証の自動処理、DSQL 互換のスキーマ検証、分散アーキテクチャ対応のマイグレーション管理など、DSQL 固有の課題を統合レイヤーが自動的に解決する。各ツールはオープンソースとして GitHub で公開されており、無料で利用可能。
+            </p>
+
+            <!-- Flow Summary -->
+            <div class="flow-diagram" style="margin-top: 24px;">
+                <div class="flow-step">&#128034; Tortoise<br/>&#128013; Python</div>
+                <span class="flow-arrow">+</span>
+                <div class="flow-step">&#9992;&#65039; Flyway<br/>&#9749; Java/CLI</div>
+                <span class="flow-arrow">+</span>
+                <div class="flow-step">&#128142; Prisma<br/>&#128187; Node.js</div>
+                <span class="flow-arrow">&#8594;</span>
+                <div class="flow-step" style="border-color: var(--aws-green);">&#128452;&#65039; Aurora DSQL<br/>&#128272; IAM 自動認証</div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer>
+            <h3>&#128206; 参考リンク</h3>
+            <ul>
+                <li>&#128196; <a href="https://aws.amazon.com/about-aws/whats-new/2026/02/aurora-dsql-launches-tortoise-flyway-prisma/" target="_blank" rel="noopener noreferrer">公式発表 (What's New)</a></li>
+                <li>&#128187; <a href="https://github.com/awslabs/aurora-dsql-orms/tree/main/python/tortoise-orm" target="_blank" rel="noopener noreferrer">Tortoise ORM アダプター - GitHub</a></li>
+                <li>&#128187; <a href="https://github.com/awslabs/aurora-dsql-tools/tree/main/flyway" target="_blank" rel="noopener noreferrer">Flyway ダイアレクト - GitHub</a></li>
+                <li>&#128187; <a href="https://github.com/awslabs/aurora-dsql-orms/tree/main/node/prisma" target="_blank" rel="noopener noreferrer">Prisma CLI ツール - GitHub</a></li>
+                <li>&#9729;&#65039; <a href="https://aws.amazon.com/rds/aurora/dsql/" target="_blank" rel="noopener noreferrer">Amazon Aurora DSQL 製品ページ</a></li>
+                <li>&#127873; <a href="https://aws.amazon.com/free/" target="_blank" rel="noopener noreferrer">AWS Free Tier</a></li>
+            </ul>
+            <div class="footer-note">
+                Generated from AWS News Report | 2026-02-25
+            </div>
+        </footer>
+
+    </div>
+
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'base',
+            themeVariables: {
+                primaryColor: '#FF9900',
+                primaryTextColor: '#232F3E',
+                primaryBorderColor: '#FF9900',
+                lineColor: '#FF9900',
+                secondaryColor: '#F5F5F5',
+                tertiaryColor: '#FAFAFA',
+                background: '#FFFFFF',
+                mainBkg: '#FFF3E0',
+                nodeBorder: '#FF9900',
+                clusterBkg: '#FFF8E1',
+                clusterBorder: '#FF9900',
+                edgeLabelBackground: '#FFFFFF',
+                textColor: '#232F3E'
+            }
+        });
+        hljs.highlightAll();
+    </script>
+</body>
+</html>

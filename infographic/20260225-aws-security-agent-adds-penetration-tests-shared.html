@@ -1,0 +1,1153 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AWS Security Agent - 共有 VPC クロスアカウントペネトレーションテスト</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/styles/atom-one-dark.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/highlight.min.js"></script>
+    <style>
+        :root {
+            --squid-ink: #232F3E;
+            --aws-orange: #FF9900;
+            --aws-smile-orange: #FFAD33;
+            --text-primary: #FFFFFF;
+            --text-secondary: #AAAAAA;
+            --light-gray: #D5DBDB;
+            --card-bg: #2D3A4A;
+            --dark-squid: #1A242F;
+            --border-color: #3D4A5A;
+            --aws-teal: #00A1C9;
+            --aws-purple: #8C4FFF;
+            --aws-green: #1D8102;
+            --aws-red: #D13212;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            background-color: var(--squid-ink);
+            color: var(--light-gray);
+            line-height: 1.8;
+            font-size: 16px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 48px;
+            padding-bottom: 32px;
+            border-bottom: 3px solid var(--aws-orange);
+        }
+
+        .service-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--aws-orange), var(--aws-smile-orange));
+            color: var(--squid-ink);
+            padding: 6px 20px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            letter-spacing: 0.5px;
+        }
+
+        .header h1 {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+            line-height: 1.4;
+        }
+
+        .header .subtitle {
+            font-size: 18px;
+            color: var(--aws-orange);
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
+        .header .date {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        /* Section */
+        .section {
+            background: var(--dark-squid);
+            border-radius: 12px;
+            padding: 28px;
+            margin-bottom: 28px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .section-title {
+            font-size: 22px;
+            font-weight: 600;
+            color: var(--aws-orange);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-title .icon {
+            font-size: 26px;
+        }
+
+        /* Overview */
+        .overview-text {
+            font-size: 16px;
+            color: var(--light-gray);
+            line-height: 1.9;
+            margin-bottom: 16px;
+        }
+
+        .highlight {
+            background-color: rgba(255, 153, 0, 0.2);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: 600;
+            color: var(--aws-orange);
+        }
+
+        /* Before/After */
+        .before-after {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 24px;
+        }
+
+        @media (max-width: 700px) {
+            .before-after {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .before-card, .after-card {
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        .before-card {
+            background: rgba(209, 50, 18, 0.1);
+            border: 1px solid rgba(209, 50, 18, 0.4);
+        }
+
+        .after-card {
+            background: rgba(29, 129, 2, 0.1);
+            border: 1px solid rgba(29, 129, 2, 0.4);
+        }
+
+        .before-card .card-label {
+            color: var(--aws-red);
+            font-weight: 700;
+            font-size: 14px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .after-card .card-label {
+            color: var(--aws-green);
+            font-weight: 700;
+            font-size: 14px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .before-card ul, .after-card ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .before-card li, .after-card li {
+            padding: 6px 0;
+            font-size: 14px;
+            line-height: 1.7;
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+        }
+
+        .before-card li::before {
+            content: "\2717";
+            color: var(--aws-red);
+            font-weight: bold;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .after-card li::before {
+            content: "\2713";
+            color: var(--aws-green);
+            font-weight: bold;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        /* Mermaid container */
+        .mermaid-container {
+            background: #FFFFFF;
+            border-radius: 12px;
+            padding: 24px;
+            margin: 20px 0;
+            border: 2px solid rgba(255, 153, 0, 0.3);
+            overflow-x: auto;
+        }
+
+        .mermaid {
+            display: flex;
+            justify-content: center;
+        }
+
+        .diagram-caption {
+            font-size: 14px;
+            color: var(--text-secondary);
+            text-align: center;
+            margin-top: 12px;
+            font-style: italic;
+        }
+
+        /* Feature cards */
+        .feature-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 16px;
+        }
+
+        .feature-card {
+            background: var(--card-bg);
+            border-radius: 10px;
+            padding: 20px;
+            border-left: 4px solid var(--aws-orange);
+            transition: transform 0.2s;
+        }
+
+        .feature-card:hover {
+            transform: translateX(4px);
+        }
+
+        .feature-card .feature-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .feature-card .feature-desc {
+            font-size: 14px;
+            color: var(--light-gray);
+            line-height: 1.7;
+        }
+
+        .feature-card ul {
+            list-style: none;
+            padding: 0;
+            margin-top: 8px;
+        }
+
+        .feature-card li {
+            font-size: 14px;
+            color: var(--light-gray);
+            padding: 4px 0;
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+        }
+
+        .feature-card li .arrow {
+            color: var(--aws-orange);
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        /* Base feature - Agent foundation */
+        .agent-foundation {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-top: 16px;
+        }
+
+        @media (max-width: 700px) {
+            .agent-foundation {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .agent-card {
+            background: var(--card-bg);
+            border-radius: 10px;
+            padding: 18px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+        }
+
+        .agent-card .agent-icon {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .agent-card .agent-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .agent-card .agent-desc {
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        /* Spec table */
+        .spec-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 16px;
+        }
+
+        .spec-table th, .spec-table td {
+            padding: 12px 16px;
+            text-align: left;
+            font-size: 14px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .spec-table th {
+            background: rgba(255, 153, 0, 0.15);
+            color: var(--aws-orange);
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .spec-table td {
+            color: var(--light-gray);
+        }
+
+        .spec-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* Steps */
+        .steps {
+            counter-reset: step-counter;
+        }
+
+        .step {
+            background: var(--card-bg);
+            border-radius: 10px;
+            padding: 20px 20px 20px 64px;
+            margin-bottom: 14px;
+            position: relative;
+            border: 1px solid var(--border-color);
+        }
+
+        .step::before {
+            counter-increment: step-counter;
+            content: counter(step-counter);
+            position: absolute;
+            left: 18px;
+            top: 18px;
+            background: linear-gradient(135deg, var(--aws-orange), var(--aws-smile-orange));
+            color: var(--squid-ink);
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .step-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .step-desc {
+            font-size: 14px;
+            color: var(--light-gray);
+            line-height: 1.7;
+        }
+
+        /* Code block */
+        .code-block {
+            background: #1a1a2e;
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 12px 0;
+        }
+
+        .code-header {
+            background: #16213e;
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+        }
+
+        .code-lang {
+            color: var(--aws-orange);
+            font-weight: bold;
+        }
+
+        .code-title {
+            color: var(--light-gray);
+        }
+
+        .code-block pre {
+            margin: 0;
+            padding: 0;
+            overflow-x: auto;
+        }
+
+        .code-block code {
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            padding: 16px !important;
+        }
+
+        /* Use case */
+        .usecase-card {
+            background: linear-gradient(135deg, rgba(255, 153, 0, 0.08), rgba(255, 173, 51, 0.05));
+            border-radius: 10px;
+            padding: 22px;
+            margin-bottom: 16px;
+            border: 1px solid rgba(255, 153, 0, 0.2);
+        }
+
+        .usecase-card .usecase-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--aws-orange);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .usecase-card .usecase-scenario {
+            font-size: 14px;
+            color: var(--light-gray);
+            line-height: 1.7;
+            margin-bottom: 10px;
+        }
+
+        .usecase-card .usecase-effect {
+            font-size: 14px;
+            color: var(--aws-green);
+            padding: 10px 14px;
+            background: rgba(29, 129, 2, 0.1);
+            border-radius: 6px;
+            border-left: 3px solid var(--aws-green);
+        }
+
+        /* Stats */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-top: 16px;
+        }
+
+        @media (max-width: 700px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, rgba(255, 153, 0, 0.15), rgba(140, 79, 255, 0.1));
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid rgba(255, 153, 0, 0.25);
+        }
+
+        .stat-value {
+            font-size: 36px;
+            font-weight: 700;
+            color: var(--aws-orange);
+            line-height: 1.2;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: var(--light-gray);
+            margin-top: 6px;
+        }
+
+        /* Merit / Demerit */
+        .merit-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 700px) {
+            .merit-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .merit-column h3 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .merit-column.business h3 {
+            color: var(--aws-teal);
+        }
+
+        .merit-column.tech h3 {
+            color: var(--aws-purple);
+        }
+
+        .merit-item {
+            padding: 10px 0;
+            font-size: 14px;
+            line-height: 1.7;
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .merit-item:last-child {
+            border-bottom: none;
+        }
+
+        .merit-item .bullet {
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .merit-item strong {
+            color: var(--text-primary);
+        }
+
+        /* Limitations */
+        .limitation-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .limitation-list li {
+            padding: 10px 0;
+            font-size: 14px;
+            line-height: 1.7;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .limitation-list li:last-child {
+            border-bottom: none;
+        }
+
+        .limitation-list .warn-icon {
+            color: var(--aws-red);
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .limitation-list .note-icon {
+            color: var(--aws-smile-orange);
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        /* Region badge */
+        .region-badge {
+            display: inline-block;
+            background: rgba(0, 161, 201, 0.15);
+            color: var(--aws-teal);
+            border: 1px solid rgba(0, 161, 201, 0.3);
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        /* Related services */
+        .related-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 14px;
+        }
+
+        .related-item {
+            background: var(--card-bg);
+            border-radius: 8px;
+            padding: 14px 16px;
+            font-size: 14px;
+            border: 1px solid var(--border-color);
+        }
+
+        .related-item strong {
+            color: var(--aws-teal);
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .related-item span {
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+
+        /* Flow diagram */
+        .flow-diagram {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin: 24px 0;
+        }
+
+        .flow-step {
+            background: var(--dark-squid);
+            border: 2px solid var(--aws-orange);
+            border-radius: 8px;
+            padding: 12px 20px;
+            text-align: center;
+            min-width: 100px;
+        }
+
+        .flow-arrow {
+            color: var(--aws-orange);
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        /* Footer */
+        footer {
+            margin-top: 40px;
+            padding-top: 24px;
+            border-top: 2px solid rgba(255, 153, 0, 0.3);
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        footer a {
+            color: var(--aws-teal);
+            text-decoration: none;
+            word-break: break-all;
+        }
+
+        footer a:hover {
+            color: var(--aws-smile-orange);
+            text-decoration: underline;
+        }
+
+        footer .links-list {
+            list-style: none;
+            padding: 0;
+            margin-top: 8px;
+        }
+
+        footer .links-list li {
+            padding: 4px 0;
+        }
+
+        .pricing-note {
+            background: rgba(0, 161, 201, 0.1);
+            border: 1px solid rgba(0, 161, 201, 0.3);
+            border-radius: 8px;
+            padding: 16px;
+            font-size: 14px;
+            color: var(--light-gray);
+            line-height: 1.7;
+        }
+
+        .pricing-note strong {
+            color: var(--aws-teal);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+
+        <!-- Header -->
+        <div class="header">
+            <div class="service-badge">AWS Security Agent</div>
+            <h1>共有 VPC に対するクロスアカウント<br>ペネトレーションテスト</h1>
+            <div class="subtitle">マルチアカウント環境のセキュリティテストを一元管理</div>
+            <div class="date">2026 年 2 月 25 日</div>
+        </div>
+
+        <!-- Overview -->
+        <div class="section">
+            <h2 class="section-title"><span class="icon">📋</span> 概要</h2>
+            <p class="overview-text">
+                AWS Security Agent が、同一 <span class="highlight">AWS Organizations</span> 内の他の AWS アカウントから共有された VPC リソースに対する<span class="highlight">ペネトレーションテスト</span>の実行をサポートした。<span class="highlight">AWS Resource Access Manager (RAM)</span> を使用して、サブアカウントから中央アカウントへ VPC リソースをセキュアに共有し、中央アカウントの Agent Space からペネトレーションテストを実施できる。
+            </p>
+            <p class="overview-text">
+                これにより、マルチアカウント環境においてセキュリティチームが一元的にペネトレーションテストを管理・実行できるようになり、組織全体のセキュリティ態勢の強化が可能になる。
+            </p>
+
+            <!-- Before/After -->
+            <div class="before-after">
+                <div class="before-card">
+                    <div class="card-label">&#x274C; Before - アップデート前の課題</div>
+                    <ul>
+                        <li>ペネトレーションテストは同一アカウント内の VPC リソースに対してのみ実行可能</li>
+                        <li>マルチアカウント環境では、各アカウントに個別に Agent Space を構築する必要があった</li>
+                        <li>セキュリティチームが組織全体のアプリケーションを一元的にテストする手段がなかった</li>
+                        <li>サブアカウントにデプロイされたプライベートアプリケーションのセキュリティ検証が困難</li>
+                    </ul>
+                </div>
+                <div class="after-card">
+                    <div class="card-label">&#x2705; After - アップデート後の改善</div>
+                    <ul>
+                        <li>中央アカウントの Agent Space から、サブアカウントの共有 VPC リソースに対してテスト実行可能に</li>
+                        <li>AWS RAM を使用したセキュアなリソース共有により、同一 Organizations 内のアカウント間連携を実現</li>
+                        <li>セキュリティチームが組織全体のアプリケーションセキュリティを一元管理できるようになった</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Architecture Diagram -->
+        <div class="section">
+            <h2 class="section-title"><span class="icon">🏗️</span> アーキテクチャ図</h2>
+            <div class="mermaid-container">
+                <pre class="mermaid">
+flowchart TD
+    subgraph Org["AWS Organizations"]
+        subgraph Central["Central Account - Security Team"]
+            AS["Agent Space"]
+            PT["Penetration Test"]
+            Role["IAM Service Role"]
+            AS --> PT
+            PT --> Role
+        end
+
+        subgraph RAM["AWS Resource Access Manager"]
+            Share["Resource Share<br/>Subnet + Security Group"]
+        end
+
+        subgraph SubA["Sub Account A"]
+            direction LR
+            VPCA["VPC A"]
+            AppA["App A"]
+            VPCA --- AppA
+        end
+
+        subgraph SubB["Sub Account B"]
+            direction LR
+            VPCB["VPC B"]
+            AppB["App B"]
+            VPCB --- AppB
+        end
+    end
+
+    SubA -->|"Share Subnet/SG"| RAM
+    SubB -->|"Share Subnet/SG"| RAM
+    RAM -->|"Access Shared Resources"| Central
+    Role -.->|"Test via Shared VPC"| AppA
+    Role -.->|"Test via Shared VPC"| AppB
+
+    classDef org fill:none,stroke:#CCCCCC,stroke-width:2px,color:#666666
+    classDef central fill:#E8EAF6,stroke:#C5CAE9,stroke-width:2px,color:#283593
+    classDef ram fill:#FFF3E0,stroke:#FF9800,stroke-width:2px,color:#5D4037
+    classDef sub fill:#E9F7EC,stroke:#66BB6A,stroke-width:2px,color:#333333
+    classDef process fill:#FFFFFF,stroke:#4A90E2,stroke-width:2px,color:#333333
+
+    class Org org
+    class Central central
+    class RAM ram
+    class SubA,SubB sub
+    class AS,PT,Role process
+    class VPCA,VPCB,AppA,AppB,Share process
+                </pre>
+            </div>
+            <p class="diagram-caption">サブアカウント A/B が AWS RAM を通じて VPC リソースを中央アカウントに共有し、セキュリティチームが Agent Space から一元的にペネトレーションテストを実行するアーキテクチャ</p>
+        </div>
+
+        <!-- Stats -->
+        <div class="section">
+            <h2 class="section-title"><span class="icon">📊</span> 数字で見るアップデート</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value">5</div>
+                    <div class="stat-label">Agent Space あたりの<br>最大 VPC 数</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">1</div>
+                    <div class="stat-label">中央アカウントで<br>組織全体を一元管理</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">0</div>
+                    <div class="stat-label">サブアカウント側に必要な<br>Agent Space 数</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Key Features -->
+        <div class="section">
+            <h2 class="section-title"><span class="icon">🔑</span> 主要機能</h2>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="feature-title">🌐 クロスアカウント VPC ペネトレーションテスト</div>
+                    <div class="feature-desc">
+                        <ul>
+                            <li><span class="arrow">&#x2192;</span> 同一 AWS Organizations 内の他のアカウントから共有された VPC リソースに対してペネトレーションテストを実行可能</li>
+                            <li><span class="arrow">&#x2192;</span> 中央アカウントの Agent Space から組織全体のアプリケーションをテスト</li>
+                            <li><span class="arrow">&#x2192;</span> パブリックインターネットに公開されていないプライベートアプリケーションにもアクセス可能</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-title">🔗 AWS Resource Access Manager 統合</div>
+                    <div class="feature-desc">
+                        <ul>
+                            <li><span class="arrow">&#x2192;</span> AWS RAM を使用してサブネットとセキュリティグループをセキュアに共有</li>
+                            <li><span class="arrow">&#x2192;</span> 同一 Organizations 内のアカウント間でリソース共有を自動化するオプション</li>
+                            <li><span class="arrow">&#x2192;</span> きめ細かなアクセス制御により、必要なリソースのみを共有</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-title">🏢 一元的なセキュリティ管理</div>
+                    <div class="feature-desc">
+                        <ul>
+                            <li><span class="arrow">&#x2192;</span> セキュリティチームが中央アカウントから組織全体のペネトレーションテストを管理</li>
+                            <li><span class="arrow">&#x2192;</span> 各サブアカウントに Agent Space を個別に構築する必要がない</li>
+                            <li><span class="arrow">&#x2192;</span> テスト結果とレポートを一か所で集約・管理</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Agent Foundation -->
+        <div class="section">
+            <h2 class="section-title"><span class="icon">🛡️</span> AWS Security Agent の基盤機能</h2>
+            <p class="overview-text">AWS Security Agent は、開発ライフサイクル全体でアプリケーションのセキュリティを確保するフロンティアエージェントである。</p>
+            <div class="agent-foundation">
+                <div class="agent-card">
+                    <div class="agent-icon">📐</div>
+                    <div class="agent-title">設計セキュリティレビュー</div>
+                    <div class="agent-desc">設計ドキュメントに対してリアルタイムのセキュリティフィードバックを提供</div>
+                </div>
+                <div class="agent-card">
+                    <div class="agent-icon">💻</div>
+                    <div class="agent-title">コードセキュリティレビュー</div>
+                    <div class="agent-desc">プルリクエストを組織のセキュリティ要件と一般的な脆弱性に対して分析</div>
+                </div>
+                <div class="agent-card">
+                    <div class="agent-icon">🔍</div>
+                    <div class="agent-title">ペネトレーションテスト</div>
+                    <div class="agent-desc">特殊な AI エージェントを使用したオンデマンドのペネトレーションテスト</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Technical Specs -->
+        <div class="section">
+            <h2 class="section-title"><span class="icon">⚙️</span> 技術仕様</h2>
+
+            <h3 style="color: var(--text-primary); font-size: 16px; margin-bottom: 12px; font-weight: 600;">クロスアカウント共有の要件</h3>
+            <table class="spec-table">
+                <tr><th>項目</th><th>詳細</th></tr>
+                <tr><td>前提条件</td><td>両アカウントが同一 AWS Organizations に所属</td></tr>
+                <tr><td>共有方法</td><td>AWS Resource Access Manager (RAM)</td></tr>
+                <tr><td>共有対象リソース</td><td>サブネット、セキュリティグループ</td></tr>
+                <tr><td>Agent Space の場所</td><td>ペネトレーションテストを実行する中央アカウント</td></tr>
+                <tr><td>IAM 要件</td><td>サービスロールが共有 VPC リソースへのアクセス権限を持つこと</td></tr>
+                <tr><td>VPC 上限</td><td>Agent Space あたり最大 5 つの VPC</td></tr>
+            </table>
+
+            <h3 style="color: var(--text-primary); font-size: 16px; margin-top: 24px; margin-bottom: 12px; font-weight: 600;">サポート対象環境</h3>
+            <table class="spec-table">
+                <tr><th>項目</th><th>詳細</th></tr>
+                <tr><td>利用可能リージョン</td><td>US East (N. Virginia)</td></tr>
+                <tr><td>マルチクラウド</td><td>AWS、オンプレミス、ハイブリッド、マルチクラウド、SaaS 環境をサポート</td></tr>
+                <tr><td>VPC タイプ</td><td>同一アカウント内 VPC および共有 VPC</td></tr>
+            </table>
+        </div>
+
+        <!-- Setup Steps -->
+        <div class="section">
+            <h2 class="section-title"><span class="icon">🔧</span> 設定方法</h2>
+
+            <h3 style="color: var(--text-primary); font-size: 16px; margin-bottom: 12px; font-weight: 600;">前提条件</h3>
+            <ul style="list-style: none; padding: 0; margin-bottom: 24px;">
+                <li style="padding: 4px 0; font-size: 14px; display: flex; align-items: flex-start; gap: 8px;"><span style="color: var(--aws-orange);">&#x2713;</span> 中央アカウントとサブアカウントが同一 AWS Organizations に所属</li>
+                <li style="padding: 4px 0; font-size: 14px; display: flex; align-items: flex-start; gap: 8px;"><span style="color: var(--aws-orange);">&#x2713;</span> 中央アカウントに Agent Space が作成済み</li>
+                <li style="padding: 4px 0; font-size: 14px; display: flex; align-items: flex-start; gap: 8px;"><span style="color: var(--aws-orange);">&#x2713;</span> サブアカウントで共有対象の VPC、サブネット、セキュリティグループが作成済み</li>
+                <li style="padding: 4px 0; font-size: 14px; display: flex; align-items: flex-start; gap: 8px;"><span style="color: var(--aws-orange);">&#x2713;</span> AWS RAM の使用権限がある</li>
+            </ul>
+
+            <div class="steps">
+                <div class="step">
+                    <div class="step-title">AWS Organizations でリソース共有を有効化</div>
+                    <div class="step-desc">Organizations 内での自動リソース共有を有効化する。</div>
+                    <div class="code-block" style="margin-top: 10px;">
+                        <div class="code-header">
+                            <span class="code-lang">Bash</span>
+                            <span class="code-title">RAM 共有の有効化</span>
+                        </div>
+                        <pre><code class="language-bash">aws ram enable-sharing-with-aws-organization</code></pre>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-title">サブアカウントから VPC リソースを共有</div>
+                    <div class="step-desc">サブアカウントの認証情報を使用して、サブネットとセキュリティグループを中央アカウントに共有する。</div>
+                    <div class="code-block" style="margin-top: 10px;">
+                        <div class="code-header">
+                            <span class="code-lang">Bash</span>
+                            <span class="code-title">リソース共有の作成</span>
+                        </div>
+                        <pre><code class="language-bash">aws ram create-resource-share \
+    --name SharePentestResources \
+    --resource-arns arn:aws:ec2:us-east-1:111111111111:subnet/subnet-xxxxxxxxxxxxxxxxx \
+                    arn:aws:ec2:us-east-1:111111111111:security-group/sg-xxxxxxxxxxxxxxxxx \
+    --principals 222222222222</code></pre>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-title">Agent Space で VPC 設定を追加</div>
+                    <div class="step-desc">Agent Space の概要ページで [Actions] > [Edit penetration test configuration] を選択し、共有された VPC、サブネット、セキュリティグループを指定して保存する。</div>
+                </div>
+                <div class="step">
+                    <div class="step-title">IAM サービスロールの確認</div>
+                    <div class="step-desc">Agent Space の [Penetration test] で [Service role name] を確認し、IAM ロールが共有 VPC リソースへのアクセス権限を持っていることを確認する。</div>
+                </div>
+                <div class="step">
+                    <div class="step-title">ペネトレーションテストで VPC 設定を選択</div>
+                    <div class="step-desc">AWS Security Agent Web アプリでペネトレーションテストを選択し、[Modify pentest details] > [VPC Resources] で共有された VPC、サブネット、セキュリティグループを選択して保存する。</div>
+                </div>
+                <div class="step">
+                    <div class="step-title">ペネトレーションテストの実行</div>
+                    <div class="step-desc">設定完了後、共有 VPC 内のプライベートアプリケーションに対してペネトレーションテストを実行する。AWS Security Agent は共有された VPC 設定を使用してアプリケーションにアクセスし、脆弱性の検出・検証を実施する。</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Merits -->
+        <div class="section">
+            <h2 class="section-title"><span class="icon">✅</span> メリット</h2>
+            <div class="merit-grid">
+                <div class="merit-column business">
+                    <h3>💼 ビジネス面</h3>
+                    <div class="merit-item">
+                        <span class="bullet" style="color: var(--aws-teal);">&#x25CF;</span>
+                        <span><strong>一元的なセキュリティ管理</strong>: セキュリティチームが中央アカウントから組織全体のペネトレーションテストを管理でき、運用コストを削減</span>
+                    </div>
+                    <div class="merit-item">
+                        <span class="bullet" style="color: var(--aws-teal);">&#x25CF;</span>
+                        <span><strong>セキュリティカバレッジの拡大</strong>: マルチアカウント環境のすべてのアプリケーションを網羅的にテスト可能になり、セキュリティの死角を排除</span>
+                    </div>
+                    <div class="merit-item">
+                        <span class="bullet" style="color: var(--aws-teal);">&#x25CF;</span>
+                        <span><strong>コンプライアンスの強化</strong>: 組織全体で一貫したセキュリティテスト基準を適用し、規制要件への対応を効率化</span>
+                    </div>
+                    <div class="merit-item">
+                        <span class="bullet" style="color: var(--aws-teal);">&#x25CF;</span>
+                        <span><strong>運用効率の向上</strong>: 各アカウントに個別の Agent Space を構築・管理する必要がなくなり、管理負荷を大幅に軽減</span>
+                    </div>
+                </div>
+                <div class="merit-column tech">
+                    <h3>🔬 技術面</h3>
+                    <div class="merit-item">
+                        <span class="bullet" style="color: var(--aws-purple);">&#x25CF;</span>
+                        <span><strong>AWS RAM による安全な共有</strong>: Organizations レベルの信頼関係に基づくセキュアなリソース共有メカニズム</span>
+                    </div>
+                    <div class="merit-item">
+                        <span class="bullet" style="color: var(--aws-purple);">&#x25CF;</span>
+                        <span><strong>既存の VPC アーキテクチャの活用</strong>: アプリケーションのネットワーク構成を変更することなくテストを実施可能</span>
+                    </div>
+                    <div class="merit-item">
+                        <span class="bullet" style="color: var(--aws-purple);">&#x25CF;</span>
+                        <span><strong>AI を活用した高度なテスト</strong>: マルチステップの攻撃シナリオにより、自動スキャンツールでは検出できない脆弱性を発見</span>
+                    </div>
+                    <div class="merit-item">
+                        <span class="bullet" style="color: var(--aws-purple);">&#x25CF;</span>
+                        <span><strong>自動修正の提案</strong>: 検出された脆弱性に対して、再現可能な攻撃パスと修正コードを含むプルリクエストを自動作成</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Limitations -->
+        <div class="section">
+            <h2 class="section-title"><span class="icon">&#x26A0;&#xFE0F;</span> 制約事項・考慮点</h2>
+
+            <h3 style="color: var(--aws-red); font-size: 16px; margin-bottom: 12px; font-weight: 600;">制限事項</h3>
+            <ul class="limitation-list" style="margin-bottom: 20px;">
+                <li><span class="warn-icon">&#x2718;</span> US East (N. Virginia) リージョンでのみ利用可能</li>
+                <li><span class="warn-icon">&#x2718;</span> 両アカウントが同一 AWS Organizations に所属している必要がある</li>
+                <li><span class="warn-icon">&#x2718;</span> Agent Space あたり最大 5 つの VPC に制限される</li>
+                <li><span class="warn-icon">&#x2718;</span> サブアカウント側で AWS RAM によるリソース共有の設定が必要</li>
+            </ul>
+
+            <h3 style="color: var(--aws-smile-orange); font-size: 16px; margin-bottom: 12px; font-weight: 600;">考慮すべき点</h3>
+            <ul class="limitation-list">
+                <li><span class="note-icon">&#x26A0;</span> 最小権限の原則に基づいて必要なサブネットとセキュリティグループのみを共有すべき</li>
+                <li><span class="note-icon">&#x26A0;</span> IAM サービスロールのアクセス権限を適切に設定し、不必要なリソースへのアクセスを防止</li>
+                <li><span class="note-icon">&#x26A0;</span> ペネトレーションテストの実行がサブアカウントのアプリケーションパフォーマンスに影響を与える可能性があるため、テスト時間帯の調整を検討</li>
+                <li><span class="note-icon">&#x26A0;</span> 組織のセキュリティポリシーに基づき、クロスアカウントのリソース共有が許可されていることを確認</li>
+            </ul>
+        </div>
+
+        <!-- Use Cases -->
+        <div class="section">
+            <h2 class="section-title"><span class="icon">🎯</span> ユースケース</h2>
+
+            <div class="usecase-card">
+                <div class="usecase-title">🏢 ユースケース 1: マルチアカウント環境の一元セキュリティテスト</div>
+                <p class="usecase-scenario"><strong>シナリオ</strong>: 企業がワークロード分離のためにマルチアカウント戦略を採用しており、セキュリティチームが中央セキュリティアカウントから全アカウントのアプリケーションをテストしたい。</p>
+                <div class="code-block" style="margin: 12px 0;">
+                    <div class="code-header">
+                        <span class="code-lang">Bash</span>
+                        <span class="code-title">マルチアカウント リソース共有例</span>
+                    </div>
+                    <pre><code class="language-bash"># Sub Account A - Share VPC resources
+aws ram create-resource-share \
+    --name ShareAppAResources \
+    --resource-arns arn:aws:ec2:us-east-1:111111111111:subnet/subnet-aaa \
+                    arn:aws:ec2:us-east-1:111111111111:security-group/sg-aaa \
+    --principals 999999999999
+
+# Sub Account B - Share VPC resources
+aws ram create-resource-share \
+    --name ShareAppBResources \
+    --resource-arns arn:aws:ec2:us-east-1:222222222222:subnet/subnet-bbb \
+                    arn:aws:ec2:us-east-1:222222222222:security-group/sg-bbb \
+    --principals 999999999999</code></pre>
+                </div>
+                <div class="usecase-effect">セキュリティチームが中央アカウントの Agent Space から、サブアカウント A と B のプライベートアプリケーションに対してペネトレーションテストを一元的に実行でき、組織全体のセキュリティ態勢を効率的に評価できる。</div>
+            </div>
+
+            <div class="usecase-card">
+                <div class="usecase-title">🔒 ユースケース 2: 本番環境のセキュリティ検証</div>
+                <p class="usecase-scenario"><strong>シナリオ</strong>: 本番アカウントにデプロイされたプライベート API がパブリックインターネットに公開されておらず、ペネトレーションテストを実施するにはプライベートネットワーク経由でのアクセスが必要。</p>
+                <p class="usecase-scenario" style="font-size: 13px;"><strong>実装</strong>: 本番アカウントから API が稼働するサブネットとセキュリティグループを RAM で共有 &#x2192; 中央アカウントの Agent Space に共有 VPC 設定を追加 &#x2192; テスト実行</p>
+                <div class="usecase-effect">パブリックインターネットに公開していない本番環境の内部 API に対しても、共有 VPC 経由でペネトレーションテストを実行でき、内部向けアプリケーションのセキュリティ脆弱性を検出・修正できる。</div>
+            </div>
+
+            <div class="usecase-card">
+                <div class="usecase-title">🔄 ユースケース 3: 開発・ステージング環境の定期テスト</div>
+                <p class="usecase-scenario"><strong>シナリオ</strong>: 複数の開発チームがそれぞれ独自のアカウントで開発を行っており、セキュリティチームがデプロイ前のアプリケーションを定期的にテストしたい。</p>
+                <p class="usecase-scenario" style="font-size: 13px;"><strong>実装</strong>: 各開発アカウントからステージング環境の VPC リソースを RAM で共有 &#x2192; 中央アカウントから各環境のペネトレーションテストをスケジュール &#x2192; 検出された脆弱性に対する修正プルリクエストが自動生成</p>
+                <div class="usecase-effect">本番デプロイ前にセキュリティ脆弱性を検出でき、リリース後のセキュリティインシデントのリスクを低減。複数チームのアプリケーションを一貫した基準でテストでき、組織全体のセキュリティ水準を向上させる。</div>
+            </div>
+        </div>
+
+        <!-- Pricing -->
+        <div class="section">
+            <h2 class="section-title"><span class="icon">💰</span> 料金情報</h2>
+            <div class="pricing-note">
+                <strong>AWS Security Agent</strong> の料金は使用量に基づいて課金される。詳細な料金情報は <a href="https://aws.amazon.com/security-agent/pricing/" target="_blank" rel="noopener noreferrer" style="color: var(--aws-teal);">AWS Security Agent pricing page</a> を参照。<br><br>
+                <strong>AWS Resource Access Manager (RAM)</strong> によるリソース共有自体には追加料金は発生しない。
+            </div>
+        </div>
+
+        <!-- Region -->
+        <div class="section">
+            <h2 class="section-title"><span class="icon">🌍</span> 利用可能リージョン</h2>
+            <p style="margin-bottom: 12px;">AWS Security Agent は現在、以下のリージョンで利用可能です。</p>
+            <span class="region-badge">US East (N. Virginia)</span>
+        </div>
+
+        <!-- Related Services -->
+        <div class="section">
+            <h2 class="section-title"><span class="icon">🔗</span> 関連サービス</h2>
+            <div class="related-grid">
+                <div class="related-item">
+                    <strong>AWS Resource Access Manager (RAM)</strong>
+                    <span>AWS アカウント間でリソースをセキュアに共有するサービス。本機能の核となるリソース共有メカニズムを提供</span>
+                </div>
+                <div class="related-item">
+                    <strong>AWS Organizations</strong>
+                    <span>マルチアカウント環境の一元管理サービス。クロスアカウント VPC 共有の前提条件</span>
+                </div>
+                <div class="related-item">
+                    <strong>Amazon VPC</strong>
+                    <span>仮想プライベートクラウド。ペネトレーションテストのネットワークアクセスに使用</span>
+                </div>
+                <div class="related-item">
+                    <strong>Amazon Inspector</strong>
+                    <span>アプリケーションのセキュリティ脆弱性を自動評価するサービス</span>
+                </div>
+                <div class="related-item">
+                    <strong>AWS IAM</strong>
+                    <span>サービスロールの管理と共有リソースへのアクセス制御</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer>
+            <p style="font-size: 14px; color: var(--aws-orange); margin-bottom: 12px;">&#x1F4CE; 参考リンク</p>
+            <ul class="links-list">
+                <li>&#x1F4F0; <a href="https://aws.amazon.com/about-aws/whats-new/2026/02/aws-security-agent-adds-penetration-tests-shared/" target="_blank" rel="noopener noreferrer">公式発表 - What's New</a></li>
+                <li>&#x1F4D6; <a href="https://docs.aws.amazon.com/securityagent/latest/userguide/what-is.html" target="_blank" rel="noopener noreferrer">AWS Security Agent ユーザーガイド - What is AWS Security Agent?</a></li>
+                <li>&#x1F4D6; <a href="https://docs.aws.amazon.com/securityagent/latest/userguide/connect-agent-vpc.html" target="_blank" rel="noopener noreferrer">AWS Security Agent ユーザーガイド - Connect agent to private VPC resources</a></li>
+                <li>&#x1F517; <a href="https://aws.amazon.com/ram/" target="_blank" rel="noopener noreferrer">AWS Resource Access Manager</a></li>
+            </ul>
+            <p style="margin-top: 16px; font-size: 12px; color: var(--text-secondary);">Generated on 2026-02-26 | AWS Security Agent - Cross-Account Penetration Testing for Shared VPCs</p>
+        </footer>
+
+    </div>
+
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'base',
+            themeVariables: {
+                primaryColor: '#FF9900',
+                primaryTextColor: '#232F3E',
+                primaryBorderColor: '#FF9900',
+                lineColor: '#FF9900',
+                secondaryColor: '#F5F5F5',
+                tertiaryColor: '#FAFAFA',
+                background: '#FFFFFF',
+                mainBkg: '#FFF3E0',
+                nodeBorder: '#FF9900',
+                clusterBkg: '#FFF8E1',
+                clusterBorder: '#FF9900',
+                edgeLabelBackground: '#FFFFFF',
+                textColor: '#232F3E'
+            }
+        });
+        hljs.highlightAll();
+    </script>
+</body>
+</html>

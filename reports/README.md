@@ -5,8 +5,20 @@
 
 ## 2026 年
 
+- [2026-02-26 - Amazon Cognito - クライアントシークレットのローテーションとカスタムシークレットサポート](2026/2026-02-26-amazon-cognito-client-secret-lifecycle.md)
+- [2026-02-26 - AWS Security Hub - Extended プランでフルスタックエンタープライズセキュリティを実現](2026/2026-02-26-sec-hub-extended.md)
+- [2026-02-26 - AWS Lambda Durable Execution SDK for Java - Developer Preview](2026/2026-02-26-lambda-durable-execution-java-preview.md)
+- [2026-02-26 - Amazon Connect - アウトバウンドキャンペーンのダイヤルモード動的切替](2026/2026-02-26-connect-dynamic-dialing-modes.md)
 - [2026-02-25 - Amazon EC2 - M8gn/M8gb インスタンスの新しい Metal サイズ](2026/2026-02-25-amazon-ec2-m8gn-m8gb-new-metal-sizes.md)
+- [2026-02-25 - AWS Backup - Amazon Neptune のサポートを 5 つの追加リージョンに拡大](2026/2026-02-25-aws-backup-extends-amazon-neptune-five-additional-regions.md)
+- [2026-02-25 - Amazon Aurora DSQL - Tortoise、Flyway、Prisma の新規サポート](2026/2026-02-25-aurora-dsql-launches-tortoise-flyway-prisma.md)
+- [2026-02-25 - Amazon Location Service - LLM コンテキストを Kiro Power および Claude Code プラグインとして提供開始](2026/2026-02-25-amazon-location-service-introduces-kiro-power-claude-skill-llm-context.md)
 - [2026-02-25 - Amazon Aurora DSQL - Playground で対話的データベース探索](2026/2026-02-25-amazon-aurora-dsql-launches-playground.md)
+- [2026-02-25 - AWS Security Agent - 共有 VPC に対するクロスアカウントペネトレーションテスト](2026/2026-02-25-aws-security-agent-adds-penetration-tests-shared.md)
+- [2026-02-25 - Amazon EC2 - M8i および M8i-flex インスタンスが Africa (Cape Town) リージョンで利用可能に](2026/2026-02-25-amazon-ec2-m8i-m8i-flex-instances-africa-cape-town-regions.md)
+- [2026-02-25 - Amazon EC2 - R8a インスタンスが Europe (Ireland) リージョンで利用可能に](2026/2026-02-25-amazon-ec2-r8a-instances-europe-ireland-regions.md)
+- [2026-02-25 - Amazon Aurora DSQL - VS Code SQLTools と DBeaver の新しいインテグレーション](2026/2026-02-25-aurora-dsql-visual-studio-code-sqltools-dbeaver.md)
+- [2026-02-25 - Amazon WorkSpaces Applications - 4K 解像度サポートの拡張](2026/2026-02-25-amazon-workspaces-applications-4K-resolution.md)
 - [2026-02-24 - Amazon EC2 - M8a インスタンスが Europe (Frankfurt) リージョンで利用可能に](2026/2026-02-24-amazon-ec2-m8a-instances-europe-frankfurt.md)
 - [2026-02-24 - Amazon RDS Custom - Microsoft SQL Server の最新 GDR アップデートをサポート](2026/2026-02-24-amazon-rds-custom-supports-latest-gdr-updates-for-microsoft-sql-server.md)
 - [2026-02-24 - AWS WAF - AI アクティビティダッシュボードで AI ボット・エージェントトラフィックを可視化](2026/2026-02-24-aws-waf-ai-activity-dashboard.md)
@@ -16,6 +28,7 @@
 - [2026-02-24 - AWS Deadline Cloud - タスクのチャンクグループ化実行のサポート](2026/2026-02-24-aws-deadline-cloud-running-tasks-together-in.md)
 - [2026-02-24 - Amazon Bedrock - AgentCore Gateway によるサーバーサイドツール実行](2026/2026-02-24-amazon-bedrock-server-side-tool-execution-agentcore-gateway.md)
 - [2026-02-24 - AWS Compute Optimizer - EBS スナップショットへの AWS 生成タグの自動適用](2026/2026-02-24-aws-compute-optimizer-applies-tags-ebs-snapshots.md)
+- [2026-02-24 - Amazon EC2 - C7i および C7i-flex インスタンスがアフリカ (ケープタウン) リージョンで利用可能に](2026/2026-02-24-amazon-ec2-c7i-c7i-flex-instances-africa-cape-town-regions.md)
 - [2026-02-24 - Amazon EC2 - C8i/C8i-flex インスタンスがアジアパシフィック (マレーシア) と南米 (サンパウロ) で利用可能に](2026/2026-02-24-amazon-ec2-c8i-c8i-flex-instances-asia-pacific-malaysia-south-america-sao--paulo-regions.md)
 - [2026-02-24 - Amazon EC2 - I7ie インスタンスがアフリカ (ケープタウン) で利用可能に](2026/2026-02-24-amazon-ec-i-ie-instances-available-aws-africa.md)
 - [2026-02-24 - AWS Observability - Kiro Power として利用可能に](2026/2026-02-24-aws-observability-kiro-power.md)
