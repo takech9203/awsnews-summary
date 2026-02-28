@@ -1,0 +1,1166 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Amazon Lightsail - 新しい WordPress ブループリントの提供開始</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/styles/atom-one-dark.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap');
+
+    :root {
+      --aws-squid-ink: #232F3E;
+      --aws-dark-squid: #1A242F;
+      --aws-orange: #FF9900;
+      --aws-smile-orange: #FFAD33;
+      --aws-white: #FFFFFF;
+      --aws-light-gray: #D5DBDB;
+      --aws-teal: #00A1C9;
+      --aws-purple: #8C4FFF;
+      --aws-green: #1D8102;
+      --aws-red: #D13212;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--aws-squid-ink);
+      font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+      color: var(--aws-light-gray);
+      font-size: 16px;
+      line-height: 1.6;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    /* ===== Header ===== */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 32px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .header-left { flex: 1; }
+
+    .service-badge {
+      display: inline-block;
+      background: var(--aws-orange);
+      color: var(--aws-squid-ink);
+      font-size: 13px;
+      font-weight: 700;
+      padding: 4px 14px;
+      border-radius: 20px;
+      margin-bottom: 12px;
+      letter-spacing: 0.5px;
+    }
+
+    h1 {
+      font-size: 36px;
+      font-weight: 700;
+      color: var(--aws-white);
+      line-height: 1.3;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      font-size: 16px;
+      color: var(--aws-light-gray);
+    }
+
+    .header-right {
+      text-align: right;
+      font-size: 14px;
+      color: var(--aws-light-gray);
+      flex-shrink: 0;
+    }
+
+    .date-label {
+      color: var(--aws-orange);
+      font-weight: 600;
+    }
+
+    /* ===== Sections ===== */
+    h2 {
+      font-size: 24px;
+      font-weight: 600;
+      color: var(--aws-orange);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    h3 {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--aws-white);
+      margin-bottom: 12px;
+    }
+
+    .section {
+      background: var(--aws-dark-squid);
+      border-radius: 8px;
+      padding: 24px;
+      margin-bottom: 24px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .highlight {
+      background-color: rgba(255, 153, 0, 0.2);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 600;
+      color: var(--aws-orange);
+    }
+
+    /* ===== Overview ===== */
+    .overview-text {
+      font-size: 16px;
+      color: var(--aws-light-gray);
+      line-height: 1.8;
+      margin-bottom: 20px;
+    }
+
+    /* ===== Stats Cards ===== */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    @media (max-width: 768px) {
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 480px) {
+      .stats-grid { grid-template-columns: 1fr; }
+    }
+
+    .stat-card {
+      background: linear-gradient(135deg, rgba(255, 153, 0, 0.15), rgba(140, 79, 255, 0.1));
+      border: 1px solid rgba(255, 153, 0, 0.3);
+      border-radius: 8px;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .stat-number {
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--aws-orange);
+      line-height: 1.2;
+    }
+
+    .stat-label {
+      font-size: 13px;
+      color: var(--aws-light-gray);
+      margin-top: 4px;
+    }
+
+    /* ===== Before/After ===== */
+    .before-after {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-top: 16px;
+    }
+
+    @media (max-width: 640px) {
+      .before-after { grid-template-columns: 1fr; }
+    }
+
+    .before-card, .after-card {
+      border-radius: 8px;
+      padding: 20px;
+    }
+
+    .before-card {
+      background: rgba(209, 50, 18, 0.1);
+      border: 1px solid rgba(209, 50, 18, 0.3);
+    }
+
+    .after-card {
+      background: rgba(29, 129, 2, 0.1);
+      border: 1px solid rgba(29, 129, 2, 0.3);
+    }
+
+    .ba-label {
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .before-card .ba-label { color: var(--aws-red); }
+    .after-card .ba-label { color: var(--aws-green); }
+
+    .ba-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      margin: 8px 0;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .ba-icon { flex-shrink: 0; font-size: 16px; }
+
+    /* ===== Feature Cards ===== */
+    .feature-cards {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+
+    .feature-card {
+      background: var(--aws-dark-squid);
+      border-radius: 8px;
+      padding: 20px;
+      border-left: 4px solid var(--aws-orange);
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      border-right: 1px solid rgba(255, 255, 255, 0.05);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .feature-card-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--aws-white);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .feature-card p {
+      font-size: 14px;
+      color: var(--aws-light-gray);
+      line-height: 1.6;
+    }
+
+    .feature-card ul {
+      list-style: none;
+      padding: 0;
+      margin-top: 8px;
+    }
+
+    .feature-card ul li {
+      font-size: 14px;
+      color: var(--aws-light-gray);
+      padding: 4px 0;
+      padding-left: 20px;
+      position: relative;
+    }
+
+    .feature-card ul li::before {
+      content: ">";
+      position: absolute;
+      left: 0;
+      color: var(--aws-orange);
+      font-weight: bold;
+    }
+
+    /* ===== Attribute Table ===== */
+    .attr-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0;
+    }
+
+    .attr-table th {
+      background: rgba(255, 153, 0, 0.15);
+      color: var(--aws-orange);
+      font-weight: 600;
+      text-align: left;
+      padding: 10px 14px;
+      font-size: 13px;
+      border-bottom: 2px solid rgba(255, 153, 0, 0.3);
+    }
+
+    .attr-table td {
+      padding: 10px 14px;
+      font-size: 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      color: var(--aws-light-gray);
+    }
+
+    .attr-table tr:hover td {
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .attr-table code {
+      background: rgba(255, 153, 0, 0.12);
+      color: var(--aws-smile-orange);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+    }
+
+    /* ===== Use Cases ===== */
+    .usecase-card {
+      background: linear-gradient(135deg, rgba(255, 153, 0, 0.08), rgba(255, 153, 0, 0.03));
+      border: 1px solid rgba(255, 153, 0, 0.2);
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+
+    .usecase-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--aws-white);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .usecase-scenario {
+      font-size: 14px;
+      color: var(--aws-light-gray);
+      margin-bottom: 12px;
+      line-height: 1.6;
+    }
+
+    .usecase-effect {
+      font-size: 14px;
+      color: var(--aws-light-gray);
+      line-height: 1.6;
+      padding: 12px;
+      background: rgba(29, 129, 2, 0.08);
+      border-left: 3px solid var(--aws-green);
+      border-radius: 0 4px 4px 0;
+    }
+
+    .usecase-effect strong {
+      color: var(--aws-green);
+    }
+
+    /* ===== Pricing Table ===== */
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin: 16px 0;
+    }
+
+    @media (max-width: 768px) {
+      .pricing-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 480px) {
+      .pricing-grid { grid-template-columns: 1fr; }
+    }
+
+    .pricing-card {
+      background: rgba(255, 153, 0, 0.06);
+      border: 1px solid rgba(255, 153, 0, 0.2);
+      border-radius: 8px;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .pricing-card.featured {
+      border-color: rgba(29, 129, 2, 0.4);
+      background: rgba(29, 129, 2, 0.06);
+    }
+
+    .pricing-amount {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--aws-orange);
+      margin-bottom: 4px;
+    }
+
+    .pricing-card.featured .pricing-amount {
+      color: var(--aws-green);
+    }
+
+    .pricing-desc {
+      font-size: 13px;
+      color: var(--aws-light-gray);
+    }
+
+    .pricing-label {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--aws-white);
+      margin-bottom: 8px;
+    }
+
+    .pricing-specs {
+      font-size: 12px;
+      color: var(--aws-light-gray);
+      margin-top: 8px;
+      line-height: 1.5;
+    }
+
+    /* ===== Benefits ===== */
+    .benefits-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    @media (max-width: 640px) {
+      .benefits-grid { grid-template-columns: 1fr; }
+    }
+
+    .benefit-group {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      padding: 20px;
+    }
+
+    .benefit-group h3 {
+      font-size: 15px;
+      margin-bottom: 12px;
+    }
+
+    .benefit-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      margin: 8px 0;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .benefit-icon {
+      flex-shrink: 0;
+      color: var(--aws-green);
+    }
+
+    /* ===== Limitations ===== */
+    .limitation-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      margin: 10px 0;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .limitation-icon {
+      flex-shrink: 0;
+      color: var(--aws-red);
+    }
+
+    .caution-icon {
+      flex-shrink: 0;
+      color: #FF9800;
+    }
+
+    /* ===== Related Services ===== */
+    .related-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    @media (max-width: 640px) {
+      .related-grid { grid-template-columns: 1fr; }
+    }
+
+    .related-card {
+      background: rgba(0, 161, 201, 0.06);
+      border: 1px solid rgba(0, 161, 201, 0.2);
+      border-radius: 8px;
+      padding: 16px;
+    }
+
+    .related-card-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--aws-teal);
+      margin-bottom: 6px;
+    }
+
+    .related-card p {
+      font-size: 13px;
+      color: var(--aws-light-gray);
+      line-height: 1.5;
+    }
+
+    /* ===== Mermaid ===== */
+    .mermaid-container {
+      background: #FFFFFF;
+      border-radius: 12px;
+      padding: 24px;
+      margin: 20px 0;
+      border: 2px solid rgba(255, 153, 0, 0.3);
+      overflow-x: auto;
+    }
+
+    .mermaid {
+      display: flex;
+      justify-content: center;
+    }
+
+    /* ===== Code Block ===== */
+    .code-block {
+      background: #1a1a2e;
+      border-radius: 8px;
+      overflow: hidden;
+      margin: 16px 0;
+    }
+
+    .code-header {
+      background: #16213e;
+      padding: 8px 16px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+    }
+
+    .code-lang {
+      color: var(--aws-orange);
+      font-weight: bold;
+    }
+
+    .code-title {
+      color: var(--aws-light-gray);
+    }
+
+    .code-block pre {
+      margin: 0;
+      padding: 0;
+      overflow-x: auto;
+    }
+
+    .code-block code {
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      line-height: 1.5;
+      padding: 16px !important;
+    }
+
+    /* ===== Flow Diagram ===== */
+    .flow-diagram {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin: 24px 0;
+    }
+
+    .flow-step {
+      background: var(--aws-dark-squid);
+      border: 2px solid var(--aws-orange);
+      border-radius: 8px;
+      padding: 12px 20px;
+      text-align: center;
+      min-width: 100px;
+    }
+
+    .flow-arrow {
+      color: var(--aws-orange);
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    /* ===== Footer ===== */
+    footer {
+      margin-top: 32px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(255, 255, 255, 0.2);
+      font-size: 12px;
+      color: var(--aws-light-gray);
+    }
+
+    footer a {
+      color: var(--aws-teal);
+      text-decoration: none;
+      word-break: break-all;
+    }
+
+    footer a:hover {
+      color: var(--aws-smile-orange);
+    }
+
+    footer ul {
+      list-style: none;
+      padding: 0;
+      margin-top: 8px;
+    }
+
+    footer ul li {
+      margin: 4px 0;
+    }
+
+    /* ===== Responsive ===== */
+    @media (max-width: 640px) {
+      h1 { font-size: 26px; }
+      h2 { font-size: 20px; }
+      .header { flex-direction: column; }
+      .header-right { text-align: left; }
+      .stat-number { font-size: 26px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <!-- ===== HEADER ===== -->
+    <div class="header">
+      <div class="header-left">
+        <span class="service-badge">Amazon Lightsail</span>
+        <h1>新しい WordPress ブループリントの提供開始</h1>
+        <div class="subtitle">ガイド付きセットアップウィザードと IMDSv2 デフォルト強制で、数分でセキュアな WordPress サイトを構築</div>
+      </div>
+      <div class="header-right">
+        <div><span class="date-label">リリース日</span></div>
+        <div>2026 年 2 月 27 日</div>
+      </div>
+    </div>
+
+    <!-- ===== STATS ===== -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-number">$3.50<span style="font-size: 16px;">/月〜</span></div>
+        <div class="stat-label">最低月額料金</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">4</div>
+        <div class="stat-label">セットアップウィザードのステップ数</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">IMDSv2</div>
+        <div class="stat-label">デフォルト強制でセキュリティ強化</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">$0</div>
+        <div class="stat-label">ブループリント追加料金</div>
+      </div>
+    </div>
+
+    <!-- ===== OVERVIEW ===== -->
+    <div class="section">
+      <h2>&#128203; 概要</h2>
+      <p class="overview-text">
+        Amazon Lightsail が<span class="highlight">新しい WordPress ブループリント</span>を提供開始しました。数クリックで WordPress がプリインストールされた Lightsail VPS を作成し、<span class="highlight">ガイド付きセットアップウィザード</span>に従ってサイトを数分で完全に構成・稼働させることができます。<span class="highlight">IMDSv2</span> がデフォルトで強制されており、セキュリティのベストプラクティスが自動的に適用されます。
+      </p>
+      <p class="overview-text">
+        カスタムドメインの接続、DNS の設定、静的 IP アドレスのアタッチ、無料の Let's Encrypt SSL/TLS 証明書を使用した HTTPS 暗号化の有効化までをガイドするステップバイステップのセットアップワークフローが含まれており、すべて Lightsail コンソール内で完結します。
+      </p>
+
+      <div class="before-after">
+        <div class="before-card">
+          <div class="ba-label"><span>&#x274C;</span> Before</div>
+          <div class="ba-item">
+            <span class="ba-icon">&#x2022;</span>
+            <span>WordPress サイトの初期セットアップにはドメイン設定、DNS 構成、SSL 証明書の取得など複数の手順を個別に実施する必要があった</span>
+          </div>
+          <div class="ba-item">
+            <span class="ba-icon">&#x2022;</span>
+            <span>既存のブループリントでは IMDSv1 が有効で、SSRF 攻撃などのセキュリティリスクが存在していた</span>
+          </div>
+          <div class="ba-item">
+            <span class="ba-icon">&#x2022;</span>
+            <span>SSL/TLS 証明書の設定やカスタムドメインの構成に技術的な知識が必要だった</span>
+          </div>
+        </div>
+        <div class="after-card">
+          <div class="ba-label"><span>&#x2705;</span> After</div>
+          <div class="ba-item">
+            <span class="ba-icon">&#x2022;</span>
+            <span>ガイド付きセットアップウィザードにより、カスタムドメインの接続から HTTPS 暗号化の設定までを一貫して実施可能</span>
+          </div>
+          <div class="ba-item">
+            <span class="ba-icon">&#x2022;</span>
+            <span>IMDSv2 がデフォルトで強制され、SSRF 攻撃などのセキュリティリスクが軽減された</span>
+          </div>
+          <div class="ba-item">
+            <span class="ba-icon">&#x2022;</span>
+            <span>Let's Encrypt の無料 SSL/TLS 証明書が統合され、HTTPS 設定が簡素化された</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== ARCHITECTURE DIAGRAM ===== -->
+    <div class="section">
+      <h2>&#127959; アーキテクチャ図</h2>
+      <p style="margin-bottom: 16px; font-size: 14px;">ユーザーが Lightsail の WordPress ブループリントを使用してサイトを構築する流れを示しています。ブループリントの選択後、ガイド付きセットアップウィザードがカスタムドメイン接続、DNS 設定、静的 IP のアタッチ、HTTPS 暗号化までを順番にガイドします。</p>
+      <div class="mermaid-container">
+        <pre class="mermaid">
+flowchart TD
+    subgraph Lightsail["&#9729;&#65039; Amazon Lightsail"]
+        subgraph WPBlueprint["&#128230; WordPress ブループリント"]
+            WP["&#127760; WordPress<br/>プリインストール"]
+            IMDSv2["&#128272; IMDSv2<br/>デフォルト強制"]
+        end
+        subgraph SetupWizard["&#129497; ガイド付きセットアップウィザード"]
+            direction LR
+            Step1["1&#65039;&#8419; カスタム<br/>ドメイン接続"]
+            Step2["2&#65039;&#8419; DNS<br/>設定"]
+            Step3["3&#65039;&#8419; 静的 IP<br/>アタッチ"]
+            Step4["4&#65039;&#8419; HTTPS<br/>暗号化"]
+            Step1 ~~~ Step2 ~~~ Step3 ~~~ Step4
+        end
+        subgraph Infra["&#9881;&#65039; インフラストラクチャ"]
+            direction LR
+            VPS["&#128421;&#65039; VPS<br/>インスタンス"]
+            Storage["&#128190; SSD<br/>ストレージ"]
+            Transfer["&#128225; データ<br/>転送"]
+            VPS ~~~ Storage ~~~ Transfer
+        end
+    end
+
+    User(["&#128100; ユーザー"]) -->|"数クリックで起動"| WPBlueprint
+    WPBlueprint --> SetupWizard
+    SetupWizard --> Infra
+    Infra -->|"WordPress サイト公開"| Internet(["&#127757; インターネット"])
+
+    classDef cloud fill:none,stroke:#CCCCCC,stroke-width:2px,color:#666666
+    classDef blueprint fill:#E8F1FF,stroke:#4A90E2,stroke-width:2px,color:#333333
+    classDef wizard fill:#F3E5F5,stroke:#7B61FF,stroke-width:2px,color:#333333
+    classDef infra fill:#DCEDC8,stroke:#C5E1A5,stroke-width:2px,color:#33691E
+    classDef user fill:#E3F2FD,stroke:#BBDEFB,stroke-width:2px,color:#1565C0
+    classDef internet fill:#FFE0B2,stroke:#FFCC80,stroke-width:2px,color:#5D4037
+
+    class Lightsail cloud
+    class WPBlueprint,WP,IMDSv2 blueprint
+    class SetupWizard,Step1,Step2,Step3,Step4 wizard
+    class Infra,VPS,Storage,Transfer infra
+    class User user
+    class Internet internet
+        </pre>
+      </div>
+    </div>
+
+    <!-- ===== KEY FEATURES ===== -->
+    <div class="section">
+      <h2>&#9889; 主要機能</h2>
+      <div class="feature-cards">
+        <div class="feature-card">
+          <div class="feature-card-title">&#129497; ガイド付きセットアップウィザード</div>
+          <ul>
+            <li>カスタムドメインの接続をステップバイステップでガイド</li>
+            <li>DNS レコードの設定を Lightsail コンソール内で完結</li>
+            <li>静的 IP アドレスのアタッチを簡単に実施</li>
+            <li>Let's Encrypt の無料 SSL/TLS 証明書による HTTPS 暗号化の有効化</li>
+          </ul>
+        </div>
+        <div class="feature-card">
+          <div class="feature-card-title">&#128272; IMDSv2 のデフォルト強制</div>
+          <ul>
+            <li>Instance Metadata Service Version 2 がデフォルトで有効</li>
+            <li>セッションベースの認証により、SSRF 攻撃を防止</li>
+            <li>メタデータへのアクセスに 2 段階のトークン取得プロセスを要求</li>
+            <li>AWS のセキュリティベストプラクティスに自動的に準拠</li>
+          </ul>
+        </div>
+        <div class="feature-card">
+          <div class="feature-card-title">&#127760; WordPress プリインストール環境</div>
+          <ul>
+            <li>WordPress が事前にインストールされた状態でインスタンスを起動</li>
+            <li>必要な Web サーバー、PHP、データベースなどのソフトウェアスタックを含む</li>
+            <li>数分でサイトの構成と公開が完了</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== TECHNICAL SPECS ===== -->
+    <div class="section">
+      <h2>&#128295; 技術仕様</h2>
+
+      <h3>ブループリントの特徴</h3>
+      <table class="attr-table">
+        <thead>
+          <tr>
+            <th>項目</th>
+            <th>詳細</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>プリインストールソフトウェア</td>
+            <td>WordPress、Web サーバー、PHP、データベース</td>
+          </tr>
+          <tr>
+            <td>IMDSv2</td>
+            <td><span style="color: var(--aws-green); font-weight: 600;">デフォルトで強制</span></td>
+          </tr>
+          <tr>
+            <td>SSL/TLS</td>
+            <td>Let's Encrypt 無料証明書対応</td>
+          </tr>
+          <tr>
+            <td>カスタムドメイン</td>
+            <td>ガイド付きウィザードで設定可能</td>
+          </tr>
+          <tr>
+            <td>静的 IP</td>
+            <td>ウィザードからアタッチ可能</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3 style="margin-top: 24px;">IMDSv2 の特徴</h3>
+      <table class="attr-table">
+        <thead>
+          <tr>
+            <th>項目</th>
+            <th>IMDSv1</th>
+            <th>IMDSv2 - 新ブループリント</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>認証方式</td>
+            <td><span style="color: var(--aws-red);">なし - 直接アクセス</span></td>
+            <td><span style="color: var(--aws-green);">セッションベース - トークン必須</span></td>
+          </tr>
+          <tr>
+            <td>SSRF 攻撃対策</td>
+            <td><span style="color: var(--aws-red);">脆弱</span></td>
+            <td><span style="color: var(--aws-green);">保護あり</span></td>
+          </tr>
+          <tr>
+            <td>リクエスト方式</td>
+            <td>GET リクエストのみ</td>
+            <td>PUT でトークン取得、GET でメタデータ取得</td>
+          </tr>
+          <tr>
+            <td>TTL</td>
+            <td><span style="color: var(--aws-red);">なし</span></td>
+            <td><span style="color: var(--aws-green);">トークンに TTL あり - 最大 6 時間</span></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3 style="margin-top: 24px;">API 変更履歴</h3>
+      <p style="font-size: 14px; color: var(--aws-light-gray);">今回のアップデートに伴う直接的な API 変更はありません。既存の Lightsail API を使用してインスタンスを作成できます。</p>
+    </div>
+
+    <!-- ===== SETUP ===== -->
+    <div class="section">
+      <h2>&#9881; 設定方法</h2>
+
+      <h3>前提条件</h3>
+      <div style="margin-bottom: 20px;">
+        <div class="benefit-item"><span class="benefit-icon">&#10003;</span><span>AWS アカウント</span></div>
+        <div class="benefit-item"><span class="benefit-icon">&#10003;</span><span>Lightsail へのアクセス権限</span></div>
+      </div>
+
+      <h3>ステップ 1: Lightsail コンソールから WordPress インスタンスを作成</h3>
+      <div class="flow-diagram">
+        <div class="flow-step">&#128100; Lightsail コンソール<br/>にアクセス</div>
+        <span class="flow-arrow">&rarr;</span>
+        <div class="flow-step">&#128221; Create instance<br/>を選択</div>
+        <span class="flow-arrow">&rarr;</span>
+        <div class="flow-step">&#127760; WordPress<br/>ブループリント選択</div>
+        <span class="flow-arrow">&rarr;</span>
+        <div class="flow-step">&#9989; インスタンス名入力<br/>Create instance</div>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash</span>
+          <span class="code-title">AWS CLI で WordPress インスタンスを作成</span>
+        </div>
+        <pre><code class="language-bash"># WordPress がプリインストールされた Lightsail インスタンスを作成
+# IMDSv2 がデフォルトで強制されます
+aws lightsail create-instances \
+  --instance-names my-wordpress-site \
+  --availability-zone ap-northeast-1a \
+  --blueprint-id wordpress \
+  --bundle-id small_3_0</code></pre>
+      </div>
+
+      <h3 style="margin-top: 24px;">ステップ 2: ガイド付きセットアップウィザードに従う</h3>
+      <div class="flow-diagram">
+        <div class="flow-step">&#127760; カスタムドメイン<br/>の接続</div>
+        <span class="flow-arrow">&rarr;</span>
+        <div class="flow-step">&#128225; DNS の設定<br/>ゾーン作成</div>
+        <span class="flow-arrow">&rarr;</span>
+        <div class="flow-step">&#128204; 静的 IP<br/>アドレスのアタッチ</div>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash</span>
+          <span class="code-title">静的 IP を作成してアタッチ</span>
+        </div>
+        <pre><code class="language-bash"># 静的 IP を作成
+aws lightsail allocate-static-ip \
+  --static-ip-name my-wordpress-ip
+
+# WordPress インスタンスにアタッチ
+aws lightsail attach-static-ip \
+  --static-ip-name my-wordpress-ip \
+  --instance-name my-wordpress-site</code></pre>
+      </div>
+
+      <h3 style="margin-top: 24px;">ステップ 3: HTTPS 暗号化の有効化</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash</span>
+          <span class="code-title">Let's Encrypt 証明書の設定</span>
+        </div>
+        <pre><code class="language-bash"># SSH でインスタンスに接続
+ssh -i ~/.ssh/lightsail-key.pem bitnami@[インスタンスの静的IP]
+
+# Bitnami HTTPS 設定ツールを実行
+sudo /opt/bitnami/bncert-tool</code></pre>
+      </div>
+
+      <h3 style="margin-top: 24px;">ステップ 4: IMDSv2 の動作確認</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash</span>
+          <span class="code-title">IMDSv2 の動作確認</span>
+        </div>
+        <pre><code class="language-bash"># トークンを取得 (IMDSv2)
+TOKEN=$(curl -X PUT "http://169.254.169.254/latest/api/token" \
+  -H "X-aws-ec2-metadata-token-ttl-seconds: 21600")
+
+# メタデータにアクセス
+curl -H "X-aws-ec2-metadata-token: $TOKEN" \
+  http://169.254.169.254/latest/meta-data/instance-id</code></pre>
+      </div>
+    </div>
+
+    <!-- ===== BENEFITS ===== -->
+    <div class="section">
+      <h2>&#128640; メリット</h2>
+      <div class="benefits-grid">
+        <div class="benefit-group">
+          <h3>&#128188; ビジネス面</h3>
+          <div class="benefit-item">
+            <span class="benefit-icon">&#10003;</span>
+            <span><strong style="color:var(--aws-white);">迅速なサイト構築</strong>: 技術的な知識が限られたユーザーでも数分で WordPress サイトを構築・公開可能</span>
+          </div>
+          <div class="benefit-item">
+            <span class="benefit-icon">&#10003;</span>
+            <span><strong style="color:var(--aws-white);">セキュリティ強化</strong>: IMDSv2 強制により SSRF 攻撃のリスクが大幅に軽減され、コンプライアンス要件を満たしやすい</span>
+          </div>
+          <div class="benefit-item">
+            <span class="benefit-icon">&#10003;</span>
+            <span><strong style="color:var(--aws-white);">コスト削減</strong>: Let's Encrypt の無料 SSL/TLS 証明書が統合されており、別途 SSL 証明書を購入する必要がない</span>
+          </div>
+          <div class="benefit-item">
+            <span class="benefit-icon">&#10003;</span>
+            <span><strong style="color:var(--aws-white);">運用負荷の軽減</strong>: ドメイン設定から HTTPS 暗号化まで一貫したウィザードで完結</span>
+          </div>
+        </div>
+        <div class="benefit-group">
+          <h3>&#128187; 技術面</h3>
+          <div class="benefit-item">
+            <span class="benefit-icon">&#10003;</span>
+            <span><strong style="color:var(--aws-white);">自動化されたセキュリティ</strong>: 手動で IMDSv2 を設定する必要がなく、デフォルトでベストプラクティスが適用される</span>
+          </div>
+          <div class="benefit-item">
+            <span class="benefit-icon">&#10003;</span>
+            <span><strong style="color:var(--aws-white);">統合セットアップ</strong>: DNS、静的 IP、SSL/TLS の設定が Lightsail コンソール内で一元的に管理可能</span>
+          </div>
+          <div class="benefit-item">
+            <span class="benefit-icon">&#10003;</span>
+            <span><strong style="color:var(--aws-white);">シンプルな管理</strong>: インスタンス、ストレージ、ネットワーキングを Lightsail の統合管理画面から操作可能</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== LIMITATIONS ===== -->
+    <div class="section">
+      <h2>&#9888; デメリット・制約事項</h2>
+
+      <h3>制限事項</h3>
+      <div class="limitation-item">
+        <span class="limitation-icon">&#9679;</span>
+        <span>IMDSv2 を必要としないレガシーアプリケーションやプラグインでは、互換性の問題が発生する可能性がある</span>
+      </div>
+      <div class="limitation-item">
+        <span class="limitation-icon">&#9679;</span>
+        <span>Lightsail の VPS はカスタマイズの範囲が EC2 と比較して限定的である</span>
+      </div>
+      <div class="limitation-item">
+        <span class="limitation-icon">&#9679;</span>
+        <span>高トラフィックサイトでは Lightsail のバンドルリソース制限に達する可能性がある</span>
+      </div>
+
+      <h3 style="margin-top: 20px;">考慮すべき点</h3>
+      <div class="limitation-item">
+        <span class="caution-icon">&#9679;</span>
+        <span>既存の Lightsail WordPress インスタンスを新ブループリントに移行する場合、データのバックアップと移行作業が必要</span>
+      </div>
+      <div class="limitation-item">
+        <span class="caution-icon">&#9679;</span>
+        <span>Let's Encrypt 証明書は 90 日ごとに更新が必要 (自動更新を設定可能)</span>
+      </div>
+      <div class="limitation-item">
+        <span class="caution-icon">&#9679;</span>
+        <span>一部の古い WordPress プラグインやテーマは IMDSv2 に対応していない可能性がある</span>
+      </div>
+    </div>
+
+    <!-- ===== USE CASES ===== -->
+    <div class="section">
+      <h2>&#127919; ユースケース</h2>
+
+      <div class="usecase-card">
+        <div class="usecase-title">&#127970; ユースケース 1: 中小企業の Web サイト構築</div>
+        <div class="usecase-scenario">中小企業がコーポレートサイトやブログサイトを WordPress で構築したい。技術担当者が限られているため、できるだけ簡単にセキュアなサイトを立ち上げたい。</div>
+        <div class="code-block">
+          <div class="code-header">
+            <span class="code-lang">Bash</span>
+            <span class="code-title">WordPress ブループリントでインスタンスを作成</span>
+          </div>
+          <pre><code class="language-bash"># WordPress ブループリントでインスタンスを作成
+aws lightsail create-instances \
+  --instance-names company-website \
+  --availability-zone ap-northeast-1a \
+  --blueprint-id wordpress \
+  --bundle-id small_3_0</code></pre>
+        </div>
+        <div class="usecase-effect"><strong>効果:</strong> ガイド付きセットアップウィザードにより、ドメイン設定から HTTPS 暗号化まで迷うことなく構成可能。IMDSv2 により、セキュリティのベストプラクティスが自動的に適用されます。</div>
+      </div>
+
+      <div class="usecase-card">
+        <div class="usecase-title">&#128187; ユースケース 2: フリーランスの WordPress 開発者</div>
+        <div class="usecase-scenario">フリーランスの Web 開発者がクライアント向けの WordPress サイトを迅速にデプロイしたい。複数のクライアントサイトを効率的に管理する必要がある。</div>
+        <div class="flow-diagram" style="margin: 12px 0;">
+          <div class="flow-step">&#128230; クライアントごとに<br/>インスタンス作成</div>
+          <span class="flow-arrow">&rarr;</span>
+          <div class="flow-step">&#129497; ウィザードで<br/>ドメイン + HTTPS</div>
+          <span class="flow-arrow">&rarr;</span>
+          <div class="flow-step">&#128204; 静的 IP アタッチ<br/>サイト納品</div>
+        </div>
+        <div class="usecase-effect"><strong>効果:</strong> セットアップ作業時間を大幅に短縮し、より多くのクライアントプロジェクトを効率的に管理できます。</div>
+      </div>
+
+      <div class="usecase-card">
+        <div class="usecase-title">&#128221; ユースケース 3: 個人ブログの運営</div>
+        <div class="usecase-scenario">技術的な知識が限られた個人ブロガーが、セキュアで信頼性の高い WordPress ブログを低コストで運営したい。</div>
+        <div class="flow-diagram" style="margin: 12px 0;">
+          <div class="flow-step">&#127760; WordPress<br/>ブループリント選択</div>
+          <span class="flow-arrow">&rarr;</span>
+          <div class="flow-step">&#129497; ウィザードで<br/>ドメイン + HTTPS</div>
+        </div>
+        <div class="usecase-effect"><strong>効果:</strong> 月額 $3.50 から WordPress ブログを運営でき、Let's Encrypt の無料 SSL 証明書でセキュアなサイトを維持。ガイド付きウィザードで技術的な障壁を最小化します。</div>
+      </div>
+    </div>
+
+    <!-- ===== PRICING ===== -->
+    <div class="section">
+      <h2>&#128176; 料金</h2>
+      <p style="font-size: 14px; margin-bottom: 16px;">Lightsail の既存の料金体系が適用されます。新しい WordPress ブループリントの使用に追加料金はありません。</p>
+
+      <div class="pricing-grid">
+        <div class="pricing-card featured">
+          <div class="pricing-label">Nano</div>
+          <div class="pricing-amount">$3.50<span style="font-size:14px;">/月</span></div>
+          <div class="pricing-specs">0.5 vCPU / 512 MB RAM<br/>20 GB SSD / 1 TB 転送</div>
+        </div>
+        <div class="pricing-card">
+          <div class="pricing-label">Micro</div>
+          <div class="pricing-amount">$5<span style="font-size:14px;">/月</span></div>
+          <div class="pricing-specs">1 vCPU / 1 GB RAM<br/>40 GB SSD / 2 TB 転送</div>
+        </div>
+        <div class="pricing-card">
+          <div class="pricing-label">Small</div>
+          <div class="pricing-amount">$10<span style="font-size:14px;">/月</span></div>
+          <div class="pricing-specs">1 vCPU / 2 GB RAM<br/>60 GB SSD / 3 TB 転送</div>
+        </div>
+        <div class="pricing-card">
+          <div class="pricing-label">Medium</div>
+          <div class="pricing-amount">$20<span style="font-size:14px;">/月</span></div>
+          <div class="pricing-specs">2 vCPU / 4 GB RAM<br/>80 GB SSD / 4 TB 転送</div>
+        </div>
+      </div>
+      <p style="font-size: 12px; color: var(--aws-light-gray); margin-top: 8px;">*料金は米国東部 (バージニア北部) リージョンの例です。リージョンにより異なる場合があります。<br/>*Lightsail は 3 か月間の無料トライアルを提供しています。</p>
+    </div>
+
+    <!-- ===== REGION ===== -->
+    <div class="section">
+      <h2>&#127758; 利用可能リージョン</h2>
+      <p>この新しい WordPress ブループリントは、Lightsail が利用可能な<span class="highlight">すべての AWS リージョン</span>で提供されています。</p>
+    </div>
+
+    <!-- ===== RELATED SERVICES ===== -->
+    <div class="section">
+      <h2>&#128279; 関連サービス</h2>
+      <div class="related-grid">
+        <div class="related-card">
+          <div class="related-card-title">&#128187; Amazon EC2</div>
+          <p>より高度な制御とカスタマイズが必要な場合の選択肢</p>
+        </div>
+        <div class="related-card">
+          <div class="related-card-title">&#128451; Amazon RDS for Lightsail</div>
+          <p>マネージドデータベースサービスとの組み合わせ</p>
+        </div>
+        <div class="related-card">
+          <div class="related-card-title">&#127760; Lightsail CDN</div>
+          <p>グローバルコンテンツ配信ネットワーク</p>
+        </div>
+        <div class="related-card">
+          <div class="related-card-title">&#128225; Lightsail DNS</div>
+          <p>ドメインの DNS レコード管理</p>
+        </div>
+        <div class="related-card">
+          <div class="related-card-title">&#9881; AWS Elastic Beanstalk</div>
+          <p>アプリケーションのデプロイとスケーリングを自動化</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== FOOTER ===== -->
+    <footer>
+      <p><strong>出典:</strong></p>
+      <ul>
+        <li><a href="https://aws.amazon.com/about-aws/whats-new/2026/02/wordpress-blueprint-lightsail/" target="_blank" rel="noopener noreferrer">公式発表 - What's New</a></li>
+        <li><a href="https://lightsail.aws.amazon.com/ls/docs/en_us/articles/compare-options-choose-lightsail-instance-image" target="_blank" rel="noopener noreferrer">ドキュメント - Lightsail ブループリント</a></li>
+        <li><a href="https://docs.aws.amazon.com/lightsail/latest/userguide/understanding-regions-and-availability-zones-in-amazon-lightsail.html" target="_blank" rel="noopener noreferrer">ドキュメント - Lightsail リージョンとアベイラビリティゾーン</a></li>
+        <li><a href="https://aws.amazon.com/lightsail/pricing/" target="_blank" rel="noopener noreferrer">Lightsail 料金ページ</a></li>
+      </ul>
+    </footer>
+
+  </div>
+
+  <!-- Mermaid.js -->
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'base',
+      themeVariables: {
+        primaryColor: '#FF9900',
+        primaryTextColor: '#232F3E',
+        primaryBorderColor: '#FF9900',
+        lineColor: '#FF9900',
+        secondaryColor: '#F5F5F5',
+        tertiaryColor: '#FAFAFA',
+        background: '#FFFFFF',
+        mainBkg: '#FFF3E0',
+        nodeBorder: '#FF9900',
+        clusterBkg: '#FFF8E1',
+        clusterBorder: '#FF9900',
+        edgeLabelBackground: '#FFFFFF',
+        textColor: '#232F3E'
+      }
+    });
+  </script>
+  <!-- highlight.js -->
+  <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/highlight.min.js"></script>
+  <script>hljs.highlightAll();</script>
+</body>
+</html>

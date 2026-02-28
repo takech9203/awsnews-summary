@@ -24,6 +24,55 @@ AWS は、Amazon RDS Management Console、AWS SDK、または CLI を使用し�
 - AWS Management Console、SDK、CLI から簡単にアップグレードでき、運用負荷を削減
 - RDS Custom では、OS レベルのカスタマイズを維持しながら、セキュリティアップデートを適用可能
 
+## アーキテクチャ図
+
+```mermaid
+flowchart TD
+    subgraph AWSCloud["☁️ AWS Cloud"]
+        subgraph RDSCustom["🗄️ Amazon RDS Custom for SQL Server"]
+            direction TB
+            Instance["🖥️ RDS Custom DB インスタンス<br/>SQL Server 2022"]
+            OS["💻 OS レベルカスタマイズ<br/>管理者権限で制御"]
+        end
+        subgraph Update["⚙️ アップデートプロセス"]
+            direction LR
+            Console["🖥️ AWS Management Console"]
+            CLI["⌨️ AWS CLI / SDK"]
+            Console ~~~ CLI
+        end
+        subgraph Security["🛡️ セキュリティ修正"]
+            GDR["📋 GDR アップデート<br/>KB5072936<br/>16.00.4230.2.v1"]
+            CVE["🔒 CVE-2026-20803<br/>脆弱性修正"]
+        end
+        subgraph Backup["💾 バックアップ"]
+            Snapshot["📸 DB スナップショット<br/>アップグレード前に取得推奨"]
+        end
+    end
+
+    Update -->|"バージョン指定<br/>アップグレード"| Instance
+    Security -->|"パッチ適用"| Instance
+    Instance --> OS
+    Instance -->|"事前取得"| Snapshot
+
+    classDef cloud fill:none,stroke:#CCCCCC,stroke-width:2px,color:#666666
+    classDef layer fill:none,stroke:#E1BEE7,stroke-width:2px,color:#666666
+    classDef instance fill:#E8F1FF,stroke:#4A90E2,stroke-width:2px,color:#333333
+    classDef os fill:#FFE0B2,stroke:#FFCC80,stroke-width:2px,color:#5D4037
+    classDef update fill:#E9F7EC,stroke:#66BB6A,stroke-width:2px,color:#333333
+    classDef security fill:#F3E5F5,stroke:#7B61FF,stroke-width:2px,color:#333333
+    classDef backup fill:#DCEDC8,stroke:#C5E1A5,stroke-width:2px,color:#33691E
+
+    class AWSCloud cloud
+    class RDSCustom,Update,Security,Backup layer
+    class Instance instance
+    class OS os
+    class Console,CLI update
+    class GDR,CVE security
+    class Snapshot backup
+```
+
+AWS Management Console または AWS CLI/SDK を使用して RDS Custom for SQL Server インスタンスに GDR アップデート (KB5072936) を適用します。アップグレード前にスナップショットを取得し、OS レベルのカスタマイズを維持しながらセキュリティパッチを適用できます。
+
 ## サービスアップデートの詳細
 
 ### 主要機能
