@@ -5,10 +5,18 @@
 
 ## 2026 年
 
+- [2026-02-27 - Amazon Lightsail - 新しい WordPress ブループリントの提供開始](2026/2026-02-27-wordpress-blueprint-lightsail.md)
 - [2026-02-27 - Amazon RDS for PostgreSQL - マイナーバージョン 18.3、17.9、16.13、15.17、14.22 のサポート](2026/2026-02-27-rds-minor-version-18-3-17-9-16-13-15-17-14-22.md)
 - [2026-02-27 - Amazon OpenSearch Service - クラスター安定性向上のための新しいインサイト](2026/2026-02-27-amazon-opensearch-service-adds-new-insights-improved-cluster-stability.md)
+- [2026-02-27 - Amazon Application Recovery Controller - Region Switch に 3 つの新機能を追加](2026/2026-02-27-arc-region-switch-post-recovery-rdsblock.md)
+- [2026-02-27 - EC2 Image Builder - ライフサイクルポリシーのワイルドカードサポートと IAM の簡素化](2026/2026-02-27-ec2-image-builder-lifecycle-enhancements.md)
 - [2026-02-27 - Amazon CloudWatch Logs - 一元化ルールの送信先ロググループ名カスタマイズ](2026/2026-02-27-cloudwatch-centralization-custom-groups.md)
 - [2026-02-27 - AWS Billing - 英国のお客様向け Bacs Direct Debit 支払い方法のサポート](2026/2026-02-27-aws-supports-bacs-direct-debit-payment-method.md)
+- [2026-02-27 - Kiro - AST ベースのコード編集エンジンによる精密なコード操作](2026/2026-02-27-kiro-ast-based-code-editing.md)
+- [2026-02-27 - AWS Resource Access Manager - アカウントが組織を変更する際のリソース共有維持をサポート](2026/2026-02-27-aws-resource-access-manager.md)
+- [2026-02-27 - AWS Network Firewall - Amazon EventBridge によるファイアウォール状態変更通知のサポート](2026/2026-02-27-firewall-state-change-notifications.md)
+- [2026-02-27 - Amazon Bedrock - バッチ推論での Converse API フォーマットサポート](2026/2026-02-27-amazon-bedrock-batch-inference-supports-converse-api-format.md)
+- [2026-02-27 - Oracle Database@AWS - ダブリン AWS リージョンでの提供開始](2026/2026-02-27-oracle-database-aws-available-dublin-aws-region.md)
 - [2026-02-26 - AWS Marketplace - SaaS およびプロフェッショナルサービス製品の Concurrent Agreements サポート](2026/2026-02-26-concurrent-agreements-february.md)
 - [2026-02-26 - Amazon ECS Managed Instances - Amazon EC2 Capacity Reservations との統合](2026/2026-02-26-ecs-mi-ec2-capacity-reservations.md)
 - [2026-02-26 - Amazon EC2 I8g.metal-48xl - ストレージ最適化インスタンスの一般提供開始](2026/2026-02-26-ec2-i8g-metal-48xl-generally-available.md)

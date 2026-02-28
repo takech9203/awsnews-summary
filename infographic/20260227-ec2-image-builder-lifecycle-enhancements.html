@@ -1,0 +1,1215 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EC2 Image Builder - ライフサイクルポリシーのワイルドカードサポートと IAM の簡素化</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/styles/atom-one-dark.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap');
+
+    :root {
+      --aws-squid-ink: #232F3E;
+      --aws-dark-squid: #1A242F;
+      --aws-orange: #FF9900;
+      --aws-smile-orange: #FFAD33;
+      --aws-white: #FFFFFF;
+      --aws-light-gray: #D5DBDB;
+      --aws-teal: #00A1C9;
+      --aws-purple: #8C4FFF;
+      --aws-green: #1D8102;
+      --aws-red: #D13212;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--aws-squid-ink);
+      font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+      color: var(--aws-light-gray);
+      font-size: 16px;
+      line-height: 1.6;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    /* ===== Header ===== */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 32px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .header-left { flex: 1; }
+
+    .service-badge {
+      display: inline-block;
+      background: var(--aws-orange);
+      color: var(--aws-squid-ink);
+      font-size: 13px;
+      font-weight: 700;
+      padding: 4px 14px;
+      border-radius: 20px;
+      margin-bottom: 12px;
+      letter-spacing: 0.5px;
+    }
+
+    h1 {
+      font-size: 36px;
+      font-weight: 700;
+      color: var(--aws-white);
+      line-height: 1.3;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      font-size: 16px;
+      color: var(--aws-light-gray);
+    }
+
+    .header-right {
+      text-align: right;
+      font-size: 14px;
+      color: var(--aws-light-gray);
+      flex-shrink: 0;
+    }
+
+    .date-label {
+      color: var(--aws-orange);
+      font-weight: 600;
+    }
+
+    /* ===== Sections ===== */
+    h2 {
+      font-size: 24px;
+      font-weight: 600;
+      color: var(--aws-orange);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    h3 {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--aws-white);
+      margin-bottom: 12px;
+    }
+
+    .section {
+      background: var(--aws-dark-squid);
+      border-radius: 8px;
+      padding: 24px;
+      margin-bottom: 24px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .highlight {
+      background-color: rgba(255, 153, 0, 0.2);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 600;
+      color: var(--aws-orange);
+    }
+
+    /* ===== Overview ===== */
+    .overview-text {
+      font-size: 16px;
+      color: var(--aws-light-gray);
+      line-height: 1.8;
+      margin-bottom: 20px;
+    }
+
+    /* ===== Stats Cards ===== */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    @media (max-width: 768px) {
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 480px) {
+      .stats-grid { grid-template-columns: 1fr; }
+    }
+
+    .stat-card {
+      background: linear-gradient(135deg, rgba(255, 153, 0, 0.15), rgba(140, 79, 255, 0.1));
+      border: 1px solid rgba(255, 153, 0, 0.3);
+      border-radius: 8px;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .stat-number {
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--aws-orange);
+      line-height: 1.2;
+    }
+
+    .stat-label {
+      font-size: 13px;
+      color: var(--aws-light-gray);
+      margin-top: 4px;
+    }
+
+    /* ===== Before/After ===== */
+    .before-after {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-top: 16px;
+    }
+
+    @media (max-width: 640px) {
+      .before-after { grid-template-columns: 1fr; }
+    }
+
+    .before-card, .after-card {
+      border-radius: 8px;
+      padding: 20px;
+    }
+
+    .before-card {
+      background: rgba(209, 50, 18, 0.1);
+      border: 1px solid rgba(209, 50, 18, 0.3);
+    }
+
+    .after-card {
+      background: rgba(29, 129, 2, 0.1);
+      border: 1px solid rgba(29, 129, 2, 0.3);
+    }
+
+    .ba-label {
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .before-card .ba-label { color: var(--aws-red); }
+    .after-card .ba-label { color: var(--aws-green); }
+
+    .ba-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      margin: 8px 0;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .ba-icon { flex-shrink: 0; font-size: 16px; }
+
+    /* ===== Feature Cards ===== */
+    .feature-cards {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+
+    .feature-card {
+      background: var(--aws-dark-squid);
+      border-radius: 8px;
+      padding: 20px;
+      border-left: 4px solid var(--aws-orange);
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      border-right: 1px solid rgba(255, 255, 255, 0.05);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .feature-card-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--aws-white);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .feature-card p {
+      font-size: 14px;
+      color: var(--aws-light-gray);
+      line-height: 1.6;
+    }
+
+    .feature-card ul {
+      list-style: none;
+      padding: 0;
+      margin-top: 8px;
+    }
+
+    .feature-card ul li {
+      font-size: 14px;
+      color: var(--aws-light-gray);
+      padding: 4px 0;
+      padding-left: 20px;
+      position: relative;
+    }
+
+    .feature-card ul li::before {
+      content: ">";
+      position: absolute;
+      left: 0;
+      color: var(--aws-orange);
+      font-weight: bold;
+    }
+
+    /* ===== Attribute Table ===== */
+    .attr-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0;
+    }
+
+    .attr-table th {
+      background: rgba(255, 153, 0, 0.15);
+      color: var(--aws-orange);
+      font-weight: 600;
+      text-align: left;
+      padding: 10px 14px;
+      font-size: 13px;
+      border-bottom: 2px solid rgba(255, 153, 0, 0.3);
+    }
+
+    .attr-table td {
+      padding: 10px 14px;
+      font-size: 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      color: var(--aws-light-gray);
+    }
+
+    .attr-table tr:hover td {
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .attr-table code {
+      background: rgba(255, 153, 0, 0.12);
+      color: var(--aws-smile-orange);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+    }
+
+    /* ===== Use Cases ===== */
+    .usecase-card {
+      background: linear-gradient(135deg, rgba(255, 153, 0, 0.08), rgba(255, 153, 0, 0.03));
+      border: 1px solid rgba(255, 153, 0, 0.2);
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+
+    .usecase-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--aws-white);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .usecase-scenario {
+      font-size: 14px;
+      color: var(--aws-light-gray);
+      margin-bottom: 12px;
+      line-height: 1.6;
+    }
+
+    .usecase-effect {
+      font-size: 14px;
+      color: var(--aws-light-gray);
+      line-height: 1.6;
+      padding: 12px;
+      background: rgba(29, 129, 2, 0.08);
+      border-left: 3px solid var(--aws-green);
+      border-radius: 0 4px 4px 0;
+    }
+
+    .usecase-effect strong {
+      color: var(--aws-green);
+    }
+
+    /* ===== Pricing ===== */
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin: 16px 0;
+    }
+
+    @media (max-width: 640px) {
+      .pricing-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    .pricing-card {
+      background: rgba(255, 153, 0, 0.06);
+      border: 1px solid rgba(255, 153, 0, 0.2);
+      border-radius: 8px;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .pricing-card.free {
+      border-color: rgba(29, 129, 2, 0.4);
+      background: rgba(29, 129, 2, 0.06);
+    }
+
+    .pricing-amount {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--aws-orange);
+      margin-bottom: 4px;
+    }
+
+    .pricing-card.free .pricing-amount {
+      color: var(--aws-green);
+    }
+
+    .pricing-desc {
+      font-size: 13px;
+      color: var(--aws-light-gray);
+    }
+
+    .pricing-label {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--aws-white);
+      margin-bottom: 8px;
+    }
+
+    /* ===== Benefits ===== */
+    .benefits-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    @media (max-width: 640px) {
+      .benefits-grid { grid-template-columns: 1fr; }
+    }
+
+    .benefit-group {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      padding: 20px;
+    }
+
+    .benefit-group h3 {
+      font-size: 15px;
+      margin-bottom: 12px;
+    }
+
+    .benefit-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      margin: 8px 0;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .benefit-icon {
+      flex-shrink: 0;
+      color: var(--aws-green);
+    }
+
+    /* ===== Limitations ===== */
+    .limitation-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      margin: 10px 0;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .limitation-icon {
+      flex-shrink: 0;
+      color: var(--aws-red);
+    }
+
+    .caution-icon {
+      flex-shrink: 0;
+      color: #FF9800;
+    }
+
+    /* ===== Related Services ===== */
+    .related-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    @media (max-width: 640px) {
+      .related-grid { grid-template-columns: 1fr; }
+    }
+
+    .related-card {
+      background: rgba(0, 161, 201, 0.06);
+      border: 1px solid rgba(0, 161, 201, 0.2);
+      border-radius: 8px;
+      padding: 16px;
+    }
+
+    .related-card-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--aws-teal);
+      margin-bottom: 6px;
+    }
+
+    .related-card p {
+      font-size: 13px;
+      color: var(--aws-light-gray);
+      line-height: 1.5;
+    }
+
+    /* ===== Mermaid ===== */
+    .mermaid-container {
+      background: #FFFFFF;
+      border-radius: 12px;
+      padding: 24px;
+      margin: 20px 0;
+      border: 2px solid rgba(255, 153, 0, 0.3);
+      overflow-x: auto;
+    }
+
+    .mermaid {
+      display: flex;
+      justify-content: center;
+    }
+
+    /* ===== Code Block ===== */
+    .code-block {
+      background: #1a1a2e;
+      border-radius: 8px;
+      overflow: hidden;
+      margin: 16px 0;
+    }
+
+    .code-header {
+      background: #16213e;
+      padding: 8px 16px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+    }
+
+    .code-lang {
+      color: var(--aws-orange);
+      font-weight: bold;
+    }
+
+    .code-title {
+      color: var(--aws-light-gray);
+    }
+
+    .code-block pre {
+      margin: 0;
+      padding: 0;
+      overflow-x: auto;
+    }
+
+    .code-block code {
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      line-height: 1.5;
+      padding: 16px !important;
+    }
+
+    /* ===== Flow Diagram ===== */
+    .flow-diagram {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin: 24px 0;
+    }
+
+    .flow-step {
+      background: var(--aws-dark-squid);
+      border: 2px solid var(--aws-orange);
+      border-radius: 8px;
+      padding: 12px 20px;
+      text-align: center;
+      min-width: 100px;
+    }
+
+    .flow-arrow {
+      color: var(--aws-orange);
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    /* ===== Footer ===== */
+    footer {
+      margin-top: 32px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(255, 255, 255, 0.2);
+      font-size: 12px;
+      color: var(--aws-light-gray);
+    }
+
+    footer a {
+      color: var(--aws-teal);
+      text-decoration: none;
+      word-break: break-all;
+    }
+
+    footer a:hover {
+      color: var(--aws-smile-orange);
+    }
+
+    footer ul {
+      list-style: none;
+      padding: 0;
+      margin-top: 8px;
+    }
+
+    footer ul li {
+      margin: 4px 0;
+    }
+
+    /* ===== Responsive ===== */
+    @media (max-width: 640px) {
+      h1 { font-size: 26px; }
+      h2 { font-size: 20px; }
+      .header { flex-direction: column; }
+      .header-right { text-align: left; }
+      .stat-number { font-size: 26px; }
+      .pricing-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <!-- ===== HEADER ===== -->
+    <div class="header">
+      <div class="header-left">
+        <span class="service-badge">EC2 Image Builder</span>
+        <h1>ライフサイクルポリシーのワイルドカードサポートと IAM の簡素化</h1>
+        <div class="subtitle">ワイルドカードパターンで複数レシピを一括管理、IAM ロール作成をワンクリックに</div>
+      </div>
+      <div class="header-right">
+        <div><span class="date-label">リリース日</span></div>
+        <div>2026 年 2 月 27 日</div>
+      </div>
+    </div>
+
+    <!-- ===== STATS ===== -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-number">3</div>
+        <div class="stat-label">ワイルドカードパターン種類</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">50</div>
+        <div class="stat-label">ポリシーあたりの最大レシピ選択数</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">3</div>
+        <div class="stat-label">IAM ロール設定オプション</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">$0</div>
+        <div class="stat-label">Image Builder 利用料金</div>
+      </div>
+    </div>
+
+    <!-- ===== OVERVIEW ===== -->
+    <div class="section">
+      <h2>&#128203; 概要</h2>
+      <p class="overview-text">
+        EC2 Image Builder のライフサイクルポリシーに<span class="highlight">ワイルドカードパターンのサポート</span>が追加され、<span class="highlight">IAM ロールの作成が簡素化</span>されました。ワイルドカードパターンを使用して複数のレシピからのイメージを単一のライフサイクルポリシーで管理できるようになり、コンソールからデフォルトの権限が事前設定された IAM ロールを直接作成できるようになりました。
+      </p>
+      <p class="overview-text">
+        従来は新しいレシピが追加されるたびに個別のライフサイクルポリシーを作成するか、手動でレシピを選択する必要がありました。今回のアップデートにより、<code style="background: rgba(255,153,0,0.12); color: var(--aws-smile-orange); padding: 2px 6px; border-radius: 4px; font-family: 'Courier New', monospace; font-size: 14px;">my-recipe-1.x.x</code> のようなパターンを指定するだけで、将来作成されるレシピも含めて自動的にライフサイクルポリシーが適用されます。
+      </p>
+
+      <div class="before-after">
+        <div class="before-card">
+          <div class="ba-label"><span>&#x274C;</span> Before</div>
+          <div class="ba-item">
+            <span class="ba-icon">&#x2022;</span>
+            <span>新しいレシピごとに個別のライフサイクルポリシーを作成する必要があり、スケーリングが困難</span>
+          </div>
+          <div class="ba-item">
+            <span class="ba-icon">&#x2022;</span>
+            <span>ライフサイクル管理用の IAM ロール作成時に必要な権限を手動で構成する必要があり、設定ミスのリスク</span>
+          </div>
+          <div class="ba-item">
+            <span class="ba-icon">&#x2022;</span>
+            <span>大量のレシピを管理する環境では、ライフサイクルポリシーの運用オーバーヘッドが大きい</span>
+          </div>
+        </div>
+        <div class="after-card">
+          <div class="ba-label"><span>&#x2705;</span> After</div>
+          <div class="ba-item">
+            <span class="ba-icon">&#x2022;</span>
+            <span>ワイルドカードパターンにより、複数のレシピバージョンを単一のポリシーでカバー可能</span>
+          </div>
+          <div class="ba-item">
+            <span class="ba-icon">&#x2022;</span>
+            <span>将来作成される新しいレシピにも自動的にライフサイクルポリシーが適用される</span>
+          </div>
+          <div class="ba-item">
+            <span class="ba-icon">&#x2022;</span>
+            <span>コンソールから IAM ロールをデフォルト権限付きで 1 クリック作成可能に</span>
+          </div>
+          <div class="ba-item">
+            <span class="ba-icon">&#x2022;</span>
+            <span>オンボーディングと継続的なメンテナンスの大幅な簡素化</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== ARCHITECTURE DIAGRAM ===== -->
+    <div class="section">
+      <h2>&#127959; アーキテクチャ図</h2>
+      <p style="margin-bottom: 16px; font-size: 14px;">ワイルドカードパターンを使用したライフサイクルポリシーが複数のレシピバージョンを自動的にマッチし、AMI やスナップショットなどの関連リソースに対してライフサイクル管理アクションを実行する流れを示しています。IAM ロールはコンソールからデフォルト権限付きで簡単に作成できます。</p>
+      <div class="mermaid-container">
+        <pre class="mermaid">
+flowchart TD
+    subgraph ImageBuilder["&#9729;&#65039; EC2 Image Builder"]
+        subgraph Recipes["&#128203; レシピ"]
+            direction LR
+            R1["&#128230; my-recipe&lt;br/&gt;1.0.0"]
+            R2["&#128230; my-recipe&lt;br/&gt;1.1.0"]
+            R3["&#128230; my-recipe&lt;br/&gt;2.0.0"]
+            R4["&#128230; new-recipe&lt;br/&gt;今後作成"]
+            R1 ~~~ R2 ~~~ R3 ~~~ R4
+        end
+        subgraph Policy["&#128260; ライフサイクルポリシー"]
+            Wildcard["&#128269; ワイルドカードパターン&lt;br/&gt;my-recipe-1.x.x"]
+            Rules["&#128207; ルール&lt;br/&gt;廃止 → 無効化 → 削除"]
+            Wildcard --> Rules
+        end
+        subgraph IAMSetup["&#128272; IAM ロール設定"]
+            direction LR
+            ConsoleRole["&#128203; コンソールから&lt;br/&gt;ワンクリック作成"]
+            DefaultPerms["&#9989; デフォルト権限&lt;br/&gt;自動設定"]
+            ConsoleRole ~~~ DefaultPerms
+        end
+    end
+
+    subgraph Resources["&#128190; 関連リソース"]
+        direction LR
+        AMI["&#128444;&#65039; AMI"]
+        Snapshot["&#128248; スナップショット"]
+        ECR["&#128230; コンテナイメージ"]
+        AMI ~~~ Snapshot ~~~ ECR
+    end
+
+    Recipes --> Policy
+    Policy -->|"自動ライフサイクル管理"| Resources
+    IAMSetup -.->|"実行権限を提供"| Policy
+
+    classDef cloud fill:none,stroke:#CCCCCC,stroke-width:2px,color:#666666
+    classDef recipe fill:#E8F1FF,stroke:#4A90E2,stroke-width:2px,color:#333333
+    classDef policy fill:#F3E5F5,stroke:#7B61FF,stroke-width:2px,color:#333333
+    classDef iam fill:#DCEDC8,stroke:#C5E1A5,stroke-width:2px,color:#33691E
+    classDef resource fill:#FFE0B2,stroke:#FFCC80,stroke-width:2px,color:#5D4037
+
+    class ImageBuilder cloud
+    class Recipes,R1,R2,R3,R4 recipe
+    class Policy,Wildcard,Rules policy
+    class IAMSetup,ConsoleRole,DefaultPerms iam
+    class Resources,AMI,Snapshot,ECR resource
+        </pre>
+      </div>
+    </div>
+
+    <!-- ===== KEY FEATURES ===== -->
+    <div class="section">
+      <h2>&#9889; 主要機能</h2>
+      <div class="feature-cards">
+        <div class="feature-card">
+          <div class="feature-card-title">&#128269; ワイルドカードパターンサポート</div>
+          <p>セマンティックバージョンにワイルドカードパターンを使用して、複数のレシピバージョンを単一のポリシーでターゲットできます。将来作成される新しいレシピバージョンにも自動的に適用されます。</p>
+          <ul>
+            <li><code>x.x.x</code>: レシピのすべてのバージョンにマッチ</li>
+            <li><code>1.x.x</code>: メジャーバージョン 1 のすべてのマイナー・パッチバージョンにマッチ</li>
+            <li><code>1.0.x</code>: バージョン 1.0 のすべてのパッチバージョンにマッチ</li>
+          </ul>
+        </div>
+        <div class="feature-card">
+          <div class="feature-card-title">&#128272; IAM ロール作成の簡素化</div>
+          <p>コンソールから 3 つのオプションで IAM ロールを設定可能になりました。</p>
+          <ul>
+            <li><strong style="color: var(--aws-white);">サービスデフォルトによるロール作成</strong>: <code>EC2ImageBuilderLifecycleExecutionPolicy</code> マネージドポリシーが自動アタッチされた事前構成ロールを生成</li>
+            <li><strong style="color: var(--aws-white);">既存ロールの選択</strong>: ドロップダウンリストから互換性のある既存ロールを選択</li>
+            <li><strong style="color: var(--aws-white);">新しいロールの作成</strong>: 信頼ポリシーとライフサイクル実行ポリシーが事前入力された IAM コンソールを開き、ワンクリックでロール作成</li>
+          </ul>
+          <p style="margin-top: 8px;">サービスリンクロールは自動的にフィルタリングされ、互換性のないロールの選択を防止します。</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-card-title">&#128200; スケーラブルなイメージ管理</div>
+          <p>レシピの増加に伴うポリシー管理の手間を大幅に削減します。新規レシピ追加時のポリシー更新が不要になり、組織全体のイメージライフサイクルを効率的に管理できます。</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== TECHNICAL SPECS ===== -->
+    <div class="section">
+      <h2>&#128295; 技術仕様</h2>
+
+      <h3>ワイルドカードパターンの仕様</h3>
+      <table class="attr-table">
+        <thead>
+          <tr>
+            <th>パターン</th>
+            <th>説明</th>
+            <th>マッチ例</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>x.x.x</code></td>
+            <td>すべてのバージョン</td>
+            <td>1.0.0、2.1.3、3.0.0</td>
+          </tr>
+          <tr>
+            <td><code>1.x.x</code></td>
+            <td>メジャーバージョン 1 のすべて</td>
+            <td>1.0.0、1.1.0、1.5.3</td>
+          </tr>
+          <tr>
+            <td><code>1.0.x</code></td>
+            <td>バージョン 1.0 のパッチすべて</td>
+            <td>1.0.0、1.0.1、1.0.15</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3 style="margin-top: 24px;">ライフサイクルポリシーの制限</h3>
+      <table class="attr-table">
+        <thead>
+          <tr>
+            <th>項目</th>
+            <th>制限値</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>ポリシーあたりの最大レシピ選択数</td>
+            <td>50</td>
+          </tr>
+          <tr>
+            <td>ポリシーあたりの最大ルール数</td>
+            <td>3</td>
+          </tr>
+          <tr>
+            <td>ポリシー名の最大長</td>
+            <td>126 文字</td>
+          </tr>
+          <tr>
+            <td>説明の最大長</td>
+            <td>1024 文字</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3 style="margin-top: 24px;">ライフサイクルアクション</h3>
+      <table class="attr-table">
+        <thead>
+          <tr>
+            <th>アクション</th>
+            <th>説明</th>
+            <th>対象リソース</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>廃止 (Deprecate)</td>
+            <td>イメージを廃止状態にマーク</td>
+            <td>AMI、コンテナイメージ</td>
+          </tr>
+          <tr>
+            <td>無効化 (Disable)</td>
+            <td>イメージを無効化し、新しいインスタンス起動を防止</td>
+            <td>AMI</td>
+          </tr>
+          <tr>
+            <td>削除 (Delete)</td>
+            <td>イメージと関連リソースを完全に削除</td>
+            <td>AMI、スナップショット、コンテナイメージ</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3 style="margin-top: 24px;">ライフサイクルフロー</h3>
+      <div class="flow-diagram">
+        <div class="flow-step">&#128230; イメージ作成</div>
+        <span class="flow-arrow">&rarr;</span>
+        <div class="flow-step">&#128269; パターンマッチ</div>
+        <span class="flow-arrow">&rarr;</span>
+        <div class="flow-step">&#9888;&#65039; 廃止</div>
+        <span class="flow-arrow">&rarr;</span>
+        <div class="flow-step">&#128683; 無効化</div>
+        <span class="flow-arrow">&rarr;</span>
+        <div class="flow-step">&#128465;&#65039; 削除</div>
+      </div>
+
+      <p style="font-size: 14px; margin-top: 8px;">今回のアップデートに伴う直接的な API 変更はありません。既存の <code style="background: rgba(255,153,0,0.12); color: var(--aws-smile-orange); padding: 2px 6px; border-radius: 4px; font-family: 'Courier New', monospace; font-size: 13px;">CreateLifecyclePolicy</code> API アクションを使用してワイルドカードパターンを含むポリシーを作成できます。</p>
+    </div>
+
+    <!-- ===== SETUP ===== -->
+    <div class="section">
+      <h2>&#9881; 設定方法</h2>
+
+      <h3>前提条件</h3>
+      <div style="margin-bottom: 20px;">
+        <div class="benefit-item"><span class="benefit-icon">&#10003;</span><span>EC2 Image Builder のパイプラインとレシピが作成済みであること</span></div>
+        <div class="benefit-item"><span class="benefit-icon">&#10003;</span><span>ライフサイクル管理用の IAM ロール (本アップデートでコンソールから簡単に作成可能)</span></div>
+        <div class="benefit-item"><span class="benefit-icon">&#10003;</span><span>適切な IAM 権限を持つユーザーまたはロールでアクセスすること</span></div>
+      </div>
+
+      <h3>ステップ 1: IAM ロールの作成</h3>
+      <p style="font-size: 14px; margin-bottom: 16px;">EC2 Image Builder コンソールでライフサイクルポリシーを作成する際、IAM ロールの設定で以下のいずれかを選択します。推奨は「サービスデフォルトによるロール作成」です。</p>
+      <div class="flow-diagram">
+        <div class="flow-step">&#128203; コンソールで<br/>ポリシー作成画面を開く</div>
+        <span class="flow-arrow">&rarr;</span>
+        <div class="flow-step">&#128272; IAM ロール設定で<br/>「サービスデフォルト」を選択</div>
+        <span class="flow-arrow">&rarr;</span>
+        <div class="flow-step">&#9989; デフォルト権限付き<br/>ロールが自動生成</div>
+      </div>
+
+      <h3 style="margin-top: 24px;">ステップ 2: ワイルドカードパターンを使用したライフサイクルポリシーの作成</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash</span>
+          <span class="code-title">AWS CLI でワイルドカードパターンを含むライフサイクルポリシーを作成</span>
+        </div>
+        <pre><code class="language-bash"># AWS CLI でワイルドカードパターンを含むライフサイクルポリシーを作成
+aws imagebuilder create-lifecycle-policy \
+  --name "my-lifecycle-policy" \
+  --description "Lifecycle policy with wildcard support" \
+  --execution-role "arn:aws:iam::123456789012:role/ImageBuilderLifecycleRole" \
+  --resource-type "AMI_IMAGE" \
+  --resource-selection '{
+    "recipes": [
+      {
+        "name": "my-recipe",
+        "semanticVersion": "1.x.x"
+      }
+    ]
+  }' \
+  --policy-details '[
+    {
+      "action": {
+        "type": "DELETE",
+        "includeResources": {
+          "amis": true,
+          "snapshots": true
+        }
+      },
+      "filter": {
+        "type": "AGE",
+        "value": 90,
+        "unit": "DAYS"
+      }
+    }
+  ]' \
+  --status "ENABLED"</code></pre>
+      </div>
+      <p style="font-size: 14px; margin-top: 8px;">このコマンドは、<code style="background: rgba(255,153,0,0.12); color: var(--aws-smile-orange); padding: 2px 6px; border-radius: 4px; font-family: 'Courier New', monospace; font-size: 13px;">my-recipe</code> のメジャーバージョン 1 のすべてのマイナー・パッチバージョンに対して、90 日経過したイメージとスナップショットを自動削除するライフサイクルポリシーを作成します。</p>
+
+      <h3 style="margin-top: 24px;">ステップ 3: ポリシーの確認</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash</span>
+          <span class="code-title">ライフサイクルポリシーの確認</span>
+        </div>
+        <pre><code class="language-bash"># ライフサイクルポリシーの一覧を確認
+aws imagebuilder list-lifecycle-policies
+
+# 特定のポリシーの詳細を確認
+aws imagebuilder get-lifecycle-policy \
+  --lifecycle-policy-arn "arn:aws:imagebuilder:ap-northeast-1:123456789012:lifecycle-policy/my-lifecycle-policy"</code></pre>
+      </div>
+    </div>
+
+    <!-- ===== BENEFITS ===== -->
+    <div class="section">
+      <h2>&#128640; メリット</h2>
+      <div class="benefits-grid">
+        <div class="benefit-group">
+          <h3>&#128188; ビジネス面</h3>
+          <div class="benefit-item">
+            <span class="benefit-icon">&#10003;</span>
+            <span><strong style="color:var(--aws-white);">運用効率の大幅な向上</strong>: レシピの増加に伴うポリシー管理の手間を排除し、大規模環境でのイメージ管理を簡素化</span>
+          </div>
+          <div class="benefit-item">
+            <span class="benefit-icon">&#10003;</span>
+            <span><strong style="color:var(--aws-white);">コスト削減</strong>: 不要なイメージとスナップショットの自動削除により、ストレージコストを継続的に最適化</span>
+          </div>
+          <div class="benefit-item">
+            <span class="benefit-icon">&#10003;</span>
+            <span><strong style="color:var(--aws-white);">コンプライアンスリスクの低減</strong>: 古いイメージの自動廃止・削除により、脆弱性を含むイメージからのインスタンス起動を防止</span>
+          </div>
+          <div class="benefit-item">
+            <span class="benefit-icon">&#10003;</span>
+            <span><strong style="color:var(--aws-white);">オンボーディングの簡素化</strong>: IAM ロール作成の簡素化により、新規ユーザーのセットアップ時間を短縮</span>
+          </div>
+        </div>
+        <div class="benefit-group">
+          <h3>&#128187; 技術面</h3>
+          <div class="benefit-item">
+            <span class="benefit-icon">&#10003;</span>
+            <span><strong style="color:var(--aws-white);">スケーラブルなポリシー管理</strong>: ワイルドカードパターンにより、将来のレシピバージョンも自動的にカバー</span>
+          </div>
+          <div class="benefit-item">
+            <span class="benefit-icon">&#10003;</span>
+            <span><strong style="color:var(--aws-white);">設定ミスの防止</strong>: IAM ロールのデフォルト権限自動設定により、手動構成に起因するエラーを排除</span>
+          </div>
+          <div class="benefit-item">
+            <span class="benefit-icon">&#10003;</span>
+            <span><strong style="color:var(--aws-white);">柔軟なバージョン指定</strong>: <code>x.x.x</code>、<code>1.x.x</code>、<code>1.0.x</code> の 3 パターンで、メジャー・マイナー・パッチレベルの柔軟なターゲティングが可能</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== LIMITATIONS ===== -->
+    <div class="section">
+      <h2>&#9888; デメリット・制約事項</h2>
+
+      <h3>制限事項</h3>
+      <div class="limitation-item">
+        <span class="limitation-icon">&#9679;</span>
+        <span>ワイルドカードパターンはセマンティックバージョンのレベルでのみ指定可能で、レシピ名自体にはワイルドカードを使用できない</span>
+      </div>
+      <div class="limitation-item">
+        <span class="limitation-icon">&#9679;</span>
+        <span>ポリシーあたりの最大レシピ選択数は 50 に制限されている</span>
+      </div>
+      <div class="limitation-item">
+        <span class="limitation-icon">&#9679;</span>
+        <span>ポリシーあたりの最大ルール数は 3 に制限されている</span>
+      </div>
+
+      <h3 style="margin-top: 20px;">考慮すべき点</h3>
+      <div class="limitation-item">
+        <span class="caution-icon">&#9679;</span>
+        <span>Auto Scaling グループやローンチテンプレートなどの下流依存関係を考慮してライフサイクルアクションを設定する必要がある</span>
+      </div>
+      <div class="limitation-item">
+        <span class="caution-icon">&#9679;</span>
+        <span>ワイルドカードパターンが意図しないレシピバージョンにマッチしないよう、パターンの設計を慎重に行う必要がある</span>
+      </div>
+      <div class="limitation-item">
+        <span class="caution-icon">&#9679;</span>
+        <span>削除アクションは取り消しできないため、テスト環境で動作を確認してから本番環境に適用することを推奨</span>
+      </div>
+      <div class="limitation-item">
+        <span class="caution-icon">&#9679;</span>
+        <span>サービスリンクロールをライフサイクルポリシーで使用していた場合は、互換性のある実行ロールに更新する必要がある</span>
+      </div>
+    </div>
+
+    <!-- ===== USE CASES ===== -->
+    <div class="section">
+      <h2>&#127919; ユースケース</h2>
+
+      <div class="usecase-card">
+        <div class="usecase-title">&#127970; ユースケース 1: 大規模マルチレシピ環境のライフサイクル管理</div>
+        <div class="usecase-scenario">エンタープライズ環境で数十のレシピを管理しており、すべてのレシピに対して一貫したライフサイクルポリシーを適用したいシナリオ。</div>
+        <div class="code-block">
+          <div class="code-header">
+            <span class="code-lang">Bash</span>
+            <span class="code-title">すべてのレシピバージョンに対するポリシー</span>
+          </div>
+          <pre><code class="language-bash">aws imagebuilder create-lifecycle-policy \
+  --name "enterprise-cleanup" \
+  --execution-role "arn:aws:iam::123456789012:role/ImageBuilderLifecycleRole" \
+  --resource-type "AMI_IMAGE" \
+  --resource-selection '{
+    "recipes": [
+      {"name": "base-linux", "semanticVersion": "x.x.x"},
+      {"name": "base-windows", "semanticVersion": "x.x.x"},
+      {"name": "app-server", "semanticVersion": "x.x.x"}
+    ]
+  }' \
+  --policy-details '[
+    {
+      "action": {"type": "DEPRECATE"},
+      "filter": {"type": "AGE", "value": 60, "unit": "DAYS"}
+    },
+    {
+      "action": {"type": "DELETE", "includeResources": {"amis": true, "snapshots": true}},
+      "filter": {"type": "AGE", "value": 180, "unit": "DAYS"}
+    }
+  ]' \
+  --status "ENABLED"</code></pre>
+        </div>
+        <div class="usecase-effect"><strong>効果:</strong> 3 つのレシピのすべてのバージョンに対して、60 日で廃止、180 日で削除というライフサイクルを一括適用。新しいバージョンが追加されても自動的にポリシーの対象になります。</div>
+      </div>
+
+      <div class="usecase-card">
+        <div class="usecase-title">&#128196; ユースケース 2: メジャーバージョンごとの差別化管理</div>
+        <div class="usecase-scenario">メジャーバージョン 1 系は短期間で削除し、メジャーバージョン 2 系は長期間保持したいシナリオ。</div>
+        <div class="code-block">
+          <div class="code-header">
+            <span class="code-lang">Bash</span>
+            <span class="code-title">バージョンごとの差別化ポリシー</span>
+          </div>
+          <pre><code class="language-bash"># v1 系: 30 日で削除
+aws imagebuilder create-lifecycle-policy \
+  --name "v1-cleanup" \
+  --resource-selection '{"recipes": [{"name": "my-app", "semanticVersion": "1.x.x"}]}' \
+  --policy-details '[{"action": {"type": "DELETE"}, "filter": {"type": "AGE", "value": 30, "unit": "DAYS"}}]' \
+  --status "ENABLED" \
+  --execution-role "arn:aws:iam::123456789012:role/ImageBuilderLifecycleRole" \
+  --resource-type "AMI_IMAGE"
+
+# v2 系: 365 日で削除
+aws imagebuilder create-lifecycle-policy \
+  --name "v2-cleanup" \
+  --resource-selection '{"recipes": [{"name": "my-app", "semanticVersion": "2.x.x"}]}' \
+  --policy-details '[{"action": {"type": "DELETE"}, "filter": {"type": "AGE", "value": 365, "unit": "DAYS"}}]' \
+  --status "ENABLED" \
+  --execution-role "arn:aws:iam::123456789012:role/ImageBuilderLifecycleRole" \
+  --resource-type "AMI_IMAGE"</code></pre>
+        </div>
+        <div class="usecase-effect"><strong>効果:</strong> メジャーバージョンごとに異なるライフサイクルルールを適用し、バージョン管理のニーズに合わせた柔軟な管理を実現します。</div>
+      </div>
+
+      <div class="usecase-card">
+        <div class="usecase-title">&#128101; ユースケース 3: 新規チームのオンボーディング簡素化</div>
+        <div class="usecase-scenario">新しいプロジェクトチームが EC2 Image Builder を使い始める際、IAM ロールのセットアップに苦労しているシナリオ。</div>
+        <div class="flow-diagram" style="margin: 16px 0;">
+          <div class="flow-step">&#128203; Image Builder<br/>コンソールを開く</div>
+          <span class="flow-arrow">&rarr;</span>
+          <div class="flow-step">&#128272; 「サービスデフォルトで<br/>ロール作成」を選択</div>
+          <span class="flow-arrow">&rarr;</span>
+          <div class="flow-step">&#9989; デフォルト権限付き<br/>ロールが自動生成</div>
+        </div>
+        <div class="usecase-effect"><strong>効果:</strong> 手動での IAM ポリシー構成が不要になり、設定ミスのリスクを排除。チームのオンボーディング時間を大幅に短縮できます。</div>
+      </div>
+    </div>
+
+    <!-- ===== PRICING ===== -->
+    <div class="section">
+      <h2>&#128176; 料金</h2>
+      <p style="font-size: 14px; margin-bottom: 16px;">EC2 Image Builder の使用自体に料金はかかりません。ただし、Image Builder で使用する以下のリソースに対して標準料金が適用されます。</p>
+      <div class="pricing-grid">
+        <div class="pricing-card free">
+          <div class="pricing-label">EC2 Image Builder</div>
+          <div class="pricing-amount">無料</div>
+          <div class="pricing-desc">サービス利用料金は<br/>かかりません</div>
+        </div>
+        <div class="pricing-card">
+          <div class="pricing-label">AMI ストレージ</div>
+          <div class="pricing-amount" style="font-size: 20px;">EBS 料金</div>
+          <div class="pricing-desc">EBS スナップショット<br/>ストレージ料金</div>
+        </div>
+        <div class="pricing-card">
+          <div class="pricing-label">コンテナイメージ</div>
+          <div class="pricing-amount" style="font-size: 20px;">ECR 料金</div>
+          <div class="pricing-desc">Amazon ECR<br/>ストレージ料金</div>
+        </div>
+        <div class="pricing-card">
+          <div class="pricing-label">ビルドインスタンス</div>
+          <div class="pricing-amount" style="font-size: 20px;">EC2 料金</div>
+          <div class="pricing-desc">EC2 インスタンス料金<br/>ビルド中のみ</div>
+        </div>
+      </div>
+      <p style="font-size: 14px; margin-top: 8px;">ライフサイクルポリシーにより不要なイメージとスナップショットを自動削除することで、ストレージコストの削減が期待できます。</p>
+    </div>
+
+    <!-- ===== REGION ===== -->
+    <div class="section">
+      <h2>&#127758; 利用可能リージョン</h2>
+      <p>ライフサイクルポリシーは、<span class="highlight">すべての商用 AWS リージョン</span>で利用可能です。</p>
+    </div>
+
+    <!-- ===== RELATED SERVICES ===== -->
+    <div class="section">
+      <h2>&#128279; 関連サービス</h2>
+      <div class="related-grid">
+        <div class="related-card">
+          <div class="related-card-title">&#128444;&#65039; EC2 Image Builder</div>
+          <p>カスタマイズされた AMI およびコンテナイメージの作成、配布、管理を自動化するサービス</p>
+        </div>
+        <div class="related-card">
+          <div class="related-card-title">&#128187; Amazon EC2</div>
+          <p>Image Builder で作成された AMI を使用してインスタンスを起動するコンピュートサービス</p>
+        </div>
+        <div class="related-card">
+          <div class="related-card-title">&#128230; Amazon ECR</div>
+          <p>コンテナイメージのレジストリサービス。Image Builder で作成されたコンテナイメージの保存先</p>
+        </div>
+        <div class="related-card">
+          <div class="related-card-title">&#128272; AWS IAM</div>
+          <p>ライフサイクルポリシーの実行に必要な権限を管理する ID およびアクセス管理サービス</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== FOOTER ===== -->
+    <footer>
+      <p><strong>出典:</strong></p>
+      <ul>
+        <li><a href="https://aws.amazon.com/about-aws/whats-new/2026/02/ec2-image-builder-lifecycle-enhancements/" target="_blank" rel="noopener noreferrer">公式発表 - What's New</a></li>
+        <li><a href="https://docs.aws.amazon.com/imagebuilder/latest/userguide/manage-image-lifecycles.html" target="_blank" rel="noopener noreferrer">ドキュメント - ライフサイクルポリシーの管理</a></li>
+        <li><a href="https://docs.aws.amazon.com/imagebuilder/latest/userguide/create-lifecycle-policies.html" target="_blank" rel="noopener noreferrer">ドキュメント - ライフサイクルポリシーの作成</a></li>
+        <li><a href="https://docs.aws.amazon.com/imagebuilder/latest/userguide/image-lifecycle-prerequisites.html" target="_blank" rel="noopener noreferrer">ドキュメント - ライフサイクル管理の前提条件</a></li>
+        <li><a href="https://docs.aws.amazon.com/imagebuilder/latest/APIReference/API_CreateLifecyclePolicy.html" target="_blank" rel="noopener noreferrer">API リファレンス - CreateLifecyclePolicy</a></li>
+      </ul>
+    </footer>
+
+  </div>
+
+  <!-- Mermaid.js -->
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'base',
+      themeVariables: {
+        primaryColor: '#FF9900',
+        primaryTextColor: '#232F3E',
+        primaryBorderColor: '#FF9900',
+        lineColor: '#FF9900',
+        secondaryColor: '#F5F5F5',
+        tertiaryColor: '#FAFAFA',
+        background: '#FFFFFF',
+        mainBkg: '#FFF3E0',
+        nodeBorder: '#FF9900',
+        clusterBkg: '#FFF8E1',
+        clusterBorder: '#FF9900',
+        edgeLabelBackground: '#FFFFFF',
+        textColor: '#232F3E'
+      }
+    });
+  </script>
+  <!-- highlight.js -->
+  <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/highlight.min.js"></script>
+  <script>hljs.highlightAll();</script>
+</body>
+</html>

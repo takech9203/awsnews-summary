@@ -1,0 +1,1288 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Amazon ARC Region Switch - 3 つの新機能: ポストリカバリ、RDS 実行ブロック、Terraform</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/styles/atom-one-dark.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap');
+
+    :root {
+      --aws-squid-ink: #232F3E;
+      --aws-dark-squid: #1A242F;
+      --aws-orange: #FF9900;
+      --aws-smile-orange: #FFAD33;
+      --aws-white: #FFFFFF;
+      --aws-light-gray: #D5DBDB;
+      --aws-teal: #00A1C9;
+      --aws-purple: #8C4FFF;
+      --aws-green: #1D8102;
+      --aws-red: #D13212;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--aws-squid-ink);
+      font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+      color: var(--aws-light-gray);
+      font-size: 16px;
+      line-height: 1.6;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    /* ===== Header ===== */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 32px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .header-left { flex: 1; }
+
+    .service-badge {
+      display: inline-block;
+      background: var(--aws-orange);
+      color: var(--aws-squid-ink);
+      font-size: 13px;
+      font-weight: 700;
+      padding: 4px 14px;
+      border-radius: 20px;
+      margin-bottom: 12px;
+      letter-spacing: 0.5px;
+    }
+
+    h1 {
+      font-size: 36px;
+      font-weight: 700;
+      color: var(--aws-white);
+      line-height: 1.3;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      font-size: 16px;
+      color: var(--aws-light-gray);
+    }
+
+    .header-right {
+      text-align: right;
+      font-size: 14px;
+      color: var(--aws-light-gray);
+      flex-shrink: 0;
+    }
+
+    .date-label {
+      color: var(--aws-orange);
+      font-weight: 600;
+    }
+
+    /* ===== Sections ===== */
+    h2 {
+      font-size: 24px;
+      font-weight: 600;
+      color: var(--aws-orange);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    h3 {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--aws-white);
+      margin-bottom: 12px;
+    }
+
+    .section {
+      background: var(--aws-dark-squid);
+      border-radius: 8px;
+      padding: 24px;
+      margin-bottom: 24px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .highlight {
+      background-color: rgba(255, 153, 0, 0.2);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 600;
+      color: var(--aws-orange);
+    }
+
+    /* ===== Overview ===== */
+    .overview-text {
+      font-size: 16px;
+      color: var(--aws-light-gray);
+      line-height: 1.8;
+      margin-bottom: 20px;
+    }
+
+    /* ===== Stats Cards ===== */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    @media (max-width: 768px) {
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 480px) {
+      .stats-grid { grid-template-columns: 1fr; }
+    }
+
+    .stat-card {
+      background: linear-gradient(135deg, rgba(255, 153, 0, 0.15), rgba(140, 79, 255, 0.1));
+      border: 1px solid rgba(255, 153, 0, 0.3);
+      border-radius: 8px;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .stat-number {
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--aws-orange);
+      line-height: 1.2;
+    }
+
+    .stat-label {
+      font-size: 13px;
+      color: var(--aws-light-gray);
+      margin-top: 4px;
+    }
+
+    /* ===== Before/After ===== */
+    .before-after {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-top: 16px;
+    }
+
+    @media (max-width: 640px) {
+      .before-after { grid-template-columns: 1fr; }
+    }
+
+    .before-card, .after-card {
+      border-radius: 8px;
+      padding: 20px;
+    }
+
+    .before-card {
+      background: rgba(209, 50, 18, 0.1);
+      border: 1px solid rgba(209, 50, 18, 0.3);
+    }
+
+    .after-card {
+      background: rgba(29, 129, 2, 0.1);
+      border: 1px solid rgba(29, 129, 2, 0.3);
+    }
+
+    .ba-label {
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .before-card .ba-label { color: var(--aws-red); }
+    .after-card .ba-label { color: var(--aws-green); }
+
+    .ba-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      margin: 8px 0;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .ba-icon { flex-shrink: 0; font-size: 16px; }
+
+    /* ===== Feature Cards ===== */
+    .feature-cards {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+
+    .feature-card {
+      background: var(--aws-dark-squid);
+      border-radius: 8px;
+      padding: 20px;
+      border-left: 4px solid var(--aws-orange);
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      border-right: 1px solid rgba(255, 255, 255, 0.05);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .feature-card-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--aws-white);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .feature-card p {
+      font-size: 14px;
+      color: var(--aws-light-gray);
+      line-height: 1.6;
+    }
+
+    .feature-card ul {
+      list-style: none;
+      padding: 0;
+      margin-top: 8px;
+    }
+
+    .feature-card ul li {
+      font-size: 14px;
+      color: var(--aws-light-gray);
+      padding: 4px 0;
+      padding-left: 20px;
+      position: relative;
+    }
+
+    .feature-card ul li::before {
+      content: ">";
+      position: absolute;
+      left: 0;
+      color: var(--aws-orange);
+      font-weight: bold;
+    }
+
+    /* ===== Attribute Table ===== */
+    .attr-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0;
+    }
+
+    .attr-table th {
+      background: rgba(255, 153, 0, 0.15);
+      color: var(--aws-orange);
+      font-weight: 600;
+      text-align: left;
+      padding: 10px 14px;
+      font-size: 13px;
+      border-bottom: 2px solid rgba(255, 153, 0, 0.3);
+    }
+
+    .attr-table td {
+      padding: 10px 14px;
+      font-size: 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      color: var(--aws-light-gray);
+    }
+
+    .attr-table tr:hover td {
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .attr-table code {
+      background: rgba(255, 153, 0, 0.12);
+      color: var(--aws-smile-orange);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+    }
+
+    .check-mark { color: var(--aws-green); }
+    .dash-mark { color: rgba(255, 255, 255, 0.3); }
+
+    /* ===== Use Cases ===== */
+    .usecase-card {
+      background: linear-gradient(135deg, rgba(255, 153, 0, 0.08), rgba(255, 153, 0, 0.03));
+      border: 1px solid rgba(255, 153, 0, 0.2);
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+
+    .usecase-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--aws-white);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .usecase-scenario {
+      font-size: 14px;
+      color: var(--aws-light-gray);
+      margin-bottom: 12px;
+      line-height: 1.6;
+    }
+
+    .usecase-steps {
+      font-size: 14px;
+      color: var(--aws-light-gray);
+      margin-bottom: 12px;
+      padding-left: 20px;
+    }
+
+    .usecase-steps li {
+      padding: 2px 0;
+      line-height: 1.6;
+    }
+
+    .usecase-effect {
+      font-size: 14px;
+      color: var(--aws-light-gray);
+      line-height: 1.6;
+      padding: 12px;
+      background: rgba(29, 129, 2, 0.08);
+      border-left: 3px solid var(--aws-green);
+      border-radius: 0 4px 4px 0;
+    }
+
+    .usecase-effect strong {
+      color: var(--aws-green);
+    }
+
+    /* ===== Benefits ===== */
+    .benefits-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    @media (max-width: 640px) {
+      .benefits-grid { grid-template-columns: 1fr; }
+    }
+
+    .benefit-group {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      padding: 20px;
+    }
+
+    .benefit-group h3 {
+      font-size: 15px;
+      margin-bottom: 12px;
+    }
+
+    .benefit-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      margin: 8px 0;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .benefit-icon {
+      flex-shrink: 0;
+      color: var(--aws-green);
+    }
+
+    /* ===== Limitations ===== */
+    .limitation-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      margin: 10px 0;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .limitation-icon {
+      flex-shrink: 0;
+      color: var(--aws-red);
+    }
+
+    .caution-icon {
+      flex-shrink: 0;
+      color: #FF9800;
+    }
+
+    /* ===== Pricing ===== */
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin: 16px 0;
+    }
+
+    @media (max-width: 640px) {
+      .pricing-grid { grid-template-columns: 1fr; }
+    }
+
+    .pricing-card {
+      background: rgba(255, 153, 0, 0.06);
+      border: 1px solid rgba(255, 153, 0, 0.2);
+      border-radius: 8px;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .pricing-card.free {
+      border-color: rgba(29, 129, 2, 0.4);
+      background: rgba(29, 129, 2, 0.06);
+    }
+
+    .pricing-amount {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--aws-orange);
+      margin-bottom: 4px;
+    }
+
+    .pricing-card.free .pricing-amount {
+      color: var(--aws-green);
+    }
+
+    .pricing-desc {
+      font-size: 13px;
+      color: var(--aws-light-gray);
+    }
+
+    .pricing-label {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--aws-white);
+      margin-bottom: 8px;
+    }
+
+    /* ===== Related Services ===== */
+    .related-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    @media (max-width: 640px) {
+      .related-grid { grid-template-columns: 1fr; }
+    }
+
+    .related-card {
+      background: rgba(0, 161, 201, 0.06);
+      border: 1px solid rgba(0, 161, 201, 0.2);
+      border-radius: 8px;
+      padding: 16px;
+    }
+
+    .related-card-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--aws-teal);
+      margin-bottom: 6px;
+    }
+
+    .related-card p {
+      font-size: 13px;
+      color: var(--aws-light-gray);
+      line-height: 1.5;
+    }
+
+    /* ===== Mermaid ===== */
+    .mermaid-container {
+      background: #FFFFFF;
+      border-radius: 12px;
+      padding: 24px;
+      margin: 20px 0;
+      border: 2px solid rgba(255, 153, 0, 0.3);
+      overflow-x: auto;
+    }
+
+    .mermaid {
+      display: flex;
+      justify-content: center;
+    }
+
+    /* ===== Code Block ===== */
+    .code-block {
+      background: #1a1a2e;
+      border-radius: 8px;
+      overflow: hidden;
+      margin: 16px 0;
+    }
+
+    .code-header {
+      background: #16213e;
+      padding: 8px 16px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+    }
+
+    .code-lang {
+      color: var(--aws-orange);
+      font-weight: bold;
+    }
+
+    .code-title {
+      color: var(--aws-light-gray);
+    }
+
+    .code-block pre {
+      margin: 0;
+      padding: 0;
+      overflow-x: auto;
+    }
+
+    .code-block code {
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      line-height: 1.5;
+      padding: 16px !important;
+    }
+
+    /* ===== Flow Diagram ===== */
+    .flow-diagram {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin: 24px 0;
+    }
+
+    .flow-step {
+      background: var(--aws-dark-squid);
+      border: 2px solid var(--aws-orange);
+      border-radius: 8px;
+      padding: 12px 20px;
+      text-align: center;
+      min-width: 100px;
+    }
+
+    .flow-arrow {
+      color: var(--aws-orange);
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    /* ===== Footer ===== */
+    footer {
+      margin-top: 32px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(255, 255, 255, 0.2);
+      font-size: 12px;
+      color: var(--aws-light-gray);
+    }
+
+    footer a {
+      color: var(--aws-teal);
+      text-decoration: none;
+      word-break: break-all;
+    }
+
+    footer a:hover {
+      color: var(--aws-smile-orange);
+    }
+
+    footer ul {
+      list-style: none;
+      padding: 0;
+      margin-top: 8px;
+    }
+
+    footer ul li {
+      margin: 4px 0;
+    }
+
+    /* ===== Responsive ===== */
+    @media (max-width: 640px) {
+      h1 { font-size: 26px; }
+      h2 { font-size: 20px; }
+      .header { flex-direction: column; }
+      .header-right { text-align: left; }
+      .stat-number { font-size: 26px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <!-- ===== HEADER ===== -->
+    <div class="header">
+      <div class="header-left">
+        <span class="service-badge">Amazon Application Recovery Controller</span>
+        <h1>Region Switch に 3 つの新機能を追加</h1>
+        <div class="subtitle">ポストリカバリワークフロー、ネイティブ RDS 実行ブロック、Terraform サポートでマルチリージョン DR を完全自動化</div>
+      </div>
+      <div class="header-right">
+        <div><span class="date-label">リリース日</span></div>
+        <div>2026 年 2 月 27 日</div>
+      </div>
+    </div>
+
+    <!-- ===== STATS ===== -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-number">3</div>
+        <div class="stat-label">新機能追加</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">9</div>
+        <div class="stat-label">API メソッド更新</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">12</div>
+        <div class="stat-label">実行ブロック種類</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">30<span style="font-size: 16px;">min</span></div>
+        <div class="stat-label">プラン評価間隔</div>
+      </div>
+    </div>
+
+    <!-- ===== OVERVIEW ===== -->
+    <div class="section">
+      <h2>&#128203; 概要</h2>
+      <p class="overview-text">
+        Amazon Application Recovery Controller (ARC) Region Switch に <span class="highlight">3 つの新機能</span>が追加されました。<span class="highlight">ポストリカバリワークフロー</span>によりフェイルオーバー後の復旧準備を自動化、<span class="highlight">ネイティブ RDS 実行ブロック</span>により RDS データベースリカバリを自動オーケストレーション、<span class="highlight">AWS Provider for Terraform</span> により災害復旧プランを IaC として管理し CI/CD パイプラインに統合できるようになりました。
+      </p>
+
+      <div class="flow-diagram">
+        <div class="flow-step">&#9888;&#65039; リージョン障害<br/>発生</div>
+        <span class="flow-arrow">&#8594;</span>
+        <div class="flow-step">&#9889; リカバリ<br/>ワークフロー</div>
+        <span class="flow-arrow">&#8594;</span>
+        <div class="flow-step">&#128260; ポストリカバリ<br/>ワークフロー</div>
+        <span class="flow-arrow">&#8594;</span>
+        <div class="flow-step">&#9989; 復旧完了<br/>冗長性回復</div>
+      </div>
+
+      <div class="before-after">
+        <div class="before-card">
+          <div class="ba-label"><span>&#10060;</span> Before</div>
+          <div class="ba-item">
+            <span class="ba-icon">&#8226;</span>
+            <span>フェイルオーバー後のスタンバイリージョン復旧準備を手動で実施</span>
+          </div>
+          <div class="ba-item">
+            <span class="ba-icon">&#8226;</span>
+            <span>スケーリング、リードレプリカ再作成、設定検証に手動コーディネーションが必要</span>
+          </div>
+          <div class="ba-item">
+            <span class="ba-icon">&#8226;</span>
+            <span>RDS リードレプリカの昇格やレプリケーション再作成が手動で遅延・エラーの原因に</span>
+          </div>
+          <div class="ba-item">
+            <span class="ba-icon">&#8226;</span>
+            <span>災害復旧プランをコンソール / CLI のみで管理、CI/CD 統合が困難</span>
+          </div>
+        </div>
+        <div class="after-card">
+          <div class="ba-label"><span>&#9989;</span> After</div>
+          <div class="ba-item">
+            <span class="ba-icon">&#8226;</span>
+            <span>ポストリカバリワークフローでリージョン復旧準備を自動化</span>
+          </div>
+          <div class="ba-item">
+            <span class="ba-icon">&#8226;</span>
+            <span>Lambda、手動承認ゲート、子プランで複雑なオーケストレーション対応</span>
+          </div>
+          <div class="ba-item">
+            <span class="ba-icon">&#8226;</span>
+            <span>ネイティブ RDS 実行ブロックでリードレプリカ昇格とレプリカ作成を自動化</span>
+          </div>
+          <div class="ba-item">
+            <span class="ba-icon">&#8226;</span>
+            <span>Terraform で DR プランを IaC 管理、CI/CD パイプラインに統合可能</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== ARCHITECTURE DIAGRAM ===== -->
+    <div class="section">
+      <h2>&#127959; アーキテクチャ図</h2>
+      <p style="margin-bottom: 16px; font-size: 14px;">ARC Region Switch の新しい 3 つの機能の関係を示しています。Region Switch プランがリカバリワークフローを実行した後、ポストリカバリワークフローが自動的にスタンバイリージョンの復旧準備を行います。Terraform AWS Provider を使用してプランを IaC として管理し、CI/CD パイプラインに統合できます。</p>
+      <div class="mermaid-container">
+        <pre class="mermaid">
+flowchart TD
+    subgraph ARC["&#9729;&#65039; ARC Region Switch"]
+        direction TB
+        Plan["&#128203; Region Switch プラン"]
+
+        subgraph Recovery["&#9889; リカバリワークフロー"]
+            direction LR
+            RDSPromote["&#128452;&#65039; RDS リードレプリカ&lt;br/&gt;昇格ブロック"]
+            Aurora["&#127760; Aurora Global&lt;br/&gt;Database ブロック"]
+            ECS["&#128230; ECS/EKS&lt;br/&gt;スケーリングブロック"]
+            RDSPromote ~~~ Aurora ~~~ ECS
+        end
+
+        subgraph PostRecovery["&#128260; ポストリカバリワークフロー"]
+            direction LR
+            RDSCreate["&#128452;&#65039; RDS クロスリージョン&lt;br/&gt;レプリカ作成ブロック"]
+            Lambda["&#9889; カスタムアクション&lt;br/&gt;Lambda ブロック"]
+            Manual["&#9995; 手動承認&lt;br/&gt;ブロック"]
+            ChildPlan["&#128203; 子プラン&lt;br/&gt;ブロック"]
+            RDSCreate ~~~ Lambda ~~~ Manual ~~~ ChildPlan
+        end
+    end
+
+    subgraph IaC["&#128295; Infrastructure as Code"]
+        direction LR
+        Terraform["&#128221; Terraform&lt;br/&gt;AWS Provider"]
+        CICD["&#128260; CI/CD&lt;br/&gt;パイプライン"]
+        Terraform ~~~ CICD
+    end
+
+    subgraph Regions["&#127757; マルチリージョン"]
+        direction LR
+        Primary["&#128994; プライマリリージョン"]
+        Standby["&#128993; スタンバイリージョン"]
+        Primary ~~~ Standby
+    end
+
+    Plan --> Recovery
+    Recovery -->|"リカバリ完了後"| PostRecovery
+    IaC -->|"プラン定義"| Plan
+    Plan -->|"フェイルオーバー"| Regions
+
+    classDef arc fill:none,stroke:#CCCCCC,stroke-width:2px,color:#666666
+    classDef recovery fill:#FFE0B2,stroke:#FFCC80,stroke-width:2px,color:#5D4037
+    classDef postrecovery fill:#DCEDC8,stroke:#C5E1A5,stroke-width:2px,color:#33691E
+    classDef iac fill:#E8EAF6,stroke:#C5CAE9,stroke-width:2px,color:#283593
+    classDef region fill:#E3F2FD,stroke:#BBDEFB,stroke-width:2px,color:#1565C0
+    classDef container fill:none,stroke:#CCCCCC,stroke-width:2px,color:#666666
+
+    class Plan recovery
+    class RDSPromote,Aurora,ECS recovery
+    class RDSCreate,Lambda,Manual,ChildPlan postrecovery
+    class Terraform,CICD iac
+    class Primary,Standby region
+    class ARC,Recovery,PostRecovery,IaC,Regions container
+        </pre>
+      </div>
+    </div>
+
+    <!-- ===== KEY FEATURES ===== -->
+    <div class="section">
+      <h2>&#9889; 主要機能</h2>
+      <div class="feature-cards">
+        <div class="feature-card">
+          <div class="feature-card-title">&#128260; ポストリカバリワークフロー</div>
+          <p>フェイルオーバーまたはフェイルバック後、もう一方のリージョンを次のリカバリイベントに備えて準備するワークフローです。アクティブ/パッシブデプロイメントで利用可能で、手動トリガーで実行します。</p>
+          <ul>
+            <li>カスタムアクション Lambda 実行ブロック</li>
+            <li>Amazon RDS クロスリージョンレプリカ作成実行ブロック</li>
+            <li>ARC Region Switch プラン実行ブロック (子プラン)</li>
+            <li>手動承認実行ブロック</li>
+          </ul>
+        </div>
+        <div class="feature-card">
+          <div class="feature-card-title">&#128452;&#65039; RDS 実行ブロック</div>
+          <p>RDS データベースのフェイルオーバーとリカバリを ARC が直接オーケストレーションする機能です。</p>
+          <ul>
+            <li><strong style="color: var(--aws-white);">RDS リードレプリカ昇格実行ブロック</strong>: フェイルオーバー中にリードレプリカをスタンドアロンインスタンスに昇格</li>
+            <li><strong style="color: var(--aws-white);">RDS クロスリージョンレプリカ作成実行ブロック</strong>: ポストリカバリワークフローの一部としてレプリカを作成</li>
+            <li>昇格後も DNS エンドポイントは変更されない</li>
+            <li>昇格されたインスタンスは元のプライマリインスタンスのバックアップ設定を継承</li>
+          </ul>
+        </div>
+        <div class="feature-card">
+          <div class="feature-card-title">&#128221; AWS Provider for Terraform サポート</div>
+          <p>災害復旧プランを Infrastructure as Code として管理し、CI/CD パイプラインにアプリケーションデプロイメントと並行して統合できます。</p>
+          <ul>
+            <li><code>aws_arcregionswitch_plan</code> リソースとして Terraform で管理</li>
+            <li>バージョン管理とコードレビューが可能</li>
+            <li>CI/CD パイプラインでの自動テストに統合</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== TECHNICAL SPECS ===== -->
+    <div class="section">
+      <h2>&#128295; 技術仕様</h2>
+
+      <h3>実行ブロック一覧</h3>
+      <div style="overflow-x: auto;">
+        <table class="attr-table">
+          <thead>
+            <tr>
+              <th>実行ブロック</th>
+              <th>用途</th>
+              <th style="text-align: center;">リカバリ</th>
+              <th style="text-align: center;">ポストリカバリ</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>ARC プラン実行ブロック</td>
+              <td>子プランの実行</td>
+              <td style="text-align: center;"><span class="check-mark">&#10004;</span></td>
+              <td style="text-align: center;"><span class="check-mark">&#10004;</span></td>
+            </tr>
+            <tr>
+              <td>EC2 Auto Scaling グループ</td>
+              <td>コンピュートスケーリング</td>
+              <td style="text-align: center;"><span class="check-mark">&#10004;</span></td>
+              <td style="text-align: center;"><span class="dash-mark">-</span></td>
+            </tr>
+            <tr>
+              <td>EKS リソーススケーリング</td>
+              <td>Kubernetes スケーリング</td>
+              <td style="text-align: center;"><span class="check-mark">&#10004;</span></td>
+              <td style="text-align: center;"><span class="dash-mark">-</span></td>
+            </tr>
+            <tr>
+              <td>ECS サービススケーリング</td>
+              <td>コンテナスケーリング</td>
+              <td style="text-align: center;"><span class="check-mark">&#10004;</span></td>
+              <td style="text-align: center;"><span class="dash-mark">-</span></td>
+            </tr>
+            <tr>
+              <td>ARC ルーティングコントロール</td>
+              <td>トラフィック制御</td>
+              <td style="text-align: center;"><span class="check-mark">&#10004;</span></td>
+              <td style="text-align: center;"><span class="dash-mark">-</span></td>
+            </tr>
+            <tr>
+              <td>Aurora Global Database</td>
+              <td>Aurora フェイルオーバー</td>
+              <td style="text-align: center;"><span class="check-mark">&#10004;</span></td>
+              <td style="text-align: center;"><span class="dash-mark">-</span></td>
+            </tr>
+            <tr>
+              <td>DocumentDB Global Cluster</td>
+              <td>DocumentDB フェイルオーバー</td>
+              <td style="text-align: center;"><span class="check-mark">&#10004;</span></td>
+              <td style="text-align: center;"><span class="dash-mark">-</span></td>
+            </tr>
+            <tr>
+              <td>RDS リードレプリカ昇格</td>
+              <td>RDS フェイルオーバー</td>
+              <td style="text-align: center;"><span class="check-mark">&#10004;</span></td>
+              <td style="text-align: center;"><span class="dash-mark">-</span></td>
+            </tr>
+            <tr>
+              <td>RDS クロスリージョンレプリカ作成</td>
+              <td>レプリカ復旧</td>
+              <td style="text-align: center;"><span class="dash-mark">-</span></td>
+              <td style="text-align: center;"><span class="check-mark">&#10004;</span></td>
+            </tr>
+            <tr>
+              <td>手動承認</td>
+              <td>承認ゲート</td>
+              <td style="text-align: center;"><span class="check-mark">&#10004;</span></td>
+              <td style="text-align: center;"><span class="check-mark">&#10004;</span></td>
+            </tr>
+            <tr>
+              <td>カスタムアクション Lambda</td>
+              <td>カスタムロジック</td>
+              <td style="text-align: center;"><span class="check-mark">&#10004;</span></td>
+              <td style="text-align: center;"><span class="check-mark">&#10004;</span></td>
+            </tr>
+            <tr>
+              <td>Route 53 ヘルスチェック</td>
+              <td>DNS ヘルスチェック</td>
+              <td style="text-align: center;"><span class="check-mark">&#10004;</span></td>
+              <td style="text-align: center;"><span class="dash-mark">-</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 style="margin-top: 24px;">API 変更履歴</h3>
+      <div style="overflow-x: auto;">
+        <table class="attr-table">
+          <thead>
+            <tr>
+              <th>変更概要</th>
+              <th>詳細</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>API 更新数</td>
+              <td><span class="highlight">9 メソッド</span></td>
+            </tr>
+            <tr>
+              <td>主な追加機能</td>
+              <td>ポストリカバリワークフロー設定、RDS 実行ブロック設定</td>
+            </tr>
+            <tr>
+              <td>Terraform リソース</td>
+              <td><code>aws_arcregionswitch_plan</code></td>
+            </tr>
+            <tr>
+              <td>プラン評価間隔</td>
+              <td>30 分ごとにプランの正しい設定とレディネスを確認</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ===== SETUP GUIDE ===== -->
+    <div class="section">
+      <h2>&#128736;&#65039; 設定方法</h2>
+
+      <h3>前提条件</h3>
+      <div style="margin-bottom: 20px;">
+        <div class="ba-item"><span class="ba-icon" style="color: var(--aws-orange);">1.</span> <span>マルチリージョンにデプロイされたアプリケーションがあること</span></div>
+        <div class="ba-item"><span class="ba-icon" style="color: var(--aws-orange);">2.</span> <span>ARC Region Switch のプランが作成済みであること</span></div>
+        <div class="ba-item"><span class="ba-icon" style="color: var(--aws-orange);">3.</span> <span>適切な IAM 権限が設定されていること</span></div>
+        <div class="ba-item"><span class="ba-icon" style="color: var(--aws-orange);">4.</span> <span>Terraform を使用する場合、AWS Provider がインストール済みであること</span></div>
+      </div>
+
+      <h3>ステップ 1: RDS リードレプリカ昇格実行ブロックの設定</h3>
+      <p style="font-size: 14px; margin-bottom: 12px;">ARC コンソールで Region Switch プランのワークフローに RDS リードレプリカ昇格実行ブロックを追加します。</p>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash</span>
+          <span class="code-title">RDS リードレプリカの状態を確認</span>
+        </div>
+        <pre><code class="language-bash"># RDS リードレプリカの状態を確認
+aws rds describe-db-instances \
+  --db-instance-identifier my-read-replica \
+  --query "DBInstances[0].{Status:DBInstanceStatus,ReadReplicaSourceDBInstanceIdentifier:ReadReplicaSourceDBInstanceIdentifier}"</code></pre>
+      </div>
+
+      <h3 style="margin-top: 20px;">ステップ 2: ポストリカバリワークフローの作成</h3>
+      <div style="margin-bottom: 12px;">
+        <div class="ba-item"><span class="ba-icon" style="color: var(--aws-orange);">1.</span> <span>Region Switch コンソールでプランを編集</span></div>
+        <div class="ba-item"><span class="ba-icon" style="color: var(--aws-orange);">2.</span> <span>ポストリカバリワークフローを有効化</span></div>
+        <div class="ba-item"><span class="ba-icon" style="color: var(--aws-orange);">3.</span> <span>「Post-recovery」テンプレートを使用してステップを追加</span></div>
+        <div class="ba-item"><span class="ba-icon" style="color: var(--aws-orange);">4.</span> <span>「Amazon RDS create cross-Region replica」実行ブロックを選択</span></div>
+        <div class="ba-item"><span class="ba-icon" style="color: var(--aws-orange);">5.</span> <span>ARN とタイムアウト値を設定</span></div>
+      </div>
+
+      <h3 style="margin-top: 20px;">ステップ 3: ポストリカバリワークフローの実行</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash</span>
+          <span class="code-title">Region Switch プラン実行状態の確認</span>
+        </div>
+        <pre><code class="language-bash"># Region Switch のプラン実行状態を確認
+aws arc-region-switch list-plan-executions \
+  --plan-id my-plan-id</code></pre>
+      </div>
+
+      <h3 style="margin-top: 20px;">ステップ 4: Terraform による災害復旧プランの管理</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">HCL</span>
+          <span class="code-title">Terraform による Region Switch プランの定義例</span>
+        </div>
+        <pre><code class="language-hcl"># Terraform による Region Switch プランの定義例
+resource "aws_arcregionswitch_plan" "dr_plan" {
+  plan_name = "my-dr-plan"
+
+  # プランの設定はドキュメントを参照
+}</code></pre>
+      </div>
+
+      <h3 style="margin-top: 20px;">ステップ 5: IAM ポリシーの設定</h3>
+      <p style="font-size: 14px; margin-bottom: 12px;">RDS 実行ブロックに必要な IAM ポリシーを設定します。</p>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">JSON</span>
+          <span class="code-title">RDS 操作用 IAM ポリシー</span>
+        </div>
+        <pre><code class="language-json">{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "rds:DescribeDBInstances",
+        "rds:PromoteReadReplica",
+        "rds:CreateDBInstanceReadReplica",
+        "rds:ModifyDBInstance"
+      ],
+      "Resource": "*"
+    }
+  ]
+}</code></pre>
+      </div>
+    </div>
+
+    <!-- ===== BENEFITS ===== -->
+    <div class="section">
+      <h2>&#127919; メリット</h2>
+      <div class="benefits-grid">
+        <div class="benefit-group">
+          <h3>&#128188; ビジネス面</h3>
+          <div class="benefit-item">
+            <span class="benefit-icon">&#10004;</span>
+            <span><strong style="color: var(--aws-white);">復旧時間の短縮</strong>: ポストリカバリワークフローの自動化により、次のリカバリイベントへの準備時間を大幅に短縮</span>
+          </div>
+          <div class="benefit-item">
+            <span class="benefit-icon">&#10004;</span>
+            <span><strong style="color: var(--aws-white);">運用負荷の軽減</strong>: RDS データベースリカバリの手動ステップが不要になり、エンジニアリング工数を削減</span>
+          </div>
+          <div class="benefit-item">
+            <span class="benefit-icon">&#10004;</span>
+            <span><strong style="color: var(--aws-white);">信頼性の向上</strong>: 自動化されたオーケストレーションにより、手動操作によるエラーリスクを低減</span>
+          </div>
+          <div class="benefit-item">
+            <span class="benefit-icon">&#10004;</span>
+            <span><strong style="color: var(--aws-white);">一貫した DR 管理</strong>: Terraform による IaC 管理で、DR プランのバージョン管理とレビューが可能に</span>
+          </div>
+        </div>
+        <div class="benefit-group">
+          <h3>&#9881;&#65039; 技術面</h3>
+          <div class="benefit-item">
+            <span class="benefit-icon">&#10004;</span>
+            <span><strong style="color: var(--aws-white);">エンドツーエンドの自動化</strong>: フェイルオーバーからポストリカバリまでの一連プロセスを完全自動化</span>
+          </div>
+          <div class="benefit-item">
+            <span class="benefit-icon">&#10004;</span>
+            <span><strong style="color: var(--aws-white);">ネイティブ RDS 統合</strong>: リードレプリカの昇格とレプリカ再作成を ARC が直接オーケストレーション</span>
+          </div>
+          <div class="benefit-item">
+            <span class="benefit-icon">&#10004;</span>
+            <span><strong style="color: var(--aws-white);">柔軟なカスタマイズ</strong>: Lambda、手動承認ゲート、子プラン埋め込みで複雑なシナリオに対応</span>
+          </div>
+          <div class="benefit-item">
+            <span class="benefit-icon">&#10004;</span>
+            <span><strong style="color: var(--aws-white);">CI/CD 統合</strong>: Terraform で DR プランをアプリケーションデプロイメントパイプラインに統合</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== LIMITATIONS ===== -->
+    <div class="section">
+      <h2>&#9888;&#65039; 制約事項・注意点</h2>
+
+      <h3>制限事項</h3>
+      <div class="limitation-item">
+        <span class="limitation-icon">&#9679;</span>
+        <span>ポストリカバリワークフローはアクティブ/パッシブデプロイメントでのみ利用可能</span>
+      </div>
+      <div class="limitation-item">
+        <span class="limitation-icon">&#9679;</span>
+        <span>ポストリカバリワークフローは手動トリガーでのみ実行可能 (自動トリガーは非対応)</span>
+      </div>
+      <div class="limitation-item">
+        <span class="limitation-icon">&#9679;</span>
+        <span>ポストリカバリの実行には、両方のリージョンが正常かつアクセス可能である必要がある</span>
+      </div>
+      <div class="limitation-item">
+        <span class="limitation-icon">&#9679;</span>
+        <span>ポストリカバリの実行には、直近のリカバリ実行 ID が必要</span>
+      </div>
+      <div class="limitation-item">
+        <span class="limitation-icon">&#9679;</span>
+        <span>Region Switch プランのネストは 1 レベルまで</span>
+      </div>
+
+      <h3 style="margin-top: 20px;">考慮すべき点</h3>
+      <div class="limitation-item">
+        <span class="caution-icon">&#9679;</span>
+        <span>RDS 実行ブロック使用時、適切な IAM ポリシーの事前設定が必要</span>
+      </div>
+      <div class="limitation-item">
+        <span class="caution-icon">&#9679;</span>
+        <span>リードレプリカ昇格後、昇格されたインスタンスは元のプライマリからのレプリケーションを停止</span>
+      </div>
+      <div class="limitation-item">
+        <span class="caution-icon">&#9679;</span>
+        <span>Terraform Provider の初期設定と学習コストが発生</span>
+      </div>
+      <div class="limitation-item">
+        <span class="caution-icon">&#9679;</span>
+        <span>ポストリカバリワークフローの実行時間はリソースの規模に依存</span>
+      </div>
+    </div>
+
+    <!-- ===== USE CASES ===== -->
+    <div class="section">
+      <h2>&#128161; ユースケース</h2>
+
+      <div class="usecase-card">
+        <div class="usecase-title">&#128452;&#65039; ユースケース 1: RDS データベースのマルチリージョン災害復旧</div>
+        <div class="usecase-scenario">
+          <strong style="color: var(--aws-white);">シナリオ</strong>: 企業がマルチリージョンに RDS データベースをデプロイしており、リージョン障害時にリードレプリカを自動昇格させ、復旧後にレプリケーションを再構成したい。
+        </div>
+        <ol class="usecase-steps">
+          <li>RDS リードレプリカ昇格実行ブロックをリカバリワークフローに追加</li>
+          <li>RDS クロスリージョンレプリカ作成実行ブロックをポストリカバリワークフローに追加</li>
+          <li>フェイルオーバー実行後、ポストリカバリワークフローでレプリカを再作成</li>
+        </ol>
+        <div class="usecase-effect">
+          <strong>効果</strong>: RDS データベースのフェイルオーバーとポストリカバリの両方が自動化され、手動介入なしでマルチリージョンの冗長性を維持できます。
+        </div>
+      </div>
+
+      <div class="usecase-card">
+        <div class="usecase-title">&#128221; ユースケース 2: Terraform による災害復旧プランの管理</div>
+        <div class="usecase-scenario">
+          <strong style="color: var(--aws-white);">シナリオ</strong>: DevOps チームがインフラストラクチャ全体を Terraform で管理しており、災害復旧プランも同じワークフローで管理したい。
+        </div>
+        <div class="code-block" style="margin-bottom: 12px;">
+          <div class="code-header">
+            <span class="code-lang">HCL</span>
+            <span class="code-title">Terraform 定義例</span>
+          </div>
+          <pre><code class="language-hcl">resource "aws_arcregionswitch_plan" "app_dr" {
+  plan_name = "my-application-dr"
+  # プラン設定
+}</code></pre>
+        </div>
+        <div class="usecase-effect">
+          <strong>効果</strong>: 災害復旧プランがコードとして管理され、バージョン管理、コードレビュー、CI/CD パイプラインでの自動テストが可能になります。
+        </div>
+      </div>
+
+      <div class="usecase-card">
+        <div class="usecase-title">&#9889; ユースケース 3: 複雑なポストリカバリオーケストレーション</div>
+        <div class="usecase-scenario">
+          <strong style="color: var(--aws-white);">シナリオ</strong>: フェイルオーバー後に複数のリソースの復旧準備が必要で、カスタムロジックの実行と承認プロセスを組み込みたい。
+        </div>
+        <ol class="usecase-steps">
+          <li>Lambda 関数でスケーリング設定を検証するカスタムアクションを追加</li>
+          <li>手動承認ゲートでチーム確認を追加</li>
+          <li>RDS クロスリージョンレプリカ作成で冗長性を復元</li>
+          <li>子プランで追加のリソース復旧を実行</li>
+        </ol>
+        <div class="usecase-effect">
+          <strong>効果</strong>: フェイルオーバー後の複雑な復旧準備プロセスを、カスタムロジック、承認ゲート、データベース復旧、子プランの組み合わせで柔軟にオーケストレーションできます。
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== PRICING ===== -->
+    <div class="section">
+      <h2>&#128176; 料金</h2>
+      <div class="pricing-grid">
+        <div class="pricing-card">
+          <div class="pricing-label">Region Switch プラン</div>
+          <div class="pricing-amount" style="font-size: 18px;">ARC 標準料金</div>
+          <div class="pricing-desc">が適用</div>
+        </div>
+        <div class="pricing-card free">
+          <div class="pricing-label">ポストリカバリ WF</div>
+          <div class="pricing-amount">$0</div>
+          <div class="pricing-desc">追加料金なし</div>
+        </div>
+        <div class="pricing-card free">
+          <div class="pricing-label">RDS 実行ブロック</div>
+          <div class="pricing-amount">$0</div>
+          <div class="pricing-desc">追加料金なし</div>
+        </div>
+      </div>
+      <div class="pricing-grid">
+        <div class="pricing-card free">
+          <div class="pricing-label">Terraform サポート</div>
+          <div class="pricing-amount">$0</div>
+          <div class="pricing-desc">追加料金なし</div>
+        </div>
+        <div class="pricing-card">
+          <div class="pricing-label">RDS インスタンス</div>
+          <div class="pricing-amount" style="font-size: 18px;">RDS 標準料金</div>
+          <div class="pricing-desc">昇格・レプリカ作成に伴う料金</div>
+        </div>
+        <div class="pricing-card">
+          <div class="pricing-label">Lambda 実行</div>
+          <div class="pricing-amount" style="font-size: 18px;">Lambda 標準料金</div>
+          <div class="pricing-desc">カスタムアクション実行料金</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== REGION AVAILABILITY ===== -->
+    <div class="section">
+      <h2>&#127757; 利用可能リージョン</h2>
+      <p style="font-size: 14px; line-height: 1.8;">ARC Region Switch は、<span class="highlight">すべての AWS 商用リージョン</span>で利用可能です。リージョンごとの利用可能状況は <a href="https://docs.aws.amazon.com/r53recovery/latest/dg/aws-regions-rs.html" target="_blank" rel="noopener noreferrer" style="color: var(--aws-teal); text-decoration: none;">ARC Region Switch の利用可能リージョン</a> を参照してください。</p>
+    </div>
+
+    <!-- ===== RELATED SERVICES ===== -->
+    <div class="section">
+      <h2>&#128279; 関連サービス</h2>
+      <div class="related-grid">
+        <div class="related-card">
+          <div class="related-card-title">Amazon Application Recovery Controller</div>
+          <p>マルチリージョンアプリケーションの可用性を管理するためのサービス</p>
+        </div>
+        <div class="related-card">
+          <div class="related-card-title">Amazon RDS</div>
+          <p>クラウドで簡単にリレーショナルデータベースのセットアップ、運用、スケーリングを行えるマネージドサービス</p>
+        </div>
+        <div class="related-card">
+          <div class="related-card-title">Amazon Aurora Global Database</div>
+          <p>複数の AWS リージョンにまたがるグローバルデータベースサービス</p>
+        </div>
+        <div class="related-card">
+          <div class="related-card-title">AWS Lambda</div>
+          <p>サーバーレスコンピューティングサービス。カスタムアクション実行ブロックで使用</p>
+        </div>
+        <div class="related-card">
+          <div class="related-card-title">Amazon CloudWatch</div>
+          <p>ARC のアプリケーションヘルスアラームやトリガーに使用されるモニタリングサービス</p>
+        </div>
+        <div class="related-card">
+          <div class="related-card-title">Terraform AWS Provider</div>
+          <p>AWS リソースを Infrastructure as Code として管理するための Terraform プロバイダー</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== FOOTER ===== -->
+    <footer>
+      <p><strong style="color: var(--aws-orange);">&#128206; 出典</strong></p>
+      <ul>
+        <li>&#128196; <a href="https://aws.amazon.com/about-aws/whats-new/2026/02/arc-region-switch-post-recovery-rdsblock/" target="_blank" rel="noopener noreferrer">公式発表 - What's New</a></li>
+        <li>&#128214; <a href="https://aws.amazon.com/blogs/aws/introducing-amazon-application-recovery-controller-region-switch-a-multi-region-application-recovery-service/" target="_blank" rel="noopener noreferrer">AWS Blog - Introducing Amazon Application Recovery Controller Region Switch</a></li>
+        <li>&#128203; <a href="https://docs.aws.amazon.com/r53recovery/latest/dg/region-switch.html" target="_blank" rel="noopener noreferrer">Region Switch ドキュメント</a></li>
+        <li>&#128268; <a href="https://docs.aws.amazon.com/r53recovery/latest/dg/components-rs.html" target="_blank" rel="noopener noreferrer">Region Switch コンポーネント</a></li>
+        <li>&#128295; <a href="https://docs.aws.amazon.com/r53recovery/latest/dg/working-with-rs-execution-blocks.html" target="_blank" rel="noopener noreferrer">実行ブロックの追加</a></li>
+        <li>&#128218; <a href="https://docs.aws.amazon.com/r53recovery/latest/dg/tutorial-post-recovery.html" target="_blank" rel="noopener noreferrer">ポストリカバリワークフローチュートリアル</a></li>
+        <li>&#128736;&#65039; <a href="https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/arcregionswitch_plan" target="_blank" rel="noopener noreferrer">Terraform Provider ドキュメント</a></li>
+        <li>&#128202; <a href="https://awsapichanges.com/archive/changes/c204bb-arc-region-switch.html" target="_blank" rel="noopener noreferrer">関連 API 変更 - ARC Region Switch</a></li>
+      </ul>
+    </footer>
+
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'base',
+      themeVariables: {
+        primaryColor: '#FF9900',
+        primaryTextColor: '#232F3E',
+        primaryBorderColor: '#FF9900',
+        lineColor: '#FF9900',
+        secondaryColor: '#F5F5F5',
+        tertiaryColor: '#FAFAFA',
+        background: '#FFFFFF',
+        mainBkg: '#FFF3E0',
+        nodeBorder: '#FF9900',
+        clusterBkg: '#FFF8E1',
+        clusterBorder: '#FF9900',
+        edgeLabelBackground: '#FFFFFF',
+        textColor: '#232F3E'
+      }
+    });
+  </script>
+  <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/highlight.min.js"></script>
+  <script>hljs.highlightAll();</script>
+</body>
+</html>
