@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AWS Batch - Configurable Scale Down Delay</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap');
+
+        :root {
+            --aws-squid-ink: #232F3E;
+            --aws-dark-squid: #1A242F;
+            --aws-orange: #FF9900;
+            --aws-smile-orange: #FFAD33;
+            --aws-white: #FFFFFF;
+            --aws-light-gray: #D5DBDB;
+            --aws-teal: #00A1C9;
+            --aws-purple: #8C4FFF;
+            --aws-green: #1D8102;
+            --aws-red: #D13212;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background-color: var(--aws-squid-ink);
+            font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            color: var(--aws-light-gray);
+            font-size: 16px;
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 32px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+        .header-left { flex: 1; min-width: 280px; }
+        .service-badge {
+            display: inline-block;
+            background: var(--aws-orange);
+            color: var(--aws-squid-ink);
+            font-size: 13px;
+            font-weight: 700;
+            padding: 4px 14px;
+            border-radius: 20px;
+            margin-bottom: 12px;
+        }
+        h1 {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--aws-white);
+            line-height: 1.3;
+            margin-bottom: 8px;
+        }
+        .subtitle {
+            font-size: 16px;
+            color: var(--aws-light-gray);
+        }
+        .header-right {
+            text-align: right;
+            font-size: 14px;
+            color: var(--aws-light-gray);
+        }
+        .header-date {
+            color: var(--aws-orange);
+            font-weight: 600;
+        }
+
+        /* Section */
+        .section {
+            background: var(--aws-dark-squid);
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        h2 {
+            font-size: 22px;
+            font-weight: 600;
+            color: var(--aws-orange);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        h3 {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--aws-white);
+            margin-bottom: 10px;
+            margin-top: 18px;
+        }
+        p { margin-bottom: 12px; }
+
+        .highlight {
+            background-color: rgba(255, 153, 0, 0.2);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+            color: var(--aws-orange);
+        }
+
+        /* Before / After */
+        .before-after-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin: 16px 0;
+        }
+        @media (max-width: 640px) {
+            .before-after-grid { grid-template-columns: 1fr; }
+        }
+        .ba-card {
+            border-radius: 8px;
+            padding: 18px;
+        }
+        .ba-card.before {
+            background: rgba(209, 50, 18, 0.12);
+            border: 1px solid rgba(209, 50, 18, 0.4);
+        }
+        .ba-card.after {
+            background: rgba(29, 129, 2, 0.12);
+            border: 1px solid rgba(29, 129, 2, 0.4);
+        }
+        .ba-label {
+            font-weight: 700;
+            font-size: 14px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .ba-card.before .ba-label { color: #F44336; }
+        .ba-card.after .ba-label { color: #4CAF50; }
+        .ba-list {
+            list-style: none;
+            padding: 0;
+        }
+        .ba-list li {
+            padding: 4px 0;
+            font-size: 14px;
+            display: flex;
+            align-items: flex-start;
+            gap: 6px;
+        }
+        .ba-list li::before { content: none; }
+        .ba-card.before .ba-list li .ba-icon { color: #F44336; }
+        .ba-card.after .ba-list li .ba-icon { color: #4CAF50; }
+
+        /* Feature cards */
+        .feature-cards {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 14px;
+            margin-top: 12px;
+        }
+        .feature-card {
+            background: rgba(255, 153, 0, 0.06);
+            border-left: 4px solid var(--aws-orange);
+            border-radius: 0 8px 8px 0;
+            padding: 16px 18px;
+        }
+        .feature-card-title {
+            font-weight: 600;
+            color: var(--aws-white);
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .feature-card p {
+            font-size: 14px;
+            margin-bottom: 0;
+        }
+
+        /* Spec table */
+        .spec-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 14px 0;
+            font-size: 14px;
+        }
+        .spec-table th, .spec-table td {
+            padding: 10px 14px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .spec-table th {
+            color: var(--aws-orange);
+            font-weight: 600;
+            background: rgba(255, 153, 0, 0.08);
+            white-space: nowrap;
+        }
+        .spec-table td { color: var(--aws-light-gray); }
+        .spec-table code {
+            background: rgba(255, 153, 0, 0.15);
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 13px;
+            color: var(--aws-orange);
+        }
+
+        /* Use case cards */
+        .usecase-cards {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 16px;
+            margin-top: 12px;
+        }
+        .usecase-card {
+            background: rgba(255, 153, 0, 0.08);
+            border: 1px solid rgba(255, 153, 0, 0.2);
+            border-radius: 8px;
+            padding: 18px;
+        }
+        .usecase-title {
+            font-weight: 600;
+            color: var(--aws-white);
+            margin-bottom: 8px;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .usecase-scenario {
+            font-size: 14px;
+            color: var(--aws-light-gray);
+            margin-bottom: 8px;
+        }
+        .usecase-effect {
+            font-size: 14px;
+            color: var(--aws-smile-orange);
+            display: flex;
+            align-items: flex-start;
+            gap: 6px;
+        }
+        .usecase-param {
+            display: inline-block;
+            background: rgba(255, 153, 0, 0.2);
+            color: var(--aws-orange);
+            font-size: 13px;
+            font-weight: 600;
+            padding: 2px 10px;
+            border-radius: 12px;
+            margin-bottom: 8px;
+        }
+
+        /* Stats row */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin: 16px 0;
+        }
+        @media (max-width: 640px) {
+            .stats-row { grid-template-columns: 1fr; }
+        }
+        .stat-card {
+            background: linear-gradient(135deg, rgba(255, 153, 0, 0.15), rgba(255, 153, 0, 0.05));
+            border: 1px solid rgba(255, 153, 0, 0.25);
+            border-radius: 8px;
+            padding: 18px;
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--aws-orange);
+            line-height: 1.2;
+        }
+        .stat-label {
+            font-size: 13px;
+            color: var(--aws-light-gray);
+            margin-top: 4px;
+        }
+
+        /* Merit / Demerit */
+        .merit-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin: 14px 0;
+        }
+        @media (max-width: 640px) {
+            .merit-grid { grid-template-columns: 1fr; }
+        }
+        .merit-col h3 {
+            margin-top: 0;
+        }
+        .merit-item {
+            padding: 6px 0;
+            font-size: 14px;
+            display: flex;
+            align-items: flex-start;
+            gap: 6px;
+        }
+
+        /* Flow diagram */
+        .flow-diagram {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin: 20px 0;
+        }
+        .flow-step {
+            background: var(--aws-dark-squid);
+            border: 2px solid var(--aws-orange);
+            border-radius: 8px;
+            padding: 10px 18px;
+            text-align: center;
+            min-width: 90px;
+            font-size: 14px;
+        }
+        .flow-arrow {
+            color: var(--aws-orange);
+            font-size: 22px;
+            font-weight: bold;
+        }
+
+        /* Mermaid */
+        .mermaid-container {
+            background: #FFFFFF;
+            border-radius: 12px;
+            padding: 24px;
+            margin: 20px 0;
+            border: 2px solid rgba(255, 153, 0, 0.3);
+            overflow-x: auto;
+        }
+        .mermaid {
+            display: flex;
+            justify-content: center;
+        }
+
+        /* Code block */
+        .code-block {
+            background: #1a1a2e;
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 16px 0;
+        }
+        .code-header {
+            background: #16213e;
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+        }
+        .code-lang {
+            color: var(--aws-orange);
+            font-weight: bold;
+        }
+        .code-title {
+            color: var(--aws-light-gray);
+        }
+        .code-block pre {
+            margin: 0;
+            padding: 0;
+            overflow-x: auto;
+        }
+        .code-block code {
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            padding: 16px !important;
+        }
+
+        /* API changes */
+        .api-item {
+            background: rgba(0, 161, 201, 0.08);
+            border-left: 3px solid var(--aws-teal);
+            border-radius: 0 6px 6px 0;
+            padding: 12px 16px;
+            margin: 10px 0;
+            font-size: 14px;
+        }
+        .api-item strong { color: var(--aws-teal); }
+
+        /* Region badges */
+        .region-badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 12px 0;
+        }
+        .region-badge {
+            display: inline-block;
+            background: rgba(255, 153, 0, 0.1);
+            border: 1px solid rgba(255, 153, 0, 0.2);
+            color: var(--aws-light-gray);
+            font-size: 13px;
+            padding: 4px 12px;
+            border-radius: 16px;
+        }
+
+        /* Related services */
+        .related-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin: 12px 0;
+        }
+        @media (max-width: 640px) {
+            .related-grid { grid-template-columns: 1fr; }
+        }
+        .related-card {
+            background: rgba(140, 79, 255, 0.06);
+            border: 1px solid rgba(140, 79, 255, 0.2);
+            border-radius: 8px;
+            padding: 14px;
+        }
+        .related-card strong {
+            color: var(--aws-purple);
+            font-size: 14px;
+        }
+        .related-card p {
+            font-size: 13px;
+            margin-bottom: 0;
+            margin-top: 4px;
+        }
+
+        /* Pricing */
+        .pricing-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 14px 0;
+            font-size: 14px;
+        }
+        .pricing-table th, .pricing-table td {
+            padding: 10px 14px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .pricing-table th {
+            color: var(--aws-orange);
+            font-weight: 600;
+            background: rgba(255, 153, 0, 0.08);
+        }
+        .pricing-free {
+            color: var(--aws-green);
+            font-weight: 600;
+        }
+
+        /* Links */
+        .aws-link {
+            color: var(--aws-teal);
+            text-decoration: none;
+        }
+        .aws-link:hover {
+            color: var(--aws-smile-orange);
+            text-decoration: underline;
+        }
+
+        /* Footer */
+        footer {
+            margin-top: 32px;
+            padding-top: 16px;
+            border-top: 1px solid rgba(255, 255, 255, 0.15);
+            font-size: 12px;
+            color: rgba(213, 219, 219, 0.7);
+        }
+        footer a {
+            color: var(--aws-teal);
+            text-decoration: none;
+            word-break: break-all;
+        }
+        footer a:hover { text-decoration: underline; }
+        .footer-links { margin-top: 8px; }
+        .footer-links li {
+            list-style: none;
+            padding: 2px 0;
+        }
+
+        /* Caution box */
+        .caution-box {
+            background: rgba(255, 152, 0, 0.08);
+            border: 1px solid rgba(255, 152, 0, 0.25);
+            border-radius: 8px;
+            padding: 14px 18px;
+            margin: 12px 0;
+            font-size: 14px;
+        }
+        .caution-box .caution-title {
+            color: #FF9800;
+            font-weight: 600;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/styles/atom-one-dark.min.css">
+</head>
+<body>
+    <div class="container">
+
+        <!-- Header -->
+        <div class="header">
+            <div class="header-left">
+                <span class="service-badge">AWS Batch</span>
+                <h1>Configurable Scale Down Delay</h1>
+                <div class="subtitle">ジョブ完了後のインスタンス維持時間をカスタマイズし、断続的ワークロードの処理遅延を解消</div>
+            </div>
+            <div class="header-right">
+                <div class="header-date">2026 年 3 月 2 日</div>
+                <div>AWS Service Update</div>
+            </div>
+        </div>
+
+        <!-- Overview -->
+        <div class="section">
+            <h2>📋 概要</h2>
+            <p>
+                AWS Batch がマネージドコンピューティング環境において<span class="highlight">スケールダウン遅延の設定機能</span>をサポート。
+                新しい <code style="background:rgba(255,153,0,0.15);padding:2px 6px;border-radius:3px;color:var(--aws-orange);font-size:14px;">minScaleDownDelayMinutes</code> パラメータにより、
+                ジョブ完了後にインスタンスを維持する時間を <span class="highlight">20 分 ~ 1 週間</span> の範囲で指定でき、断続的または定期的なワークロードにおけるジョブ処理の遅延を大幅に削減できる。
+            </p>
+            <p>
+                この機能は AWS Batch API (CreateComputeEnvironment、UpdateComputeEnvironment) および AWS Batch マネジメントコンソールから設定可能で、AWS Batch が利用可能なすべての AWS リージョンで即座に利用できる。
+            </p>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="stat-value">20 分</div>
+                <div class="stat-label">最小遅延時間</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">10,080 分</div>
+                <div class="stat-label">最大遅延時間 (1 週間)</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">全リージョン</div>
+                <div class="stat-label">即時利用可能</div>
+            </div>
+        </div>
+
+        <!-- Before / After -->
+        <div class="section">
+            <h2>🔄 Before / After 比較</h2>
+            <div class="before-after-grid">
+                <div class="ba-card before">
+                    <div class="ba-label">❌ アップデート前</div>
+                    <ul class="ba-list">
+                        <li><span class="ba-icon">&#x2717;</span> ジョブ完了後のインスタンス終了タイミングをユーザーが制御不可</li>
+                        <li><span class="ba-icon">&#x2717;</span> 断続的ワークロードで不要な終了と再起動が繰り返される</li>
+                        <li><span class="ba-icon">&#x2717;</span> 毎回インスタンスの起動待ちが発生しジョブ実行効率が低下</li>
+                    </ul>
+                </div>
+                <div class="ba-card after">
+                    <div class="ba-label">&#x2714; アップデート後</div>
+                    <ul class="ba-list">
+                        <li><span class="ba-icon">&#x2714;</span> minScaleDownDelayMinutes で 20 分 ~ 1 週間の範囲でカスタマイズ</li>
+                        <li><span class="ba-icon">&#x2714;</span> インスタンスが維持され後続ジョブの処理開始遅延が解消</li>
+                        <li><span class="ba-icon">&#x2714;</span> 環境の作成時だけでなく更新時にも設定変更が可能</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Architecture Diagram (Mermaid from source) -->
+        <div class="section">
+            <h2>🏗️ アーキテクチャ図</h2>
+            <p>従来はジョブ完了後にインスタンスが終了され、次のジョブでは再起動を待つ必要があった。スケールダウン遅延を設定することで、インスタンスが一定時間維持され、後続ジョブを即座に実行できるようになる。</p>
+            <div class="mermaid-container">
+                <pre class="mermaid">
+flowchart TD
+    subgraph Before["従来の動作"]
+        direction LR
+        J1B["⚡ ジョブ A 完了"] --> T1B["🔻 インスタンス終了"]
+        T1B --> J2B["⏳ ジョブ B 待機"]
+        J2B --> L1B["🚀 インスタンス起動"]
+        L1B --> R1B["▶️ ジョブ B 実行"]
+    end
+
+    subgraph After["スケールダウン遅延設定後"]
+        direction LR
+        J1A["⚡ ジョブ A 完了"] --> W1A["⏱️ 遅延期間<br/>インスタンス維持"]
+        W1A --> J2A["▶️ ジョブ B<br/>即時実行"]
+    end
+
+    Before ~~~ After
+
+    classDef before fill:#FFEBEE,stroke:#F44336,stroke-width:2px,color:#B71C1C
+    classDef after fill:#E9F7EC,stroke:#66BB6A,stroke-width:2px,color:#1B5E20
+    classDef wait fill:#FFF3E0,stroke:#FF9800,stroke-width:2px,color:#E65100
+    classDef action fill:#E8F1FF,stroke:#4A90E2,stroke-width:2px,color:#1565C0
+
+    class Before before
+    class After after
+    class J1B,T1B,J2B,L1B,R1B before
+    class J1A,W1A,J2A after
+                </pre>
+            </div>
+        </div>
+
+        <!-- Key Features -->
+        <div class="section">
+            <h2>⚙️ 主要機能</h2>
+            <div class="feature-cards">
+                <div class="feature-card">
+                    <div class="feature-card-title">🎛️ minScaleDownDelayMinutes パラメータ</div>
+                    <p>コンピューティング環境のスケーリングポリシー内に追加された新パラメータ。ジョブ完了後にインスタンスを維持する最小時間を分単位で指定する。設定範囲は 20 分 (最小値) から 10,080 分 (最大値、1 週間) まで。遅延はインスタンスレベルで適用され、各インスタンスが最後にジョブを完了した時刻を基準とする。</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-card-title">🔄 既存環境への適用</div>
+                    <p>新規コンピューティング環境の作成時 (CreateComputeEnvironment) に設定可能。さらに、既存のコンピューティング環境の更新時 (UpdateComputeEnvironment) にも設定を変更でき、運用中のワークロードに対して柔軟にチューニングできる。</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-card-title">🖥️ コンソールからの設定</div>
+                    <p>AWS Batch マネジメントコンソールからも設定可能。GUI を使用して視覚的にスケールダウン遅延を構成できる。</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Technical Spec -->
+        <div class="section">
+            <h2>🔧 技術仕様</h2>
+            <h3>minScaleDownDelayMinutes パラメータ</h3>
+            <table class="spec-table">
+                <tr><th>項目</th><th>詳細</th></tr>
+                <tr><td>パラメータ名</td><td><code>minScaleDownDelayMinutes</code></td></tr>
+                <tr><td>配置場所</td><td><code>computeResources.scalingPolicy.minScaleDownDelayMinutes</code></td></tr>
+                <tr><td>データ型</td><td>integer</td></tr>
+                <tr><td>最小値</td><td>20 (分)</td></tr>
+                <tr><td>最大値</td><td>10,080 (分 / 1 週間)</td></tr>
+                <tr><td>適用単位</td><td>インスタンスレベル</td></tr>
+                <tr><td>基準時刻</td><td>各インスタンスが最後にジョブを完了した時刻</td></tr>
+                <tr><td>対象環境</td><td>マネージドコンピューティング環境</td></tr>
+            </table>
+
+            <h3>パラメータ構造</h3>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">JSON</span>
+                    <span class="code-title">スケーリングポリシー設定</span>
+                </div>
+                <pre><code class="language-json">{
+  "computeResources": {
+    "scalingPolicy": {
+      "minScaleDownDelayMinutes": 60
+    }
+  }
+}</code></pre>
+            </div>
+
+            <h3>API 変更履歴</h3>
+            <table class="spec-table">
+                <tr><th>日付</th><th>サービス</th><th>変更内容</th></tr>
+                <tr><td>2026/02/27</td><td>batch</td><td>3 updated api methods - スケールダウン遅延の設定機能を追加</td></tr>
+            </table>
+
+            <h3>変更された API メソッド</h3>
+            <div class="api-item">
+                <strong>CreateComputeEnvironment</strong>: <code style="background:rgba(0,161,201,0.15);padding:2px 6px;border-radius:3px;color:var(--aws-teal);font-size:13px;">computeResources.scalingPolicy.minScaleDownDelayMinutes</code> パラメータを追加。コンピューティング環境作成時にスケールダウン遅延を設定可能。
+            </div>
+            <div class="api-item">
+                <strong>UpdateComputeEnvironment</strong>: <code style="background:rgba(0,161,201,0.15);padding:2px 6px;border-radius:3px;color:var(--aws-teal);font-size:13px;">computeResources.scalingPolicy.minScaleDownDelayMinutes</code> パラメータを追加。既存環境のスケールダウン遅延を更新可能。
+            </div>
+            <div class="api-item">
+                <strong>DescribeComputeEnvironments</strong>: レスポンスに <code style="background:rgba(0,161,201,0.15);padding:2px 6px;border-radius:3px;color:var(--aws-teal);font-size:13px;">computeResources.scalingPolicy.minScaleDownDelayMinutes</code> を含むようになり、現在の設定値を確認可能。
+            </div>
+        </div>
+
+        <!-- Setup Guide -->
+        <div class="section">
+            <h2>📝 設定方法</h2>
+            <h3>前提条件</h3>
+            <div style="margin-bottom:16px;">
+                <div class="merit-item">✓ AWS CLI v2 がインストールされていること</div>
+                <div class="merit-item">✓ AWS Batch のマネージドコンピューティング環境が利用可能であること</div>
+                <div class="merit-item">✓ 適切な IAM 権限 (batch:CreateComputeEnvironment または batch:UpdateComputeEnvironment) を持つこと</div>
+            </div>
+
+            <h3>ステップ 1: 新規環境作成時にスケールダウン遅延を設定</h3>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Bash</span>
+                    <span class="code-title">CreateComputeEnvironment - 60 分の遅延設定</span>
+                </div>
+                <pre><code class="language-bash">aws batch create-compute-environment \
+  --compute-environment-name my-compute-env \
+  --type MANAGED \
+  --state ENABLED \
+  --compute-resources '{
+    "type": "EC2",
+    "minvCpus": 0,
+    "maxvCpus": 256,
+    "instanceTypes": ["optimal"],
+    "subnets": ["subnet-xxxxx"],
+    "securityGroupIds": ["sg-xxxxx"],
+    "instanceRole": "arn:aws:iam::123456789012:instance-profile/ecsInstanceRole",
+    "scalingPolicy": {
+      "minScaleDownDelayMinutes": 60
+    }
+  }'</code></pre>
+            </div>
+
+            <h3>ステップ 2: 既存環境のスケールダウン遅延を更新</h3>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Bash</span>
+                    <span class="code-title">UpdateComputeEnvironment - 120 分に更新</span>
+                </div>
+                <pre><code class="language-bash">aws batch update-compute-environment \
+  --compute-environment my-compute-env \
+  --compute-resources '{
+    "scalingPolicy": {
+      "minScaleDownDelayMinutes": 120
+    }
+  }'</code></pre>
+            </div>
+
+            <h3>ステップ 3: 現在の設定値を確認</h3>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Bash</span>
+                    <span class="code-title">DescribeComputeEnvironments</span>
+                </div>
+                <pre><code class="language-bash">aws batch describe-compute-environments \
+  --compute-environments my-compute-env \
+  --query 'computeEnvironments[0].computeResources.scalingPolicy'</code></pre>
+            </div>
+
+            <h3>ステップ 4: AWS マネジメントコンソールからの設定</h3>
+            <div class="flow-diagram">
+                <div class="flow-step">🌐 Batch<br/>コンソール</div>
+                <span class="flow-arrow">→</span>
+                <div class="flow-step">📂 コンピューティング<br/>環境を選択</div>
+                <span class="flow-arrow">→</span>
+                <div class="flow-step">⚙️ スケーリング<br/>ポリシー設定</div>
+                <span class="flow-arrow">→</span>
+                <div class="flow-step">💾 保存</div>
+            </div>
+        </div>
+
+        <!-- Merits / Demerits -->
+        <div class="section">
+            <h2>💡 メリットとデメリット</h2>
+            <div class="merit-grid">
+                <div class="merit-col">
+                    <h3 style="color:#4CAF50;">✅ メリット</h3>
+                    <div style="margin-bottom:12px;">
+                        <strong style="color:var(--aws-white);">ビジネス面</strong>
+                        <div class="merit-item">→ ジョブ処理時間の短縮: インスタンスの再起動待ちが不要に</div>
+                        <div class="merit-item">→ コスト最適化の柔軟性: 起動コストと維持コストのバランスを最適化</div>
+                        <div class="merit-item">→ SLA 遵守の容易化: バッチ処理のタイムラインをより確実に管理</div>
+                    </div>
+                    <div>
+                        <strong style="color:var(--aws-white);">技術面</strong>
+                        <div class="merit-item">→ コールドスタートの回避: AMI ダウンロードや初期化時間を排除</div>
+                        <div class="merit-item">→ インスタンスレベルの制御: 個々の利用状況に基づくきめ細かなスケーリング</div>
+                        <div class="merit-item">→ シンプルな設定: 単一パラメータで制御、複雑なルール構築が不要</div>
+                    </div>
+                </div>
+                <div class="merit-col">
+                    <h3 style="color:#F44336;">⚠️ デメリット・制約事項</h3>
+                    <div style="margin-bottom:12px;">
+                        <strong style="color:var(--aws-white);">制限事項</strong>
+                        <div class="merit-item">&#x2717; 最小値は 20 分、20 分未満のスケールダウン遅延は設定不可</div>
+                        <div class="merit-item">&#x2717; 最大値は 10,080 分 (1 週間) が上限</div>
+                        <div class="merit-item">&#x2717; マネージドコンピューティング環境のみ対象</div>
+                    </div>
+                    <div>
+                        <strong style="color:var(--aws-white);">考慮すべき点</strong>
+                        <div class="merit-item">&#x26A0; 遅延中のインスタンスにはコンピューティング料金が発生</div>
+                        <div class="merit-item">&#x26A0; 遅延時間を長く設定しすぎるとアイドルコストが増加</div>
+                        <div class="merit-item">&#x26A0; ワークロードパターン分析に基づく最適値の決定が推奨</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Use Cases -->
+        <div class="section">
+            <h2>🎯 ユースケース</h2>
+            <div class="usecase-cards">
+                <div class="usecase-card">
+                    <div class="usecase-title">📊 定期的な ETL バッチ処理</div>
+                    <span class="usecase-param">minScaleDownDelayMinutes: 60</span>
+                    <div class="usecase-scenario">毎時 0 分にデータレイクから集計データを取得し、変換してデータウェアハウスにロードする ETL ジョブを実行。ジョブの実行時間は約 10 分で、残りの 50 分はインスタンスがアイドル状態になる。</div>
+                    <div class="usecase-effect">⚡ スケールダウン遅延を 60 分に設定することで、毎時のジョブ実行時にインスタンスが既に起動しており、通常 2-5 分かかるコールドスタートが排除される。</div>
+                </div>
+                <div class="usecase-card">
+                    <div class="usecase-title">🖼️ イベント駆動型の画像処理パイプライン</div>
+                    <span class="usecase-param">minScaleDownDelayMinutes: 30</span>
+                    <div class="usecase-scenario">ユーザーが画像をアップロードすると S3 イベントをトリガーとして AWS Batch でサムネイル生成やリサイズ処理を実行。アップロードは日中のピーク時に集中するが、数分間隔で断続的に発生する。</div>
+                    <div class="usecase-effect">⚡ 30 分のスケールダウン遅延により、断続的なアップロードイベントに対してインスタンスが即座に応答。ピーク時のユーザー体験が向上し、画像処理のレイテンシが大幅に削減される。</div>
+                </div>
+                <div class="usecase-card">
+                    <div class="usecase-title">🔨 CI/CD ビルドパイプライン</div>
+                    <span class="usecase-param">minScaleDownDelayMinutes: 45</span>
+                    <div class="usecase-scenario">開発チームが AWS Batch を使用してコンテナイメージのビルドやテストを実行。開発者のコミットは業務時間中に集中するが、個々のビルドジョブ間には 10-30 分の間隔がある。</div>
+                    <div class="usecase-effect">⚡ 45 分のスケールダウン遅延により、業務時間中はインスタンスが維持され、ビルドの待ち時間が短縮。開発者の生産性が向上し、フィードバックループが高速化される。</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pricing -->
+        <div class="section">
+            <h2>💰 料金</h2>
+            <p>スケールダウン遅延の設定機能自体には追加料金は発生しない。ただし、スケールダウン遅延中にインスタンスが維持されている間は、通常の Amazon EC2 インスタンス料金が適用される。</p>
+            <table class="pricing-table">
+                <tr><th>項目</th><th>説明</th></tr>
+                <tr><td>機能利用料</td><td><span class="pricing-free">無料 (追加料金なし)</span></td></tr>
+                <tr><td>インスタンス維持中の料金</td><td>通常の EC2 インスタンス料金が適用</td></tr>
+                <tr><td>コスト最適化のポイント</td><td>ジョブの実行間隔とインスタンスの起動コストを比較し、最適な遅延時間を設定する</td></tr>
+            </table>
+            <div class="caution-box">
+                <div class="caution-title">⚠️ コスト最適化の推奨事項</div>
+                インスタンスの起動にかかるコスト (起動時間中のアイドルコスト、EBS ボリュームの再作成コストなど) と、スケールダウン遅延中の維持コストを比較して、最適な設定値を決定することが推奨される。
+            </div>
+        </div>
+
+        <!-- Available Regions -->
+        <div class="section">
+            <h2>🌍 利用可能リージョン</h2>
+            <p>AWS Batch が利用可能なすべての AWS リージョンでスケールダウン遅延の設定機能を利用できる。</p>
+            <div class="region-badges">
+                <span class="region-badge">🇺🇸 米国東部 (バージニア北部)</span>
+                <span class="region-badge">🇺🇸 米国東部 (オハイオ)</span>
+                <span class="region-badge">🇺🇸 米国西部 (北カリフォルニア)</span>
+                <span class="region-badge">🇺🇸 米国西部 (オレゴン)</span>
+                <span class="region-badge">🇯🇵 アジアパシフィック (東京)</span>
+                <span class="region-badge">🇯🇵 アジアパシフィック (大阪)</span>
+                <span class="region-badge">🇰🇷 アジアパシフィック (ソウル)</span>
+                <span class="region-badge">🇸🇬 アジアパシフィック (シンガポール)</span>
+                <span class="region-badge">🇦🇺 アジアパシフィック (シドニー)</span>
+                <span class="region-badge">🇮🇳 アジアパシフィック (ムンバイ)</span>
+                <span class="region-badge">🇮🇩 アジアパシフィック (ジャカルタ)</span>
+                <span class="region-badge">🇦🇺 アジアパシフィック (メルボルン)</span>
+                <span class="region-badge">🇮🇪 欧州 (アイルランド)</span>
+                <span class="region-badge">🇩🇪 欧州 (フランクフルト)</span>
+                <span class="region-badge">🇬🇧 欧州 (ロンドン)</span>
+                <span class="region-badge">🇫🇷 欧州 (パリ)</span>
+                <span class="region-badge">🇸🇪 欧州 (ストックホルム)</span>
+                <span class="region-badge">🇮🇹 欧州 (ミラノ)</span>
+                <span class="region-badge">🇪🇸 欧州 (スペイン)</span>
+                <span class="region-badge">🇨🇭 欧州 (チューリッヒ)</span>
+                <span class="region-badge">🇨🇦 カナダ (中部)</span>
+                <span class="region-badge">🇧🇷 南米 (サンパウロ)</span>
+                <span class="region-badge">🇧🇭 中東 (バーレーン)</span>
+                <span class="region-badge">🇦🇪 中東 (UAE)</span>
+                <span class="region-badge">🇿🇦 アフリカ (ケープタウン)</span>
+            </div>
+        </div>
+
+        <!-- Related Services -->
+        <div class="section">
+            <h2>🔗 関連サービス・機能</h2>
+            <div class="related-grid">
+                <div class="related-card">
+                    <strong>Amazon EC2 Auto Scaling</strong>
+                    <p>同様のスケーリングクールダウン機能があるが、AWS Batch のスケールダウン遅延はバッチジョブのワークロードに特化した制御を提供</p>
+                </div>
+                <div class="related-card">
+                    <strong>AWS Batch on Amazon EKS</strong>
+                    <p>EKS ベースのコンピューティング環境でも、マネージド環境であればスケールダウン遅延を活用できる</p>
+                </div>
+                <div class="related-card">
+                    <strong>Amazon EventBridge</strong>
+                    <p>EventBridge と組み合わせて定期的なバッチジョブをスケジュール実行する場合、スケールダウン遅延により処理の即時開始が可能に</p>
+                </div>
+                <div class="related-card">
+                    <strong>AWS Step Functions</strong>
+                    <p>Step Functions でオーケストレーションされるバッチワークフローにおいて、各ステップ間のインスタンス維持によりワークフロー全体の実行時間を短縮</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Summary -->
+        <div class="section">
+            <h2>📌 まとめ</h2>
+            <p>
+                AWS Batch のスケールダウン遅延設定機能は、断続的・定期的なバッチワークロードにおけるジョブ処理遅延を解消するための重要なアップデートである。
+                <span class="highlight">minScaleDownDelayMinutes</span> パラメータ 1 つの設定で、インスタンスの不要な終了と再起動を防ぎ、後続ジョブの即時実行を実現できる。
+            </p>
+            <p>
+                定期的な ETL 処理やイベント駆動型のバッチ処理を運用しているユーザーは、ワークロードのパターンに応じた最適な遅延時間を設定し、コストとパフォーマンスのバランスを最適化することが推奨される。
+            </p>
+        </div>
+
+        <!-- Footer -->
+        <footer>
+            <p>📎 出典:</p>
+            <ul class="footer-links">
+                <li><a href="https://aws.amazon.com/about-aws/whats-new/2026/03/aws-batch-configurable-scale-down-delay/" target="_blank" rel="noopener noreferrer">公式発表 (What's New)</a></li>
+                <li><a href="https://docs.aws.amazon.com/batch/latest/APIReference/" target="_blank" rel="noopener noreferrer">AWS Batch API Guide</a></li>
+                <li><a href="https://docs.aws.amazon.com/batch/latest/userguide/" target="_blank" rel="noopener noreferrer">AWS Batch ユーザーガイド</a></li>
+                <li><a href="https://aws.amazon.com/batch/pricing/" target="_blank" rel="noopener noreferrer">AWS Batch 料金ページ</a></li>
+                <li><a href="https://awsapichanges.com/archive/changes/c204bb-batch.html" target="_blank" rel="noopener noreferrer">API 変更履歴 - Batch</a></li>
+            </ul>
+            <p style="margin-top:12px;opacity:0.6;">Generated on 2026-03-02 | AWS Batch - Configurable Scale Down Delay</p>
+        </footer>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'base',
+            themeVariables: {
+                primaryColor: '#FF9900',
+                primaryTextColor: '#232F3E',
+                primaryBorderColor: '#FF9900',
+                lineColor: '#FF9900',
+                secondaryColor: '#F5F5F5',
+                tertiaryColor: '#FAFAFA',
+                background: '#FFFFFF',
+                mainBkg: '#FFF3E0',
+                nodeBorder: '#FF9900',
+                clusterBkg: '#FFF8E1',
+                clusterBorder: '#FF9900',
+                edgeLabelBackground: '#FFFFFF',
+                textColor: '#232F3E'
+            }
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/highlight.min.js"></script>
+    <script>hljs.highlightAll();</script>
+</body>
+</html>

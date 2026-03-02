@@ -7,6 +7,7 @@
 
 - [2026-03-02 - Kiro - バージョン 1.27 リリース](2026/2026-03-02-kiro-changelog-2026-03-02.md)
 - [2026-03-02 - AWS Config - 30 の新しいリソースタイプをサポート](2026/2026-03-02-aws-config-new-resource-types.md)
+- [2026-03-02 - AWS Batch - スケールダウン遅延の設定機能](2026/2026-03-02-aws-batch-configurable-scale-down-delay.md)
 - [2026-03-01 - Amazon VPC - VPC Encryption Controls の料金開始](2026/2026-03-01-vpc-encryption-controls-pricing.md)
 - [2026-02-27 - Amazon Lightsail - 新しい WordPress ブループリントの提供開始](2026/2026-02-27-wordpress-blueprint-lightsail.md)
 - [2026-02-27 - Amazon RDS for PostgreSQL - マイナーバージョン 18.3、17.9、16.13、15.17、14.22 のサポート](2026/2026-02-27-rds-minor-version-18-3-17-9-16-13-15-17-14-22.md)
