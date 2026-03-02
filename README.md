@@ -25,7 +25,7 @@ AWS What's New と AWS API Changes の情報を取得し、日本語で詳細な
 
 ## アーキテクチャ
 
-このスキルは Claude Agent SDK を使用し、GitHub Actions または GitLab CI からスケジュール実行される。`run.py` が 2 フェーズのオーケストレーターとして動作し、Phase 1 で Bedrock API 経由で Claude を呼び出して SKILL.md の定義に従い日本語レポートを自動生成し、Phase 2 では `AgentDefinition` で定義した `infographic-generator` subagent を Task ツール経由で並列に起動し、インフォグラフィックを生成する。
+このスキルは Claude Agent SDK を使用し、GitHub Actions または GitLab CI からスケジュール実行される。`run.py` が 2 フェーズのオーケストレーターとして動作し、Phase 1 で Bedrock API 経由で Claude を呼び出して SKILL.md の定義に従い日本語レポートを自動生成する。オーケストレーターが RSS フィード取得、パース、フィルタリング、重複チェックを行い、個別レポート作成は Task ツール経由で `report-generator` サブエージェントに委譲して並列実行する。Phase 2 では `AgentDefinition` で定義した `infographic-generator` subagent を Task ツール経由でバッチ処理により並列に起動し、インフォグラフィックを生成する。
 
 ### システム概要 (ハイレベル)
 
@@ -96,8 +96,8 @@ flowchart TD
 
 このスキルは CI/CD から定期実行され、`run.py` が 2 フェーズで処理を行います。
 
-1. **Phase 1 - レポート生成**: RSS/Atom フィードと AWS ドキュメントから情報を取得し、テンプレートベースで構造化された日本語レポートを作成 (aws-news-summary スキル)
-2. **Phase 2 - インフォグラフィック生成**: メインエージェントが `AgentDefinition` で定義された `infographic-generator` subagent を Task ツール経由で並列に起動し、各レポートの HTML インフォグラフィックを生成 (creating-infographic スキル)
+1. **Phase 1 - レポート生成**: オーケストレーターが RSS/Atom フィードと AWS ドキュメントから情報を取得し、Task ツール経由で `report-generator` サブエージェントに委譲して並列にレポートを作成 (aws-news-summary スキル、バッチサイズ: 10)
+2. **Phase 2 - インフォグラフィック生成**: メインエージェントが `AgentDefinition` で定義された `infographic-generator` subagent を Task ツール経由でバッチ処理により並列に起動し、各レポートの HTML インフォグラフィックを生成 (creating-infographic スキル、バッチサイズ: 5、バッチ間遅延: 2秒)
 
 ### システム概要 (詳細版)
 
@@ -568,27 +568,31 @@ cd ~/.claude/skills/aws-news-summary
 claude "AWS の最新ニュースをレポートして"
 ```
 
-**run.py を使用**:
+**ローカル開発**:
 ```bash
 cd ~/.claude/skills/aws-news-summary
 pip install -r requirements.txt
 
-# デフォルトプロンプト (過去 1 週間)
+# デフォルト設定 (過去 3 日間)
 python run.py
 
+# 日数を指定 (過去 7 日間)
+python run.py --days 7
+
 # カスタムプロンプト - 特定のサービスに絞る
-python run.py "Run the aws-news-summary skill for Amazon Bedrock updates"
+python run.py "Amazon Bedrock の最新アップデートを教えて"
 
-# カスタムプロンプト - 特定の期間を指定
-python run.py "Run the aws-news-summary skill for AWS updates from the past 2 weeks"
+# 詳細ログ出力
+python run.py --verbose
 
-# カスタムプロンプト - 特定の月を指定（実行時の現在日時が自動的に含まれます）
-python run.py "Run the aws-news-summary skill for AWS updates launched in January 2026"
+# デバッグモード (全メッセージ詳細)
+python run.py --debug
 ```
 
 **注意**:
 - `run.py` は Bedrock アクセス用の AWS 認証情報が設定されている必要がある
-- プロンプトには「Run the aws-news-summary skill」を含めることで、スキルが確実に呼び出されます
+- `--days` オプションで遡って取得する日数を指定可能 (デフォルト: 3日)
+- カスタムプロンプトを指定すると `--days` は無視される
 - 実行時の現在日時が自動的にプロンプトに追加されるため、期間指定が正確に処理されます
 
 ## 情報ソース

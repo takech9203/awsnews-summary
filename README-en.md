@@ -24,7 +24,7 @@ A Claude Agent SDK skill that retrieves information from AWS What's New and AWS 
 
 ## Architecture
 
-This skill uses the Claude Agent SDK and is scheduled to run from GitHub Actions or GitLab CI. `run.py` acts as a two-phase orchestrator: Phase 1 invokes Claude via Bedrock API to generate Japanese reports following the SKILL.md definition, and Phase 2 launches an orchestrator agent that delegates to `infographic-generator` subagents via the Task tool for parallel infographic generation.
+This skill uses the Claude Agent SDK and is scheduled to run from GitHub Actions or GitLab CI. `run.py` acts as a two-phase orchestrator: Phase 1 invokes Claude via Bedrock API to generate Japanese reports following the SKILL.md definition. The orchestrator handles RSS feed retrieval, parsing, filtering, and duplicate checking, then delegates individual report creation to `report-generator` subagents via the Task tool for parallel execution. Phase 2 launches `infographic-generator` subagents defined via `AgentDefinition` through the Task tool in batches for parallel infographic generation.
 
 ### System Overview (High-level)
 
@@ -95,8 +95,8 @@ flowchart TD
 
 This skill runs periodically from CI/CD, with `run.py` orchestrating two phases.
 
-1. **Phase 1 - Report Generation**: Retrieve information from RSS/Atom feeds and AWS documentation, create structured Japanese reports based on templates (aws-news-summary skill)
-2. **Phase 2 - Infographic Generation**: The main agent delegates to `infographic-generator` subagents defined via `AgentDefinition`, spawning them in parallel via the Task tool to generate HTML infographics (creating-infographic skill)
+1. **Phase 1 - Report Generation**: The orchestrator retrieves information from RSS/Atom feeds and AWS documentation, then delegates to `report-generator` subagents via the Task tool for parallel report creation (aws-news-summary skill, batch size: 10)
+2. **Phase 2 - Infographic Generation**: The main agent delegates to `infographic-generator` subagents defined via `AgentDefinition`, spawning them in batches via the Task tool to generate HTML infographics (creating-infographic skill, batch size: 5, inter-batch delay: 2s)
 
 ### System Overview (Detailed)
 
@@ -541,22 +541,26 @@ claude "Report the latest AWS news"
 cd ~/.claude/skills/aws-news-summary
 pip install -r requirements.txt
 
-# Default prompt (past week)
+# Default settings (past 3 days)
 python run.py
 
+# Specify days (past 7 days)
+python run.py --days 7
+
 # Custom prompt - Filter by specific service
-python run.py "Run the aws-news-summary skill for Amazon Bedrock updates"
+python run.py "Report the latest Amazon Bedrock updates"
 
-# Custom prompt - Specify time period
-python run.py "Run the aws-news-summary skill for AWS updates from the past 2 weeks"
+# Verbose logging
+python run.py --verbose
 
-# Custom prompt - Specify month (current datetime is automatically included)
-python run.py "Run the aws-news-summary skill for AWS updates launched in January 2026"
+# Debug mode (full message details)
+python run.py --debug
 ```
 
 **Notes**:
 - `run.py` requires AWS credentials configured for Bedrock access
-- Include "Run the aws-news-summary skill" in prompts to ensure the skill is invoked
+- Use `--days` option to specify lookback period (default: 3 days)
+- Custom prompts override the `--days` parameter
 - Current datetime is automatically added to the prompt for accurate date filtering
 
 ## Information Sources
