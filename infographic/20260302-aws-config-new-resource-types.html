@@ -1,0 +1,1193 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AWS Config - 30 の新しいリソースタイプをサポート</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/styles/atom-one-dark.min.css">
+    <style>
+        :root {
+            --aws-squid-ink: #232F3E;
+            --aws-dark-squid: #1A242F;
+            --aws-orange: #FF9900;
+            --aws-smile-orange: #FFAD33;
+            --aws-white: #FFFFFF;
+            --aws-light-gray: #D5DBDB;
+            --aws-teal: #00A1C9;
+            --aws-purple: #8C4FFF;
+            --aws-green: #1D8102;
+            --aws-red: #D13212;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--aws-squid-ink);
+            font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            color: var(--aws-light-gray);
+            font-size: 16px;
+            line-height: 1.8;
+            padding: 20px;
+            margin: 0;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        /* Header */
+        header {
+            text-align: center;
+            margin-bottom: 48px;
+            padding-bottom: 32px;
+            border-bottom: 3px solid var(--aws-orange);
+        }
+
+        .service-badge {
+            display: inline-block;
+            background-color: var(--aws-orange);
+            color: var(--aws-squid-ink);
+            padding: 6px 20px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+
+        h1 {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--aws-white);
+            margin-bottom: 12px;
+            line-height: 1.4;
+        }
+
+        .release-date {
+            color: var(--aws-light-gray);
+            font-size: 14px;
+            opacity: 0.8;
+        }
+
+        .highlight-number {
+            font-size: 80px;
+            font-weight: 700;
+            color: var(--aws-orange);
+            display: block;
+            margin: 16px 0;
+            line-height: 1;
+        }
+
+        .highlight-label {
+            font-size: 18px;
+            color: var(--aws-smile-orange);
+            font-weight: 600;
+        }
+
+        /* Sections */
+        .section {
+            background: var(--aws-dark-squid);
+            border-radius: 12px;
+            padding: 28px;
+            margin-bottom: 28px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .section-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--aws-orange);
+            margin-bottom: 20px;
+            padding-left: 16px;
+            border-left: 4px solid var(--aws-orange);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Overview */
+        .overview-text {
+            font-size: 16px;
+            line-height: 1.9;
+            margin-bottom: 24px;
+        }
+
+        .highlight {
+            background-color: rgba(255, 153, 0, 0.2);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: 600;
+            color: var(--aws-orange);
+        }
+
+        /* Before/After Comparison */
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .comparison-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .comparison-card {
+            background-color: rgba(255, 255, 255, 0.04);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .comparison-card.before {
+            border-top: 4px solid var(--aws-red);
+        }
+
+        .comparison-card.after {
+            border-top: 4px solid var(--aws-green);
+        }
+
+        .comparison-label {
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 14px;
+        }
+
+        .comparison-card.before .comparison-label {
+            color: #E57373;
+        }
+
+        .comparison-card.after .comparison-label {
+            color: #81C784;
+        }
+
+        .comparison-list {
+            list-style: none;
+        }
+
+        .comparison-list li {
+            padding: 8px 0;
+            padding-left: 28px;
+            position: relative;
+            font-size: 14px;
+            line-height: 1.7;
+        }
+
+        .comparison-card.before .comparison-list li::before {
+            content: "\2717";
+            position: absolute;
+            left: 0;
+            color: #E57373;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .comparison-card.after .comparison-list li::before {
+            content: "\2713";
+            position: absolute;
+            left: 0;
+            color: #81C784;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        /* Mermaid container */
+        .mermaid-container {
+            background: #FFFFFF;
+            border-radius: 12px;
+            padding: 24px;
+            margin: 20px 0;
+            border: 2px solid rgba(255, 153, 0, 0.3);
+            overflow-x: auto;
+        }
+        .mermaid {
+            display: flex;
+            justify-content: center;
+        }
+
+        .diagram-caption {
+            font-size: 14px;
+            color: var(--aws-light-gray);
+            margin-top: 12px;
+            opacity: 0.8;
+            line-height: 1.7;
+        }
+
+        /* Stats grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, rgba(255, 153, 0, 0.15), rgba(255, 153, 0, 0.05));
+            border: 1px solid rgba(255, 153, 0, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 36px;
+            font-weight: 700;
+            color: var(--aws-orange);
+            display: block;
+            line-height: 1.2;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: var(--aws-light-gray);
+            margin-top: 6px;
+        }
+
+        /* Resource grid */
+        .resource-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+
+        @media (max-width: 768px) {
+            .resource-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .resource-card {
+            background-color: rgba(255, 255, 255, 0.04);
+            border-radius: 10px;
+            padding: 18px;
+            border-left: 4px solid var(--aws-orange);
+        }
+
+        .resource-category {
+            font-size: 13px;
+            color: var(--aws-orange);
+            font-weight: 700;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .resource-types {
+            font-size: 12px;
+            color: var(--aws-light-gray);
+            font-family: 'Courier New', monospace;
+            line-height: 1.7;
+            opacity: 0.85;
+        }
+
+        /* Feature cards */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .feature-card {
+            background-color: rgba(255, 255, 255, 0.04);
+            border-radius: 12px;
+            padding: 24px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            transition: border-color 0.2s;
+        }
+
+        .feature-card:hover {
+            border-color: rgba(255, 153, 0, 0.3);
+        }
+
+        .feature-icon {
+            font-size: 40px;
+            margin-bottom: 14px;
+        }
+
+        .feature-title {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--aws-orange);
+        }
+
+        .feature-description {
+            font-size: 14px;
+            color: var(--aws-light-gray);
+            line-height: 1.7;
+        }
+
+        /* Technical table */
+        .tech-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+        }
+
+        .tech-table th {
+            background-color: rgba(255, 153, 0, 0.15);
+            color: var(--aws-orange);
+            font-weight: 600;
+            text-align: left;
+            padding: 12px 16px;
+            font-size: 14px;
+            border-bottom: 2px solid rgba(255, 153, 0, 0.3);
+        }
+
+        .tech-table td {
+            padding: 10px 16px;
+            font-size: 14px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            color: var(--aws-light-gray);
+        }
+
+        .tech-table tr:hover td {
+            background-color: rgba(255, 255, 255, 0.03);
+        }
+
+        .tech-table code {
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            background: rgba(255, 153, 0, 0.1);
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: var(--aws-smile-orange);
+        }
+
+        /* Code blocks */
+        .code-block {
+            background: #1a1a2e;
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 16px 0;
+        }
+        .code-header {
+            background: #16213e;
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+        }
+        .code-lang {
+            color: var(--aws-orange);
+            font-weight: bold;
+        }
+        .code-title {
+            color: var(--aws-light-gray);
+        }
+        .code-block pre {
+            margin: 0;
+            padding: 0;
+            overflow-x: auto;
+        }
+        .code-block code {
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            padding: 16px !important;
+        }
+
+        /* Usecase cards */
+        .usecase-card {
+            background-color: rgba(255, 153, 0, 0.06);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 16px;
+            border: 1px solid rgba(255, 153, 0, 0.15);
+        }
+
+        .usecase-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .usecase-number {
+            background: var(--aws-orange);
+            color: var(--aws-squid-ink);
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .usecase-title {
+            font-size: 17px;
+            font-weight: 700;
+            color: var(--aws-orange);
+        }
+
+        .usecase-scenario {
+            font-size: 14px;
+            color: var(--aws-light-gray);
+            line-height: 1.8;
+            margin-bottom: 12px;
+        }
+
+        .usecase-effect {
+            font-size: 14px;
+            color: #81C784;
+            padding-left: 16px;
+            border-left: 3px solid #81C784;
+            line-height: 1.7;
+        }
+
+        /* Benefits grid */
+        .benefits-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .benefits-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .benefit-column {
+            background-color: rgba(255, 255, 255, 0.03);
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        .benefit-column-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--aws-teal);
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .benefit-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            margin: 10px 0;
+            font-size: 14px;
+            line-height: 1.7;
+        }
+
+        .benefit-icon {
+            color: var(--aws-green);
+            font-size: 16px;
+            flex-shrink: 0;
+            margin-top: 3px;
+        }
+
+        /* Limitations */
+        .limitation-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            margin: 10px 0;
+            font-size: 14px;
+            line-height: 1.7;
+        }
+
+        .limitation-icon {
+            color: var(--aws-orange);
+            font-size: 16px;
+            flex-shrink: 0;
+            margin-top: 3px;
+        }
+
+        /* Pricing table */
+        .pricing-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+        }
+
+        .pricing-table th {
+            background-color: rgba(255, 153, 0, 0.15);
+            color: var(--aws-orange);
+            font-weight: 600;
+            text-align: left;
+            padding: 12px 16px;
+            font-size: 14px;
+            border-bottom: 2px solid rgba(255, 153, 0, 0.3);
+        }
+
+        .pricing-table td {
+            padding: 10px 16px;
+            font-size: 14px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            color: var(--aws-light-gray);
+        }
+
+        .pricing-note {
+            font-size: 13px;
+            color: var(--aws-light-gray);
+            opacity: 0.7;
+            margin-top: 12px;
+        }
+
+        /* Flow diagram */
+        .flow-diagram {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin: 24px 0;
+        }
+
+        .flow-step {
+            background: var(--aws-dark-squid);
+            border: 2px solid var(--aws-orange);
+            border-radius: 8px;
+            padding: 12px 20px;
+            text-align: center;
+            min-width: 100px;
+            font-size: 14px;
+        }
+
+        .flow-arrow {
+            color: var(--aws-orange);
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        /* Related services */
+        .related-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        @media (max-width: 768px) {
+            .related-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .related-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 14px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .related-item strong {
+            color: var(--aws-teal);
+        }
+
+        /* Footer */
+        footer {
+            margin-top: 40px;
+            padding-top: 24px;
+            border-top: 1px solid rgba(255, 255, 255, 0.15);
+            text-align: center;
+        }
+
+        .footer-links {
+            list-style: none;
+            margin-bottom: 16px;
+        }
+
+        .footer-links li {
+            margin: 6px 0;
+        }
+
+        .source-link {
+            color: var(--aws-teal);
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .source-link:hover {
+            color: var(--aws-smile-orange);
+            text-decoration: underline;
+        }
+
+        .footer-note {
+            color: var(--aws-light-gray);
+            font-size: 12px;
+            margin-top: 12px;
+            opacity: 0.6;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <span class="service-badge">AWS Config</span>
+            <h1>AWS Config - 30 の新しいリソースタイプをサポート</h1>
+            <span class="highlight-number">+30</span>
+            <div class="highlight-label">新規リソースタイプ</div>
+            <p class="release-date">2026 年 3 月 2 日</p>
+        </header>
+
+        <!-- Stats -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <span class="stat-number">30</span>
+                <div class="stat-label">新規リソースタイプ</div>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number">8+</span>
+                <div class="stat-label">対象カテゴリ</div>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number">7+</span>
+                <div class="stat-label">対象サービス</div>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number">0</span>
+                <div class="stat-label">追加設定<br>(全記録有効時)</div>
+            </div>
+        </div>
+
+        <!-- Overview & Before/After -->
+        <div class="section">
+            <h2 class="section-title">概要</h2>
+            <p class="overview-text">
+                AWS Config が <span class="highlight">30 の新しい AWS リソースタイプ</span>のサポートを追加した。今回のアップデートでは、<span class="highlight">Amazon Bedrock AgentCore</span>、<span class="highlight">Amazon Cognito</span>、<span class="highlight">AWS AppSync</span>、<span class="highlight">AWS DataBrew</span>、<span class="highlight">AWS Deadline</span>、<span class="highlight">AWS IoT</span>、<span class="highlight">Amazon Connect</span> など、幅広いサービスのリソースタイプが対象となっている。
+            </p>
+            <p class="overview-text">
+                すべてのリソースタイプの記録を有効にしている場合、AWS Config は今回追加されたリソースタイプを自動的に追跡する。新しくサポートされたリソースタイプは、Config ルールおよび Config アグリゲーターでも利用可能である。
+            </p>
+
+            <div class="comparison-grid">
+                <div class="comparison-card before">
+                    <div class="comparison-label">Before - アップデート前の課題</div>
+                    <ul class="comparison-list">
+                        <li>Bedrock AgentCore の Gateway や Memory などの AI/ML 関連リソースを AWS Config で追跡・監査できなかった</li>
+                        <li>Cognito の IdentityPoolRoleAttachment や LogDeliveryConfiguration など、セキュリティ上重要なリソースの設定変更を自動検出できなかった</li>
+                        <li>DataBrew のワークフロー全体を Config ルールで一元管理できなかった</li>
+                    </ul>
+                </div>
+                <div class="comparison-card after">
+                    <div class="comparison-label">After - アップデート後の改善</div>
+                    <ul class="comparison-list">
+                        <li>Bedrock AgentCore の Gateway と Memory リソースを Config で追跡し、AI エージェント基盤のガバナンスを強化</li>
+                        <li>Cognito のロールアタッチメントやログ配信設定を自動監査し、ID 管理のセキュリティを向上</li>
+                        <li>DataBrew のすべてのコンポーネントを Config ルールで管理し、データ処理パイプライン全体のコンプライアンスを確保</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Architecture Diagram (Mermaid) -->
+        <div class="section">
+            <h2 class="section-title">アーキテクチャ図</h2>
+            <div class="mermaid-container">
+                <pre class="mermaid">
+flowchart TD
+    subgraph Config["&#9881;&#65039; AWS Config"]
+        direction LR
+        Recorder["&#128203; Config Recorder"]
+        Rules["&#128207; Config Rules"]
+        Aggregator["&#128202; Config Aggregator"]
+        Recorder ~~~ Rules ~~~ Aggregator
+    end
+
+    subgraph NewResources["&#127381; 新規サポートリソースタイプ"]
+        subgraph AI["&#129302; AI/ML"]
+            direction LR
+            BRK["Bedrock&lt;br/&gt;AgentCore"]
+            APPSYNC["AppSync&lt;br/&gt;DataSource"]
+            BRK ~~~ APPSYNC
+        end
+        subgraph Security["&#128274; セキュリティ/ID"]
+            direction LR
+            COG["Cognito&lt;br/&gt;3 タイプ"]
+            DET["Detective&lt;br/&gt;OrgAdmin"]
+            VP["Verified&lt;br/&gt;Permissions"]
+            COG ~~~ DET ~~~ VP
+        end
+        subgraph DataOps["&#128230; データ/運用"]
+            direction LR
+            DB["DataBrew&lt;br/&gt;6 タイプ"]
+            DL["Deadline&lt;br/&gt;2 タイプ"]
+            IOT["IoT&lt;br/&gt;TopicRule"]
+            DB ~~~ DL ~~~ IOT
+        end
+    end
+
+    NewResources --> Recorder
+    Recorder --> Rules
+    Recorder --> Aggregator
+
+    classDef config fill:#E8F1FF,stroke:#4A90E2,stroke-width:2px,color:#1565C0
+    classDef newres fill:none,stroke:#66BB6A,stroke-width:2px,color:#333333
+    classDef ai fill:#FFF3E0,stroke:#FF9800,stroke-width:2px,color:#5D4037
+    classDef security fill:#F3E5F5,stroke:#7B61FF,stroke-width:2px,color:#283593
+    classDef dataops fill:#E9F7EC,stroke:#66BB6A,stroke-width:2px,color:#33691E
+
+    class Config config
+    class NewResources newres
+    class AI ai
+    class Security security
+    class DataOps dataops
+    class Recorder,Rules,Aggregator config
+    class BRK,APPSYNC ai
+    class COG,DET,VP security
+    class DB,DL,IOT dataops
+                </pre>
+            </div>
+            <p class="diagram-caption">AWS Config が新たにサポートした 30 のリソースタイプは、AI/ML、セキュリティ、データ処理など多岐にわたるカテゴリに分類される。Config Recorder が自動的にこれらのリソースを追跡し、Config ルールとアグリゲーターで評価・集約できる。</p>
+        </div>
+
+        <!-- New Resource Types -->
+        <div class="section">
+            <h2 class="section-title">新しくサポートされたリソースタイプ</h2>
+            <div class="resource-grid">
+                <div class="resource-card">
+                    <div class="resource-category">&#129302; AI/ML</div>
+                    <div class="resource-types">
+                        AWS::AppSync::DataSource<br>
+                        AWS::Bedrock::DataSource<br>
+                        AWS::BedrockAgentCore::Gateway<br>
+                        AWS::BedrockAgentCore::Memory
+                    </div>
+                </div>
+                <div class="resource-card">
+                    <div class="resource-category">&#128274; セキュリティ/ID</div>
+                    <div class="resource-types">
+                        AWS::Cognito::IdentityPoolRoleAttachment<br>
+                        AWS::Cognito::LogDeliveryConfiguration<br>
+                        AWS::Cognito::UserPoolUICustomization...<br>
+                        AWS::Detective::OrganizationAdmin<br>
+                        AWS::VerifiedPermissions::IdentitySource<br>
+                        AWS::PCAConnectorAD::Template<br>
+                        AWS::PCAConnectorSCEP::Challenge
+                    </div>
+                </div>
+                <div class="resource-card">
+                    <div class="resource-category">&#128230; データ処理</div>
+                    <div class="resource-types">
+                        AWS::DataBrew::Dataset<br>
+                        AWS::DataBrew::Job<br>
+                        AWS::DataBrew::Project<br>
+                        AWS::DataBrew::Recipe<br>
+                        AWS::DataBrew::Ruleset<br>
+                        AWS::DataBrew::Schedule
+                    </div>
+                </div>
+                <div class="resource-card">
+                    <div class="resource-category">&#127918; ゲーム</div>
+                    <div class="resource-types">
+                        AWS::GameLift::ContainerFleet<br>
+                        AWS::GameLift::ContainerGroupDefinition<br>
+                        AWS::GameLift::GameServerGroup<br>
+                        AWS::GameLift::Location
+                    </div>
+                </div>
+                <div class="resource-card">
+                    <div class="resource-category">&#9889; コンピューティング/スケジューリング</div>
+                    <div class="resource-types">
+                        AWS::Batch::ConsumableResource<br>
+                        AWS::Deadline::LicenseEndpoint<br>
+                        AWS::Deadline::QueueEnvironment<br>
+                        AWS::Scheduler::ScheduleGroup
+                    </div>
+                </div>
+                <div class="resource-card">
+                    <div class="resource-category">&#128204; その他</div>
+                    <div class="resource-types">
+                        AWS::Connect::RoutingProfile<br>
+                        AWS::IoT::TopicRule<br>
+                        AWS::Omics::ReferenceStore<br>
+                        AWS::ResourceExplorer2::View<br>
+                        AWS::ResourceGroups::Group
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Key Features -->
+        <div class="section">
+            <h2 class="section-title">主要機能</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">&#128269;</div>
+                    <div class="feature-title">自動追跡</div>
+                    <div class="feature-description">すべてのリソースタイプの記録を有効にしている場合、追加設定なしで自動的に新しいリソースを追跡開始</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#128207;</div>
+                    <div class="feature-title">Config ルール統合</div>
+                    <div class="feature-description">新しいリソースタイプに対してカスタムルールおよびマネージドルールを即座に適用可能</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#127760;</div>
+                    <div class="feature-title">マルチアカウント対応</div>
+                    <div class="feature-description">Config アグリゲーターで新しいリソースタイプをマルチアカウント・マルチリージョンで集約可能</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Technical Specifications -->
+        <div class="section">
+            <h2 class="section-title">技術仕様 - 自動記録の動作</h2>
+            <table class="tech-table">
+                <thead>
+                    <tr>
+                        <th>項目</th>
+                        <th>詳細</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>記録方法</td>
+                        <td>すべてのリソースタイプの記録を有効にしている場合、自動的に追跡開始</td>
+                    </tr>
+                    <tr>
+                        <td>Config ルール</td>
+                        <td>新しいリソースタイプに対してカスタムルールおよびマネージドルールを適用可能</td>
+                    </tr>
+                    <tr>
+                        <td>Config アグリゲーター</td>
+                        <td>マルチアカウント・マルチリージョンでの集約に対応</td>
+                    </tr>
+                    <tr>
+                        <td>リージョン</td>
+                        <td>サポートされるリソースが利用可能なすべての AWS リージョンで使用可能</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Setup Steps -->
+        <div class="section">
+            <h2 class="section-title">設定方法</h2>
+
+            <p style="margin-bottom: 16px; font-size: 15px;">前提条件: AWS Config が有効化されていること、対象リソースタイプの記録が有効であること、適切な IAM 権限が設定されていること</p>
+
+            <h3 style="font-size: 17px; color: var(--aws-smile-orange); margin: 20px 0 12px;">ステップ 1: 記録設定の確認</h3>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Bash</span>
+                    <span class="code-title">現在の記録設定を確認</span>
+                </div>
+                <pre><code class="language-bash"># 現在の記録設定を確認
+aws configservice describe-configuration-recorders</code></pre>
+            </div>
+            <p style="font-size: 14px; margin-bottom: 16px; opacity: 0.8;">すべてのリソースタイプの記録を有効にしている場合、新しいリソースタイプは自動的に追跡される。</p>
+
+            <h3 style="font-size: 17px; color: var(--aws-smile-orange); margin: 20px 0 12px;">ステップ 2: 特定のリソースタイプの記録を追加</h3>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Bash</span>
+                    <span class="code-title">特定のリソースタイプのみ記録している場合</span>
+                </div>
+                <pre><code class="language-bash"># 特定のリソースタイプのみ記録している場合、新しいリソースタイプを追加
+aws configservice put-configuration-recorder \
+  --configuration-recorder name=default,roleARN=arn:aws:iam::123456789012:role/config-role \
+  --recording-group '{"resourceTypes":["AWS::BedrockAgentCore::Gateway","AWS::BedrockAgentCore::Memory","AWS::Cognito::IdentityPoolRoleAttachment"]}'</code></pre>
+            </div>
+
+            <h3 style="font-size: 17px; color: var(--aws-smile-orange); margin: 20px 0 12px;">ステップ 3: Config ルールの設定</h3>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Bash</span>
+                    <span class="code-title">新しいリソースタイプに対するカスタムルールの例</span>
+                </div>
+                <pre><code class="language-bash"># 新しいリソースタイプに対するカスタムルールの例
+aws configservice put-config-rule \
+  --config-rule '{
+    "ConfigRuleName": "bedrock-agentcore-gateway-check",
+    "Source": {
+      "Owner": "CUSTOM_LAMBDA",
+      "SourceIdentifier": "arn:aws:lambda:us-east-1:123456789012:function:config-rule-function"
+    },
+    "Scope": {
+      "ComplianceResourceTypes": ["AWS::BedrockAgentCore::Gateway"]
+    }
+  }'</code></pre>
+            </div>
+        </div>
+
+        <!-- Benefits -->
+        <div class="section">
+            <h2 class="section-title">メリット</h2>
+            <div class="benefits-grid">
+                <div class="benefit-column">
+                    <div class="benefit-column-title">&#128188; ビジネス面</div>
+                    <div class="benefit-item">
+                        <span class="benefit-icon">&#10003;</span>
+                        <span><strong style="color: var(--aws-orange);">コンプライアンス範囲の拡大</strong>: 30 の新しいリソースタイプにより、AWS 環境全体のガバナンスカバレッジが向上</span>
+                    </div>
+                    <div class="benefit-item">
+                        <span class="benefit-icon">&#10003;</span>
+                        <span><strong style="color: var(--aws-orange);">AI/ML ワークロードの監査強化</strong>: Bedrock AgentCore リソースの追跡により、AI エージェント基盤のコンプライアンスを確保</span>
+                    </div>
+                    <div class="benefit-item">
+                        <span class="benefit-icon">&#10003;</span>
+                        <span><strong style="color: var(--aws-orange);">運用効率の向上</strong>: DataBrew や Deadline などのデータ処理・レンダリングリソースの一元管理が可能</span>
+                    </div>
+                </div>
+                <div class="benefit-column">
+                    <div class="benefit-column-title">&#9881;&#65039; 技術面</div>
+                    <div class="benefit-item">
+                        <span class="benefit-icon">&#10003;</span>
+                        <span><strong style="color: var(--aws-orange);">自動追跡</strong>: すべてのリソースタイプの記録を有効にしている場合、追加設定なしで自動的に新しいリソースを追跡</span>
+                    </div>
+                    <div class="benefit-item">
+                        <span class="benefit-icon">&#10003;</span>
+                        <span><strong style="color: var(--aws-orange);">Config ルール対応</strong>: 新しいリソースタイプに対してカスタムルールやマネージドルールを即座に適用可能</span>
+                    </div>
+                    <div class="benefit-item">
+                        <span class="benefit-icon">&#10003;</span>
+                        <span><strong style="color: var(--aws-orange);">マルチアカウント対応</strong>: Config アグリゲーターで新しいリソースタイプをマルチアカウント・マルチリージョンで集約可能</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Limitations -->
+        <div class="section">
+            <h2 class="section-title">制約事項・考慮点</h2>
+            <div class="limitation-item">
+                <span class="limitation-icon">&#9888;</span>
+                <span>特定のリソースタイプのみ記録している場合、新しいリソースタイプを手動で追加する必要がある</span>
+            </div>
+            <div class="limitation-item">
+                <span class="limitation-icon">&#9888;</span>
+                <span>リソースタイプの利用可否は、そのリソースが利用可能なリージョンに依存する</span>
+            </div>
+            <div class="limitation-item">
+                <span class="limitation-icon">&#9888;</span>
+                <span>Config ルールの評価はリソースタイプごとに設定が必要</span>
+            </div>
+            <div class="limitation-item">
+                <span class="limitation-icon">&#9888;</span>
+                <span>すべてのリソースタイプの記録を有効にしている場合、記録量の増加に伴いコストが上がる可能性がある</span>
+            </div>
+            <div class="limitation-item">
+                <span class="limitation-icon">&#9888;</span>
+                <span>新しいリソースタイプに対応するカスタムルールの開発・テストが必要な場合がある</span>
+            </div>
+        </div>
+
+        <!-- Use Cases -->
+        <div class="section">
+            <h2 class="section-title">ユースケース</h2>
+
+            <div class="usecase-card">
+                <div class="usecase-header">
+                    <span class="usecase-number">1</span>
+                    <span class="usecase-title">AI エージェント基盤のガバナンス</span>
+                </div>
+                <p class="usecase-scenario">Bedrock AgentCore を使用して AI エージェントを構築している組織が、Gateway と Memory リソースの設定変更を追跡し、セキュリティポリシーに準拠していることを確認したい。</p>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">JSON</span>
+                        <span class="code-title">Config ルール設定例</span>
+                    </div>
+                    <pre><code class="language-json">{
+  "ConfigRuleName": "agentcore-gateway-encryption-check",
+  "Source": {
+    "Owner": "CUSTOM_LAMBDA",
+    "SourceIdentifier": "arn:aws:lambda:us-east-1:123456789012:function:check-gateway-encryption"
+  },
+  "Scope": {
+    "ComplianceResourceTypes": [
+      "AWS::BedrockAgentCore::Gateway",
+      "AWS::BedrockAgentCore::Memory"
+    ]
+  }
+}</code></pre>
+                </div>
+                <p class="usecase-effect">AI エージェント基盤のリソース設定変更をリアルタイムで追跡し、非準拠リソースを自動検出できる。</p>
+            </div>
+
+            <div class="usecase-card">
+                <div class="usecase-header">
+                    <span class="usecase-number">2</span>
+                    <span class="usecase-title">データ処理パイプラインのコンプライアンス</span>
+                </div>
+                <p class="usecase-scenario">DataBrew を使用したデータ処理パイプラインを運用している組織が、すべての DataBrew コンポーネントの設定をコンプライアンス基準に照らして監査したい。</p>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">JSON</span>
+                        <span class="code-title">Config ルール設定例</span>
+                    </div>
+                    <pre><code class="language-json">{
+  "ConfigRuleName": "databrew-compliance-check",
+  "Scope": {
+    "ComplianceResourceTypes": [
+      "AWS::DataBrew::Dataset",
+      "AWS::DataBrew::Job",
+      "AWS::DataBrew::Project",
+      "AWS::DataBrew::Recipe",
+      "AWS::DataBrew::Ruleset",
+      "AWS::DataBrew::Schedule"
+    ]
+  }
+}</code></pre>
+                </div>
+                <p class="usecase-effect">DataBrew の全コンポーネントを一元的に監査し、データ処理パイプラインのコンプライアンスを確保できる。</p>
+            </div>
+
+            <div class="usecase-card">
+                <div class="usecase-header">
+                    <span class="usecase-number">3</span>
+                    <span class="usecase-title">ID 管理のセキュリティ強化</span>
+                </div>
+                <p class="usecase-scenario">Amazon Cognito を使用している組織が、ID プールのロールアタッチメントやログ配信設定の変更を追跡し、不正な権限変更を検出したい。</p>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">JSON</span>
+                        <span class="code-title">Config ルール設定例</span>
+                    </div>
+                    <pre><code class="language-json">{
+  "ConfigRuleName": "cognito-security-audit",
+  "Scope": {
+    "ComplianceResourceTypes": [
+      "AWS::Cognito::IdentityPoolRoleAttachment",
+      "AWS::Cognito::LogDeliveryConfiguration",
+      "AWS::Cognito::UserPoolUICustomizationAttachment"
+    ]
+  }
+}</code></pre>
+                </div>
+                <p class="usecase-effect">Cognito の設定変更履歴を自動記録し、不正な権限変更やログ設定の変更をリアルタイムで検出できる。</p>
+            </div>
+        </div>
+
+        <!-- Pricing -->
+        <div class="section">
+            <h2 class="section-title">料金情報</h2>
+            <p style="margin-bottom: 16px; font-size: 15px;">AWS Config の料金は既存の料金体系に従う。</p>
+            <table class="pricing-table">
+                <thead>
+                    <tr>
+                        <th>項目</th>
+                        <th>料金</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>設定項目の記録</td>
+                        <td>$0.003/設定項目 (リージョンごと)</td>
+                    </tr>
+                    <tr>
+                        <td>Config ルール評価</td>
+                        <td>$0.001/評価 (最初の 100,000 件)</td>
+                    </tr>
+                    <tr>
+                        <td>コンフォーマンスパック評価</td>
+                        <td>$0.0012/評価 (最初の 100,000 件)</td>
+                    </tr>
+                </tbody>
+            </table>
+            <p class="pricing-note">新しいリソースタイプの追加により、記録される設定項目が増加するため、コストの増加が見込まれる。</p>
+        </div>
+
+        <!-- Region -->
+        <div class="section">
+            <h2 class="section-title">利用可能リージョン</h2>
+            <p style="font-size: 15px;">サポートされるリソースが利用可能なすべての <a href="https://docs.aws.amazon.com/config/latest/developerguide/what-is-resource-config-coverage.html" target="_blank" class="source-link" style="font-size: 15px;">AWS リージョン</a>で使用可能。</p>
+        </div>
+
+        <!-- Related Services -->
+        <div class="section">
+            <h2 class="section-title">関連サービス</h2>
+            <div class="related-grid">
+                <div class="related-item">
+                    <span>&#129302;</span>
+                    <span><strong>Amazon Bedrock AgentCore</strong>: AI エージェント基盤のゲートウェイとメモリリソースを Config で追跡可能に</span>
+                </div>
+                <div class="related-item">
+                    <span>&#128274;</span>
+                    <span><strong>Amazon Cognito</strong>: ID プールのロールアタッチメントやログ設定を Config で監査可能に</span>
+                </div>
+                <div class="related-item">
+                    <span>&#128230;</span>
+                    <span><strong>AWS DataBrew</strong>: データ処理パイプラインの全コンポーネントを Config で一元管理可能に</span>
+                </div>
+                <div class="related-item">
+                    <span>&#128207;</span>
+                    <span><strong>AWS Config ルール</strong>: 新しいリソースタイプに対してコンプライアンスルールを適用可能</span>
+                </div>
+                <div class="related-item">
+                    <span>&#128202;</span>
+                    <span><strong>AWS Config アグリゲーター</strong>: マルチアカウント・マルチリージョンでの集約に対応</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Summary -->
+        <div class="section">
+            <h2 class="section-title">まとめ</h2>
+            <p class="overview-text">
+                AWS Config が 30 の新しいリソースタイプをサポートしたことで、特に <span class="highlight">Bedrock AgentCore</span>、<span class="highlight">Cognito</span>、<span class="highlight">DataBrew</span> などのサービスにおけるガバナンスとコンプライアンスの範囲が大幅に拡大した。すべてのリソースタイプの記録を有効にしている環境では追加設定なしで自動的に追跡が開始されるため、早急な対応は不要だが、特定のリソースタイプのみ記録している場合は、必要に応じて新しいリソースタイプを追加することを推奨する。
+            </p>
+        </div>
+
+        <!-- Footer -->
+        <footer>
+            <ul class="footer-links">
+                <li><a href="https://aws.amazon.com/about-aws/whats-new/2026/03/aws-config-new-resource-types/" class="source-link" target="_blank" rel="noopener noreferrer">公式発表 (What's New)</a></li>
+                <li><a href="https://docs.aws.amazon.com/config/latest/developerguide/what-is-resource-config-coverage.html" class="source-link" target="_blank" rel="noopener noreferrer">ドキュメント - リソースカバレッジ</a></li>
+                <li><a href="https://aws.amazon.com/config/pricing/" class="source-link" target="_blank" rel="noopener noreferrer">料金ページ</a></li>
+            </ul>
+            <p class="footer-note">サポートされるリソースが利用可能なすべての AWS リージョンで利用可能</p>
+        </footer>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'base',
+            themeVariables: {
+                primaryColor: '#FF9900',
+                primaryTextColor: '#232F3E',
+                primaryBorderColor: '#FF9900',
+                lineColor: '#FF9900',
+                secondaryColor: '#F5F5F5',
+                tertiaryColor: '#FAFAFA',
+                background: '#FFFFFF',
+                mainBkg: '#FFF3E0',
+                nodeBorder: '#FF9900',
+                clusterBkg: '#FFF8E1',
+                clusterBorder: '#FF9900',
+                edgeLabelBackground: '#FFFFFF',
+                textColor: '#232F3E'
+            }
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/highlight.min.js"></script>
+    <script>hljs.highlightAll();</script>
+</body>
+</html>
