@@ -1,19 +1,20 @@
 #!/usr/bin/env python3
 """
-AWS News Summary Automation Script
+AWS News Summary 自動化スクリプト
 
-This script runs the aws-news-summary skill using the Claude Agent SDK with Amazon Bedrock.
-It's designed to be executed by GitLab CI or GitHub Actions on a daily schedule.
+Claude Agent SDK (Amazon Bedrock) を使用して aws-news-summary スキルを実行します。
+GitHub Actions または GitLab CI で毎日自動実行されることを想定しています。
 
-Usage:
-    python run.py                           # Run with default prompt
-    python run.py "Custom prompt here"      # Run with custom prompt
-    python run.py --prompt "Custom prompt"  # Run with custom prompt (explicit flag)
+使用方法:
+    python run.py                           # デフォルト設定で実行
+    python run.py "カスタムプロンプト"       # カスタムプロンプトで実行
+    python run.py --prompt "カスタムプロンプト"  # カスタムプロンプト (明示的フラグ)
+    python run.py --days 7                  # 過去7日間のニュースを取得
 
-Environment Variables:
-    DEBUG=1         Enable debug mode (verbose logging)
-    VERBOSE=1       Enable verbose mode (timing and details)
-    AWS_REGION      AWS region for Bedrock (default: us-east-1)
+環境変数:
+    DEBUG=1         デバッグモード (詳細ログ出力)
+    VERBOSE=1       詳細モード (タイミング情報出力)
+    AWS_REGION      Bedrock の AWS リージョン (デフォルト: us-east-1)
 """
 
 import argparse
@@ -36,19 +37,64 @@ from claude_agent_sdk.types import (
     ToolUseBlock,
 )
 
-# Default prompt for the skill
-DEFAULT_PROMPT = (
-    "Run the aws-news-summary skill to report AWS news from the past week. "
-    "Make sure to invoke the Skill tool with skill='aws-news-summary'."
+# =============================================================================
+# 設定
+# =============================================================================
+
+# 遡って取得する日数のデフォルト値。
+# 日次実行では 3 日、キャッチアップ実行では --days 7 などを指定。
+DEFAULT_DAYS = 3
+
+# オーケストレーターに渡すデフォルトのプロンプトテンプレート。
+# {days} プレースホルダーは実際の日数に置換される。
+DEFAULT_PROMPT_TEMPLATE = (
+    "Report AWS news from the past {days} days. "
+    "Fetch the RSS feed, filter updates, check for duplicates, "
+    "and delegate report creation to subagents."
 )
 
-# Model configuration with fallback
+# モデル設定: 品質重視で Opus を使用、スロットリング時は Sonnet にフォールバック。
 PRIMARY_MODEL = "global.anthropic.claude-opus-4-6-v1"
 FALLBACK_MODEL = "global.anthropic.claude-sonnet-4-5-20250929-v1:0"
 
+# オーケストレーターと report-generator サブエージェントが使用するツール。
+# Claude Code 組み込みのファイル操作・Web アクセス用ツール。
+COMMON_TOOLS = [
+    "Skill",      # .claude/skills/ のスキル定義を呼び出す
+    "Read",       # ファイル読み込み
+    "Write",      # ファイル書き込み
+    "Edit",       # ファイル編集
+    "MultiEdit",  # 複数ファイル編集
+    "Glob",       # パターンでファイル検索
+    "Grep",       # ファイル内容検索
+    "Bash",       # シェルコマンド実行
+    "WebFetch",   # Web ページ取得
+]
+
+# MCP (Model Context Protocol) ツール。
+# AWS ドキュメントと地域情報にアクセス。
+# .mcp.json で設定が必要。
+MCP_TOOLS = [
+    "mcp__aws-knowledge__search_documentation",
+    "mcp__aws-knowledge__read_documentation",
+    "mcp__aws-knowledge__get_regional_availability",
+    "mcp__aws-knowledge__list_regions",
+]
+
+
+# =============================================================================
+# ロギング
+# =============================================================================
+
 
 class Logger:
-    """Logger with debug and verbose modes."""
+    """デバッグモードと詳細モードに対応したロガー。
+
+    環境変数で出力の詳細度を制御:
+    - DEBUG=1: 全メッセージの詳細 (最も詳細)
+    - VERBOSE=1: タイミングと操作の詳細
+    - どちらもなし: 最小限の出力 (進捗ドットのみ)
+    """
 
     def __init__(self) -> None:
         self.debug = os.environ.get("DEBUG", "").lower() in ("1", "true", "yes")
@@ -57,42 +103,42 @@ class Logger:
         self.last_timestamp = self.start_time
 
     def elapsed(self) -> str:
-        """Return elapsed time since start."""
+        """開始からの経過時間を返す。"""
         return f"{time.time() - self.start_time:.1f}s"
 
     def delta(self) -> str:
-        """Return time since last timestamp and update it."""
+        """前回のタイムスタンプからの経過時間を返し、タイムスタンプを更新する。"""
         now = time.time()
         delta = now - self.last_timestamp
         self.last_timestamp = now
         return f"+{delta:.1f}s"
 
     def log(self, message: str, *, level: str = "INFO", force: bool = False) -> None:
-        """Log a message with timestamp."""
+        """タイムスタンプ付きでメッセージを出力する。"""
         if force or self.verbose:
             timestamp = datetime.now().strftime("%H:%M:%S")
             print(f"[{timestamp}] [{level}] {message}", flush=True)
 
     def log_debug(self, message: str) -> None:
-        """Log debug message (only in debug mode)."""
+        """デバッグメッセージを出力 (デバッグモード時のみ)。"""
         if self.debug:
             self.log(message, level="DEBUG")
 
     def log_verbose(self, message: str) -> None:
-        """Log verbose message (in verbose or debug mode)."""
+        """詳細メッセージを出力 (verbose または debug モード時)。"""
         if self.verbose:
             self.log(message, level="VERBOSE")
 
     def log_error(self, message: str) -> None:
-        """Log error message (always shown)."""
+        """エラーメッセージを出力 (常に表示)。"""
         self.log(message, level="ERROR", force=True)
 
     def log_warn(self, message: str) -> None:
-        """Log warning message (always shown)."""
+        """警告メッセージを出力 (常に表示)。"""
         self.log(message, level="WARN", force=True)
 
 
-# Global logger instance
+# グローバルロガーインスタンス
 logger = Logger()
 
 
@@ -431,29 +477,45 @@ def is_throttling_error(error: Exception) -> bool:
     ])
 
 
-async def run_skill(prompt: str = DEFAULT_PROMPT) -> list[str]:
-    """Run the aws-news-summary skill using Claude Agent SDK.
+async def run_skill(prompt: str | None = None, days: int = DEFAULT_DAYS) -> list[str]:
+    """Claude Agent SDK とサブエージェントを使って aws-news-summary スキルを実行する。
+
+    オーケストレーターが RSS フィード取得、パース、フィルタリング、重複チェックを行い、
+    個別レポート作成は Task ツール経由で 'report-generator' サブエージェントに委譲して並列実行。
 
     Args:
-        prompt: The prompt to send to the skill. Defaults to DEFAULT_PROMPT.
+        prompt: スキルに送るプロンプト。None の場合は days に基づくデフォルトを使用。
+        days: 遡って取得する日数。デフォルトは DEFAULT_DAYS。
 
     Returns:
-        List of newly created report file paths (relative to project_dir).
+        新規作成されたレポートファイルパスのリスト (project_dir からの相対パス)。
     """
+    # プロンプトが指定されていない場合はデフォルトを生成
+    if prompt is None:
+        prompt = DEFAULT_PROMPT_TEMPLATE.format(days=days)
     print_separator()
-    print("AWS News Summary Automation")
+    print("AWS News Summary Automation (Subagent Mode)")
     print_separator()
     current_time = datetime.now()
     print(f"Start time: {current_time.isoformat()}")
+    print(f"Days to look back: {days}")
     print(f"Prompt: {prompt[:80]}{'...' if len(prompt) > 80 else ''}")
     print()
 
-    # Add current date context to prompt to help Claude understand the timeline
+    # 現在日時のコンテキストとオーケストレーター指示を追加
     prompt_with_context = f"""Current date and time: {current_time.strftime('%Y-%m-%d %H:%M:%S %Z')} (JST)
 
-{prompt}
+You are the orchestrator for AWS news report generation.
 
-Note: Please check the current date using the 'date' command before processing to ensure accurate date filtering."""
+1. Invoke the Skill tool with skill='aws-news-summary' to get the workflow
+2. Follow steps 1-4 of the skill workflow (FETCH, PARSE with --days {days}, FILTER, CHECK DUPLICATES)
+3. DELEGATE: For each update, use the 'report-generator' subagent via Task tool
+   - Batch size: 10 subagents at a time
+   - Wait for each batch to complete before starting the next
+   - TaskOutput timeout: 600000 (10 minutes)
+   - CRITICAL: When you receive TaskOutput, respond with ONLY a one-line confirmation per task. Do NOT repeat subagent output to avoid "Prompt is too long" errors.
+
+User's request: {prompt}"""
 
     # Show logging mode
     if logger.debug:
@@ -510,20 +572,32 @@ Note: Please check the current date using the 'date' command before processing t
         for md_file in output_dir.rglob("*.md"):
             existing_reports.add(str(md_file.relative_to(project_dir)))
 
-        # Try with primary model, fallback on throttling
+        # モデルリトライ戦略: まずプライマリモデル、スロットリング時はフォールバック。
         models_to_try = [PRIMARY_MODEL, FALLBACK_MODEL]
 
+        # Bedrock 統合用の環境変数。
         bedrock_env = {
             "CLAUDE_CODE_USE_BEDROCK": "1",
             "AWS_REGION": aws_region,
         }
+
+        # レポート生成用サブエージェントのプロンプト。
+        # サブエージェントは Skill を呼び出して詳細なワークフロー指示を取得する。
+        # これにより run.py はシンプルに保ち、SKILL.md に全ロジックを集約できる。
+        report_subagent_prompt = (
+            "You are an AWS news report generator. "
+            "When given an update item and output file path:\n"
+            "1. Invoke the Skill tool with skill='aws-news-summary'\n"
+            "2. Follow the skill's workflow to create the report\n"
+            "3. Save to the specified output path"
+        )
 
         for model_index, current_model in enumerate(models_to_try):
             print(f"Executing with model: {current_model}")
             print()
             print("Progress:", end="", flush=True)
 
-            # Capture CLI stderr for debugging exit code errors
+            # 終了コードエラーのデバッグ用に CLI stderr をキャプチャ
             stderr_lines: list[str] = []
 
             def _on_stderr(line: str) -> None:
@@ -534,9 +608,9 @@ Note: Please check the current date using the 'date' command before processing t
                         flush=True,
                     )
 
-            # Configure Claude Agent SDK options
-            # Use only project-level MCP settings (not user-level)
-            # to avoid loading MCP servers from ~/.claude/settings.json
+            # Claude Agent SDK オプションを設定 (report-generator サブエージェント付き)
+            # オーケストレーターが RSS 取得、パース、フィルタリング、重複チェックを担当し、
+            # レポート作成はサブエージェントに委譲する。
             options = ClaudeAgentOptions(
                 model=current_model,
                 fallback_model=(
@@ -547,32 +621,33 @@ Note: Please check the current date using the 'date' command before processing t
                 env=bedrock_env,
                 cwd=str(project_dir),
                 setting_sources=["project"],
-                allowed_tools=[
-                    "Skill",
-                    "Read",
-                    "Write",
-                    "Edit",
-                    "MultiEdit",
-                    "Glob",
-                    "Grep",
-                    "Bash",
-                ],
+                allowed_tools=COMMON_TOOLS + ["Task"] + MCP_TOOLS,
+                agents={
+                    "report-generator": AgentDefinition(
+                        description="Generate a report from an update item.",
+                        prompt=report_subagent_prompt,
+                        tools=COMMON_TOOLS + MCP_TOOLS,
+                    ),
+                },
                 stderr=_on_stderr,
             )
 
-            # Execute the query using Claude Agent SDK
+            # Claude Agent SDK を使ってクエリを実行。
+            # SDK は非同期メッセージストリームを返し、それを処理して
+            # 進捗を追跡し、作成/スキップされたレポートを検出する。
             result_text = ""
             report_count = 0
             created_reports: list[str] = []
             skipped_reports: list[str] = []
             msg_count = 0
             current_task = ""
+            result_received = False  # ResultMessage を受信したかどうか
 
             logger.log_verbose(f"Starting query execution at {logger.elapsed()}")
             last_message_time = time.time()
-            heartbeat_interval = 10  # seconds
-            pending_tools: dict[str, str] = {}  # tool_id -> tool_name
-            pending_tool_start: dict[str, float] = {}  # tool_id -> start_time
+            heartbeat_interval = 10  # N 秒間メッセージがない場合にハートビートを表示
+            pending_tools: dict[str, str] = {}  # 実行中のツール呼び出しを追跡
+            pending_tool_start: dict[str, float] = {}  # ツール実行時間を追跡
 
             try:
                 async for message in query(prompt=prompt_with_context, options=options):
@@ -748,6 +823,7 @@ Note: Please check the current date using the 'date' command before processing t
 
                     elif isinstance(message, ResultMessage):
                         subtype = getattr(message, "subtype", None)
+                        result_received = True  # CLI 終了コードエラー処理用
                         if subtype == "success":
                             print(f"\n\nCompleted! ({report_count} reports, {msg_count} messages, {logger.elapsed()})")
                         elif subtype == "error_during_execution":
@@ -845,11 +921,25 @@ Note: Please check the current date using the 'date' command before processing t
                         if not logger.debug:
                             print(".", end="", flush=True)
 
-                # Success - break out of the retry loop
+                # 成功 - リトライループを抜ける
                 break
 
             except Exception as e:
                 error_str = str(e)
+
+                # ResultMessage を既に受信している場合、タスクは正常に完了したが
+                # CLI プロセスが非ゼロコードで終了した。
+                # これは既知の SDK の問題 - 成功として扱う。
+                if result_received and "exit code" in error_str:
+                    logger.log_warn(
+                        f"CLI exited with error after ResultMessage: {error_str[:200]}"
+                    )
+                    print(
+                        f"\n  (CLI exit code error ignored - task already completed)",
+                        flush=True,
+                    )
+                    break
+
                 logger.log_error(f"Exception at {logger.elapsed()}: {type(e).__name__}: {error_str[:200]}")
 
                 if is_throttling_error(e) and model_index < len(models_to_try) - 1:
@@ -966,19 +1056,19 @@ def _report_to_infographic_path(report_path: str) -> str:
 
 
 async def generate_infographics(report_paths: list[str]) -> list[str]:
-    """Generate infographics using Claude Agent SDK subagents.
+    """Claude Agent SDK サブエージェントを使ってインフォグラフィックを生成する。
 
-    A single query() call is made with an 'infographic-generator' subagent
-    defined via AgentDefinition. The main agent is instructed to delegate
-    each report to the subagent via the Task tool, which Claude can run
-    in parallel automatically.
+    "Prompt is too long" エラーを避けるため、BATCH_SIZE ごとにバッチ処理し、
+    バッチごとに別々の query() 呼び出しを行う。
 
     Args:
-        report_paths: List of report file paths relative to project_dir.
+        report_paths: project_dir からの相対パスのレポートファイルリスト。
 
     Returns:
-        List of created infographic file paths.
+        作成されたインフォグラフィックファイルパスのリスト。
     """
+    BATCH_SIZE = 5
+
     if not report_paths:
         print("No reports to generate infographics for.")
         return []
@@ -1005,36 +1095,15 @@ async def generate_infographics(report_paths: list[str]) -> list[str]:
     print_separator()
     print()
 
-    # Build the task list for the orchestrator prompt
-    task_lines = []
-    for i, rp in enumerate(targets, 1):
-        html_path = _report_to_infographic_path(rp)
-        task_lines.append(f"  {i}. Report: '{rp}' -> Output: '{html_path}'")
-    task_list = "\n".join(task_lines)
-
-    orchestrator_prompt = (
-        f"You have {len(targets)} report(s) that each need an infographic.\n"
-        f"For EACH report below, use the 'infographic-generator' subagent "
-        f"via the Task tool to generate the infographic. "
-        f"Delegate ALL of them so they run in parallel.\n\n"
-        f"Reports to process:\n{task_list}\n\n"
-        f"For each task, tell the subagent:\n"
-        f"- Which report file to read\n"
-        f"- Where to save the output HTML\n"
-        f"Wait for all subagents to complete, then summarize the results."
-    )
-
+    # インフォグラフィック生成用サブエージェントのプロンプト。
+    # サブエージェントは Skill を呼び出して詳細なワークフロー指示を取得する。
+    # これにより run.py はシンプルに保ち、SKILL.md に全ロジックを集約できる。
     subagent_prompt = (
-        "You are an infographic generator specialist. "
+        "You are an infographic generator. "
         "When given a report file path and output path:\n"
-        "1. Read the report file\n"
-        "2. Use the creating-infographic skill with the AWS News theme "
-        "(refer to .claude/skills/creating-infographic/themes/aws-news.md)\n"
-        "3. Generate a visually appealing infographic HTML file\n"
-        "4. Include all sections from the report\n"
-        "5. If the report contains Mermaid diagrams, embed them using Mermaid.js\n"
-        "6. Save the output to the specified path\n\n"
-        "Make sure to invoke the Skill tool with skill='creating-infographic'."
+        "1. Invoke the Skill tool with skill='creating-infographic'\n"
+        "2. Follow the skill's workflow to create the infographic\n"
+        "3. Save to the specified output path"
     )
 
     models_to_try = [PRIMARY_MODEL, FALLBACK_MODEL]
@@ -1045,139 +1114,207 @@ async def generate_infographics(report_paths: list[str]) -> list[str]:
         "AWS_REGION": os.environ.get("AWS_REGION", "us-east-1"),
     }
 
-    for model_index, current_model in enumerate(models_to_try):
-        infographic_stderr: list[str] = []
+    # バッチ処理
+    # Issue #584 回避策: バッチ間に遅延を入れてレースコンディションを防ぐ
+    BATCH_DELAY_SECONDS = 2
+    total_batches = (len(targets) + BATCH_SIZE - 1) // BATCH_SIZE
+    for batch_idx in range(total_batches):
+        # 2 バッチ目以降は遅延を入れる
+        if batch_idx > 0:
+            print(f"    (waiting {BATCH_DELAY_SECONDS}s before next batch...)")
+            await asyncio.sleep(BATCH_DELAY_SECONDS)
 
-        def _on_infographic_stderr(line: str) -> None:
-            infographic_stderr.append(line)
+        batch_start = batch_idx * BATCH_SIZE
+        batch_end = min(batch_start + BATCH_SIZE, len(targets))
+        batch = targets[batch_start:batch_end]
 
-        options = ClaudeAgentOptions(
-            model=current_model,
-            fallback_model=(
-                FALLBACK_MODEL if current_model == PRIMARY_MODEL else None
-            ),
-            env=bedrock_env,
-            cwd=str(project_dir),
-            setting_sources=["project"],
-            # Task tool is required for subagent invocation
-            allowed_tools=[
-                "Skill",
-                "Read",
-                "Write",
-                "Edit",
-                "MultiEdit",
-                "Glob",
-                "Bash",
-                "Task",
-            ],
-            agents={
-                "infographic-generator": AgentDefinition(
-                    description=(
-                        "Generates an infographic HTML file from a report. "
-                        "Use for each report that needs an infographic."
-                    ),
-                    prompt=subagent_prompt,
-                    tools=[
-                        "Skill",
-                        "Read",
-                        "Write",
-                        "Edit",
-                        "MultiEdit",
-                        "Glob",
-                        "Bash",
-                    ],
-                ),
-            },
-            stderr=_on_infographic_stderr,
+        print(
+            f"  Batch {batch_idx + 1}/{total_batches} "
+            f"({len(batch)} reports)"
         )
 
-        try:
-            msg_count = 0
-            start_time = time.time()
+        # このバッチ用のタスクリストを構築
+        task_lines = []
+        for i, rp in enumerate(batch, 1):
+            html_path = _report_to_infographic_path(rp)
+            task_lines.append(
+                f"  {i}. Report: '{rp}' -> Output: '{html_path}'"
+            )
+        task_list = "\n".join(task_lines)
 
-            async for message in query(
-                prompt=orchestrator_prompt, options=options
-            ):
-                msg_count += 1
+        orchestrator_prompt = (
+            f"You have {len(batch)} report(s) that each need an "
+            f"infographic.\n"
+            f"For EACH report below, use the 'infographic-generator' "
+            f"subagent via the Task tool to generate the infographic. "
+            f"Delegate ALL of them so they run in parallel.\n"
+            f"When collecting TaskOutput, set timeout to 600000.\n\n"
+            f"Reports to process:\n{task_list}\n\n"
+            f"For each task, tell the subagent:\n"
+            f"- Which report file to read\n"
+            f"- Where to save the output HTML\n"
+            f"Wait for all subagents to complete, then confirm done."
+        )
 
-                if isinstance(message, AssistantMessage):
-                    content = getattr(message, "content", [])
-                    for block in (
-                        content if isinstance(content, list) else []
-                    ):
-                        if isinstance(block, ToolUseBlock):
-                            tool_name = block.name
-                            tool_input = (
-                                block.input
-                                if hasattr(block, "input")
-                                else {}
-                            )
-                            if tool_name == "Task":
-                                desc = (
-                                    tool_input.get("description", "")
-                                    if isinstance(tool_input, dict)
-                                    else ""
+        for model_index, current_model in enumerate(models_to_try):
+            infographic_stderr: list[str] = []
+
+            def _on_infographic_stderr(line: str) -> None:
+                infographic_stderr.append(line)
+
+            options = ClaudeAgentOptions(
+                model=current_model,
+                fallback_model=(
+                    FALLBACK_MODEL
+                    if current_model == PRIMARY_MODEL
+                    else None
+                ),
+                env=bedrock_env,
+                cwd=str(project_dir),
+                setting_sources=["project"],
+                allowed_tools=["Skill", "Read", "Write", "Edit", "Glob", "Bash", "Task"],
+                agents={
+                    "infographic-generator": AgentDefinition(
+                        description="Generate an infographic from a report.",
+                        prompt=subagent_prompt,
+                        tools=["Skill", "Read", "Write", "Edit", "Glob", "Bash"],
+                    ),
+                },
+                stderr=_on_infographic_stderr,
+            )
+
+            try:
+                msg_count = 0
+                start_time = time.time()
+                infographic_result_received = False
+
+                async for message in query(
+                    prompt=orchestrator_prompt, options=options
+                ):
+                    msg_count += 1
+
+                    if isinstance(message, AssistantMessage):
+                        content = getattr(message, "content", [])
+                        for block in (
+                            content
+                            if isinstance(content, list)
+                            else []
+                        ):
+                            if isinstance(block, ToolUseBlock):
+                                tool_name = block.name
+                                tool_input = (
+                                    block.input
+                                    if hasattr(block, "input")
+                                    else {}
                                 )
-                                print(
-                                    f"  -> Subagent task: {desc[:80]}",
-                                    flush=True,
-                                )
-                            elif tool_name == "Write":
-                                file_path = (
-                                    tool_input.get("file_path", "")
-                                    if isinstance(tool_input, dict)
-                                    else ""
-                                )
-                                if "infographic/" in file_path:
-                                    fname = file_path.split("/")[-1]
+                                if tool_name == "Task":
+                                    desc = (
+                                        tool_input.get(
+                                            "description", ""
+                                        )
+                                        if isinstance(
+                                            tool_input, dict
+                                        )
+                                        else ""
+                                    )
                                     print(
-                                        f"  -> Creating: {fname}",
+                                        f"    -> {desc[:80]}",
                                         flush=True,
                                     )
+                                elif tool_name == "Write":
+                                    file_path = (
+                                        tool_input.get(
+                                            "file_path", ""
+                                        )
+                                        if isinstance(
+                                            tool_input, dict
+                                        )
+                                        else ""
+                                    )
+                                    if "infographic/" in file_path:
+                                        fname = (
+                                            file_path.split("/")[-1]
+                                        )
+                                        print(
+                                            f"    -> Creating: "
+                                            f"{fname}",
+                                            flush=True,
+                                        )
 
-                elif isinstance(message, ResultMessage):
-                    subtype = getattr(message, "subtype", None)
-                    if subtype == "success":
-                        elapsed = time.time() - start_time
+                    elif isinstance(message, ResultMessage):
+                        subtype = getattr(message, "subtype", None)
+                        infographic_result_received = True
+                        if subtype == "success":
+                            elapsed = time.time() - start_time
+                            print(
+                                f"    Done ({msg_count} msgs, "
+                                f"{elapsed:.0f}s)"
+                            )
+                        elif subtype == "error_during_execution":
+                            error_msg = getattr(
+                                message, "error", None
+                            )
+                            print(
+                                f"    Error: {error_msg}"
+                                if error_msg
+                                else "    Error during execution"
+                            )
+
+                # このバッチで作成されたインフォグラフィックを確認
+                for rp in batch:
+                    html_path = _report_to_infographic_path(rp)
+                    if (project_dir / html_path).exists():
+                        created.append(html_path)
+                    else:
                         print(
-                            f"  Orchestrator done "
-                            f"({msg_count} msgs, {elapsed:.0f}s)"
-                        )
-                    elif subtype == "error_during_execution":
-                        error_msg = getattr(message, "error", None)
-                        print(
-                            f"  Error: {error_msg}"
-                            if error_msg
-                            else "  Error during execution"
+                            f"    Warning: {html_path} not created"
                         )
 
-            # Check which infographics were actually created
-            for rp in targets:
-                html_path = _report_to_infographic_path(rp)
-                if (project_dir / html_path).exists():
-                    created.append(html_path)
+                break  # 成功、モデルリトライループを抜ける
+
+            except Exception as e:
+                error_str = str(e)
+
+                # Issue #584 回避策: SDK のレースコンディション対策
+                is_known_sdk_issue = (
+                    "Fatal error in message reader" in error_str
+                    or "exit code" in error_str
+                )
+
+                if is_known_sdk_issue:
+                    print(f"    (SDK error ignored, checking created files...)")
+                    batch_created = 0
+                    for rp in batch:
+                        html_path = _report_to_infographic_path(rp)
+                        if (project_dir / html_path).exists():
+                            created.append(html_path)
+                            batch_created += 1
+                    print(f"    -> {batch_created}/{len(batch)} files created in this batch")
+                    await asyncio.sleep(1)
+                    break
+
+                if (
+                    is_throttling_error(e)
+                    and model_index < len(models_to_try) - 1
+                ):
+                    print(
+                        f"    Throttled, retrying with fallback..."
+                    )
+                    continue
                 else:
-                    name = Path(rp).stem
-                    print(f"  Warning: {html_path} not created ({name})")
-
-            break  # Success, exit model retry loop
-
-        except Exception as e:
-            if is_throttling_error(e) and model_index < len(models_to_try) - 1:
-                print(
-                    f"  Throttled on {current_model}, "
-                    f"retrying with fallback..."
-                )
-                continue
-            else:
-                print(
-                    f"  Error: {type(e).__name__}: {str(e)[:100]}"
-                )
-                if infographic_stderr:
-                    print("  CLI stderr (last 20 lines):")
-                    for sl in infographic_stderr[-20:]:
-                        print(f"    {sl}")
-                break
+                    print(
+                        f"    Error: {type(e).__name__}: "
+                        f"{str(e)[:100]}"
+                    )
+                    if infographic_stderr:
+                        for sl in infographic_stderr[-10:]:
+                            print(f"      {sl}")
+                    # エラーでも作成されたファイルを確認
+                    for rp in batch:
+                        html_path = _report_to_infographic_path(rp)
+                        if (project_dir / html_path).exists():
+                            created.append(html_path)
+                    break
 
     print()
     print_separator()
@@ -1190,20 +1327,23 @@ async def generate_infographics(report_paths: list[str]) -> list[str]:
 
 
 def parse_args() -> argparse.Namespace:
-    """Parse command-line arguments."""
+    """コマンドライン引数をパースする。"""
     parser = argparse.ArgumentParser(
         description="Run the aws-news-summary skill using Claude Agent SDK.",
         formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog="""
+        epilog=f"""
 Examples:
   python run.py
-      Run with default prompt (report AWS news from the past week)
+      Run with default settings (past {DEFAULT_DAYS} days)
+
+  python run.py --days 7
+      Look back 7 days for updates (useful for catching up after failures)
+
+  python run.py --days 1
+      Look back only 1 day (for daily runs)
 
   python run.py "Amazon Bedrock の最新アップデートを教えて"
       Report only Amazon Bedrock updates
-
-  python run.py --prompt "過去2週間のAWSアップデートをまとめて"
-      Report AWS updates from the past 2 weeks
 
   python run.py --verbose
       Run with verbose logging (timing information)
@@ -1215,13 +1355,19 @@ Examples:
     parser.add_argument(
         "prompt",
         nargs="?",
-        default=DEFAULT_PROMPT,
-        help=f"Prompt to send to the skill (default: '{DEFAULT_PROMPT[:50]}...')",
+        default=None,
+        help="Prompt to send to the skill (optional, overrides --days)",
     )
     parser.add_argument(
         "--prompt", "-p",
         dest="prompt_flag",
         help="Prompt to send to the skill (alternative to positional argument)",
+    )
+    parser.add_argument(
+        "--days",
+        type=int,
+        default=DEFAULT_DAYS,
+        help=f"Number of days to look back for updates (default: {DEFAULT_DAYS})",
     )
     parser.add_argument(
         "--verbose", "-v",
@@ -1238,25 +1384,34 @@ Examples:
 
 
 def main() -> None:
-    """Main entry point."""
+    """自動化スクリプトのメインエントリーポイント。
+
+    2 つのフェーズを実行:
+    - Phase 1: AWS What's New からレポートを生成
+    - Phase 2: レポートからインフォグラフィックを生成
+
+    各フェーズは独立して失敗可能。Phase 1 が部分的に成功した場合
+    (エラー前に一部レポートが作成された場合) でも Phase 2 は実行される。
+    """
     global logger
 
     args = parse_args()
 
-    # Apply verbose/debug flags from command line
+    # コマンドラインから verbose/debug フラグを適用
     if args.debug:
         os.environ["DEBUG"] = "1"
     if args.verbose:
         os.environ["VERBOSE"] = "1"
 
-    # Reinitialize logger with updated environment
+    # 更新された環境でロガーを再初期化
     logger = Logger()
 
-    # Use --prompt flag if provided, otherwise use positional argument
+    # --prompt フラグがあればそれを使用、なければ位置引数を使用
     prompt = args.prompt_flag if args.prompt_flag else args.prompt
+    days = args.days
 
-    # Snapshot existing reports BEFORE Phase 1 so we can detect new ones
-    # even if run_skill() raises an exception after reports are written to disk
+    # Phase 1 の前に既存レポートのスナップショットを取得
+    # run_skill() がレポート書き込み後に例外を投げても新規作成を検出できるようにする
     project_dir = Path(__file__).parent
     output_dir = project_dir / "reports"
     existing_reports = set()
@@ -1267,10 +1422,22 @@ def main() -> None:
     phase1_failed = False
 
     try:
-        # Phase 1: Generate reports
-        new_reports = asyncio.run(run_skill(prompt=prompt))
+        # Phase 1: レポート生成
+        new_reports = asyncio.run(run_skill(prompt=prompt, days=days))
     except Exception:
-        # run_skill already printed error details.
+        # run_skill は既にエラー詳細を出力済み。
+        # SDK がエラーを投げても、サブエージェントがレポートを
+        # ディスクに書き込んでいる可能性がある。検出して Phase 2 を実行可能に。
+        phase1_failed = True
+        for md_file in output_dir.rglob("*.md"):
+            rel_path = str(md_file.relative_to(project_dir))
+            if rel_path not in existing_reports:
+                new_reports.append(rel_path)
+        new_reports.sort()
+        if new_reports:
+            print(f"\nPhase 1 ended with error, but {len(new_reports)} new report(s) found on disk:")
+            for rp in new_reports:
+                print(f"  + {rp}")
         # Even if the SDK threw an error, sub-agents may have written
         # reports to disk. Detect them so Phase 2 can still run.
         phase1_failed = True
