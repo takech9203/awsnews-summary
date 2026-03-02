@@ -51,14 +51,12 @@ flowchart TD
         end
 
         Filter["🔍 Filter & Check"]
-        Generate["📝 Generate Report"]
         Reports["📁 reports/"]
 
         Skill --> Collect
         Parse --> Filter
         MCP --> Filter
-        Filter --> Generate
-        Generate --> Reports
+        Filter -.->|"report-generator subagents<br/>(Task ツール経由)"| Reports
     end
 
     subgraph Phase2["Phase 2: インフォグラフィック生成"]
@@ -69,7 +67,7 @@ flowchart TD
     end
 
     SDK --> Phase1
-    Reports -.->|"Subagent 並列実行<br/>(Task ツール経由)"| Phase2
+    Reports -.->|"infographic-generator subagents<br/>(Task ツール経由)"| Phase2
 
     classDef ci fill:#F3E5F5,stroke:#CE93D8,stroke-width:2px,color:#6A1B9A
     classDef sdk fill:#E1BEE7,stroke:#CE93D8,stroke-width:2px,color:#6A1B9A
@@ -281,19 +279,19 @@ sequenceDiagram
     RunPy->>RunPy: AWS 認証情報検証 (STS)
     RunPy->>RunPy: モデル選択<br/>(Primary / Fallback)
 
-    Note over CI,FS: Phase 1: レポート生成 (aws-news-summary スキル)
+    Note over CI,FS: Phase 1: レポート生成 (aws-news-summary スキル + report-generator サブエージェント)
 
     activate RunPy
-    RunPy->>SDK: run_skill(prompt)
+    RunPy->>SDK: run_skill(prompt, days=3)<br/>agents={report-generator: AgentDefinition(...)}
     activate SDK
 
-    SDK->>LLM: Request (prompt + tools)
+    SDK->>LLM: Request (orchestrator prompt + AgentDefinition)
     activate LLM
     LLM-->>SDK: Response (tool_use: Skill=aws-news-summary)
     deactivate LLM
 
     rect rgb(255, 255, 255)
-        Note over SDK,Scripts: Step 0-1: データ収集
+        Note over SDK,Scripts: Step 1-2: データ収集 & パース
         SDK->>Bash: date (現在時刻確認)
         Bash-->>SDK: 日時
         SDK->>LLM: Request (Bash 結果)
@@ -306,7 +304,7 @@ sequenceDiagram
         activate LLM
         LLM-->>SDK: Response (tool_use: Bash)
         deactivate LLM
-        SDK->>Scripts: parse_aws_news_feed.py --days N
+        SDK->>Scripts: parse_aws_news_feed.py --days 3
         Scripts-->>SDK: JSON (フィルタ済みアイテム)
     end
 
@@ -316,75 +314,89 @@ sequenceDiagram
     deactivate LLM
 
     rect rgb(255, 255, 255)
-        Note over SDK,MCP: Step 2-4: フィルタリング & 重複チェック
+        Note over SDK,FS: Step 3-4: フィルタリング & 重複チェック
         SDK->>FS: Glob(reports/{YYYY}/*.md)
         FS-->>SDK: 既存レポート一覧
         SDK->>LLM: Request (Glob 結果)
         activate LLM
-        LLM-->>SDK: Response (重複判定 + tool_use)
+        LLM-->>SDK: Response (重複判定 + tool_use: Task × N)
         deactivate LLM
     end
 
     rect rgb(240, 255, 240)
-        Note over SDK,MCP: Step 5-8: 詳細取得 & レポート生成
-        loop 新規アイテムごと
-            SDK->>LLM: Request (次のアイテム処理)
+        Note over SDK,MCP: Step 5: サブエージェントに委譲 (バッチサイズ: 10)
+        par レポート 1-10 の report-generator サブエージェント
+            SDK->>LLM: Subagent: アイテム 1 のレポート生成
             activate LLM
-            LLM-->>SDK: Response (tool_use: MCP read)
+            LLM->>MCP: read_documentation(URL)
+            MCP-->>LLM: Markdown (詳細)
+            LLM->>MCP: search_documentation(keyword)
+            MCP-->>LLM: Blog 検索結果
+            LLM->>FS: Write reports/{YYYY}/{date}-{slug}.md
+            LLM-->>SDK: Subagent 完了
             deactivate LLM
-            SDK->>MCP: read_documentation(URL)
-            MCP-->>SDK: Markdown (詳細)
-            SDK->>LLM: Request (MCP 結果)
+        and レポート 11-20 の report-generator サブエージェント
+            SDK->>LLM: Subagent: アイテム 11 のレポート生成
             activate LLM
-            LLM-->>SDK: Response (tool_use: MCP search)
+            LLM->>MCP: read_documentation(URL)
+            LLM->>MCP: search_documentation(keyword)
+            LLM->>FS: Write reports/{YYYY}/{date}-{slug}.md
+            LLM-->>SDK: Subagent 完了
             deactivate LLM
-            SDK->>MCP: search_documentation(keyword)
-            MCP-->>SDK: Blog 検索結果
-            SDK->>LLM: Request (検索結果)
-            activate LLM
-            LLM-->>SDK: Response (tool_use: Write)
-            deactivate LLM
-            SDK->>FS: Write reports/{YYYY}/{date}-{slug}.md
         end
     end
 
     SDK-->>RunPy: 新規レポートパス一覧を返却
     deactivate SDK
 
-    Note over CI,FS: Phase 2: インフォグラフィック生成 (subagent 並列実行)
+    Note over CI,FS: Phase 2: インフォグラフィック生成 (バッチ処理)
 
     rect rgb(248, 240, 255)
-        RunPy->>SDK: generate_infographics()<br/>query(orchestrator_prompt,<br/>agents={infographic-generator: AgentDefinition(...)})
+        Note over RunPy,SDK: バッチ 1 (レポート 1-5)
+        RunPy->>SDK: generate_infographics() batch 1<br/>query(orchestrator_prompt,<br/>agents={infographic-generator: AgentDefinition(...)})
         activate SDK
-        SDK->>LLM: Request (タスク一覧 + AgentDefinition)
+        SDK->>LLM: Request (バッチ 1 タスク一覧 + AgentDefinition)
         activate LLM
-        LLM-->>SDK: Response (tool_use: Task × N 並列)
+        LLM-->>SDK: Response (tool_use: Task × 5 並列)
         deactivate LLM
 
-        par レポート A の subagent
-            SDK->>LLM: Subagent: レポート A のインフォグラフィック生成
+        par レポート 1-5 の infographic-generator サブエージェント
+            SDK->>LLM: Subagent: レポート 1 のインフォグラフィック生成
             activate LLM
-            LLM->>FS: Read report A
-            LLM->>FS: Write infographic A
+            LLM->>FS: Read report 1
+            LLM->>FS: Write infographic 1
             LLM-->>SDK: Subagent 完了
             deactivate LLM
-        and レポート B の subagent
-            SDK->>LLM: Subagent: レポート B のインフォグラフィック生成
+        and
+            SDK->>LLM: Subagent: レポート 2-5 のインフォグラフィック生成
             activate LLM
-            LLM->>FS: Read report B
-            LLM->>FS: Write infographic B
-            LLM-->>SDK: Subagent 完了
-            deactivate LLM
-        and レポート C の subagent
-            SDK->>LLM: Subagent: レポート C のインフォグラフィック生成
-            activate LLM
-            LLM->>FS: Read report C
-            LLM->>FS: Write infographic C
+            LLM->>FS: Read/Write reports 2-5
             LLM-->>SDK: Subagent 完了
             deactivate LLM
         end
 
-        SDK-->>RunPy: 生成結果サマリー
+        SDK-->>RunPy: バッチ 1 完了
+        deactivate SDK
+
+        RunPy->>RunPy: 2秒待機 (SDK race condition 対策)
+
+        Note over RunPy,SDK: バッチ 2 (レポート 6-10)
+        RunPy->>SDK: generate_infographics() batch 2
+        activate SDK
+        SDK->>LLM: Request (バッチ 2 タスク一覧)
+        activate LLM
+        LLM-->>SDK: Response (tool_use: Task × 5 並列)
+        deactivate LLM
+
+        par レポート 6-10 の infographic-generator サブエージェント
+            SDK->>LLM: Subagent: レポート 6-10 のインフォグラフィック生成
+            activate LLM
+            LLM->>FS: Read/Write reports 6-10
+            LLM-->>SDK: Subagent 完了
+            deactivate LLM
+        end
+
+        SDK-->>RunPy: バッチ 2 完了
         deactivate SDK
     end
 

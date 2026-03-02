@@ -50,14 +50,12 @@ flowchart TD
         end
 
         Filter["🔍 Filter & Check"]
-        Generate["📝 Generate Report"]
         Reports["📁 reports/"]
 
         Skill --> Collect
         Parse --> Filter
         MCP --> Filter
-        Filter --> Generate
-        Generate --> Reports
+        Filter -.->|"report-generator subagents<br/>(via Task tool)"| Reports
     end
 
     subgraph Phase2["Phase 2: Infographic Generation"]
@@ -68,7 +66,7 @@ flowchart TD
     end
 
     SDK --> Phase1
-    Reports -.->|"Parallel subagents<br/>(via Task tool)"| Phase2
+    Reports -.->|"infographic-generator subagents<br/>(via Task tool)"| Phase2
 
     classDef ci fill:#F3E5F5,stroke:#CE93D8,stroke-width:2px,color:#6A1B9A
     classDef sdk fill:#E1BEE7,stroke:#CE93D8,stroke-width:2px,color:#6A1B9A
@@ -280,10 +278,10 @@ sequenceDiagram
     RunPy->>RunPy: Verify AWS credentials (STS)
     RunPy->>RunPy: Select model<br/>(Primary / Fallback)
 
-    Note over CI,FS: Phase 1: Report Generation (aws-news-summary skill)
+    Note over CI,FS: Phase 1: Report Generation (aws-news-summary skill + report-generator subagents)
 
     activate RunPy
-    RunPy->>SDK: run_skill(prompt)
+    RunPy->>SDK: run_skill(prompt, days=3)<br/>agents={report-generator: AgentDefinition(...)}
     activate SDK
     SDK->>LLM: Load SKILL.md & .mcp.json
     activate LLM
@@ -291,69 +289,94 @@ sequenceDiagram
     LLM->>Bash: curl AWS What's New RSS
     Bash-->>LLM: Save to /tmp/aws_news_feed.xml
 
-    LLM->>Scripts: python3 parse_aws_news_feed.py
+    LLM->>Scripts: python3 parse_aws_news_feed.py --days 3
     Scripts-->>LLM: JSON (filtered items)
 
     LLM->>Bash: curl AWS API Changes RSS
     Bash-->>LLM: Save to /tmp/aws_api_changes_feed.xml
 
-    LLM->>Scripts: python3 parse_aws_api_changes_feed.py
+    LLM->>Scripts: python3 parse_aws_api_changes_feed.py --days 3
     Scripts-->>LLM: JSON (filtered items)
-
-    LLM->>MCP: read_documentation(What's New URL)
-    MCP-->>LLM: Markdown content
-
-    LLM->>MCP: search_documentation(Blog keyword)
-    MCP-->>LLM: Blog search results
-
-    LLM->>LLM: Filter & prioritize by importance
 
     LLM->>FS: Check existing reports
     FS-->>LLM: List of {date}-{slug}.md
 
-    loop For each new item
-        LLM->>LLM: Generate report from template
-        LLM->>FS: Write reports/{YYYY}/{date}-{slug}.md
-    end
+    LLM->>LLM: Filter & prioritize by importance
 
     deactivate LLM
+
+    Note over SDK,MCP: Delegate to report-generator subagents (batch size: 10)
+
+    par Subagents for reports 1-10
+        SDK->>LLM: Subagent: generate report for item 1
+        activate LLM
+        LLM->>MCP: read_documentation(What's New URL)
+        MCP-->>LLM: Markdown content
+        LLM->>MCP: search_documentation(Blog keyword)
+        MCP-->>LLM: Blog search results
+        LLM->>FS: Write reports/{YYYY}/{date}-{slug}.md
+        LLM-->>SDK: Subagent complete
+        deactivate LLM
+    and Subagents for reports 11-20
+        SDK->>LLM: Subagent: generate report for item 11
+        activate LLM
+        LLM->>MCP: read_documentation + search_documentation
+        LLM->>FS: Write reports/{YYYY}/{date}-{slug}.md
+        LLM-->>SDK: Subagent complete
+        deactivate LLM
+    end
+
     SDK-->>RunPy: Return new report paths
     deactivate SDK
 
-    Note over CI,FS: Phase 2: Infographic Generation (parallel subagents)
+    Note over CI,FS: Phase 2: Infographic Generation (batch processing)
 
     rect rgb(248, 240, 255)
-        RunPy->>SDK: generate_infographics()<br/>query(orchestrator_prompt,<br/>agents={infographic-generator: AgentDefinition(...)})
+        Note over RunPy,SDK: Batch 1 (reports 1-5)
+        RunPy->>SDK: generate_infographics() batch 1<br/>query(orchestrator_prompt,<br/>agents={infographic-generator: AgentDefinition(...)})
         activate SDK
-        SDK->>LLM: Request (task list + AgentDefinition)
+        SDK->>LLM: Request (batch 1 task list + AgentDefinition)
         activate LLM
-        LLM-->>SDK: Response (tool_use: Task x N parallel)
+        LLM-->>SDK: Response (tool_use: Task x 5 parallel)
         deactivate LLM
 
-        par Subagent for report A
-            SDK->>LLM: Subagent: generate infographic for report A
+        par infographic-generator subagents for reports 1-5
+            SDK->>LLM: Subagent: generate infographic for report 1
             activate LLM
-            LLM->>FS: Read report A
-            LLM->>FS: Write infographic A
+            LLM->>FS: Read report 1
+            LLM->>FS: Write infographic 1
             LLM-->>SDK: Subagent complete
             deactivate LLM
-        and Subagent for report B
-            SDK->>LLM: Subagent: generate infographic for report B
+        and
+            SDK->>LLM: Subagent: generate infographics for reports 2-5
             activate LLM
-            LLM->>FS: Read report B
-            LLM->>FS: Write infographic B
-            LLM-->>SDK: Subagent complete
-            deactivate LLM
-        and Subagent for report C
-            SDK->>LLM: Subagent: generate infographic for report C
-            activate LLM
-            LLM->>FS: Read report C
-            LLM->>FS: Write infographic C
+            LLM->>FS: Read/Write reports 2-5
             LLM-->>SDK: Subagent complete
             deactivate LLM
         end
 
-        SDK-->>RunPy: Generation results summary
+        SDK-->>RunPy: Batch 1 complete
+        deactivate SDK
+
+        RunPy->>RunPy: Wait 2s (SDK race condition workaround)
+
+        Note over RunPy,SDK: Batch 2 (reports 6-10)
+        RunPy->>SDK: generate_infographics() batch 2
+        activate SDK
+        SDK->>LLM: Request (batch 2 task list)
+        activate LLM
+        LLM-->>SDK: Response (tool_use: Task x 5 parallel)
+        deactivate LLM
+
+        par infographic-generator subagents for reports 6-10
+            SDK->>LLM: Subagent: generate infographics for reports 6-10
+            activate LLM
+            LLM->>FS: Read/Write reports 6-10
+            LLM-->>SDK: Subagent complete
+            deactivate LLM
+        end
+
+        SDK-->>RunPy: Batch 2 complete
         deactivate SDK
     end
 
