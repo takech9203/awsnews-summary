@@ -1,0 +1,1217 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Amazon Bedrock AgentCore - Policy 機能の一般提供開始</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap');
+
+    :root {
+      --aws-squid-ink: #232F3E;
+      --aws-dark-squid: #1A242F;
+      --aws-orange: #FF9900;
+      --aws-smile-orange: #FFAD33;
+      --aws-white: #FFFFFF;
+      --aws-light-gray: #D5DBDB;
+      --aws-teal: #00A1C9;
+      --aws-purple: #8C4FFF;
+      --aws-green: #1D8102;
+      --aws-red: #D13212;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--aws-squid-ink);
+      font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+      color: var(--aws-light-gray);
+      font-size: 16px;
+      line-height: 1.6;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    /* Header */
+    .header {
+      text-align: center;
+      margin-bottom: 40px;
+      padding: 40px 24px;
+      background: linear-gradient(135deg, var(--aws-dark-squid) 0%, rgba(255,153,0,0.08) 100%);
+      border-radius: 12px;
+      border: 1px solid rgba(255,153,0,0.3);
+    }
+
+    .service-badge {
+      display: inline-block;
+      background: var(--aws-orange);
+      color: var(--aws-squid-ink);
+      font-size: 13px;
+      font-weight: 700;
+      padding: 4px 16px;
+      border-radius: 20px;
+      margin-bottom: 16px;
+      letter-spacing: 0.5px;
+    }
+
+    .header h1 {
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--aws-white);
+      margin-bottom: 12px;
+      line-height: 1.3;
+    }
+
+    .header .subtitle {
+      font-size: 16px;
+      color: var(--aws-light-gray);
+      margin-bottom: 8px;
+    }
+
+    .header .date {
+      font-size: 14px;
+      color: var(--aws-orange);
+      font-weight: 600;
+    }
+
+    /* Section */
+    .section {
+      background: var(--aws-dark-squid);
+      border-radius: 8px;
+      padding: 28px;
+      margin-bottom: 24px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .section-title {
+      font-size: 22px;
+      font-weight: 600;
+      color: var(--aws-orange);
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .section p {
+      margin-bottom: 12px;
+    }
+
+    /* Highlight */
+    .highlight {
+      background-color: rgba(255, 153, 0, 0.2);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 600;
+      color: var(--aws-orange);
+    }
+
+    /* Before / After */
+    .before-after {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-top: 16px;
+    }
+
+    @media (max-width: 640px) {
+      .before-after { grid-template-columns: 1fr; }
+    }
+
+    .before-card, .after-card {
+      border-radius: 8px;
+      padding: 20px;
+    }
+
+    .before-card {
+      background: rgba(209, 50, 18, 0.1);
+      border: 1px solid rgba(209, 50, 18, 0.4);
+    }
+
+    .after-card {
+      background: rgba(29, 129, 2, 0.1);
+      border: 1px solid rgba(29, 129, 2, 0.4);
+    }
+
+    .before-card h4 {
+      color: var(--aws-red);
+      font-size: 15px;
+      margin-bottom: 12px;
+    }
+
+    .after-card h4 {
+      color: var(--aws-green);
+      font-size: 15px;
+      margin-bottom: 12px;
+    }
+
+    .before-card ul, .after-card ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    .before-card li, .after-card li {
+      font-size: 14px;
+      margin-bottom: 8px;
+      padding-left: 20px;
+      position: relative;
+      line-height: 1.5;
+    }
+
+    .before-card li::before {
+      content: "\2717";
+      position: absolute;
+      left: 0;
+      color: var(--aws-red);
+      font-weight: bold;
+    }
+
+    .after-card li::before {
+      content: "\2713";
+      position: absolute;
+      left: 0;
+      color: var(--aws-green);
+      font-weight: bold;
+    }
+
+    /* Feature cards */
+    .feature-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    @media (max-width: 640px) {
+      .feature-grid { grid-template-columns: 1fr; }
+    }
+
+    .feature-card {
+      background: rgba(255, 153, 0, 0.05);
+      border-left: 4px solid var(--aws-orange);
+      border-radius: 0 8px 8px 0;
+      padding: 16px 20px;
+    }
+
+    .feature-card .feature-icon {
+      font-size: 24px;
+      margin-bottom: 4px;
+    }
+
+    .feature-card h4 {
+      color: var(--aws-white);
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .feature-card p {
+      font-size: 13px;
+      color: var(--aws-light-gray);
+      margin: 0;
+      line-height: 1.5;
+    }
+
+    /* Mermaid container */
+    .mermaid-container {
+      background: #FFFFFF;
+      border-radius: 12px;
+      padding: 24px;
+      margin: 20px 0;
+      border: 2px solid rgba(255, 153, 0, 0.3);
+      overflow-x: auto;
+    }
+
+    .mermaid {
+      display: flex;
+      justify-content: center;
+    }
+
+    /* Table */
+    .styled-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+      font-size: 14px;
+    }
+
+    .styled-table th {
+      background: rgba(255, 153, 0, 0.15);
+      color: var(--aws-orange);
+      font-weight: 600;
+      text-align: left;
+      padding: 10px 14px;
+      border-bottom: 2px solid rgba(255, 153, 0, 0.3);
+    }
+
+    .styled-table td {
+      padding: 10px 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      color: var(--aws-light-gray);
+    }
+
+    .styled-table tr:hover td {
+      background: rgba(255, 153, 0, 0.05);
+    }
+
+    /* Use case */
+    .usecase-card {
+      background: rgba(255, 153, 0, 0.06);
+      border: 1px solid rgba(255, 153, 0, 0.25);
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+
+    .usecase-card h4 {
+      color: var(--aws-orange);
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .usecase-card .scenario {
+      font-size: 14px;
+      color: var(--aws-light-gray);
+      margin-bottom: 12px;
+    }
+
+    .usecase-card .effect {
+      font-size: 13px;
+      color: var(--aws-green);
+      font-weight: 500;
+      padding-left: 18px;
+      position: relative;
+    }
+
+    .usecase-card .effect::before {
+      content: "\2714";
+      position: absolute;
+      left: 0;
+    }
+
+    /* Stats */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-top: 16px;
+    }
+
+    @media (max-width: 640px) {
+      .stats-grid { grid-template-columns: 1fr; }
+    }
+
+    .stat-card {
+      background: linear-gradient(135deg, rgba(255,153,0,0.12) 0%, rgba(255,153,0,0.03) 100%);
+      border: 1px solid rgba(255,153,0,0.3);
+      border-radius: 8px;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--aws-orange);
+      margin-bottom: 4px;
+    }
+
+    .stat-label {
+      font-size: 13px;
+      color: var(--aws-light-gray);
+    }
+
+    /* Flow diagram */
+    .flow-diagram {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin: 24px 0;
+    }
+
+    .flow-step {
+      background: var(--aws-dark-squid);
+      border: 2px solid var(--aws-orange);
+      border-radius: 8px;
+      padding: 12px 20px;
+      text-align: center;
+      min-width: 100px;
+      color: var(--aws-white);
+      font-size: 14px;
+    }
+
+    .flow-arrow {
+      color: var(--aws-orange);
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    /* Pricing */
+    .pricing-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+      font-size: 14px;
+    }
+
+    .pricing-table th {
+      background: rgba(255, 153, 0, 0.15);
+      color: var(--aws-orange);
+      font-weight: 600;
+      text-align: left;
+      padding: 10px 14px;
+      border-bottom: 2px solid rgba(255, 153, 0, 0.3);
+    }
+
+    .pricing-table td {
+      padding: 10px 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      color: var(--aws-light-gray);
+    }
+
+    .pricing-table .price {
+      color: var(--aws-orange);
+      font-weight: 600;
+    }
+
+    /* Region list */
+    .region-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .region-item {
+      background: rgba(255, 153, 0, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 6px;
+      padding: 8px 12px;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .region-code {
+      color: var(--aws-teal);
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+    }
+
+    /* Merits/Demerits */
+    .merit-list, .demerit-list {
+      list-style: none;
+      padding: 0;
+    }
+
+    .merit-list li, .demerit-list li {
+      padding: 8px 0 8px 24px;
+      position: relative;
+      font-size: 14px;
+      line-height: 1.5;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .merit-list li::before {
+      content: "\2713";
+      position: absolute;
+      left: 0;
+      color: var(--aws-green);
+      font-weight: bold;
+    }
+
+    .demerit-list li::before {
+      content: "\26A0";
+      position: absolute;
+      left: 0;
+      color: var(--aws-smile-orange);
+    }
+
+    .merit-label {
+      color: var(--aws-white);
+      font-weight: 600;
+    }
+
+    /* Related services */
+    .related-card {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .related-card:last-child { border-bottom: none; }
+
+    .related-icon {
+      font-size: 22px;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .related-card h4 {
+      color: var(--aws-teal);
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .related-card p {
+      font-size: 13px;
+      color: var(--aws-light-gray);
+      margin: 0;
+    }
+
+    /* Code block */
+    .code-block {
+      background: #1a1a2e;
+      border-radius: 8px;
+      overflow: hidden;
+      margin: 16px 0;
+    }
+
+    .code-header {
+      background: #16213e;
+      padding: 8px 16px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+    }
+
+    .code-lang {
+      color: var(--aws-orange);
+      font-weight: bold;
+    }
+
+    .code-title {
+      color: var(--aws-light-gray);
+    }
+
+    .code-block pre {
+      margin: 0;
+      padding: 0;
+      overflow-x: auto;
+    }
+
+    .code-block code {
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      line-height: 1.5;
+      padding: 16px !important;
+    }
+
+    /* Setup steps */
+    .setup-steps {
+      counter-reset: step-counter;
+    }
+
+    .setup-step {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 20px;
+      align-items: flex-start;
+    }
+
+    .step-number {
+      background: var(--aws-orange);
+      color: var(--aws-squid-ink);
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 15px;
+      flex-shrink: 0;
+    }
+
+    .step-content h4 {
+      color: var(--aws-white);
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .step-content p {
+      font-size: 14px;
+      color: var(--aws-light-gray);
+      margin: 0;
+      line-height: 1.5;
+    }
+
+    /* Links list */
+    .links-list {
+      list-style: none;
+      padding: 0;
+    }
+
+    .links-list li {
+      margin-bottom: 8px;
+    }
+
+    .links-list a {
+      color: var(--aws-teal);
+      text-decoration: none;
+      font-size: 14px;
+      word-break: break-all;
+    }
+
+    .links-list a:hover {
+      color: var(--aws-smile-orange);
+      text-decoration: underline;
+    }
+
+    /* Footer */
+    footer {
+      margin-top: 32px;
+      padding-top: 20px;
+      border-top: 1px solid rgba(255, 255, 255, 0.2);
+      font-size: 12px;
+      color: var(--aws-light-gray);
+    }
+
+    footer a {
+      color: var(--aws-teal);
+      text-decoration: none;
+      word-break: break-all;
+    }
+
+    footer a:hover {
+      color: var(--aws-smile-orange);
+    }
+
+    /* Divider */
+    .section-divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 8px 0 20px;
+    }
+
+    .section-divider::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: rgba(255, 153, 0, 0.3);
+    }
+
+    /* Sub-heading */
+    .sub-heading {
+      color: var(--aws-white);
+      font-size: 16px;
+      font-weight: 600;
+      margin: 16px 0 10px;
+    }
+
+    /* Note box */
+    .note-box {
+      background: rgba(255,153,0,0.08);
+      border-left: 3px solid var(--aws-orange);
+      padding: 12px 16px;
+      border-radius: 0 6px 6px 0;
+      font-size: 14px;
+      margin-top: 12px;
+    }
+  </style>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/styles/atom-one-dark.min.css">
+</head>
+<body>
+  <div class="container">
+
+    <!-- Header -->
+    <div class="header">
+      <div class="service-badge">Amazon Bedrock AgentCore</div>
+      <h1>🔒 Policy 機能の一般提供開始</h1>
+      <p class="subtitle">AI エージェントとツール間のインタラクションに対する一元的かつきめ細かなアクセス制御</p>
+      <p class="date">📅 2026 年 3 月 3 日 - GA リリース</p>
+    </div>
+
+    <!-- Overview -->
+    <div class="section">
+      <h2 class="section-title">📋 概要</h2>
+      <p>Amazon Bedrock AgentCore の <span class="highlight">Policy 機能</span> が一般提供を開始しました。この機能は、AI エージェントとツール間のインタラクションに対して、<span class="highlight">エージェントコードの外部</span> で動作する一元的かつきめ細かなアクセス制御を提供します。</p>
+      <p>自然言語でポリシーを記述すると、AWS のオープンソースポリシー言語である <span class="highlight">Cedar</span> に自動変換されます。作成されたポリシーはポリシーエンジンに保存され、AgentCore Gateway に関連付けられます。Gateway はエージェントとツール間のトラフィックをインターセプトし、各リクエストをポリシーに照らして評価した上で、ツールへのアクセスを許可または拒否します。</p>
+    </div>
+
+    <!-- Before / After -->
+    <div class="section">
+      <h2 class="section-title">🔄 Before / After 比較</h2>
+      <div class="before-after">
+        <div class="before-card">
+          <h4>❌ アップデート前の課題</h4>
+          <ul>
+            <li>ツールアクセス制御をエージェントコード内に直接実装 - セキュリティとビジネスロジックが混在</li>
+            <li>エージェントがビジネスルールを誤解釈し、権限の範囲外で動作するリスク</li>
+            <li>複数エージェントへの一貫したポリシー適用が困難で、個別実装が必要</li>
+            <li>ポリシー変更にコード修正・デプロイが必要、チーム間調整コストが高い</li>
+          </ul>
+        </div>
+        <div class="after-card">
+          <h4>✅ アップデート後の改善</h4>
+          <ul>
+            <li>エージェントコード外部でポリシーを定義・適用 - 関心の分離を実現</li>
+            <li>自然言語で記述し Cedar に自動変換 - ポリシー作成の敷居が大幅低下</li>
+            <li>AgentCore Gateway で決定論的なポリシー適用 - 実装に依存しない一貫制御</li>
+            <li>CloudWatch 統合によるモニタリングと監査ログで可視性・ガバナンス向上</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Architecture Diagram (Mermaid from source) -->
+    <div class="section">
+      <h2 class="section-title">🏗️ アーキテクチャ図</h2>
+      <p>AI エージェントからのツール呼び出しリクエストが AgentCore Gateway でインターセプトされ、ポリシーエンジンが Cedar ポリシーに基づいて許可/拒否を判定するフローを示しています。</p>
+      <div class="mermaid-container">
+        <pre class="mermaid">
+flowchart TD
+    subgraph AgentLayer["🤖 エージェント層"]
+        Agent["🤖 AI エージェント&lt;br/&gt;ツール呼び出しリクエスト"]
+    end
+
+    subgraph GatewayLayer["🔒 AgentCore Gateway 層"]
+        Gateway["🔌 AgentCore Gateway&lt;br/&gt;トラフィックインターセプト"]
+        PolicyEngine["📋 ポリシーエンジン&lt;br/&gt;Cedar ポリシー評価"]
+        Gateway --> PolicyEngine
+    end
+
+    subgraph PolicyAuth["📝 ポリシーオーサリング"]
+        direction LR
+        NL["💬 自然言語入力"]
+        Cedar["🌲 Cedar ポリシー"]
+        NL --> Cedar
+        NL ~~~ Cedar
+    end
+
+    subgraph ToolLayer["⚙️ ツール層"]
+        direction LR
+        Tool1["🔧 ツール A"]
+        Tool2["🔧 ツール B"]
+        Tool3["🔧 ツール C"]
+        Tool1 ~~~ Tool2 ~~~ Tool3
+    end
+
+    subgraph Monitoring["📊 モニタリング"]
+        CW["📊 CloudWatch&lt;br/&gt;メトリクスとログ"]
+    end
+
+    Agent --> Gateway
+    PolicyAuth -.-> PolicyEngine
+    PolicyEngine -->|"✅ 許可"| ToolLayer
+    PolicyEngine -->|"❌ 拒否"| Agent
+    PolicyEngine -.-> CW
+
+    classDef agent fill:#E3F2FD,stroke:#BBDEFB,stroke-width:2px,color:#1565C0
+    classDef gateway fill:#FFE0B2,stroke:#FFCC80,stroke-width:2px,color:#5D4037
+    classDef policy fill:#F3E5F5,stroke:#CE93D8,stroke-width:2px,color:#6A1B9A
+    classDef tool fill:#DCEDC8,stroke:#C5E1A5,stroke-width:2px,color:#33691E
+    classDef monitor fill:#E8EAF6,stroke:#C5CAE9,stroke-width:2px,color:#283593
+    classDef layer fill:none,stroke:#CCCCCC,stroke-width:2px,color:#666666
+
+    class Agent agent
+    class Gateway,PolicyEngine gateway
+    class NL,Cedar policy
+    class Tool1,Tool2,Tool3 tool
+    class CW monitor
+    class AgentLayer,GatewayLayer,PolicyAuth,ToolLayer,Monitoring layer
+        </pre>
+      </div>
+    </div>
+
+    <!-- Key Features -->
+    <div class="section">
+      <h2 class="section-title">⚡ 主要機能</h2>
+      <div class="feature-grid">
+        <div class="feature-card">
+          <div class="feature-icon">🛡️</div>
+          <h4>ポリシー適用</h4>
+          <p>AgentCore Gateway を通じてすべてのエージェントリクエストをインターセプトし、定義されたポリシーに基づいてツールアクセスの許可/拒否を決定。エージェントコード外部で動作する決定論的な制御。</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🎯</div>
+          <h4>きめ細かなアクセス制御</h4>
+          <p>ユーザー ID に基づくアクセス制御や、ツール入力パラメータに基づくバリデーションルールの定義が可能。エージェントが呼び出せるツールと実行条件を詳細に指定。</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">💬</div>
+          <h4>自然言語ポリシーオーサリング</h4>
+          <p>英語の自然言語でルールを記述すると Cedar に自動変換。ツールスキーマに対するバリデーションと自動推論による安全性条件の検出を実行。</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🌲</div>
+          <h4>Cedar ポリシー言語</h4>
+          <p>AWS のオープンソースポリシー言語 Cedar で正確かつ検証可能なポリシーを記述。Amazon Verified Permissions でも使用される実績ある言語。</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">📊</div>
+          <h4>モニタリングと監査</h4>
+          <p>CloudWatch メトリクスおよびログとの統合。すべてのポリシー評価と判定結果の詳細なログを記録し、監査と動作検証が可能。</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🔗</div>
+          <h4>インフラストラクチャ統合</h4>
+          <p>VPC セキュリティグループおよびその他の AWS セキュリティインフラとの統合。既存の AWS セキュリティ体制との整合性を維持。</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Technical Specifications -->
+    <div class="section">
+      <h2 class="section-title">🔧 技術仕様</h2>
+
+      <h3 class="sub-heading">Policy の主要コンポーネント</h3>
+      <table class="styled-table">
+        <thead>
+          <tr>
+            <th>コンポーネント</th>
+            <th>説明</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>ポリシーエンジン</strong></td>
+            <td>ポリシーの保存と評価を行うコンポーネント。Cedar ポリシーを管理</td>
+          </tr>
+          <tr>
+            <td><strong>AgentCore Gateway</strong></td>
+            <td>エージェントとツール間のトラフィックをインターセプトし、ポリシーエンジンに評価を委譲</td>
+          </tr>
+          <tr>
+            <td><strong>Cedar ポリシー</strong></td>
+            <td>アクセス制御ルールを記述するポリシー言語。宣言的な構文で許可/拒否条件を定義</td>
+          </tr>
+          <tr>
+            <td><strong>自然言語オーサリング</strong></td>
+            <td>英語の自然言語記述を Cedar ポリシーに変換する機能</td>
+          </tr>
+          <tr>
+            <td><strong>自動推論</strong></td>
+            <td>ポリシーの安全性を自動検証。過度な許容/制限、充足不可能な条件を検出</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3 class="sub-heading" style="margin-top: 24px;">API 変更履歴</h3>
+      <table class="styled-table">
+        <thead>
+          <tr>
+            <th>日付</th>
+            <th>サービス</th>
+            <th>変更内容</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>2026/02/10</td>
+            <td>Amazon Bedrock AgentCore</td>
+            <td>2 updated methods - ブラウザプロキシ設定サポートの追加</td>
+          </tr>
+          <tr>
+            <td>2026/02/05</td>
+            <td>Amazon Bedrock AgentCore</td>
+            <td>1 new 2 updated methods - ブラウザプロファイル永続化サポート</td>
+          </tr>
+          <tr>
+            <td>2026/02/05</td>
+            <td>Amazon Bedrock AgentCore Control</td>
+            <td>4 new methods - ブラウザプロファイル永続化サポート</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="note-box">Policy 機能の GA に伴う API 変更は、今後 awsapichanges.com で公開される見込みです。</div>
+    </div>
+
+    <!-- Cedar Policy Example -->
+    <div class="section">
+      <h2 class="section-title">📝 Cedar ポリシーの例</h2>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Cedar</span>
+          <span class="code-title">ツールアクセス許可ポリシー</span>
+        </div>
+        <pre><code class="language-javascript">// エージェントが特定のツールにアクセスすることを許可するポリシー例
+permit (
+    principal,
+    action == Action::"InvokeTool",
+    resource == Tool::"OrderLookup"
+) when {
+    principal.role == "customer-service-agent"
+};</code></pre>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Cedar</span>
+          <span class="code-title">条件付きツールアクセス拒否ポリシー</span>
+        </div>
+        <pre><code class="language-javascript">// 特定の条件下でツールアクセスを拒否するポリシー例
+forbid (
+    principal,
+    action == Action::"InvokeTool",
+    resource == Tool::"DeleteRecord"
+) unless {
+    principal.role == "admin-agent" &&
+    context.approval_status == "approved"
+};</code></pre>
+      </div>
+    </div>
+
+    <!-- Setup Steps -->
+    <div class="section">
+      <h2 class="section-title">⚙️ 設定方法</h2>
+
+      <p style="margin-bottom: 16px; font-size: 14px;">前提条件: AWS アカウントと適切な IAM 権限、Amazon Bedrock AgentCore が有効なリージョン、AgentCore Gateway のセットアップ</p>
+
+      <div class="setup-steps">
+        <div class="setup-step">
+          <div class="step-number">1</div>
+          <div class="step-content">
+            <h4>ポリシーエンジンの作成</h4>
+            <p>AgentCore コンソールまたは API を使用して、ポリシーエンジンを作成します。ポリシーエンジンは Cedar ポリシーを保存・管理するコンテナとして機能します。</p>
+          </div>
+        </div>
+        <div class="setup-step">
+          <div class="step-number">2</div>
+          <div class="step-content">
+            <h4>ポリシーの作成</h4>
+            <p>自然言語または Cedar を使用してポリシーを作成します。自然言語で記述した場合は自動的に Cedar ポリシーに変換され、ツールスキーマに対するバリデーションが実行されます。自動推論により、ポリシーの安全性条件が検証されます。</p>
+          </div>
+        </div>
+        <div class="setup-step">
+          <div class="step-number">3</div>
+          <div class="step-content">
+            <h4>ポリシーエンジンを Gateway に関連付け</h4>
+            <p>作成したポリシーエンジンを AgentCore Gateway に関連付けます。Gateway を通過するすべてのエージェントリクエストがポリシーに基づいて評価されます。</p>
+          </div>
+        </div>
+        <div class="setup-step">
+          <div class="step-number">4</div>
+          <div class="step-content">
+            <h4>モニタリングの設定</h4>
+            <p>CloudWatch を使用して、ポリシー評価の結果をモニタリングします。許可/拒否の判定ログを確認し、ポリシーが意図どおりに動作していることを検証します。</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="note-box">
+        <strong>自然言語の例:</strong> 「カスタマーサービスエージェントは、注文検索ツールと返品処理ツールにのみアクセスできる。レコード削除ツールへのアクセスは管理者エージェントに限定する。」
+      </div>
+    </div>
+
+    <!-- Merits -->
+    <div class="section">
+      <h2 class="section-title">✅ メリット</h2>
+
+      <h3 class="sub-heading">ビジネス面</h3>
+      <ul class="merit-list">
+        <li><span class="merit-label">ガバナンスの強化:</span> エージェントの動作に対する組織全体の可視性と制御を確保し、コンプライアンス要件への対応を容易にする</li>
+        <li><span class="merit-label">運用効率の向上:</span> セキュリティポリシーの変更がエージェントコードの修正なしに行えるため、セキュリティチームと開発チームの独立した作業が可能</li>
+        <li><span class="merit-label">リスク軽減:</span> エージェントが定義されたパラメータ内で動作することを保証し、意図しない動作や権限の逸脱を防止</li>
+      </ul>
+
+      <h3 class="sub-heading" style="margin-top: 20px;">技術面</h3>
+      <ul class="merit-list">
+        <li><span class="merit-label">関心の分離:</span> セキュリティ制御をエージェントコードから完全に分離することで、コードの保守性と品質が向上</li>
+        <li><span class="merit-label">決定論的な制御:</span> ポリシーの適用がエージェントの実装に依存しないため、一貫した動作を保証</li>
+        <li><span class="merit-label">自動推論による安全性検証:</span> ポリシーの論理的な整合性を自動的に検証し、人的ミスによる設定ミスを低減</li>
+      </ul>
+    </div>
+
+    <!-- Demerits / Constraints -->
+    <div class="section">
+      <h2 class="section-title">⚠️ デメリット・制約事項</h2>
+
+      <h3 class="sub-heading">制限事項</h3>
+      <ul class="demerit-list">
+        <li>自然言語によるポリシーオーサリングは現時点で <strong>英語のみ</strong> をサポート</li>
+        <li>ポリシーの適用には AgentCore Gateway を経由する必要があり、Gateway を使用しないエージェント構成では利用不可</li>
+        <li>Cedar ポリシー言語の学習コストが発生する場合がある (ただし自然言語変換機能で軽減可能)</li>
+      </ul>
+
+      <h3 class="sub-heading" style="margin-top: 20px;">考慮すべき点</h3>
+      <ul class="demerit-list">
+        <li>ポリシー評価の追加による、リクエストあたりのわずかなレイテンシ増加の可能性</li>
+        <li>複雑なポリシー構成の場合、テストと検証に十分な時間を確保する必要がある</li>
+        <li>既存のエージェントシステムへの導入には、AgentCore Gateway を経由するようアーキテクチャの変更が必要になる場合がある</li>
+      </ul>
+    </div>
+
+    <!-- Use Cases -->
+    <div class="section">
+      <h2 class="section-title">💡 ユースケース</h2>
+
+      <div class="usecase-card">
+        <h4>🎧 ユースケース 1: カスタマーサービスエージェントの権限制御</h4>
+        <p class="scenario">カスタマーサービスの AI エージェントが、注文検索、返品処理、顧客情報更新など複数のツールにアクセスする環境で、エージェントごとに適切な権限を設定する必要がある。</p>
+        <div class="code-block">
+          <div class="code-header">
+            <span class="code-lang">Cedar</span>
+            <span class="code-title">権限制御の例</span>
+          </div>
+          <pre><code class="language-javascript">// カスタマーサービスエージェントは注文検索と返品処理のみ許可
+permit (
+    principal,
+    action == Action::"InvokeTool",
+    resource in [Tool::"OrderLookup", Tool::"ProcessReturn"]
+) when {
+    principal.role == "customer-service-agent"
+};
+
+// 顧客情報の削除はスーパーバイザーのみ許可
+permit (
+    principal,
+    action == Action::"InvokeTool",
+    resource == Tool::"DeleteCustomerData"
+) when {
+    principal.role == "supervisor-agent"
+};</code></pre>
+        </div>
+        <p class="effect">エージェントの権限を明確に定義することで、顧客データへの不正アクセスや誤操作を防止し、コンプライアンス要件を満たすことができる。</p>
+      </div>
+
+      <div class="usecase-card">
+        <h4>💰 ユースケース 2: 金融サービスにおける取引エージェントの入力バリデーション</h4>
+        <p class="scenario">金融取引を行う AI エージェントに対して、取引金額や取引先の制限を設定し、不正取引やエラーによる損失を防止する。</p>
+        <div class="code-block">
+          <div class="code-header">
+            <span class="code-lang">Cedar</span>
+            <span class="code-title">取引制限の例</span>
+          </div>
+          <pre><code class="language-javascript">// 取引金額に上限を設定
+permit (
+    principal,
+    action == Action::"InvokeTool",
+    resource == Tool::"ExecuteTrade"
+) when {
+    principal.role == "trading-agent" &&
+    context.amount <= 10000
+};
+
+// 承認済み取引先のみに制限
+forbid (
+    principal,
+    action == Action::"InvokeTool",
+    resource == Tool::"ExecuteTrade"
+) unless {
+    context.counterparty in principal.approved_counterparties
+};</code></pre>
+        </div>
+        <p class="effect">エージェントの取引行動に対する定量的な制約を設定することで、リスクを管理しながら自動化のメリットを享受できる。</p>
+      </div>
+
+      <div class="usecase-card">
+        <h4>🏢 ユースケース 3: マルチテナント SaaS アプリケーションのエージェント分離</h4>
+        <p class="scenario">複数のテナントが利用する SaaS プラットフォームで、各テナントの AI エージェントが自身のテナントデータにのみアクセスできるように制御する。</p>
+        <div class="code-block">
+          <div class="code-header">
+            <span class="code-lang">Cedar</span>
+            <span class="code-title">テナント分離の例</span>
+          </div>
+          <pre><code class="language-javascript">// エージェントは自身のテナントのデータのみアクセス可能
+permit (
+    principal,
+    action == Action::"InvokeTool",
+    resource == Tool::"QueryDatabase"
+) when {
+    context.tenant_id == principal.tenant_id
+};
+
+// 他テナントのデータへのアクセスを明示的に拒否
+forbid (
+    principal,
+    action == Action::"InvokeTool",
+    resource == Tool::"QueryDatabase"
+) when {
+    context.tenant_id != principal.tenant_id
+};</code></pre>
+        </div>
+        <p class="effect">テナント間のデータ分離をポリシーレベルで保証し、エージェントコードにデータ分離ロジックを埋め込む必要がなくなる。</p>
+      </div>
+    </div>
+
+    <!-- Pricing -->
+    <div class="section">
+      <h2 class="section-title">💲 料金</h2>
+      <p>Policy 機能は従量課金制で提供されており、初期費用やミニマムチャージはありません。</p>
+
+      <h3 class="sub-heading">課金項目</h3>
+      <table class="pricing-table">
+        <thead>
+          <tr>
+            <th>課金項目</th>
+            <th>料金</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>認可リクエスト</td>
+            <td class="price">$0.000025/リクエスト</td>
+          </tr>
+          <tr>
+            <td>自然言語ポリシーオーサリング (入力トークン)</td>
+            <td class="price">$0.13/1,000 入力トークン</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3 class="sub-heading" style="margin-top: 20px;">料金例</h3>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-value">$25</div>
+          <div class="stat-label">100 万リクエスト/月</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">$250</div>
+          <div class="stat-label">1,000 万リクエスト/月</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">$2,500</div>
+          <div class="stat-label">1 億リクエスト/月</div>
+        </div>
+      </div>
+
+      <div class="note-box" style="margin-top: 16px;">
+        <ul style="list-style: none; padding: 0; font-size: 13px;">
+          <li style="margin-bottom: 4px;">→ 自然言語ポリシーオーサリングの料金は、自然言語を Cedar に変換する際にのみ発生</li>
+          <li style="margin-bottom: 4px;">→ 新規 AWS ユーザーは最大 $200 の無料利用枠クレジットを利用可能</li>
+          <li>→ AgentCore の各サービスは独立して利用でき、使用した分のみ課金</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Available Regions -->
+    <div class="section">
+      <h2 class="section-title">🌍 利用可能リージョン (13 リージョン)</h2>
+      <div class="region-grid">
+        <div class="region-item">🇺🇸 US East (N. Virginia) <span class="region-code">us-east-1</span></div>
+        <div class="region-item">🇺🇸 US East (Ohio) <span class="region-code">us-east-2</span></div>
+        <div class="region-item">🇺🇸 US West (Oregon) <span class="region-code">us-west-2</span></div>
+        <div class="region-item">🇮🇳 AP (Mumbai) <span class="region-code">ap-south-1</span></div>
+        <div class="region-item">🇰🇷 AP (Seoul) <span class="region-code">ap-northeast-2</span></div>
+        <div class="region-item">🇸🇬 AP (Singapore) <span class="region-code">ap-southeast-1</span></div>
+        <div class="region-item">🇦🇺 AP (Sydney) <span class="region-code">ap-southeast-2</span></div>
+        <div class="region-item">🇯🇵 AP (Tokyo) <span class="region-code">ap-northeast-1</span></div>
+        <div class="region-item">🇩🇪 EU (Frankfurt) <span class="region-code">eu-central-1</span></div>
+        <div class="region-item">🇮🇪 EU (Ireland) <span class="region-code">eu-west-1</span></div>
+        <div class="region-item">🇬🇧 EU (London) <span class="region-code">eu-west-2</span></div>
+        <div class="region-item">🇫🇷 EU (Paris) <span class="region-code">eu-west-3</span></div>
+        <div class="region-item">🇸🇪 EU (Stockholm) <span class="region-code">eu-north-1</span></div>
+      </div>
+    </div>
+
+    <!-- Related Services -->
+    <div class="section">
+      <h2 class="section-title">🔗 関連サービス・機能</h2>
+      <div class="related-card">
+        <span class="related-icon">🔌</span>
+        <div>
+          <h4>Amazon Bedrock AgentCore Gateway</h4>
+          <p>エージェントとツール間のトラフィックを仲介するゲートウェイ。Policy はこの Gateway に関連付けて使用する。</p>
+        </div>
+      </div>
+      <div class="related-card">
+        <span class="related-icon">🔐</span>
+        <div>
+          <h4>Amazon Verified Permissions</h4>
+          <p>Cedar ポリシー言語を使用したアプリケーション向け認可サービス。Policy と同じ Cedar 言語基盤を共有。</p>
+        </div>
+      </div>
+      <div class="related-card">
+        <span class="related-icon">🌲</span>
+        <div>
+          <h4>Cedar</h4>
+          <p>AWS が開発したオープンソースのポリシー言語。宣言的な構文できめ細かなアクセス制御を記述可能。</p>
+        </div>
+      </div>
+      <div class="related-card">
+        <span class="related-icon">📊</span>
+        <div>
+          <h4>Amazon CloudWatch</h4>
+          <p>Policy の評価結果やメトリクスのモニタリングに使用。監査ログの保存と分析が可能。</p>
+        </div>
+      </div>
+      <div class="related-card">
+        <span class="related-icon">🪪</span>
+        <div>
+          <h4>AgentCore Identity</h4>
+          <p>エージェントの ID 管理とアクセス管理を簡素化するサービス。Policy と組み合わせて包括的なセキュリティ体制を構築。</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Summary -->
+    <div class="section">
+      <h2 class="section-title">📌 まとめ</h2>
+      <p>Amazon Bedrock AgentCore の Policy 機能の GA により、AI エージェントのツールアクセスに対する <span class="highlight">エンタープライズレベルのガバナンス</span> が実現しました。Cedar ポリシー言語と自然言語オーサリングの組み合わせにより、セキュリティチームと開発チームの両方がポリシー管理に参加できる柔軟な運用が可能です。</p>
+      <p>自律型 AI エージェントを本番環境にデプロイする際には、Policy 機能を活用してエージェントの動作範囲を明確に定義し、安全かつ制御されたエージェント運用を構築することを推奨します。</p>
+
+      <div class="flow-diagram" style="margin-top: 20px;">
+        <div class="flow-step">💬 自然言語で<br/>ポリシー記述</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-step">🌲 Cedar に<br/>自動変換</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-step">🔌 Gateway に<br/>関連付け</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-step">🔒 決定論的な<br/>アクセス制御</div>
+      </div>
+    </div>
+
+    <!-- References -->
+    <div class="section">
+      <h2 class="section-title">📚 参考リンク</h2>
+      <ul class="links-list">
+        <li>📄 <a href="https://aws.amazon.com/about-aws/whats-new/2026/03/policy-amazon-bedrock-agentcore-generally-available/" target="_blank" rel="noopener noreferrer">公式発表 (What's New)</a></li>
+        <li>📖 <a href="https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/policy.html" target="_blank" rel="noopener noreferrer">ドキュメント - Policy in Amazon Bedrock AgentCore</a></li>
+        <li>🧰 <a href="https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/starter-toolkit.html" target="_blank" rel="noopener noreferrer">AgentCore Starter Toolkit</a></li>
+        <li>🌲 <a href="https://www.cedarpolicy.com/" target="_blank" rel="noopener noreferrer">Cedar Policy Language</a></li>
+        <li>💲 <a href="https://aws.amazon.com/bedrock/agentcore/pricing/" target="_blank" rel="noopener noreferrer">料金ページ - Amazon Bedrock AgentCore</a></li>
+      </ul>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+      <p>📎 出典: <a href="https://aws.amazon.com/about-aws/whats-new/2026/03/policy-amazon-bedrock-agentcore-generally-available/" target="_blank" rel="noopener noreferrer">https://aws.amazon.com/about-aws/whats-new/2026/03/policy-amazon-bedrock-agentcore-generally-available/</a></p>
+      <p style="margin-top: 8px;">Generated on 2026-03-03 | Amazon Bedrock AgentCore - Policy GA</p>
+    </footer>
+
+  </div>
+
+  <!-- Mermaid.js -->
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'base',
+      themeVariables: {
+        primaryColor: '#FF9900',
+        primaryTextColor: '#232F3E',
+        primaryBorderColor: '#FF9900',
+        lineColor: '#FF9900',
+        secondaryColor: '#F5F5F5',
+        tertiaryColor: '#FAFAFA',
+        background: '#FFFFFF',
+        mainBkg: '#FFF3E0',
+        nodeBorder: '#FF9900',
+        clusterBkg: '#FFF8E1',
+        clusterBorder: '#FF9900',
+        edgeLabelBackground: '#FFFFFF',
+        textColor: '#232F3E'
+      }
+    });
+  </script>
+
+  <!-- highlight.js -->
+  <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/highlight.min.js"></script>
+  <script>hljs.highlightAll();</script>
+</body>
+</html>

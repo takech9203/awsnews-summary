@@ -5,6 +5,7 @@
 
 ## 2026 年
 
+- [2026-03-03 - Amazon Bedrock AgentCore - Policy 機能の一般提供開始](2026/2026-03-03-policy-amazon-bedrock-agentcore-generally-available.md)
 - [2026-03-02 - Kiro - バージョン 1.27 リリース](2026/2026-03-02-kiro-changelog-2026-03-02.md)
 - [2026-03-02 - AWS Config - 30 の新しいリソースタイプをサポート](2026/2026-03-02-aws-config-new-resource-types.md)
 - [2026-03-02 - AWS Batch - スケールダウン遅延の設定機能](2026/2026-03-02-aws-batch-configurable-scale-down-delay.md)
