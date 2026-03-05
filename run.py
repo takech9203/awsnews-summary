@@ -510,8 +510,9 @@ You are the orchestrator for AWS news report generation.
 1. Invoke the Skill tool with skill='aws-news-summary' to get the workflow
 2. Follow steps 1-4 of the skill workflow (FETCH, PARSE with --days {days}, FILTER, CHECK DUPLICATES)
 3. DELEGATE: For each update, use the 'report-generator' subagent via Task tool
-   - Batch size: 10 subagents at a time
+   - Batch size: 3 subagents at a time (to avoid Bedrock API rate limits)
    - Wait for each batch to complete before starting the next
+   - Add 3-second delay between each task creation within a batch
    - TaskOutput timeout: 600000 (10 minutes)
    - CRITICAL: When you receive TaskOutput, respond with ONLY a one-line confirmation per task. Do NOT repeat subagent output to avoid "Prompt is too long" errors.
 
