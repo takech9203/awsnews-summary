@@ -349,12 +349,6 @@ Mermaid flowcharts also have parsing issues with parentheses `()` in node labels
 
 ### Draw.io (When Requested)
 
-**Icons:**
-- Use `
-
-**Naming:**
-- 
-
 **Style:**
 - Arrow: `endArrow=open`, straight lines
 - Font: Tahoma
