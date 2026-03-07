@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AWS Shield - Network Security Director の検出結果が Security Hub で利用可能に</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap');
+
+    :root {
+      --aws-squid-ink: #232F3E;
+      --aws-dark-squid: #1A242F;
+      --aws-orange: #FF9900;
+      --aws-smile-orange: #FFAD33;
+      --aws-white: #FFFFFF;
+      --aws-light-gray: #D5DBDB;
+      --aws-teal: #00A1C9;
+      --aws-purple: #8C4FFF;
+      --aws-green: #1D8102;
+      --aws-red: #D13212;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background-color: var(--aws-squid-ink);
+      font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+      color: var(--aws-light-gray);
+      font-size: 16px;
+      line-height: 1.6;
+      padding: 20px;
+      margin: 0;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 32px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .header-left { flex: 1; min-width: 280px; }
+
+    h1, .title {
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--aws-white);
+      margin: 0;
+      line-height: 1.3;
+    }
+
+    h2, .section-title {
+      font-size: 22px;
+      font-weight: 600;
+      color: var(--aws-orange);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    h3 {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--aws-white);
+      margin-bottom: 12px;
+    }
+
+    .subtitle {
+      font-size: 16px;
+      color: var(--aws-light-gray);
+      margin-top: 8px;
+    }
+
+    .header-meta {
+      text-align: right;
+      font-size: 13px;
+      color: var(--aws-light-gray);
+    }
+
+    .badge {
+      display: inline-block;
+      background: var(--aws-orange);
+      color: var(--aws-squid-ink);
+      padding: 4px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .badge-preview {
+      background: var(--aws-purple);
+      color: var(--aws-white);
+    }
+
+    .section {
+      background: var(--aws-dark-squid);
+      border-radius: 8px;
+      padding: 24px;
+      margin-bottom: 24px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .highlight {
+      background-color: rgba(255, 153, 0, 0.2);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 600;
+      color: var(--aws-orange);
+    }
+
+    .card {
+      background: var(--aws-dark-squid);
+      border-radius: 8px;
+      padding: 16px;
+      margin: 12px 0;
+      border: 1px solid rgba(255, 153, 0, 0.3);
+    }
+
+    .feature-card {
+      background: rgba(255, 153, 0, 0.05);
+      border-left: 4px solid var(--aws-orange);
+      border-radius: 0 8px 8px 0;
+      padding: 16px 20px;
+      margin: 12px 0;
+    }
+
+    .feature-card-title {
+      font-weight: 600;
+      color: var(--aws-white);
+      margin-bottom: 8px;
+      font-size: 16px;
+    }
+
+    .feature-card p, .feature-card ul {
+      color: var(--aws-light-gray);
+      font-size: 14px;
+    }
+
+    .feature-card ul {
+      padding-left: 20px;
+      margin-top: 8px;
+    }
+
+    .feature-card li {
+      margin-bottom: 4px;
+    }
+
+    .icon-text {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      margin: 8px 0;
+      color: var(--aws-light-gray);
+    }
+
+    .arrow {
+      color: var(--aws-orange);
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+
+    .aws-link {
+      color: var(--aws-teal);
+      text-decoration: none;
+    }
+
+    .aws-link:hover {
+      color: var(--aws-smile-orange);
+    }
+
+    /* Before/After */
+    .before-after {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin: 16px 0;
+    }
+
+    .before-box {
+      background: rgba(209, 50, 18, 0.1);
+      border: 1px solid rgba(209, 50, 18, 0.3);
+      border-radius: 8px;
+      padding: 16px;
+    }
+
+    .before-box .label {
+      color: var(--aws-red);
+      font-weight: 600;
+      font-size: 14px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .after-box {
+      background: rgba(29, 129, 2, 0.1);
+      border: 1px solid rgba(29, 129, 2, 0.3);
+      border-radius: 8px;
+      padding: 16px;
+    }
+
+    .after-box .label {
+      color: var(--aws-green);
+      font-weight: 600;
+      font-size: 14px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .before-box li, .after-box li {
+      font-size: 14px;
+      margin-bottom: 6px;
+      line-height: 1.5;
+    }
+
+    .before-box ul, .after-box ul {
+      padding-left: 16px;
+    }
+
+    /* Flow diagram */
+    .flow-diagram {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin: 24px 0;
+    }
+
+    .flow-step {
+      background: var(--aws-dark-squid);
+      border: 2px solid var(--aws-orange);
+      border-radius: 8px;
+      padding: 12px 20px;
+      text-align: center;
+      min-width: 100px;
+      color: var(--aws-white);
+      font-size: 14px;
+    }
+
+    .flow-arrow {
+      color: var(--aws-orange);
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    /* Use case cards */
+    .usecase-card {
+      background: rgba(255, 153, 0, 0.08);
+      border: 1px solid rgba(255, 153, 0, 0.25);
+      border-radius: 8px;
+      padding: 20px;
+      margin: 12px 0;
+    }
+
+    .usecase-card h4 {
+      color: var(--aws-orange);
+      font-size: 16px;
+      margin-bottom: 8px;
+    }
+
+    .usecase-card p {
+      font-size: 14px;
+      color: var(--aws-light-gray);
+      margin-bottom: 8px;
+    }
+
+    .usecase-effect {
+      font-size: 13px;
+      color: var(--aws-green);
+      font-weight: 500;
+    }
+
+    /* Table styles */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0;
+      font-size: 14px;
+    }
+
+    th {
+      background: rgba(255, 153, 0, 0.15);
+      color: var(--aws-orange);
+      font-weight: 600;
+      padding: 10px 14px;
+      text-align: left;
+      border-bottom: 2px solid rgba(255, 153, 0, 0.3);
+    }
+
+    td {
+      padding: 10px 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      color: var(--aws-light-gray);
+    }
+
+    tr:hover td {
+      background: rgba(255, 153, 0, 0.05);
+    }
+
+    /* Stats cards */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin: 16px 0;
+    }
+
+    .stat-card {
+      background: linear-gradient(135deg, rgba(255, 153, 0, 0.15), rgba(255, 153, 0, 0.05));
+      border: 1px solid rgba(255, 153, 0, 0.3);
+      border-radius: 8px;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--aws-orange);
+    }
+
+    .stat-label {
+      font-size: 13px;
+      color: var(--aws-light-gray);
+      margin-top: 4px;
+    }
+
+    /* Mermaid */
+    .mermaid-container {
+      background: #FFFFFF;
+      border-radius: 12px;
+      padding: 24px;
+      margin: 20px 0;
+      border: 2px solid rgba(255, 153, 0, 0.3);
+      overflow-x: auto;
+    }
+
+    .mermaid {
+      display: flex;
+      justify-content: center;
+    }
+
+    /* Code block */
+    .code-block {
+      background: #1a1a2e;
+      border-radius: 8px;
+      overflow: hidden;
+      margin: 16px 0;
+    }
+
+    .code-header {
+      background: #16213e;
+      padding: 8px 16px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+    }
+
+    .code-lang {
+      color: var(--aws-orange);
+      font-weight: bold;
+    }
+
+    .code-title {
+      color: var(--aws-light-gray);
+    }
+
+    .code-block pre {
+      margin: 0;
+      padding: 0;
+      overflow-x: auto;
+    }
+
+    .code-block code {
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      line-height: 1.5;
+      padding: 16px !important;
+    }
+
+    /* Considerations */
+    .warning-box {
+      background: rgba(255, 153, 0, 0.08);
+      border: 1px solid rgba(255, 153, 0, 0.3);
+      border-radius: 8px;
+      padding: 16px;
+      margin: 12px 0;
+    }
+
+    .warning-box li {
+      font-size: 14px;
+      margin-bottom: 6px;
+    }
+
+    .warning-box ul {
+      padding-left: 16px;
+    }
+
+    /* Related services */
+    .related-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 12px;
+      margin: 16px 0;
+    }
+
+    .related-card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 14px;
+    }
+
+    .related-card strong {
+      color: var(--aws-teal);
+      font-size: 14px;
+    }
+
+    .related-card p {
+      font-size: 13px;
+      color: var(--aws-light-gray);
+      margin-top: 4px;
+    }
+
+    /* Footer */
+    footer {
+      margin-top: 24px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(255, 255, 255, 0.2);
+      font-size: 12px;
+      color: var(--aws-light-gray);
+    }
+
+    footer a {
+      color: var(--aws-teal);
+      text-decoration: none;
+      word-break: break-all;
+    }
+
+    footer a:hover {
+      color: var(--aws-smile-orange);
+    }
+
+    footer ul {
+      list-style: none;
+      padding: 0;
+      margin-top: 8px;
+    }
+
+    footer li {
+      margin-bottom: 4px;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      h1, .title { font-size: 24px; }
+      h2, .section-title { font-size: 20px; }
+      .before-after { grid-template-columns: 1fr; }
+      .stats-grid { grid-template-columns: 1fr; }
+      .related-grid { grid-template-columns: 1fr; }
+      .flow-diagram { flex-direction: column; }
+      .flow-arrow { transform: rotate(90deg); }
+      .section { padding: 16px; }
+    }
+  </style>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/styles/atom-one-dark.min.css">
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <div class="header-left">
+        <h1>🛡️ Network Security Director の検出結果が AWS Security Hub で利用可能に</h1>
+        <div class="subtitle">AWS Shield - 組織全体のネットワークセキュリティ設定を継続的に分析・可視化</div>
+      </div>
+      <div class="header-meta">
+        <span class="badge">AWS Shield</span><br>
+        <span class="badge badge-preview">Preview</span><br>
+        <span style="margin-top: 8px; display: inline-block;">2026 年 3 月 5 日</span>
+      </div>
+    </div>
+
+    <!-- Overview -->
+    <div class="section">
+      <h2>📋 概要</h2>
+      <p>AWS Shield の <span class="highlight">Network Security Director</span> (プレビュー) の検出結果が <span class="highlight">AWS Security Hub</span> で利用可能になった。AWS Organization 内の AWS WAF、VPC セキュリティグループ、VPC ネットワーク ACL などのネットワークセキュリティサービスの欠落や設定ミスを特定し、修復に関する推奨事項を提供する。</p>
+
+      <div style="margin-top: 20px;">
+        <h3>Before / After</h3>
+        <div class="before-after">
+          <div class="before-box">
+            <div class="label">❌ Before</div>
+            <ul>
+              <li>各アカウントを個別に確認する必要があった</li>
+              <li>AWS WAF、セキュリティグループ、ネットワーク ACL の一元的な可視化が困難</li>
+              <li>セキュリティ検出結果が分散し、統合管理が困難</li>
+            </ul>
+          </div>
+          <div class="after-box">
+            <div class="label">✅ After</div>
+            <ul>
+              <li>組織全体のネットワークセキュリティ設定を継続的に自動分析</li>
+              <li>Security Hub の Inventory セクションに統合表示</li>
+              <li>ネットワークトポロジーに基づく重大度評価で優先対処が可能</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Architecture Diagram -->
+    <div class="section">
+      <h2>🏗️ アーキテクチャ図</h2>
+      <p style="margin-bottom: 12px;">Network Security Director が AWS Organization 内の各アカウントのネットワークセキュリティサービスを継続的に分析し、検出結果を Security Hub に送信する流れ。</p>
+      <div class="mermaid-container">
+        <pre class="mermaid">
+flowchart TD
+    subgraph Org["☁ AWS Organization"]
+        subgraph Account1["Account A"]
+            WAF1["AWS WAF"]
+            SG1["VPC Security Groups"]
+            ACL1["VPC Network ACLs"]
+        end
+        subgraph Account2["Account B"]
+            WAF2["AWS WAF"]
+            SG2["VPC Security Groups"]
+            ACL2["VPC Network ACLs"]
+        end
+    end
+
+    subgraph Shield["AWS Shield"]
+        NSD["Network Security<br/>Director"]
+    end
+
+    subgraph SecHub["AWS Security Hub"]
+        Inventory["Inventory"]
+        Findings["Findings"]
+    end
+
+    NSD -->|継続的に分析| Account1
+    NSD -->|継続的に分析| Account2
+    NSD -->|検出結果を送信| Findings
+    Findings --> Inventory
+
+    classDef cloud fill:none,stroke:#CCCCCC,stroke-width:2px,color:#666666
+    classDef layer fill:none,stroke:#E1BEE7,stroke-width:2px,color:#666666
+    classDef compute fill:#FFE0B2,stroke:#FFCC80,stroke-width:2px,color:#5D4037
+    classDef security fill:#FFEBEE,stroke:#F44336,stroke-width:2px,color:#B71C1C
+    classDef hub fill:#E8EAF6,stroke:#C5CAE9,stroke-width:2px,color:#283593
+    classDef internal fill:#E8F1FF,stroke:#4A90E2,stroke-width:2px,color:#333333
+
+    class Org cloud
+    class Account1,Account2 layer
+    class WAF1,SG1,ACL1,WAF2,SG2,ACL2 compute
+    class Shield,NSD security
+    class SecHub,Inventory,Findings hub
+        </pre>
+      </div>
+    </div>
+
+    <!-- Key Features -->
+    <div class="section">
+      <h2>⚙️ 主要機能</h2>
+
+      <div class="feature-card">
+        <div class="feature-card-title">🔍 組織全体のネットワークセキュリティ分析</div>
+        <ul>
+          <li>AWS Organization 内のアカウントまたは OU 全体を対象にネットワークを継続的に分析</li>
+          <li>AWS WAF、VPC セキュリティグループ、VPC ネットワーク ACL の設定状況を評価</li>
+          <li>AWS のベストプラクティスに基づいて欠落や設定ミスを検出</li>
+        </ul>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-card-title">🔗 Security Hub との統合</div>
+        <ul>
+          <li>検出結果が Security Hub コンソールの Inventory セクションに表示</li>
+          <li>他のセキュリティサービスの検出結果と統合的に管理可能</li>
+          <li>Security Hub のワークフロー機能を活用した自動対応やチケット連携が可能</li>
+        </ul>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-card-title">🎯 重大度ベースの優先度付け</div>
+        <ul>
+          <li>設定ミスの種類とネットワークトポロジーの組み合わせに基づいて重大度を決定</li>
+          <li>リソースのネットワーク上の位置関係を考慮した実質的なリスク評価</li>
+          <li>優先度の高い問題から効率的に対処可能</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Technical Specifications -->
+    <div class="section">
+      <h2>📐 技術仕様</h2>
+
+      <h3>検出対象サービス</h3>
+      <table>
+        <thead>
+          <tr><th>対象サービス</th><th>検出内容</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>AWS WAF</td><td>Web ACL の欠落、ルール設定の不備</td></tr>
+          <tr><td>VPC セキュリティグループ</td><td>過度に許可的なインバウンド/アウトバウンドルール</td></tr>
+          <tr><td>VPC ネットワーク ACL</td><td>サブネットレベルのアクセス制御設定の不備</td></tr>
+        </tbody>
+      </table>
+
+      <h3 style="margin-top: 20px;">重大度の決定要素</h3>
+      <table>
+        <thead>
+          <tr><th>要素</th><th>説明</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>設定ミスの種類</td><td>欠落、過度な許可、ベストプラクティスからの逸脱など</td></tr>
+          <tr><td>ネットワークトポロジー</td><td>リソースがインターネットに面しているか、内部ネットワークに限定されているかなど</td></tr>
+        </tbody>
+      </table>
+
+      <p style="margin-top: 16px; font-size: 14px; color: var(--aws-light-gray);">
+        <span class="arrow">→</span> 現時点で Network Security Director に関連する新しい API 変更は確認されていない。プレビュー機能であるため、今後 API が追加・更新される可能性がある。
+      </p>
+    </div>
+
+    <!-- Setup -->
+    <div class="section">
+      <h2>🔧 設定方法</h2>
+
+      <h3>前提条件</h3>
+      <div style="margin-bottom: 16px;">
+        <div class="icon-text"><span class="arrow">✓</span><span>AWS Shield Advanced のサブスクリプションが有効であること</span></div>
+        <div class="icon-text"><span class="arrow">✓</span><span>AWS Security Hub が有効化されていること</span></div>
+        <div class="icon-text"><span class="arrow">✓</span><span>AWS Organizations が設定されていること</span></div>
+      </div>
+
+      <div class="flow-diagram">
+        <div class="flow-step">🛡️ Shield コンソールで<br>NSD を有効化</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-step">🔍 分析対象の<br>アカウント/OU を指定</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-step">📊 Security Hub で<br>検出結果を確認</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-step">🔧 推奨事項に基づき<br>修復を実施</div>
+      </div>
+
+      <h3 style="margin-top: 20px;">CLI での検出結果確認</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash</span>
+          <span class="code-title">Security Hub で Shield の検出結果を確認</span>
+        </div>
+        <pre><code class="language-bash"># Security Hub で Shield の検出結果を確認する CLI コマンド例
+aws securityhub get-findings \
+  --filters '{"ProductName": [{"Value": "Shield", "Comparison": "EQUALS"}]}' \
+  --max-items 10</code></pre>
+      </div>
+    </div>
+
+    <!-- Benefits -->
+    <div class="section">
+      <h2>✅ メリット</h2>
+
+      <h3>ビジネス面</h3>
+      <div class="feature-card">
+        <div class="feature-card-title">📊 セキュリティ態勢の可視化</div>
+        <p>組織全体のネットワークセキュリティ設定状況を一元的に把握でき、ガバナンスが向上する。</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-card-title">⚡ 運用効率の向上</div>
+        <p>手動での設定確認作業が不要になり、セキュリティチームの工数を削減できる。</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-card-title">📋 コンプライアンス対応の強化</div>
+        <p>ベストプラクティスに基づく継続的な評価により、監査対応が容易になる。</p>
+      </div>
+
+      <h3 style="margin-top: 20px;">技術面</h3>
+      <div class="feature-card">
+        <div class="feature-card-title">🎯 自動検出と優先度付け</div>
+        <p>ネットワークトポロジーを考慮した重大度評価により、実質的なリスクに基づいた対応が可能。</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-card-title">🔗 Security Hub との統合</div>
+        <p>既存のセキュリティ運用ワークフローにシームレスに組み込める。</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-card-title">🏢 マルチアカウント対応</div>
+        <p>AWS Organizations を通じて複数アカウントの一括分析が可能。</p>
+      </div>
+    </div>
+
+    <!-- Limitations -->
+    <div class="section">
+      <h2>⚠️ デメリット・制約事項</h2>
+
+      <h3>制限事項</h3>
+      <div class="warning-box">
+        <ul>
+          <li>現在プレビュー段階であり、GA 時に機能や仕様が変更される可能性がある</li>
+          <li>AWS Shield Advanced のサブスクリプションが必要であり、追加コストが発生する</li>
+          <li>検出対象は AWS WAF、VPC セキュリティグループ、VPC ネットワーク ACL に限定されている</li>
+        </ul>
+      </div>
+
+      <h3 style="margin-top: 16px;">考慮すべき点</h3>
+      <div class="warning-box">
+        <ul>
+          <li>プレビュー機能であるため、本番環境での利用前に十分な検証が推奨される</li>
+          <li>大規模な Organization では検出結果の量が多くなる可能性があり、適切なフィルタリングやワークフローの設計が重要</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Use Cases -->
+    <div class="section">
+      <h2>💡 ユースケース</h2>
+
+      <div class="usecase-card">
+        <h4>🏢 ユースケース 1: マルチアカウント環境のセキュリティ監査</h4>
+        <p><strong>シナリオ:</strong> 数百のアカウントを持つ大企業で、各アカウントのネットワークセキュリティ設定がベストプラクティスに準拠しているかを定期的に確認したい。</p>
+        <div class="code-block">
+          <div class="code-header">
+            <span class="code-lang">Bash</span>
+            <span class="code-title">Organization 全体の高重大度検出結果をエクスポート</span>
+          </div>
+          <pre><code class="language-bash"># Organization 全体の Shield 関連検出結果をエクスポート
+aws securityhub get-findings \
+  --filters '{"ProductName": [{"Value": "Shield", "Comparison": "EQUALS"}], "SeverityLabel": [{"Value": "HIGH", "Comparison": "EQUALS"}]}' \
+  --output json > high-severity-findings.json</code></pre>
+        </div>
+        <p class="usecase-effect">✅ 効果: 手動確認が不要になり、重大度の高い設定ミスを迅速に特定・修復できる。</p>
+      </div>
+
+      <div class="usecase-card">
+        <h4>🌐 ユースケース 2: インターネット公開リソースの保護確認</h4>
+        <p><strong>シナリオ:</strong> インターネットに面した EC2 インスタンスや ALB に対して、WAF やセキュリティグループが適切に設定されているかを継続的に監視したい。</p>
+        <div class="code-block">
+          <div class="code-header">
+            <span class="code-lang">Bash</span>
+            <span class="code-title">ネットワークトポロジーに基づく高重大度の検出結果を取得</span>
+          </div>
+          <pre><code class="language-bash"># ネットワークトポロジーに基づく高重大度の検出結果を取得
+aws securityhub get-findings \
+  --filters '{"ProductName": [{"Value": "Shield", "Comparison": "EQUALS"}], "SeverityLabel": [{"Value": "CRITICAL", "Comparison": "EQUALS"}]}' \
+  --sort-criteria '{"Field": "SeverityLabel", "SortOrder": "desc"}'</code></pre>
+        </div>
+        <p class="usecase-effect">✅ 効果: インターネットに公開されたリソースの設定不備をネットワークトポロジーに基づいて優先的に検出し、攻撃リスクを低減できる。</p>
+      </div>
+
+      <div class="usecase-card">
+        <h4>🤖 ユースケース 3: Security Hub を活用した自動修復ワークフロー</h4>
+        <p><strong>シナリオ:</strong> Network Security Director の検出結果を Security Hub のカスタムアクションと EventBridge を連携させ、特定の設定ミスを自動修復したい。</p>
+        <div class="code-block">
+          <div class="code-header">
+            <span class="code-lang">JSON</span>
+            <span class="code-title">EventBridge ルールパターン例</span>
+          </div>
+          <pre><code class="language-json">{
+  "source": ["aws.securityhub"],
+  "detail-type": ["Security Hub Findings - Custom Action"],
+  "detail": {
+    "findings": {
+      "ProductName": ["Shield"],
+      "Severity": {
+        "Label": ["HIGH", "CRITICAL"]
+      }
+    }
+  }
+}</code></pre>
+        </div>
+        <p class="usecase-effect">✅ 効果: 検出から修復までのプロセスを自動化し、セキュリティインシデントの対応時間を短縮できる。</p>
+      </div>
+    </div>
+
+    <!-- Pricing -->
+    <div class="section">
+      <h2>💰 料金</h2>
+      <p>Network Security Director は AWS Shield Advanced の機能として提供されている。Shield Advanced のサブスクリプション料金が必要。</p>
+
+      <table style="margin-top: 16px;">
+        <thead>
+          <tr><th>項目</th><th>料金</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Shield Advanced サブスクリプション</td><td><span style="color: var(--aws-orange); font-weight: 600;">$3,000/月</span></td></tr>
+          <tr><td>Security Hub 検出結果の取り込み</td><td>検出結果 10,000 件あたり $0.30<br><span style="font-size: 12px; color: #999;">最初の 10,000 件/アカウント/リージョン/月は無料</span></td></tr>
+        </tbody>
+      </table>
+
+      <p style="margin-top: 12px; font-size: 14px;">
+        <span class="arrow">→</span> Network Security Director 自体の追加料金はプレビュー期間中は発生しない可能性があるが、GA 時の料金については公式ドキュメントを確認すること。
+      </p>
+    </div>
+
+    <!-- Region -->
+    <div class="section">
+      <h2>🌍 利用可能リージョン</h2>
+      <p>公式発表では特定のリージョン制限について記載されていない。AWS Shield Advanced が利用可能なリージョンで Network Security Director (プレビュー) を使用できる。詳細は <a href="https://aws.amazon.com/shield/" target="_blank" class="aws-link">AWS Shield の概要ページ</a> を確認すること。</p>
+    </div>
+
+    <!-- Related Services -->
+    <div class="section">
+      <h2>🔗 関連サービス・機能</h2>
+      <div class="related-grid">
+        <div class="related-card">
+          <strong>🛡️ AWS Shield Advanced</strong>
+          <p>Network Security Director の親サービス。DDoS 保護に加え、ネットワークセキュリティの設定監査機能を提供。</p>
+        </div>
+        <div class="related-card">
+          <strong>📊 AWS Security Hub</strong>
+          <p>セキュリティ検出結果の集約・管理プラットフォーム。Network Security Director の検出結果を統合表示。</p>
+        </div>
+        <div class="related-card">
+          <strong>🔥 AWS WAF</strong>
+          <p>Web アプリケーションファイアウォール。Network Security Director の検出対象サービスの 1 つ。</p>
+        </div>
+        <div class="related-card">
+          <strong>🔒 VPC セキュリティグループ</strong>
+          <p>インスタンスレベルのファイアウォール。Network Security Director の検出対象。</p>
+        </div>
+        <div class="related-card">
+          <strong>🚧 VPC ネットワーク ACL</strong>
+          <p>サブネットレベルのアクセス制御。Network Security Director の検出対象。</p>
+        </div>
+        <div class="related-card">
+          <strong>🏢 AWS Organizations</strong>
+          <p>マルチアカウント環境の管理。Network Security Director の分析範囲を定義。</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Summary -->
+    <div class="section">
+      <h2>📝 まとめ</h2>
+      <p>AWS Shield の Network Security Director (プレビュー) が Security Hub と統合されたことで、組織全体のネットワークセキュリティ設定の可視化と一元管理が大幅に改善された。AWS WAF、セキュリティグループ、ネットワーク ACL の設定ミスを継続的に検出し、ネットワークトポロジーに基づく重大度評価により効率的な対応が可能になる。Shield Advanced を利用中の組織は、このプレビュー機能を評価し、セキュリティ態勢の強化に活用することを推奨する。</p>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+      <p>📎 出典:</p>
+      <ul>
+        <li>→ <a href="https://aws.amazon.com/about-aws/whats-new/2026/03/network-security-director-findings/" target="_blank" rel="noopener noreferrer">公式発表 - What's New</a></li>
+        <li>→ <a href="https://aws.amazon.com/shield/" target="_blank" rel="noopener noreferrer">AWS Shield 概要ページ</a></li>
+        <li>→ <a href="https://docs.aws.amazon.com/securityhub/latest/userguide/" target="_blank" rel="noopener noreferrer">AWS Security Hub ドキュメント</a></li>
+        <li>→ <a href="https://aws.amazon.com/shield/pricing/" target="_blank" rel="noopener noreferrer">AWS Shield Advanced 料金</a></li>
+      </ul>
+    </footer>
+  </div>
+
+  <!-- Mermaid.js -->
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'base',
+      themeVariables: {
+        primaryColor: '#FF9900',
+        primaryTextColor: '#232F3E',
+        primaryBorderColor: '#FF9900',
+        lineColor: '#FF9900',
+        secondaryColor: '#F5F5F5',
+        tertiaryColor: '#FAFAFA',
+        background: '#FFFFFF',
+        mainBkg: '#FFF3E0',
+        nodeBorder: '#FF9900',
+        clusterBkg: '#FFF8E1',
+        clusterBorder: '#FF9900',
+        edgeLabelBackground: '#FFFFFF',
+        textColor: '#232F3E'
+      }
+    });
+  </script>
+
+  <!-- highlight.js -->
+  <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/highlight.min.js"></script>
+  <script>hljs.highlightAll();</script>
+</body>
+</html>

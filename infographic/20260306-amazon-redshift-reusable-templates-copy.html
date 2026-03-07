@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Amazon Redshift - COPY コマンド用再利用可能テンプレート</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap');
+
+    :root {
+      --aws-squid-ink: #232F3E;
+      --aws-dark-squid: #1A242F;
+      --aws-orange: #FF9900;
+      --aws-smile-orange: #FFAD33;
+      --aws-white: #FFFFFF;
+      --aws-light-gray: #D5DBDB;
+      --aws-teal: #00A1C9;
+      --aws-purple: #8C4FFF;
+      --aws-green: #1D8102;
+      --aws-red: #D13212;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background-color: var(--aws-squid-ink);
+      font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+      color: var(--aws-light-gray);
+      font-size: 16px;
+      line-height: 1.6;
+      padding: 20px;
+      margin: 0;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 32px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .header-left { flex: 1; min-width: 300px; }
+
+    .service-badge {
+      display: inline-block;
+      background: var(--aws-orange);
+      color: var(--aws-squid-ink);
+      padding: 4px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    h1 {
+      font-size: 34px;
+      font-weight: 700;
+      color: var(--aws-white);
+      margin: 0;
+      line-height: 1.3;
+    }
+
+    .subtitle {
+      font-size: 16px;
+      color: var(--aws-light-gray);
+      margin-top: 8px;
+    }
+
+    .header-right {
+      text-align: right;
+      font-size: 13px;
+      color: var(--aws-light-gray);
+    }
+
+    /* Sections */
+    h2, .section-title {
+      font-size: 22px;
+      font-weight: 600;
+      color: var(--aws-orange);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .section {
+      background: var(--aws-dark-squid);
+      border-radius: 8px;
+      padding: 24px;
+      margin-bottom: 24px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .highlight {
+      background-color: rgba(255, 153, 0, 0.2);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 600;
+      color: var(--aws-orange);
+    }
+
+    /* Before/After */
+    .before-after {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin: 16px 0;
+    }
+
+    .before-box {
+      background: rgba(209, 50, 18, 0.1);
+      border: 1px solid rgba(209, 50, 18, 0.4);
+      border-radius: 8px;
+      padding: 16px;
+    }
+
+    .before-box h3 {
+      color: var(--aws-red);
+      font-size: 15px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .after-box {
+      background: rgba(29, 129, 2, 0.1);
+      border: 1px solid rgba(29, 129, 2, 0.4);
+      border-radius: 8px;
+      padding: 16px;
+    }
+
+    .after-box h3 {
+      color: var(--aws-green);
+      font-size: 15px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .before-box li, .after-box li {
+      font-size: 14px;
+      margin-bottom: 6px;
+      line-height: 1.5;
+    }
+
+    .before-box ul, .after-box ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    .before-box li::before {
+      content: "✗ ";
+      color: var(--aws-red);
+      font-weight: bold;
+    }
+
+    .after-box li::before {
+      content: "✓ ";
+      color: var(--aws-green);
+      font-weight: bold;
+    }
+
+    /* Feature Cards */
+    .feature-cards {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+      margin-top: 16px;
+    }
+
+    .feature-card {
+      background: var(--aws-dark-squid);
+      border-radius: 8px;
+      padding: 18px 20px;
+      border-left: 4px solid var(--aws-orange);
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      border-right: 1px solid rgba(255, 255, 255, 0.06);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .feature-card h3 {
+      color: var(--aws-white);
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .feature-card p, .feature-card ul {
+      font-size: 14px;
+      color: var(--aws-light-gray);
+    }
+
+    .feature-card ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    .feature-card li {
+      margin-bottom: 4px;
+      padding-left: 18px;
+      position: relative;
+    }
+
+    .feature-card li::before {
+      content: "→";
+      color: var(--aws-orange);
+      position: absolute;
+      left: 0;
+    }
+
+    /* Tech Spec Table */
+    .spec-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0;
+      font-size: 14px;
+    }
+
+    .spec-table th, .spec-table td {
+      padding: 10px 14px;
+      text-align: left;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .spec-table th {
+      background: rgba(255, 153, 0, 0.15);
+      color: var(--aws-orange);
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .spec-table td {
+      color: var(--aws-light-gray);
+    }
+
+    /* Use Case Cards */
+    .usecase-card {
+      background: rgba(255, 153, 0, 0.08);
+      border: 1px solid rgba(255, 153, 0, 0.25);
+      border-radius: 8px;
+      padding: 18px 20px;
+      margin-bottom: 14px;
+    }
+
+    .usecase-card h3 {
+      color: var(--aws-orange);
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .usecase-card .scenario {
+      font-size: 14px;
+      color: var(--aws-light-gray);
+      margin-bottom: 10px;
+    }
+
+    .usecase-card .effect {
+      font-size: 14px;
+      color: var(--aws-green);
+      font-weight: 500;
+    }
+
+    /* Merit/Demerit */
+    .merit-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-top: 16px;
+    }
+
+    .merit-box {
+      background: rgba(29, 129, 2, 0.08);
+      border: 1px solid rgba(29, 129, 2, 0.3);
+      border-radius: 8px;
+      padding: 16px;
+    }
+
+    .merit-box h3 {
+      color: var(--aws-green);
+      font-size: 15px;
+      margin-bottom: 10px;
+    }
+
+    .demerit-box {
+      background: rgba(255, 153, 0, 0.08);
+      border: 1px solid rgba(255, 153, 0, 0.3);
+      border-radius: 8px;
+      padding: 16px;
+    }
+
+    .demerit-box h3 {
+      color: var(--aws-orange);
+      font-size: 15px;
+      margin-bottom: 10px;
+    }
+
+    .merit-box ul, .demerit-box ul {
+      list-style: none;
+      padding: 0;
+      font-size: 14px;
+    }
+
+    .merit-box li, .demerit-box li {
+      margin-bottom: 6px;
+      padding-left: 18px;
+      position: relative;
+    }
+
+    .merit-box li::before {
+      content: "✓";
+      color: var(--aws-green);
+      position: absolute;
+      left: 0;
+      font-weight: bold;
+    }
+
+    .demerit-box li::before {
+      content: "!";
+      color: var(--aws-orange);
+      position: absolute;
+      left: 0;
+      font-weight: bold;
+    }
+
+    /* Flow Diagram */
+    .flow-diagram {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin: 24px 0;
+    }
+
+    .flow-step {
+      background: var(--aws-dark-squid);
+      border: 2px solid var(--aws-orange);
+      border-radius: 8px;
+      padding: 12px 20px;
+      text-align: center;
+      min-width: 100px;
+      font-size: 14px;
+    }
+
+    .flow-arrow {
+      color: var(--aws-orange);
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    /* Mermaid */
+    .mermaid-container {
+      background: #FFFFFF;
+      border-radius: 12px;
+      padding: 24px;
+      margin: 20px 0;
+      border: 2px solid rgba(255, 153, 0, 0.3);
+      overflow-x: auto;
+    }
+
+    .mermaid {
+      display: flex;
+      justify-content: center;
+    }
+
+    /* Code Block */
+    .code-block {
+      background: #1a1a2e;
+      border-radius: 8px;
+      overflow: hidden;
+      margin: 16px 0;
+    }
+
+    .code-header {
+      background: #16213e;
+      padding: 8px 16px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+    }
+
+    .code-lang {
+      color: var(--aws-orange);
+      font-weight: bold;
+    }
+
+    .code-title {
+      color: var(--aws-light-gray);
+    }
+
+    .code-block pre {
+      margin: 0;
+      padding: 0;
+      overflow-x: auto;
+    }
+
+    .code-block code {
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      line-height: 1.5;
+      padding: 16px !important;
+    }
+
+    /* Stats */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin: 16px 0;
+    }
+
+    .stat-card {
+      background: linear-gradient(135deg, rgba(255, 153, 0, 0.15), rgba(255, 153, 0, 0.05));
+      border: 1px solid rgba(255, 153, 0, 0.3);
+      border-radius: 8px;
+      padding: 16px;
+      text-align: center;
+    }
+
+    .stat-card .stat-icon {
+      font-size: 28px;
+      margin-bottom: 6px;
+    }
+
+    .stat-card .stat-label {
+      font-size: 13px;
+      color: var(--aws-light-gray);
+    }
+
+    .stat-card .stat-value {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--aws-orange);
+      margin-top: 4px;
+    }
+
+    /* Region */
+    .region-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(0, 161, 201, 0.1);
+      border: 1px solid rgba(0, 161, 201, 0.3);
+      border-radius: 8px;
+      padding: 14px 18px;
+      margin-top: 16px;
+      font-size: 14px;
+    }
+
+    .region-info .region-icon {
+      font-size: 24px;
+    }
+
+    /* Related Services */
+    .related-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .related-item {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 12px 16px;
+      font-size: 14px;
+    }
+
+    .related-item strong {
+      color: var(--aws-teal);
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    /* Footer */
+    footer {
+      margin-top: 32px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(255, 255, 255, 0.2);
+      font-size: 12px;
+      color: var(--aws-light-gray);
+    }
+
+    footer a {
+      color: var(--aws-teal);
+      text-decoration: none;
+      word-break: break-all;
+    }
+
+    footer a:hover {
+      color: var(--aws-smile-orange);
+    }
+
+    footer ul {
+      list-style: none;
+      padding: 0;
+      margin-top: 8px;
+    }
+
+    footer li {
+      margin-bottom: 4px;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      h1 { font-size: 24px; }
+      .before-after, .merit-grid, .related-grid { grid-template-columns: 1fr; }
+      .stats-row { grid-template-columns: 1fr; }
+      .header { flex-direction: column; }
+      .header-right { text-align: left; }
+    }
+  </style>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/styles/atom-one-dark.min.css">
+</head>
+<body>
+  <div class="container">
+
+    <!-- Header -->
+    <div class="header">
+      <div class="header-left">
+        <span class="service-badge">Amazon Redshift</span>
+        <h1>COPY コマンド用再利用可能テンプレート</h1>
+        <p class="subtitle">頻繁に使用する COPY パラメータを保存し、テンプレートとして一元管理</p>
+      </div>
+      <div class="header-right">
+        <div>2026 年 3 月 6 日</div>
+        <div>Amazon Redshift</div>
+      </div>
+    </div>
+
+    <!-- Overview -->
+    <div class="section">
+      <h2>📋 概要</h2>
+      <p>Amazon Redshift が <span class="highlight">COPY コマンド用のテンプレート機能</span>をサポート。CSV や JSON などのファイル形式に応じたフォーマットパラメータや、データソースごとの設定を標準化して格納できる。COPY コマンド実行時に毎回パラメータを手動で指定する必要がなくなり、データ取り込み操作の<span class="highlight">一貫性と効率性</span>が向上する。</p>
+
+      <div class="stats-row" style="margin-top: 20px;">
+        <div class="stat-card">
+          <div class="stat-icon">📄</div>
+          <div class="stat-label">テンプレート対象</div>
+          <div class="stat-value">COPY コマンド専用</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">💰</div>
+          <div class="stat-label">追加料金</div>
+          <div class="stat-value">無料</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">🌍</div>
+          <div class="stat-label">利用可能</div>
+          <div class="stat-value">全リージョン</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Before/After -->
+    <div class="section">
+      <h2>🔄 Before / After</h2>
+      <div class="before-after">
+        <div class="before-box">
+          <h3>❌ アップデート前</h3>
+          <ul>
+            <li>COPY コマンドを実行するたびにフォーマットパラメータやオプションを手動で指定する必要があった</li>
+            <li>チーム内で異なるパラメータ設定が使用され、データ取り込みの一貫性の維持が困難</li>
+            <li>パラメータ変更時にすべての COPY コマンドを個別に修正する必要があった</li>
+          </ul>
+        </div>
+        <div class="after-box">
+          <h3>✅ アップデート後</h3>
+          <ul>
+            <li>よく使用するパラメータをテンプレートとして保存し、COPY コマンドで参照するだけで利用可能</li>
+            <li>標準化されたテンプレートにより、チーム全体で一貫したパラメータ設定を共有</li>
+            <li>テンプレートの更新が以降の全ての COPY 操作に自動的に反映</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Architecture Diagram -->
+    <div class="section">
+      <h2>🏗 アーキテクチャ図</h2>
+      <p style="font-size: 14px; margin-bottom: 12px;">テンプレートにフォーマットパラメータを定義し、COPY コマンド実行時にテンプレートを参照することで、一貫したデータ取り込みを実現する。</p>
+      <div class="mermaid-container">
+        <pre class="mermaid">
+flowchart TD
+    subgraph Templates["📋 COPY テンプレート"]
+        direction LR
+        T1["📄 CSV テンプレート<br/>DELIMITER, DATEFORMAT 等"]
+        T2["📄 JSON テンプレート<br/>FORMAT JSON, MAXERROR 等"]
+        T3["📄 Parquet テンプレート<br/>FORMAT PARQUET 等"]
+        T1 ~~~ T2 ~~~ T3
+    end
+
+    subgraph Sources["🗄 データソース"]
+        direction LR
+        S3[("🪣 Amazon S3")]
+        DDB[("📋 DynamoDB")]
+        EMR["⚡ Amazon EMR"]
+        S3 ~~~ DDB ~~~ EMR
+    end
+
+    User(["👤 データエンジニア"]) -->|"COPY ... WITH TEMPLATE"| Redshift["🔶 Amazon Redshift"]
+    Templates -->|"パラメータ参照"| Redshift
+    Sources -->|"データ読み込み"| Redshift
+
+    classDef cloud fill:none,stroke:#CCCCCC,stroke-width:2px,color:#666666
+    classDef layer fill:none,stroke:#E1BEE7,stroke-width:2px,color:#666666
+    classDef compute fill:#FFE0B2,stroke:#FFCC80,stroke-width:2px,color:#5D4037
+    classDef storage fill:#DCEDC8,stroke:#C5E1A5,stroke-width:2px,color:#33691E
+    classDef database fill:#E8EAF6,stroke:#C5CAE9,stroke-width:2px,color:#283593
+    classDef user fill:#E3F2FD,stroke:#BBDEFB,stroke-width:2px,color:#1565C0
+    classDef process fill:#FFFFFF,stroke:#4A90E2,stroke-width:2px,color:#333333
+
+    class Templates,Sources layer
+    class T1,T2,T3 process
+    class S3,DDB storage
+    class EMR compute
+    class Redshift database
+    class User user
+        </pre>
+      </div>
+    </div>
+
+    <!-- Key Features -->
+    <div class="section">
+      <h2>⚙️ 主要機能</h2>
+      <div class="feature-cards">
+        <div class="feature-card">
+          <h3>📄 再利用可能な COPY テンプレートの作成</h3>
+          <ul>
+            <li>よく使用する COPY パラメータの組み合わせをテンプレートとして定義・保存</li>
+            <li>CSV、JSON、Parquet など、異なるファイル形式ごとにテンプレートを作成可能</li>
+            <li>フォーマットパラメータ、区切り文字、日付形式、エラー処理設定などを含められる</li>
+          </ul>
+        </div>
+        <div class="feature-card">
+          <h3>🚀 テンプレートによる COPY コマンドの実行</h3>
+          <ul>
+            <li>COPY コマンド実行時にテンプレート名を指定するだけで、保存済みのパラメータが適用</li>
+            <li>テーブル名、データソース、認証情報のみを指定すれば良く、コマンドが簡潔に</li>
+            <li>テンプレートのパラメータと個別のパラメータを組み合わせた利用も可能</li>
+          </ul>
+        </div>
+        <div class="feature-card">
+          <h3>🔧 一元管理とメンテナンスの効率化</h3>
+          <ul>
+            <li>テンプレートを更新すると、以降のすべての COPY 操作に変更が自動的に反映</li>
+            <li>チーム全体で標準化されたテンプレートを共有し、パラメータの不整合を防止</li>
+            <li>データ取り込みの監査やガバナンスも容易に</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Technical Spec -->
+    <div class="section">
+      <h2>📐 技術仕様</h2>
+      <table class="spec-table">
+        <tr>
+          <th>項目</th>
+          <th>詳細</th>
+        </tr>
+        <tr>
+          <td>対象コマンド</td>
+          <td>COPY</td>
+        </tr>
+        <tr>
+          <td>テンプレートに含められるパラメータ</td>
+          <td>フォーマット指定、区切り文字、日付形式、エラー処理、圧縮形式など</td>
+        </tr>
+        <tr>
+          <td>テンプレートの適用方法</td>
+          <td>COPY コマンドで TEMPLATE キーワードを使用してテンプレート名を参照</td>
+        </tr>
+        <tr>
+          <td>対応データ形式</td>
+          <td>CSV、JSON、Avro、Parquet、ORC など COPY コマンドがサポートする全形式</td>
+        </tr>
+      </table>
+    </div>
+
+    <!-- Setup Steps -->
+    <div class="section">
+      <h2>🛠 設定方法</h2>
+
+      <p style="font-size: 14px; margin-bottom: 16px;"><strong style="color: var(--aws-white);">前提条件:</strong> Redshift クラスターまたは Serverless ワークグループが稼働中であること。COPY コマンドの実行に必要な IAM ロールおよび INSERT 権限、データソースへのアクセス権限が設定されていること。</p>
+
+      <div class="flow-diagram">
+        <div class="flow-step">📝 ステップ 1<br/>テンプレート作成</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-step">▶️ ステップ 2<br/>COPY 実行</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-step">🔄 ステップ 3<br/>テンプレート更新</div>
+      </div>
+
+      <h3 style="color: var(--aws-white); font-size: 16px; margin: 20px 0 10px;">ステップ 1: テンプレートの作成</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">SQL</span>
+          <span class="code-title">CSV ファイル用テンプレートの作成</span>
+        </div>
+        <pre><code class="language-sql">-- テンプレートの作成例: CSV ファイル用
+CREATE COPY TEMPLATE csv_standard
+DELIMITER ','
+DATEFORMAT 'auto'
+TIMEFORMAT 'auto'
+IGNOREHEADER 1
+MAXERROR 100
+BLANKSASNULL
+EMPTYASNULL;</code></pre>
+      </div>
+
+      <h3 style="color: var(--aws-white); font-size: 16px; margin: 20px 0 10px;">ステップ 2: テンプレートを使用した COPY の実行</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">SQL</span>
+          <span class="code-title">テンプレートを参照して COPY を実行</span>
+        </div>
+        <pre><code class="language-sql">-- テンプレートを参照して COPY を実行
+COPY sales
+FROM 's3://my-bucket/data/sales.csv'
+IAM_ROLE 'arn:aws:iam::123456789012:role/RedshiftCopyRole'
+TEMPLATE csv_standard;</code></pre>
+      </div>
+
+      <h3 style="color: var(--aws-white); font-size: 16px; margin: 20px 0 10px;">ステップ 3: テンプレートの更新</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">SQL</span>
+          <span class="code-title">テンプレートのパラメータを変更</span>
+        </div>
+        <pre><code class="language-sql">-- テンプレートのパラメータを変更
+ALTER COPY TEMPLATE json_standard
+MAXERROR 100;</code></pre>
+      </div>
+    </div>
+
+    <!-- Merits & Demerits -->
+    <div class="section">
+      <h2>⚖️ メリット・デメリット</h2>
+      <div class="merit-grid">
+        <div class="merit-box">
+          <h3>✅ ビジネス面のメリット</h3>
+          <ul>
+            <li>データパイプラインの構築・管理にかかる時間を削減</li>
+            <li>手動入力によるパラメータの誤りを防止し、データ品質が向上</li>
+            <li>組織全体で一貫したデータ取り込み設定を共有でき、ガバナンスが強化</li>
+          </ul>
+          <h3 style="margin-top: 14px;">✅ 技術面のメリット</h3>
+          <ul>
+            <li>COPY コマンドの記述量が減り、スクリプトの可読性が向上</li>
+            <li>パラメータ変更をテンプレートに反映するだけで、すべての関連 COPY 操作に適用</li>
+            <li>ファイル形式やデータソースごとにテンプレートを分けて管理可能</li>
+          </ul>
+        </div>
+        <div class="demerit-box">
+          <h3>⚠️ 制限事項・考慮点</h3>
+          <ul>
+            <li>テンプレートの SQL 構文やパラメータの詳細は公式ドキュメントを確認する必要がある</li>
+            <li>テンプレート機能は COPY コマンド専用であり、UNLOAD など他のコマンドには適用されない</li>
+            <li>テンプレートの作成や変更に必要な権限の詳細は公式ドキュメントを参照</li>
+            <li>既存スクリプトやパイプラインの移行にはテスト環境での検証を推奨</li>
+            <li>テンプレートの命名規則やバージョン管理のルールを事前に策定しておくとよい</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Use Cases -->
+    <div class="section">
+      <h2>💡 ユースケース</h2>
+
+      <div class="usecase-card">
+        <h3>🔄 ユースケース 1: 定期的な ETL パイプライン</h3>
+        <p class="scenario">毎日 Amazon S3 から複数のテーブルに CSV データを COPY で取り込んでいるチームが、各テーブルで同じフォーマットパラメータを使用しているが、コマンドごとに手動指定しているケース。</p>
+        <div class="code-block">
+          <div class="code-header">
+            <span class="code-lang">SQL</span>
+            <span class="code-title">共通テンプレートで複数テーブルへの COPY を実行</span>
+          </div>
+          <pre><code class="language-sql">-- 共通テンプレートを作成
+CREATE COPY TEMPLATE daily_csv_load
+DELIMITER ','
+DATEFORMAT 'YYYY-MM-DD'
+TIMEFORMAT 'YYYY-MM-DD HH:MI:SS'
+IGNOREHEADER 1
+MAXERROR 0
+GZIP;
+
+-- 各テーブルの COPY でテンプレートを参照
+COPY orders FROM 's3://etl-bucket/orders/' IAM_ROLE '...' TEMPLATE daily_csv_load;
+COPY customers FROM 's3://etl-bucket/customers/' IAM_ROLE '...' TEMPLATE daily_csv_load;
+COPY products FROM 's3://etl-bucket/products/' IAM_ROLE '...' TEMPLATE daily_csv_load;</code></pre>
+        </div>
+        <p class="effect">-> 3 つのテーブルへの COPY 操作で同一のパラメータが保証され、パイプラインスクリプトが簡潔になる。</p>
+      </div>
+
+      <div class="usecase-card">
+        <h3>📂 ユースケース 2: マルチフォーマット対応</h3>
+        <p class="scenario">アプリケーションログは JSON 形式、トランザクションデータは CSV 形式、分析データは Parquet 形式でそれぞれ S3 に保存されている環境で、各形式ごとに異なるパラメータを管理する必要があるケース。</p>
+        <div class="code-block">
+          <div class="code-header">
+            <span class="code-lang">SQL</span>
+            <span class="code-title">形式別テンプレートの作成と使用</span>
+          </div>
+          <pre><code class="language-sql">-- 形式別テンプレートを作成
+CREATE COPY TEMPLATE app_logs_json FORMAT AS JSON 'auto' MAXERROR 100;
+CREATE COPY TEMPLATE txn_csv DELIMITER '|' DATEFORMAT 'auto' IGNOREHEADER 1;
+CREATE COPY TEMPLATE analytics_parquet FORMAT AS PARQUET;
+
+-- 各データソースに適したテンプレートを使用
+COPY app_logs FROM 's3://logs/app/' IAM_ROLE '...' TEMPLATE app_logs_json;
+COPY transactions FROM 's3://data/txn/' IAM_ROLE '...' TEMPLATE txn_csv;
+COPY analytics FROM 's3://data/analytics/' IAM_ROLE '...' TEMPLATE analytics_parquet;</code></pre>
+        </div>
+        <p class="effect">-> データ形式ごとに標準化されたテンプレートを用意し、新しいテーブル追加時もテンプレートを参照するだけで済む。</p>
+      </div>
+
+      <div class="usecase-card">
+        <h3>🏢 ユースケース 3: チーム横断でのデータ取り込み標準化</h3>
+        <p class="scenario">複数のチームが同じ Redshift クラスターにデータを取り込んでいるが、チームごとにパラメータが異なり、データ品質に差が生じているケース。</p>
+        <div class="code-block">
+          <div class="code-header">
+            <span class="code-lang">SQL</span>
+            <span class="code-title">組織標準テンプレートの活用</span>
+          </div>
+          <pre><code class="language-sql">-- 組織標準テンプレートを管理者が作成
+CREATE COPY TEMPLATE org_standard_csv
+DELIMITER ','
+DATEFORMAT 'auto'
+TIMEFORMAT 'auto'
+BLANKSASNULL
+EMPTYASNULL
+MAXERROR 0
+ACCEPTINVCHARS '?';
+
+-- 各チームは標準テンプレートを参照して COPY を実行
+COPY team_a_data FROM 's3://team-a/data/' IAM_ROLE '...' TEMPLATE org_standard_csv;
+COPY team_b_data FROM 's3://team-b/data/' IAM_ROLE '...' TEMPLATE org_standard_csv;</code></pre>
+        </div>
+        <p class="effect">-> 組織全体で統一されたデータ取り込み設定が適用され、データ品質の一貫性が確保される。</p>
+      </div>
+    </div>
+
+    <!-- Pricing & Region -->
+    <div class="section">
+      <h2>💰 料金・リージョン情報</h2>
+      <p style="font-size: 14px;">COPY テンプレート機能自体に<span class="highlight">追加料金は発生しない</span>。Amazon Redshift の通常の利用料金 (プロビジョニングクラスターまたは Serverless のコンピューティング料金) の範囲内で利用可能。</p>
+      <div class="region-info">
+        <span class="region-icon">🌍</span>
+        <span>Amazon Redshift が利用可能な<strong style="color: var(--aws-teal);">すべての AWS リージョン</strong>で利用可能。AWS GovCloud (US) リージョンも含まれる。</span>
+      </div>
+    </div>
+
+    <!-- Related Services -->
+    <div class="section">
+      <h2>🔗 関連サービス・機能</h2>
+      <div class="related-grid">
+        <div class="related-item">
+          <strong>Amazon Redshift COPY コマンド</strong>
+          テンプレート機能の基盤となるデータ取り込みコマンド
+        </div>
+        <div class="related-item">
+          <strong>Amazon S3</strong>
+          COPY コマンドの主要なデータソースとして使用
+        </div>
+        <div class="related-item">
+          <strong>Amazon Redshift COPY JOB</strong>
+          COPY 操作を自動化するジョブ機能。テンプレートと組み合わせてさらに効率的な運用が可能
+        </div>
+        <div class="related-item">
+          <strong>AWS Glue</strong>
+          ETL パイプラインの構築に使用。Redshift への COPY 操作と組み合わせて利用可能
+        </div>
+      </div>
+    </div>
+
+    <!-- Summary -->
+    <div class="section">
+      <h2>📝 まとめ</h2>
+      <p style="font-size: 15px;">Amazon Redshift の COPY テンプレート機能は、データ取り込み操作の<span class="highlight">標準化と効率化</span>を実現する実用的なアップデート。特に複数のテーブルやデータ形式を扱う環境では、テンプレートによるパラメータの一元管理が<span class="highlight">ヒューマンエラーの削減</span>と<span class="highlight">運用コストの低減</span>に直結する。既存の COPY コマンドベースのパイプラインを運用しているチームは、テンプレート機能への移行を検討することを推奨する。</p>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+      <p>📎 出典:</p>
+      <ul>
+        <li><a href="https://aws.amazon.com/about-aws/whats-new/2026/03/amazon-redshift-reusable-templates-copy/" target="_blank" rel="noopener noreferrer">公式発表 (What's New)</a></li>
+        <li><a href="https://docs.aws.amazon.com/redshift/latest/dg/r_COPY.html" target="_blank" rel="noopener noreferrer">Amazon Redshift COPY コマンド ドキュメント</a></li>
+        <li><a href="https://aws.amazon.com/redshift/pricing/" target="_blank" rel="noopener noreferrer">Amazon Redshift 料金ページ</a></li>
+      </ul>
+    </footer>
+
+  </div>
+
+  <!-- Mermaid.js -->
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'base',
+      themeVariables: {
+        primaryColor: '#FF9900',
+        primaryTextColor: '#232F3E',
+        primaryBorderColor: '#FF9900',
+        lineColor: '#FF9900',
+        secondaryColor: '#F5F5F5',
+        tertiaryColor: '#FAFAFA',
+        background: '#FFFFFF',
+        mainBkg: '#FFF3E0',
+        nodeBorder: '#FF9900',
+        clusterBkg: '#FFF8E1',
+        clusterBorder: '#FF9900',
+        edgeLabelBackground: '#FFFFFF',
+        textColor: '#232F3E'
+      }
+    });
+  </script>
+  <!-- highlight.js -->
+  <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/highlight.min.js"></script>
+  <script>hljs.highlightAll();</script>
+</body>
+</html>

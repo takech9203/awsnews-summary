@@ -5,6 +5,20 @@
 
 ## 2026 年
 
+- [2026-03-06 - Amazon Redshift - 半構造化データ処理向け 9 つの新しい配列関数](2026/2026-03-06-amazon-redshift-nine-new-array-functions.md)
+- [2026-03-06 - Amazon EC2 R8g インスタンス - 追加リージョンでの提供開始](2026/2026-03-06-amazon-ec2-r8g-instances-additional-regions.md)
+- [2026-03-06 - Amazon Redshift - COPY コマンド用再利用可能テンプレート](2026/2026-03-06-amazon-redshift-reusable-templates-copy.md)
+- [2026-03-05 - Database Savings Plans - Amazon OpenSearch Service / Amazon Neptune Analytics 対応](2026/2026-03-05-dbsp-opensearch-service-neptune-analytics.md)
+- [2026-03-05 - Amazon OpenSearch Service - Capacity Optimized Blue/Green デプロイメント](2026/2026-03-05-amazon-opensearch-service-bg.md)
+- [2026-03-05 - AWS HealthLake - データ変換エージェントによる CCDA-to-FHIR 自動変換 (プレビュー)](2026/2026-03-05-aws-healthlake-data-transformation-agent.md)
+- [2026-03-05 - Amazon EC2 I8ge - Europe (Ireland) リージョンで一般提供開始](2026/2026-03-05-amazon-ec2-I8ge-expansion-ireland.md)
+- [2026-03-05 - AWS Shield - Network Security Director の検出結果が AWS Security Hub で利用可能に](2026/2026-03-05-network-security-director-findings.md)
+- [2026-03-05 - AWS Elastic Beanstalk - AI を活用した環境分析](2026/2026-03-05-elastic-beanstalk-ai-analysis.md)
+- [2026-03-05 - Amazon Redshift Serverless - スナップショットリストア時のデータ共有権限の自動保持](2026/2026-03-05-amazon-redshift-serverless-maintains-datashare-permissions-on-restore.md)
+- [2026-03-05 - Amazon Connect Health - ヘルスケア向けエージェント AI](2026/2026-03-05-amazon-connect-health-agentic-ai-healthcare.md)
+- [2026-03-05 - AWS Lambda - Lambda Durable Functions Kiro Power](2026/2026-03-05-lambda-durable-kiro-power.md)
+- [2026-03-05 - Multi-party Approval - 承認チームベースライニングのサポート](2026/2026-03-05-multi-party-approval-team-baselining.md)
+- [2026-03-04 - Amazon EC2 - M8g インスタンスが追加リージョンで利用可能に](2026/2026-03-04-amazon-ec2-m8g-instances-africa-cape-town-asia-pacific-malaysia-europe-milan-zurich-canada-west-calgary-regions.md)
 - [2026-03-03 - Amazon Bedrock AgentCore - Policy 機能の一般提供開始](2026/2026-03-03-policy-amazon-bedrock-agentcore-generally-available.md)
 - [2026-03-02 - Kiro - バージョン 1.27 リリース](2026/2026-03-02-kiro-changelog-2026-03-02.md)
 - [2026-03-02 - AWS Config - 30 の新しいリソースタイプをサポート](2026/2026-03-02-aws-config-new-resource-types.md)

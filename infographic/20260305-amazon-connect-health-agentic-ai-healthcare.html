@@ -1,0 +1,1085 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Amazon Connect Health - ヘルスケア向けエージェント AI</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap');
+
+    :root {
+      --aws-squid-ink: #232F3E;
+      --aws-dark-squid: #1A242F;
+      --aws-orange: #FF9900;
+      --aws-smile-orange: #FFAD33;
+      --aws-white: #FFFFFF;
+      --aws-light-gray: #D5DBDB;
+      --aws-teal: #00A1C9;
+      --aws-purple: #8C4FFF;
+      --aws-green: #1D8102;
+      --aws-red: #D13212;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--aws-squid-ink);
+      font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+      color: var(--aws-light-gray);
+      font-size: 16px;
+      line-height: 1.6;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 32px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .header-left { flex: 1; min-width: 280px; }
+
+    .service-badge {
+      display: inline-block;
+      background: var(--aws-orange);
+      color: var(--aws-squid-ink);
+      padding: 4px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    h1 {
+      font-size: 34px;
+      font-weight: 700;
+      color: var(--aws-white);
+      line-height: 1.3;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      font-size: 16px;
+      color: var(--aws-light-gray);
+    }
+
+    .header-meta {
+      text-align: right;
+      font-size: 14px;
+      color: var(--aws-light-gray);
+    }
+
+    /* Section */
+    .section {
+      background: var(--aws-dark-squid);
+      border-radius: 8px;
+      padding: 24px;
+      margin-bottom: 24px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    h2 {
+      font-size: 22px;
+      font-weight: 600;
+      color: var(--aws-orange);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    h3 {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--aws-white);
+      margin: 16px 0 10px;
+    }
+
+    p { margin-bottom: 12px; }
+
+    .highlight {
+      background-color: rgba(255, 153, 0, 0.2);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 600;
+      color: var(--aws-orange);
+    }
+
+    /* Before/After */
+    .before-after {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin: 16px 0;
+    }
+
+    .before-card, .after-card {
+      border-radius: 8px;
+      padding: 16px;
+    }
+
+    .before-card {
+      background: rgba(209, 50, 18, 0.1);
+      border: 1px solid rgba(209, 50, 18, 0.4);
+    }
+
+    .after-card {
+      background: rgba(29, 129, 2, 0.1);
+      border: 1px solid rgba(29, 129, 2, 0.4);
+    }
+
+    .before-card h3 { color: var(--aws-red); }
+    .after-card h3 { color: var(--aws-green); }
+
+    .before-card li, .after-card li {
+      margin-bottom: 8px;
+      padding-left: 4px;
+    }
+
+    .before-card ul, .after-card ul {
+      list-style: none;
+      padding-left: 0;
+    }
+
+    .before-card li::before { content: "✗ "; color: var(--aws-red); font-weight: bold; }
+    .after-card li::before { content: "✓ "; color: var(--aws-green); font-weight: bold; }
+
+    /* Feature cards */
+    .feature-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+      margin-top: 16px;
+    }
+
+    .feature-card {
+      background: var(--aws-squid-ink);
+      border-radius: 8px;
+      padding: 18px;
+      border-left: 4px solid var(--aws-orange);
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      border-right: 1px solid rgba(255, 255, 255, 0.05);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .feature-card-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .feature-card-header .icon {
+      font-size: 24px;
+    }
+
+    .feature-card-header .title {
+      font-size: 17px;
+      font-weight: 600;
+      color: var(--aws-white);
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 700;
+      margin-left: 8px;
+    }
+
+    .status-ga {
+      background: rgba(29, 129, 2, 0.2);
+      color: #4caf50;
+      border: 1px solid rgba(29, 129, 2, 0.5);
+    }
+
+    .status-preview {
+      background: rgba(255, 153, 0, 0.2);
+      color: var(--aws-orange);
+      border: 1px solid rgba(255, 153, 0, 0.5);
+    }
+
+    .feature-card ul {
+      list-style: none;
+      padding-left: 0;
+    }
+
+    .feature-card li {
+      margin-bottom: 6px;
+      padding-left: 20px;
+      position: relative;
+    }
+
+    .feature-card li::before {
+      content: "→";
+      color: var(--aws-orange);
+      position: absolute;
+      left: 0;
+      font-weight: bold;
+    }
+
+    /* Stats */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+      margin: 16px 0;
+    }
+
+    .stat-card {
+      background: linear-gradient(135deg, rgba(255, 153, 0, 0.15), rgba(140, 79, 255, 0.1));
+      border: 1px solid rgba(255, 153, 0, 0.3);
+      border-radius: 8px;
+      padding: 18px;
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--aws-orange);
+      line-height: 1.2;
+    }
+
+    .stat-label {
+      font-size: 13px;
+      color: var(--aws-light-gray);
+      margin-top: 4px;
+    }
+
+    /* Table */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0;
+      font-size: 14px;
+    }
+
+    th {
+      background: rgba(255, 153, 0, 0.15);
+      color: var(--aws-orange);
+      padding: 10px 14px;
+      text-align: left;
+      font-weight: 600;
+      border-bottom: 2px solid rgba(255, 153, 0, 0.3);
+    }
+
+    td {
+      padding: 10px 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    /* Use case */
+    .usecase-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+      margin-top: 16px;
+    }
+
+    .usecase-card {
+      background: rgba(255, 153, 0, 0.08);
+      border: 1px solid rgba(255, 153, 0, 0.25);
+      border-radius: 8px;
+      padding: 20px;
+    }
+
+    .usecase-card h3 {
+      color: var(--aws-orange);
+      margin-top: 0;
+    }
+
+    .usecase-scenario {
+      font-size: 14px;
+      color: var(--aws-light-gray);
+      margin-bottom: 8px;
+    }
+
+    .usecase-effect {
+      font-size: 14px;
+      color: var(--aws-green);
+      font-weight: 500;
+    }
+
+    /* Flow diagram */
+    .flow-diagram {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin: 20px 0;
+    }
+
+    .flow-step {
+      background: var(--aws-dark-squid);
+      border: 2px solid var(--aws-orange);
+      border-radius: 8px;
+      padding: 12px 18px;
+      text-align: center;
+      min-width: 90px;
+      font-size: 14px;
+    }
+
+    .flow-arrow {
+      color: var(--aws-orange);
+      font-size: 22px;
+      font-weight: bold;
+    }
+
+    /* Mermaid */
+    .mermaid-container {
+      background: #FFFFFF;
+      border-radius: 12px;
+      padding: 24px;
+      margin: 20px 0;
+      border: 2px solid rgba(255, 153, 0, 0.3);
+      overflow-x: auto;
+    }
+
+    .mermaid {
+      display: flex;
+      justify-content: center;
+    }
+
+    /* Code block */
+    .code-block {
+      background: #1a1a2e;
+      border-radius: 8px;
+      overflow: hidden;
+      margin: 16px 0;
+    }
+
+    .code-header {
+      background: #16213e;
+      padding: 8px 16px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+    }
+
+    .code-lang {
+      color: var(--aws-orange);
+      font-weight: bold;
+    }
+
+    .code-title {
+      color: var(--aws-light-gray);
+    }
+
+    .code-block pre {
+      margin: 0;
+      padding: 0;
+      overflow-x: auto;
+    }
+
+    .code-block code {
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      line-height: 1.5;
+      padding: 16px !important;
+    }
+
+    /* Pros/Cons */
+    .pros-cons {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin: 16px 0;
+    }
+
+    .pros-card, .cons-card {
+      border-radius: 8px;
+      padding: 16px;
+    }
+
+    .pros-card {
+      background: rgba(29, 129, 2, 0.08);
+      border: 1px solid rgba(29, 129, 2, 0.3);
+    }
+
+    .cons-card {
+      background: rgba(209, 50, 18, 0.08);
+      border: 1px solid rgba(209, 50, 18, 0.3);
+    }
+
+    .pros-card h3 { color: var(--aws-green); margin-top: 0; }
+    .cons-card h3 { color: var(--aws-red); margin-top: 0; }
+
+    .pros-card ul, .cons-card ul {
+      list-style: none;
+      padding-left: 0;
+    }
+
+    .pros-card li, .cons-card li {
+      margin-bottom: 8px;
+      padding-left: 20px;
+      position: relative;
+      font-size: 14px;
+    }
+
+    .pros-card li::before {
+      content: "✓";
+      color: var(--aws-green);
+      position: absolute;
+      left: 0;
+      font-weight: bold;
+    }
+
+    .cons-card li::before {
+      content: "!";
+      color: var(--aws-red);
+      position: absolute;
+      left: 0;
+      font-weight: bold;
+    }
+
+    /* Region */
+    .region-list {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin: 12px 0;
+    }
+
+    .region-tag {
+      background: rgba(0, 161, 201, 0.15);
+      border: 1px solid rgba(0, 161, 201, 0.4);
+      border-radius: 20px;
+      padding: 6px 16px;
+      font-size: 14px;
+      color: var(--aws-teal);
+    }
+
+    /* Related services */
+    .related-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin: 12px 0;
+    }
+
+    .related-card {
+      background: var(--aws-squid-ink);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      padding: 14px;
+    }
+
+    .related-card .name {
+      color: var(--aws-teal);
+      font-weight: 600;
+      font-size: 15px;
+      margin-bottom: 4px;
+    }
+
+    .related-card .desc {
+      font-size: 13px;
+      color: var(--aws-light-gray);
+    }
+
+    /* Links */
+    .aws-link {
+      color: var(--aws-teal);
+      text-decoration: none;
+    }
+
+    .aws-link:hover {
+      color: var(--aws-smile-orange);
+    }
+
+    .links-list {
+      list-style: none;
+      padding-left: 0;
+    }
+
+    .links-list li {
+      margin-bottom: 8px;
+      padding-left: 20px;
+      position: relative;
+      font-size: 14px;
+    }
+
+    .links-list li::before {
+      content: "🔗";
+      position: absolute;
+      left: 0;
+    }
+
+    /* Footer */
+    footer {
+      margin-top: 24px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(255, 255, 255, 0.2);
+      font-size: 12px;
+      color: var(--aws-light-gray);
+    }
+
+    footer a { color: var(--aws-teal); text-decoration: none; word-break: break-all; }
+    footer a:hover { color: var(--aws-smile-orange); }
+
+    /* Responsive */
+    @media (max-width: 700px) {
+      h1 { font-size: 24px; }
+      .before-after, .pros-cons, .related-grid { grid-template-columns: 1fr; }
+      .stats-row { grid-template-columns: 1fr 1fr; }
+      .header { flex-direction: column; }
+      .header-meta { text-align: left; }
+    }
+  </style>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/styles/atom-one-dark.min.css">
+</head>
+<body>
+  <div class="container">
+
+    <!-- Header -->
+    <div class="header">
+      <div class="header-left">
+        <span class="service-badge">Amazon Connect Health</span>
+        <h1>🏥 ヘルスケア向けエージェント AI</h1>
+        <div class="subtitle">ケアの連続体全体をカバーする 5 つの目的特化型 AI エージェント</div>
+      </div>
+      <div class="header-meta">
+        <div>📅 2026 年 3 月 5 日</div>
+        <div>GA + Preview</div>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-value">5</div>
+        <div class="stat-label">AI エージェント</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">2</div>
+        <div class="stat-label">GA 機能</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">16</div>
+        <div class="stat-label">新規 API メソッド</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">数日</div>
+        <div class="stat-label">で展開可能</div>
+      </div>
+    </div>
+
+    <!-- Overview -->
+    <div class="section">
+      <h2>📋 概要</h2>
+      <p>Amazon Connect Health が<span class="highlight">一般提供</span>となり、ヘルスケア組織向けに目的特化型のエージェント AI が利用可能に。患者エンゲージメントとポイントオブケアワークフローを効率化する <span class="highlight">5 つの AI エージェント</span>を提供し、ケアの連続体全体にわたる管理負担を軽減する。</p>
+      <p>すべての機能は責任ある AI のベストプラクティスに従い、安全ガードレールを実装し、<span class="highlight">HIPAA 対象サービス</span>として提供される。</p>
+    </div>
+
+    <!-- Before/After -->
+    <div class="section">
+      <h2>🔄 Before / After</h2>
+      <div class="before-after">
+        <div class="before-card">
+          <h3>❌ Before</h3>
+          <ul>
+            <li>患者確認、予約管理、臨床ドキュメント作成が臨床スタッフの大きな負担</li>
+            <li>EHR とコンタクトセンターの統合に数か月の開発期間</li>
+            <li>診察前の患者情報確認や診察後の臨床ノート作成に多くの時間</li>
+            <li>医療コーディングの手動作成は時間がかかりエラーが発生しやすい</li>
+          </ul>
+        </div>
+        <div class="after-card">
+          <h3>✅ After</h3>
+          <ul>
+            <li>5 つの AI エージェントで患者確認から医療コーディングまで全体をカバー</li>
+            <li>Amazon Connect ネイティブ統合により数日で展開可能</li>
+            <li>統合 SDK で EHR アプリに直接組み込み</li>
+            <li>HIPAA 対象サービスとして標準的なセキュリティを維持</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Architecture -->
+    <div class="section">
+      <h2>🏗️ アーキテクチャ図</h2>
+      <p>患者エンゲージメントとポイントオブケアの 2 領域に分かれた 5 つの AI エージェントを提供し、統合 SDK と Amazon Connect、EHR システムと連携する。</p>
+      <div class="mermaid-container">
+        <pre class="mermaid">
+flowchart TD
+    subgraph PatientEngagement["👤 患者エンゲージメント"]
+        direction LR
+        PV["🔐 患者確認<br/>GA"]
+        AM["📅 予約管理<br/>Preview"]
+        PV ~~~ AM
+    end
+
+    subgraph PointOfCare["🏥 ポイントオブケア"]
+        direction LR
+        PI["📋 患者インサイト<br/>Preview"]
+        AD["🎙️ アンビエント<br/>ドキュメンテーション<br/>GA"]
+        MC["💊 医療コーディング<br/>Preview"]
+        PI ~~~ AD ~~~ MC
+    end
+
+    subgraph Integration["🔌 統合レイヤー"]
+        direction LR
+        SDK["⚡ 統合 SDK"]
+        APP["📱 Connect Health<br/>アプリケーション"]
+        SDK ~~~ APP
+    end
+
+    subgraph Backend["☁️ バックエンド"]
+        direction LR
+        Connect["📞 Amazon Connect"]
+        EHR["🗄️ EHR システム"]
+        Connect ~~~ EHR
+    end
+
+    Patient(["👤 患者"]) --> PatientEngagement
+    Clinician(["👨‍⚕️ 臨床医"]) --> PointOfCare
+    PatientEngagement --> Integration
+    PointOfCare --> Integration
+    Integration --> Backend
+
+    classDef cloud fill:none,stroke:#CCCCCC,stroke-width:2px,color:#666666
+    classDef layer fill:none,stroke:#E1BEE7,stroke-width:2px,color:#666666
+    classDef ga fill:#E9F7EC,stroke:#66BB6A,stroke-width:2px,color:#333333
+    classDef preview fill:#FFF3E0,stroke:#FF9800,stroke-width:2px,color:#333333
+    classDef compute fill:#FFE0B2,stroke:#FFCC80,stroke-width:2px,color:#5D4037
+    classDef internal fill:#E8F1FF,stroke:#4A90E2,stroke-width:2px,color:#333333
+    classDef user fill:#E3F2FD,stroke:#BBDEFB,stroke-width:2px,color:#1565C0
+
+    class PatientEngagement,PointOfCare,Integration,Backend layer
+    class PV,AD ga
+    class AM,PI,MC preview
+    class SDK,APP compute
+    class Connect,EHR internal
+    class Patient,Clinician user
+        </pre>
+      </div>
+    </div>
+
+    <!-- 5 AI Agents -->
+    <div class="section">
+      <h2>🤖 5 つの AI エージェント</h2>
+
+      <div class="feature-grid">
+        <div class="feature-card">
+          <div class="feature-card-header">
+            <span class="icon">🔐</span>
+            <span class="title">患者確認 <span class="status-badge status-ga">GA</span></span>
+          </div>
+          <ul>
+            <li>EHR レコードに対してリアルタイムで患者の身元を確認</li>
+            <li>予約の検索機能を備え、着信通話の対応時間を短縮</li>
+            <li>Amazon Connect のコンタクトフローにネイティブ統合</li>
+          </ul>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-card-header">
+            <span class="icon">📅</span>
+            <span class="title">予約管理 <span class="status-badge status-preview">Preview</span></span>
+          </div>
+          <ul>
+            <li>自然言語による音声対話で予約を管理</li>
+            <li>24 時間 365 日対応の予約スケジューリング</li>
+            <li>リアルタイムの保険資格チェック機能を搭載</li>
+            <li>スタッフの負担を軽減しながら患者アクセスを改善</li>
+          </ul>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-card-header">
+            <span class="icon">📋</span>
+            <span class="title">患者インサイト <span class="status-badge status-preview">Preview</span></span>
+          </div>
+          <ul>
+            <li>診察前に関連する患者の病歴と臨床コンテキストを表示</li>
+            <li>臨床医が準備された状態で診察に臨めるよう支援</li>
+            <li>FHIR サーバーや S3 からの患者データ入力に対応</li>
+          </ul>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-card-header">
+            <span class="icon">🎙️</span>
+            <span class="title">アンビエントドキュメンテーション <span class="status-badge status-ga">GA</span></span>
+          </div>
+          <ul>
+            <li>診察中の患者と臨床医の会話をキャプチャ</li>
+            <li>リアルタイムで臨床ノートを自動生成</li>
+            <li>HISTORY_AND_PHYSICAL、GIRPP、DAP、SIRP、BIRP など複数テンプレート対応</li>
+            <li>カスタムテンプレートもサポート</li>
+          </ul>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-card-header">
+            <span class="icon">💊</span>
+            <span class="title">医療コーディング <span class="status-badge status-preview">Preview</span></span>
+          </div>
+          <ul>
+            <li>臨床ノートから ICD-10 および CPT コードを自動生成</li>
+            <li>完全な監査証跡を提供</li>
+            <li>レベニューサイクル管理の効率化に貢献</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Technical Specifications -->
+    <div class="section">
+      <h2>⚙️ 技術仕様</h2>
+
+      <h3>AI エージェント提供状況</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>エージェント</th>
+            <th>ステータス</th>
+            <th>領域</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>🔐 患者確認</td>
+            <td><span class="status-badge status-ga">GA</span></td>
+            <td>患者エンゲージメント</td>
+          </tr>
+          <tr>
+            <td>📅 予約管理</td>
+            <td><span class="status-badge status-preview">Preview</span></td>
+            <td>患者エンゲージメント</td>
+          </tr>
+          <tr>
+            <td>📋 患者インサイト</td>
+            <td><span class="status-badge status-preview">Preview</span></td>
+            <td>ポイントオブケア</td>
+          </tr>
+          <tr>
+            <td>🎙️ アンビエントドキュメンテーション</td>
+            <td><span class="status-badge status-ga">GA</span></td>
+            <td>ポイントオブケア</td>
+          </tr>
+          <tr>
+            <td>💊 医療コーディング</td>
+            <td><span class="status-badge status-preview">Preview</span></td>
+            <td>ポイントオブケア</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>API 変更履歴</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>日付</th>
+            <th>サービス</th>
+            <th>変更内容</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>2026/03/05</td>
+            <td>Connect Health</td>
+            <td>16 new API methods - 統合 SDK の初回リリース</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>IAM とセキュリティ</h3>
+      <ul style="list-style: none; padding-left: 0;">
+        <li style="margin-bottom: 6px;">🔒 AWS KMS カスタマーマネージドキーによる暗号化</li>
+        <li style="margin-bottom: 6px;">🔑 AWS IAM Identity Center との統合</li>
+        <li style="margin-bottom: 6px;">🏥 HIPAA 対象サービス</li>
+        <li style="margin-bottom: 6px;">🏷️ リソースタグ付けによるアクセス制御</li>
+      </ul>
+    </div>
+
+    <!-- Setup & Code -->
+    <div class="section">
+      <h2>🛠️ 設定方法とコードサンプル</h2>
+
+      <h3>前提条件</h3>
+      <ul style="list-style: none; padding-left: 0; margin-bottom: 16px;">
+        <li style="margin-bottom: 4px;">→ AWS アカウントと適切な IAM 権限</li>
+        <li style="margin-bottom: 4px;">→ Amazon Connect インスタンス</li>
+        <li style="margin-bottom: 4px;">→ FHIR 対応の EHR システム</li>
+        <li style="margin-bottom: 4px;">→ AWS KMS キー</li>
+      </ul>
+
+      <h3>ステップ 1: ドメインの作成</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python</span>
+          <span class="code-title">Connect Health ドメイン作成</span>
+        </div>
+        <pre><code class="language-python">import boto3
+
+client = boto3.client('health-agent', region_name='us-east-1')
+
+response = client.create_domain(
+    name='my-health-domain',
+    kmsKeyArn='arn:aws:kms:us-east-1:123456789012:key/my-key-id',
+    webAppSetupConfiguration={
+        'ehrRole': 'arn:aws:iam::123456789012:role/EHRAccessRole',
+        'idcInstanceId': 'my-idc-instance',
+        'idcRegion': 'us-east-1'
+    }
+)
+domain_id = response['domainId']</code></pre>
+      </div>
+
+      <h3>ステップ 2: サブスクリプションの作成</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python</span>
+          <span class="code-title">サブスクリプション作成とアクティベート</span>
+        </div>
+        <pre><code class="language-python"># サブスクリプションの作成
+sub_response = client.create_subscription(domainId=domain_id)
+subscription_id = sub_response['subscriptionId']
+
+# サブスクリプションのアクティベート
+client.activate_subscription(
+    domainId=domain_id,
+    subscriptionId=subscription_id
+)</code></pre>
+      </div>
+
+      <h3>ステップ 3: AI エージェントの利用開始</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python</span>
+          <span class="code-title">アンビエントドキュメンテーション セッション開始</span>
+        </div>
+        <pre><code class="language-python"># アンビエントドキュメンテーション: リスニングセッションの開始
+session = client.start_medical_scribe_listening_session(
+    sessionId='session-001',
+    domainId=domain_id,
+    subscriptionId=subscription_id,
+    languageCode='en-US',
+    mediaSampleRateHertz=16000,
+    mediaEncoding='pcm'
+)</code></pre>
+      </div>
+
+      <h3>主要 API メソッド例</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python</span>
+          <span class="code-title">患者インサイトジョブの開始</span>
+        </div>
+        <pre><code class="language-python"># 患者インサイトジョブの開始
+client.start_patient_insights_job(
+    domainId='string',
+    patientContext={
+        'patientId': 'string',
+        'dateOfBirth': 'string',
+        'pronouns': 'HE_HIM'|'SHE_HER'|'THEY_THEM'
+    },
+    insightsContext={
+        'insightsType': 'PRE_VISIT'
+    },
+    inputDataConfig={
+        'fhirServer': {
+            'fhirEndpoint': 'string',
+            'oauthToken': 'string'
+        }
+    }
+)</code></pre>
+      </div>
+    </div>
+
+    <!-- Benefits -->
+    <div class="section">
+      <h2>✅ メリット</h2>
+      <div class="pros-cons">
+        <div class="pros-card">
+          <h3>💼 ビジネス面</h3>
+          <ul>
+            <li>患者確認、予約管理、臨床ドキュメント作成の自動化でスタッフの管理負担を大幅に軽減</li>
+            <li>24/365 の予約管理やリアルタイム保険資格チェックで患者アクセスを改善</li>
+            <li>医療コーディング自動化でコーディング正確性向上と請求処理迅速化</li>
+          </ul>
+        </div>
+        <div class="pros-card" style="background: rgba(0, 161, 201, 0.08); border-color: rgba(0, 161, 201, 0.3);">
+          <h3 style="color: var(--aws-teal);">⚙️ 技術面</h3>
+          <ul>
+            <li>数か月ではなく数日で既存ワークフローに展開可能</li>
+            <li>単一 SDK でポイントオブケア機能を既存 EHR に組み込み</li>
+            <li>HIPAA 対応でコンプライアンス要件を充足</li>
+            <li>安全ガードレールと監査証跡で透明性と信頼性を確保</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Limitations -->
+    <div class="section">
+      <h2>⚠️ 制限事項・注意点</h2>
+      <div class="pros-cons">
+        <div class="cons-card">
+          <h3>🚫 制限事項</h3>
+          <ul>
+            <li>GA は 2 つのみ、残り 3 つは Preview</li>
+            <li>利用可能リージョンは 2 リージョンに限定</li>
+            <li>言語サポートは英語のみ</li>
+          </ul>
+        </div>
+        <div class="cons-card">
+          <h3>📝 考慮すべき点</h3>
+          <ul>
+            <li>Preview 機能は本番環境では非推奨、仕様変更の可能性</li>
+            <li>EHR 統合には FHIR 対応が前提</li>
+            <li>医療コーディングの最終確認は臨床医が必要</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Use Cases -->
+    <div class="section">
+      <h2>💡 ユースケース</h2>
+      <div class="usecase-grid">
+        <div class="usecase-card">
+          <h3>🏥 大規模病院ネットワークの患者アクセスセンター</h3>
+          <div class="usecase-scenario">複数の病院で毎日数千件の着信通話を処理。患者確認に平均 3-5 分かかり、対応時間が長くなっている。</div>
+          <div class="flow-diagram" style="margin: 12px 0;">
+            <div class="flow-step">📞 着信通話</div>
+            <span class="flow-arrow">→</span>
+            <div class="flow-step">🔐 自動患者確認</div>
+            <span class="flow-arrow">→</span>
+            <div class="flow-step">📅 予約検索</div>
+            <span class="flow-arrow">→</span>
+            <div class="flow-step">👤 キュールーティング</div>
+          </div>
+          <div class="usecase-effect">→ 1 通話あたりの対応時間を短縮、スタッフはより複雑な問い合わせに集中可能</div>
+        </div>
+
+        <div class="usecase-card">
+          <h3>🩺 プライマリケアクリニックの臨床ワークフロー最適化</h3>
+          <div class="usecase-scenario">臨床医が診察前の患者情報確認と診察後の臨床ノート作成に多くの時間を費やしている。</div>
+          <div class="flow-diagram" style="margin: 12px 0;">
+            <div class="flow-step">📋 患者インサイト<br/><small>診察前</small></div>
+            <span class="flow-arrow">→</span>
+            <div class="flow-step">🎙️ アンビエント<br/><small>診察中</small></div>
+            <span class="flow-arrow">→</span>
+            <div class="flow-step">📝 臨床ノート<br/><small>自動生成</small></div>
+          </div>
+          <div class="usecase-effect">→ 臨床医の管理業務を削減し、患者対応に集中する時間を増加</div>
+        </div>
+
+        <div class="usecase-card">
+          <h3>💻 遠隔医療プラットフォームへの統合</h3>
+          <div class="usecase-scenario">遠隔医療サービスのビデオ診察中のドキュメンテーションと診察後のコーディングを効率化したい。</div>
+          <div class="flow-diagram" style="margin: 12px 0;">
+            <div class="flow-step">🎥 ビデオ通話</div>
+            <span class="flow-arrow">→</span>
+            <div class="flow-step">🎙️ 音声キャプチャ</div>
+            <span class="flow-arrow">→</span>
+            <div class="flow-step">📝 ノート自動生成</div>
+            <span class="flow-arrow">→</span>
+            <div class="flow-step">💊 コード自動生成</div>
+          </div>
+          <div class="usecase-effect">→ 遠隔医療の臨床ワークフロー全体を効率化し、臨床医と患者の体験を向上</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pricing -->
+    <div class="section">
+      <h2>💰 料金</h2>
+      <p>料金の詳細は公式発表時点では明示されていない。使用する AI エージェントの種類と利用量に基づく<span class="highlight">従量課金</span>が想定される。最新の料金情報は Amazon Connect Health の料金ページを確認されたい。</p>
+    </div>
+
+    <!-- Regions -->
+    <div class="section">
+      <h2>🌍 利用可能リージョン</h2>
+      <div class="region-list">
+        <span class="region-tag">🇺🇸 US East - N. Virginia - us-east-1</span>
+        <span class="region-tag">🇺🇸 US West - Oregon - us-west-2</span>
+      </div>
+    </div>
+
+    <!-- Related Services -->
+    <div class="section">
+      <h2>🔗 関連サービス</h2>
+      <div class="related-grid">
+        <div class="related-card">
+          <div class="name">📞 Amazon Connect</div>
+          <div class="desc">Connect Health のコアプラットフォーム。患者エンゲージメント機能がネイティブに統合</div>
+        </div>
+        <div class="related-card">
+          <div class="name">🗣️ Amazon Transcribe Medical</div>
+          <div class="desc">医療分野の音声文字起こし。アンビエントドキュメンテーション機能の基盤技術</div>
+        </div>
+        <div class="related-card">
+          <div class="name">📖 Amazon Comprehend Medical</div>
+          <div class="desc">医療テキストからの情報抽出。患者インサイトや医療コーディングと補完的</div>
+        </div>
+        <div class="related-card">
+          <div class="name">🗄️ AWS HealthLake</div>
+          <div class="desc">FHIR 対応の医療データストア。Connect Health の患者データソースとして連携可能</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- References -->
+    <div class="section">
+      <h2>📚 参考リンク</h2>
+      <ul class="links-list">
+        <li><a href="https://aws.amazon.com/about-aws/whats-new/2026/03/amazon-connect-health-agentic-ai-healthcare/" target="_blank" rel="noopener noreferrer" class="aws-link">公式発表 - What's New</a></li>
+        <li><a href="https://aws.amazon.com/connect/health/" target="_blank" rel="noopener noreferrer" class="aws-link">Amazon Connect Health 製品ページ</a></li>
+        <li><a href="https://docs.aws.amazon.com/connect/latest/health/" target="_blank" rel="noopener noreferrer" class="aws-link">Amazon Connect Health ドキュメント</a></li>
+        <li><a href="https://docs.aws.amazon.com/connect/latest/health-sdk/" target="_blank" rel="noopener noreferrer" class="aws-link">Amazon Connect Health SDK ドキュメント</a></li>
+      </ul>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+      <p>📎 出典: <a href="https://aws.amazon.com/about-aws/whats-new/2026/03/amazon-connect-health-agentic-ai-healthcare/" target="_blank" rel="noopener noreferrer">https://aws.amazon.com/about-aws/whats-new/2026/03/amazon-connect-health-agentic-ai-healthcare/</a></p>
+      <p style="margin-top: 8px;">Generated on 2026-03-07 | Amazon Connect Health - Agentic AI for Healthcare</p>
+    </footer>
+
+  </div>
+
+  <!-- Mermaid.js -->
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'base',
+      themeVariables: {
+        primaryColor: '#FF9900',
+        primaryTextColor: '#232F3E',
+        primaryBorderColor: '#FF9900',
+        lineColor: '#FF9900',
+        secondaryColor: '#F5F5F5',
+        tertiaryColor: '#FAFAFA',
+        background: '#FFFFFF',
+        mainBkg: '#FFF3E0',
+        nodeBorder: '#FF9900',
+        clusterBkg: '#FFF8E1',
+        clusterBorder: '#FF9900',
+        edgeLabelBackground: '#FFFFFF',
+        textColor: '#232F3E'
+      }
+    });
+  </script>
+
+  <!-- highlight.js -->
+  <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/highlight.min.js"></script>
+  <script>hljs.highlightAll();</script>
+</body>
+</html>

@@ -1,0 +1,1010 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AWS HealthLake - データ変換エージェント CCDA-to-FHIR 自動変換</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap');
+
+    :root {
+      --aws-squid-ink: #232F3E;
+      --aws-dark-squid: #1A242F;
+      --aws-orange: #FF9900;
+      --aws-smile-orange: #FFAD33;
+      --aws-white: #FFFFFF;
+      --aws-light-gray: #D5DBDB;
+      --aws-teal: #00A1C9;
+      --aws-purple: #8C4FFF;
+      --aws-green: #1D8102;
+      --aws-red: #D13212;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--aws-squid-ink);
+      font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+      color: var(--aws-light-gray);
+      font-size: 16px;
+      line-height: 1.6;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 32px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .header-left { flex: 1; min-width: 280px; }
+
+    .service-badge {
+      display: inline-block;
+      background: var(--aws-orange);
+      color: var(--aws-squid-ink);
+      padding: 4px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    h1 {
+      font-size: 34px;
+      font-weight: 700;
+      color: var(--aws-white);
+      line-height: 1.3;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      font-size: 16px;
+      color: var(--aws-light-gray);
+    }
+
+    .header-meta {
+      text-align: right;
+      font-size: 14px;
+      color: var(--aws-light-gray);
+    }
+
+    /* Section */
+    .section {
+      background: var(--aws-dark-squid);
+      border-radius: 8px;
+      padding: 24px;
+      margin-bottom: 24px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    h2 {
+      font-size: 22px;
+      font-weight: 600;
+      color: var(--aws-orange);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    h3 {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--aws-white);
+      margin: 16px 0 10px;
+    }
+
+    p { margin-bottom: 12px; }
+
+    .highlight {
+      background-color: rgba(255, 153, 0, 0.2);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 600;
+      color: var(--aws-orange);
+    }
+
+    /* Before/After */
+    .before-after {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin: 16px 0;
+    }
+
+    .before-card, .after-card {
+      border-radius: 8px;
+      padding: 16px;
+    }
+
+    .before-card {
+      background: rgba(209, 50, 18, 0.1);
+      border: 1px solid rgba(209, 50, 18, 0.4);
+    }
+
+    .after-card {
+      background: rgba(29, 129, 2, 0.1);
+      border: 1px solid rgba(29, 129, 2, 0.4);
+    }
+
+    .before-card h3 { color: var(--aws-red); }
+    .after-card h3 { color: var(--aws-green); }
+
+    .before-card li, .after-card li {
+      margin-bottom: 8px;
+      padding-left: 4px;
+    }
+
+    .before-card ul, .after-card ul {
+      list-style: none;
+      padding-left: 0;
+    }
+
+    .before-card li::before { content: "x "; color: var(--aws-red); font-weight: bold; }
+    .after-card li::before { content: "v "; color: var(--aws-green); font-weight: bold; }
+
+    /* Feature cards */
+    .feature-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+      margin-top: 16px;
+    }
+
+    .feature-card {
+      background: var(--aws-squid-ink);
+      border-radius: 8px;
+      padding: 18px;
+      border-left: 4px solid var(--aws-orange);
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      border-right: 1px solid rgba(255, 255, 255, 0.05);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .feature-card-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .feature-card-header .icon {
+      font-size: 24px;
+    }
+
+    .feature-card-header .title {
+      font-size: 17px;
+      font-weight: 600;
+      color: var(--aws-white);
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 700;
+      margin-left: 8px;
+    }
+
+    .status-preview {
+      background: rgba(255, 153, 0, 0.2);
+      color: var(--aws-orange);
+      border: 1px solid rgba(255, 153, 0, 0.5);
+    }
+
+    .feature-card ul {
+      list-style: none;
+      padding-left: 0;
+    }
+
+    .feature-card li {
+      margin-bottom: 6px;
+      padding-left: 20px;
+      position: relative;
+    }
+
+    .feature-card li::before {
+      content: ">";
+      color: var(--aws-orange);
+      position: absolute;
+      left: 0;
+      font-weight: bold;
+    }
+
+    /* Stats */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+      margin: 16px 0;
+    }
+
+    .stat-card {
+      background: linear-gradient(135deg, rgba(255, 153, 0, 0.15), rgba(140, 79, 255, 0.1));
+      border: 1px solid rgba(255, 153, 0, 0.3);
+      border-radius: 8px;
+      padding: 18px;
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--aws-orange);
+      line-height: 1.2;
+    }
+
+    .stat-label {
+      font-size: 13px;
+      color: var(--aws-light-gray);
+      margin-top: 4px;
+    }
+
+    /* Table */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0;
+      font-size: 14px;
+    }
+
+    th {
+      background: rgba(255, 153, 0, 0.15);
+      color: var(--aws-orange);
+      padding: 10px 14px;
+      text-align: left;
+      font-weight: 600;
+      border-bottom: 2px solid rgba(255, 153, 0, 0.3);
+    }
+
+    td {
+      padding: 10px 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    /* Use case */
+    .usecase-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+      margin-top: 16px;
+    }
+
+    .usecase-card {
+      background: rgba(255, 153, 0, 0.08);
+      border: 1px solid rgba(255, 153, 0, 0.25);
+      border-radius: 8px;
+      padding: 20px;
+    }
+
+    .usecase-card h3 {
+      color: var(--aws-orange);
+      margin-top: 0;
+    }
+
+    .usecase-scenario {
+      font-size: 14px;
+      color: var(--aws-light-gray);
+      margin-bottom: 8px;
+    }
+
+    .usecase-effect {
+      font-size: 14px;
+      color: var(--aws-green);
+      font-weight: 500;
+    }
+
+    /* Flow diagram */
+    .flow-diagram {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin: 20px 0;
+    }
+
+    .flow-step {
+      background: var(--aws-dark-squid);
+      border: 2px solid var(--aws-orange);
+      border-radius: 8px;
+      padding: 12px 18px;
+      text-align: center;
+      min-width: 90px;
+      font-size: 14px;
+    }
+
+    .flow-arrow {
+      color: var(--aws-orange);
+      font-size: 22px;
+      font-weight: bold;
+    }
+
+    /* Mermaid */
+    .mermaid-container {
+      background: #FFFFFF;
+      border-radius: 12px;
+      padding: 24px;
+      margin: 20px 0;
+      border: 2px solid rgba(255, 153, 0, 0.3);
+      overflow-x: auto;
+    }
+
+    .mermaid {
+      display: flex;
+      justify-content: center;
+    }
+
+    /* Code block */
+    .code-block {
+      background: #1a1a2e;
+      border-radius: 8px;
+      overflow: hidden;
+      margin: 16px 0;
+    }
+
+    .code-header {
+      background: #16213e;
+      padding: 8px 16px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+    }
+
+    .code-lang {
+      color: var(--aws-orange);
+      font-weight: bold;
+    }
+
+    .code-title {
+      color: var(--aws-light-gray);
+    }
+
+    .code-block pre {
+      margin: 0;
+      padding: 0;
+      overflow-x: auto;
+    }
+
+    .code-block code {
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      line-height: 1.5;
+      padding: 16px !important;
+    }
+
+    /* Pros/Cons */
+    .pros-cons {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin: 16px 0;
+    }
+
+    .pros-card, .cons-card {
+      border-radius: 8px;
+      padding: 16px;
+    }
+
+    .pros-card {
+      background: rgba(29, 129, 2, 0.08);
+      border: 1px solid rgba(29, 129, 2, 0.3);
+    }
+
+    .cons-card {
+      background: rgba(209, 50, 18, 0.08);
+      border: 1px solid rgba(209, 50, 18, 0.3);
+    }
+
+    .pros-card h3 { color: var(--aws-green); margin-top: 0; }
+    .cons-card h3 { color: var(--aws-red); margin-top: 0; }
+
+    .pros-card ul, .cons-card ul {
+      list-style: none;
+      padding-left: 0;
+    }
+
+    .pros-card li, .cons-card li {
+      margin-bottom: 8px;
+      padding-left: 20px;
+      position: relative;
+      font-size: 14px;
+    }
+
+    .pros-card li::before {
+      content: "v";
+      color: var(--aws-green);
+      position: absolute;
+      left: 0;
+      font-weight: bold;
+    }
+
+    .cons-card li::before {
+      content: "!";
+      color: var(--aws-red);
+      position: absolute;
+      left: 0;
+      font-weight: bold;
+    }
+
+    /* Region */
+    .region-list {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin: 12px 0;
+    }
+
+    .region-tag {
+      background: rgba(0, 161, 201, 0.15);
+      border: 1px solid rgba(0, 161, 201, 0.4);
+      border-radius: 20px;
+      padding: 6px 16px;
+      font-size: 14px;
+      color: var(--aws-teal);
+    }
+
+    /* Related services */
+    .related-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin: 12px 0;
+    }
+
+    .related-card {
+      background: var(--aws-squid-ink);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      padding: 14px;
+    }
+
+    .related-card .name {
+      color: var(--aws-teal);
+      font-weight: 600;
+      font-size: 15px;
+      margin-bottom: 4px;
+    }
+
+    .related-card .desc {
+      font-size: 13px;
+      color: var(--aws-light-gray);
+    }
+
+    /* Links */
+    .aws-link {
+      color: var(--aws-teal);
+      text-decoration: none;
+    }
+
+    .aws-link:hover {
+      color: var(--aws-smile-orange);
+    }
+
+    .links-list {
+      list-style: none;
+      padding-left: 0;
+    }
+
+    .links-list li {
+      margin-bottom: 8px;
+      padding-left: 20px;
+      position: relative;
+      font-size: 14px;
+    }
+
+    .links-list li::before {
+      content: ">> ";
+      position: absolute;
+      left: 0;
+      color: var(--aws-teal);
+    }
+
+    /* Footer */
+    footer {
+      margin-top: 24px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(255, 255, 255, 0.2);
+      font-size: 12px;
+      color: var(--aws-light-gray);
+    }
+
+    footer a { color: var(--aws-teal); text-decoration: none; word-break: break-all; }
+    footer a:hover { color: var(--aws-smile-orange); }
+
+    /* Responsive */
+    @media (max-width: 700px) {
+      h1 { font-size: 24px; }
+      .before-after, .pros-cons, .related-grid { grid-template-columns: 1fr; }
+      .stats-row { grid-template-columns: 1fr 1fr; }
+      .header { flex-direction: column; }
+      .header-meta { text-align: left; }
+    }
+  </style>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/styles/atom-one-dark.min.css">
+</head>
+<body>
+  <div class="container">
+
+    <!-- Header -->
+    <div class="header">
+      <div class="header-left">
+        <span class="service-badge">AWS HealthLake</span>
+        <h1>データ変換エージェントによる CCDA-to-FHIR 自動変換</h1>
+        <div class="subtitle">AI を活用したテンプレートベースの医療データ変換 -- 数か月を数日に短縮</div>
+      </div>
+      <div class="header-meta">
+        <div>2026 年 3 月 5 日</div>
+        <div><span class="status-badge status-preview">Preview</span></div>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-value">4</div>
+        <div class="stat-label">主要機能</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">数日</div>
+        <div class="stat-label">変換期間の短縮</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">7</div>
+        <div class="stat-label">利用可能リージョン</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">AI</div>
+        <div class="stat-label">自然言語カスタマイズ</div>
+      </div>
+    </div>
+
+    <!-- Overview -->
+    <div class="section">
+      <h2>概要</h2>
+      <p>AWS HealthLake が、<span class="highlight">AI を活用したデータ変換エージェント</span>をプレビューとして発表。医療機関はレガシーな臨床文書である <span class="highlight">CCDA 2.1</span> ファイルを <span class="highlight">FHIR R4</span> 準拠のリソースに自動変換できるようになります。</p>
+      <p>従来は数か月かかっていたデータ変換プロセスを数日に短縮し、患者の縦断的記録生成、集団健康分析、臨床データ交換などのユースケースを実現します。専門的な FHIR の知識がなくても、リアルタイムの変換テスト、AI アシスト付きテンプレートカスタマイズ、スケーラブルな一括インポートを通じてデータ変換を実行できます。</p>
+    </div>
+
+    <!-- Before/After -->
+    <div class="section">
+      <h2>Before / After</h2>
+      <div class="before-after">
+        <div class="before-card">
+          <h3>Before</h3>
+          <ul>
+            <li>CCDA から FHIR への変換に専門知識と数か月の開発期間が必要</li>
+            <li>テンプレートカスタマイズにプログラミングスキルと FHIR 仕様の深い理解が必須</li>
+            <li>大量ファイルの一括変換には独自パイプライン構築が必要</li>
+            <li>変換結果の検証とイテレーションに時間がかかり品質管理が困難</li>
+          </ul>
+        </div>
+        <div class="after-card">
+          <h3>After</h3>
+          <ul>
+            <li>すぐに使えるテンプレートで専門知識なしに CCDA 2.1 から FHIR R4 への変換が可能</li>
+            <li>自然言語での指示で AI がテンプレートをカスタマイズ、プログラミング不要</li>
+            <li>同期変換 API で個別ファイルを数秒で変換し結果をプレビュー・検証</li>
+            <li>拡張インポートワークフローで検出から患者マッチング、インジェストまで自動化</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Architecture -->
+    <div class="section">
+      <h2>アーキテクチャ図</h2>
+      <p>データ変換エージェントは CCDA ファイルの受信からテンプレート適用、患者マッチング、FHIR データストアへのインジェストまでの一連のフローを自動化します。</p>
+      <div class="mermaid-container">
+        <pre class="mermaid">
+flowchart TD
+    User(["👤 医療データエンジニア"]) -->|CCDA ファイル送信| API["🔌 同期変換 API"]
+    User -->|自然言語で指示| AIAgent["🤖 AI テンプレート<br/>カスタマイズ"]
+
+    subgraph HealthLake["☁️ AWS HealthLake"]
+        subgraph Agent["⚙️ データ変換エージェント"]
+            direction LR
+            API
+            AIAgent
+            Templates["📋 変換テンプレート<br/>CCDA 2.1 to FHIR R4"]
+            API ~~~ AIAgent ~~~ Templates
+        end
+
+        subgraph Import["📥 拡張インポートワークフロー"]
+            Detect["🔍 CCDA 自動検出"]
+            Transform["🔄 テンプレート適用<br/>変換実行"]
+            Match["👥 患者マッチング<br/>照合"]
+            Detect --> Transform --> Match
+        end
+
+        Agent --> Import
+        Match --> Datastore[("🗄️ FHIR R4<br/>データストア")]
+    end
+
+    S3[("🪣 S3 バケット<br/>CCDA ファイル")] --> Detect
+    API -->|FHIR Bundle| User
+
+    classDef cloud fill:none,stroke:#CCCCCC,stroke-width:2px,color:#666666
+    classDef layer fill:none,stroke:#E1BEE7,stroke-width:2px,color:#666666
+    classDef compute fill:#FFE0B2,stroke:#FFCC80,stroke-width:2px,color:#5D4037
+    classDef storage fill:#DCEDC8,stroke:#C5E1A5,stroke-width:2px,color:#33691E
+    classDef database fill:#E8EAF6,stroke:#C5CAE9,stroke-width:2px,color:#283593
+    classDef user fill:#E3F2FD,stroke:#BBDEFB,stroke-width:2px,color:#1565C0
+    classDef ai fill:#F3E5F5,stroke:#CE93D8,stroke-width:2px,color:#4A148C
+
+    class HealthLake cloud
+    class Agent,Import layer
+    class API,Detect,Transform,Match compute
+    class S3 storage
+    class Datastore,Templates database
+    class User user
+    class AIAgent ai
+        </pre>
+      </div>
+    </div>
+
+    <!-- Key Features -->
+    <div class="section">
+      <h2>主要機能</h2>
+
+      <div class="feature-grid">
+        <div class="feature-card">
+          <div class="feature-card-header">
+            <span class="icon">📋</span>
+            <span class="title">CCDA 2.1 to FHIR R4 変換テンプレート</span>
+          </div>
+          <ul>
+            <li>すぐに使えるテンプレートが用意されており、追加開発なしで変換を開始可能</li>
+            <li>CCDA 仕様に準拠した主要な臨床データ要素をカバー</li>
+            <li>テンプレートの検証と承認のワークフローにより、本番使用前の品質確認が可能</li>
+          </ul>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-card-header">
+            <span class="icon">🔌</span>
+            <span class="title">同期変換 API</span>
+          </div>
+          <ul>
+            <li>個別の CCDA ファイルをリアルタイムで変換し、数秒で FHIR Bundle を返却</li>
+            <li>コンソールワークフローからも変換を実行可能</li>
+            <li>変換結果のプレビュー、対話型の検証、本番使用前のテンプレート承認が可能</li>
+          </ul>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-card-header">
+            <span class="icon">🤖</span>
+            <span class="title">AI によるテンプレートカスタマイズ</span>
+          </div>
+          <ul>
+            <li>自然言語で変換ルールの変更を指示可能</li>
+            <li>例: 「status が entered-in-error の薬剤をスキップする」</li>
+            <li>AI エージェントが指示に基づいてテンプレートを自動修正</li>
+            <li>サンプルファイルに対するテスト、会話形式でのイテレーション、完了後のパブリッシュが可能</li>
+          </ul>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-card-header">
+            <span class="icon">📥</span>
+            <span class="title">拡張インポートワークフロー</span>
+          </div>
+          <ul>
+            <li>アップロードされた CCDA ファイルを自動検出</li>
+            <li>アクティブなテンプレートを自動適用</li>
+            <li>識別子に基づく患者マッチングと照合を実施</li>
+            <li>変換後の FHIR リソースをターゲットの HealthLake データストアにインジェスト</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Technical Specifications -->
+    <div class="section">
+      <h2>技術仕様</h2>
+
+      <h3>対応フォーマット</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>項目</th>
+            <th>詳細</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>入力形式</td>
+            <td>CCDA 2.1 - Consolidated Clinical Document Architecture</td>
+          </tr>
+          <tr>
+            <td>出力形式</td>
+            <td>FHIR R4 - Fast Health Interoperability Resources Release 4</td>
+          </tr>
+          <tr>
+            <td>変換方式</td>
+            <td>テンプレートベース + AI カスタマイズ</td>
+          </tr>
+          <tr>
+            <td>API タイプ</td>
+            <td>同期変換 API</td>
+          </tr>
+          <tr>
+            <td>利用方法</td>
+            <td>AWS コンソール / API</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>IAM ポリシー例</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">JSON</span>
+          <span class="code-title">HealthLake データ変換エージェント用 IAM ポリシー</span>
+        </div>
+        <pre><code class="language-json">{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "healthlake:CreateFHIRDatastore",
+                "healthlake:StartFHIRImportJob",
+                "healthlake:DescribeFHIRImportJob"
+            ],
+            "Resource": "arn:aws:healthlake:*:*:datastore/*"
+        }
+    ]
+}</code></pre>
+      </div>
+    </div>
+
+    <!-- Setup -->
+    <div class="section">
+      <h2>設定方法</h2>
+
+      <h3>前提条件</h3>
+      <ul style="list-style: none; padding-left: 0; margin-bottom: 16px;">
+        <li style="margin-bottom: 4px;">-> AWS アカウントと適切な IAM 権限</li>
+        <li style="margin-bottom: 4px;">-> AWS HealthLake データストアの作成済み環境</li>
+        <li style="margin-bottom: 4px;">-> 変換対象の CCDA 2.1 ファイル</li>
+      </ul>
+
+      <div class="flow-diagram">
+        <div class="flow-step">1. データストア準備<br/><small>HealthLake FHIR R4</small></div>
+        <span class="flow-arrow">-></span>
+        <div class="flow-step">2. テンプレート確認<br/><small>AI カスタマイズ</small></div>
+        <span class="flow-arrow">-></span>
+        <div class="flow-step">3. 同期 API テスト<br/><small>プレビュー・検証</small></div>
+        <span class="flow-arrow">-></span>
+        <div class="flow-step">4. バルクインポート<br/><small>拡張ワークフロー</small></div>
+      </div>
+
+      <h3>変換テストコマンド</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash</span>
+          <span class="code-title">個別の CCDA ファイルを変換テスト</span>
+        </div>
+        <pre><code class="language-bash">aws healthlake start-fhir-import-job \
+    --datastore-id &lt;datastore-id&gt; \
+    --input-data-config S3Uri=s3://&lt;bucket&gt;/&lt;ccda-file&gt;.xml \
+    --job-output-data-config S3Uri=s3://&lt;output-bucket&gt;/output/</code></pre>
+      </div>
+    </div>
+
+    <!-- Benefits -->
+    <div class="section">
+      <h2>メリット</h2>
+      <div class="pros-cons">
+        <div class="pros-card">
+          <h3>ビジネス面</h3>
+          <ul>
+            <li>データ変換期間を数か月から数日に大幅短縮し、タイムトゥバリューを改善</li>
+            <li>FHIR 専門家がいなくても変換が可能になり、専門人材コストを削減</li>
+            <li>縦断的患者記録、集団健康分析、臨床データ交換など高度な分析ユースケースを迅速に実現</li>
+          </ul>
+        </div>
+        <div class="pros-card" style="background: rgba(0, 161, 201, 0.08); border-color: rgba(0, 161, 201, 0.3);">
+          <h3 style="color: var(--aws-teal);">技術面</h3>
+          <ul>
+            <li>自然言語による指示でテンプレートを修正でき、プログラミング不要で柔軟なカスタマイズが可能</li>
+            <li>ファイル検出から患者マッチング、データストアへのインジェストまでエンドツーエンドの自動化</li>
+            <li>API とコンソールの両対応で、開発者と非開発者の両方が利用可能</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Limitations -->
+    <div class="section">
+      <h2>制限事項・注意点</h2>
+      <div class="pros-cons">
+        <div class="cons-card">
+          <h3>制限事項</h3>
+          <ul>
+            <li>プレビュー版であり、本番環境での利用には注意が必要</li>
+            <li>現時点では CCDA 2.1 から FHIR R4 への変換のみサポート</li>
+            <li>他の臨床文書形式 HL7 v2 などは未対応</li>
+            <li>AI によるカスタマイズの精度は変換ルールの複雑さに依存</li>
+          </ul>
+        </div>
+        <div class="cons-card">
+          <h3>考慮すべき点</h3>
+          <ul>
+            <li>プレビュー期間中の SLA やサポートレベルは GA 版と異なる場合がある</li>
+            <li>医療データの取り扱いには HIPAA 等のコンプライアンス要件への準拠を確認</li>
+            <li>テンプレートのカスタマイズ結果は必ず検証し、臨床的な正確性を確保</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Use Cases -->
+    <div class="section">
+      <h2>ユースケース</h2>
+      <div class="usecase-grid">
+        <div class="usecase-card">
+          <h3>病院システムの FHIR 対応移行</h3>
+          <div class="usecase-scenario">大規模病院が既存の電子カルテシステムから出力される大量の CCDA ファイルを FHIR R4 形式に変換し、HealthLake を活用した縦断的患者記録の構築を目指している。</div>
+          <div class="flow-diagram" style="margin: 12px 0;">
+            <div class="flow-step">S3 アップロード</div>
+            <span class="flow-arrow">-></span>
+            <div class="flow-step">テンプレート変換</div>
+            <span class="flow-arrow">-></span>
+            <div class="flow-step">AI カスタマイズ</div>
+            <span class="flow-arrow">-></span>
+            <div class="flow-step">バルク変換</div>
+            <span class="flow-arrow">-></span>
+            <div class="flow-step">FHIR クエリ</div>
+          </div>
+          <div class="usecase-effect">-> 数か月の FHIR マッピング開発を数日に短縮し、医療データの相互運用性を迅速に実現</div>
+        </div>
+
+        <div class="usecase-card">
+          <h3>集団健康分析プラットフォームの構築</h3>
+          <div class="usecase-scenario">医療保険会社が複数の医療機関から受領する CCDA ファイルを統合し、集団レベルの健康分析を実施したい。</div>
+          <div class="flow-diagram" style="margin: 12px 0;">
+            <div class="flow-step">CCDA 集約</div>
+            <span class="flow-arrow">-></span>
+            <div class="flow-step">自動 FHIR 変換</div>
+            <span class="flow-arrow">-></span>
+            <div class="flow-step">患者マッチング</div>
+            <span class="flow-arrow">-></span>
+            <div class="flow-step">分析クエリ</div>
+          </div>
+          <div class="usecase-effect">-> 複数ソースの臨床データを標準化された FHIR 形式で統合し、集団健康の傾向分析やリスク評価が可能に</div>
+        </div>
+
+        <div class="usecase-card">
+          <h3>臨床データ交換の標準化</h3>
+          <div class="usecase-scenario">地域医療連携ネットワークで、参加施設間の臨床データ交換を FHIR 標準で実現したい。</div>
+          <div class="flow-diagram" style="margin: 12px 0;">
+            <div class="flow-step">施設 CCDA</div>
+            <span class="flow-arrow">-></span>
+            <div class="flow-step">カスタムテンプレート</div>
+            <span class="flow-arrow">-></span>
+            <div class="flow-step">FHIR 変換</div>
+            <span class="flow-arrow">-></span>
+            <div class="flow-step">施設間共有</div>
+          </div>
+          <div class="usecase-effect">-> 施設間のデータ形式の差異を吸収し、標準化された FHIR 形式で臨床データの交換を実現</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pricing -->
+    <div class="section">
+      <h2>料金</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>項目</th>
+            <th>詳細</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>データ変換エージェント</td>
+            <td>プレビュー期間中の料金は公式ページで確認</td>
+          </tr>
+          <tr>
+            <td>HealthLake データストア</td>
+            <td>ストレージ、読み取り/書き込みリクエストに基づく従量課金</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Regions -->
+    <div class="section">
+      <h2>利用可能リージョン</h2>
+      <div class="region-list">
+        <span class="region-tag">US East - N. Virginia - us-east-1</span>
+        <span class="region-tag">US East - Ohio - us-east-2</span>
+        <span class="region-tag">US West - Oregon - us-west-2</span>
+        <span class="region-tag">AP - Mumbai - ap-south-1</span>
+        <span class="region-tag">AP - Sydney - ap-southeast-2</span>
+        <span class="region-tag">EU - Ireland - eu-west-1</span>
+        <span class="region-tag">EU - London - eu-west-2</span>
+      </div>
+    </div>
+
+    <!-- Related Services -->
+    <div class="section">
+      <h2>関連サービス</h2>
+      <div class="related-grid">
+        <div class="related-card">
+          <div class="name">AWS HealthLake</div>
+          <div class="desc">HIPAA 対応の FHIR データストアサービス。データ変換エージェントはこのサービスの新機能として追加</div>
+        </div>
+        <div class="related-card">
+          <div class="name">Amazon S3</div>
+          <div class="desc">CCDA ファイルの保存先として使用。拡張インポートワークフローが S3 から自動的にファイルを検出</div>
+        </div>
+        <div class="related-card">
+          <div class="name">Amazon Comprehend Medical</div>
+          <div class="desc">医療テキストから臨床情報を抽出する NLP サービス。HealthLake と連携して医療データの活用を支援</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- References -->
+    <div class="section">
+      <h2>参考リンク</h2>
+      <ul class="links-list">
+        <li><a href="https://aws.amazon.com/about-aws/whats-new/2026/03/aws-healthlake-data-transformation-agent/" target="_blank" rel="noopener noreferrer" class="aws-link">公式発表 - What's New</a></li>
+        <li><a href="https://docs.aws.amazon.com/healthlake/" target="_blank" rel="noopener noreferrer" class="aws-link">AWS HealthLake ドキュメント</a></li>
+        <li><a href="https://aws.amazon.com/healthlake/pricing/" target="_blank" rel="noopener noreferrer" class="aws-link">AWS HealthLake 料金ページ</a></li>
+      </ul>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+      <p>出典: <a href="https://aws.amazon.com/about-aws/whats-new/2026/03/aws-healthlake-data-transformation-agent/" target="_blank" rel="noopener noreferrer">https://aws.amazon.com/about-aws/whats-new/2026/03/aws-healthlake-data-transformation-agent/</a></p>
+      <p style="margin-top: 8px;">Generated on 2026-03-07 | AWS HealthLake - Data Transformation Agent</p>
+    </footer>
+
+  </div>
+
+  <!-- Mermaid.js -->
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'base',
+      themeVariables: {
+        primaryColor: '#FF9900',
+        primaryTextColor: '#232F3E',
+        primaryBorderColor: '#FF9900',
+        lineColor: '#FF9900',
+        secondaryColor: '#F5F5F5',
+        tertiaryColor: '#FAFAFA',
+        background: '#FFFFFF',
+        mainBkg: '#FFF3E0',
+        nodeBorder: '#FF9900',
+        clusterBkg: '#FFF8E1',
+        clusterBorder: '#FF9900',
+        edgeLabelBackground: '#FFFFFF',
+        textColor: '#232F3E'
+      }
+    });
+  </script>
+
+  <!-- highlight.js -->
+  <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/highlight.min.js"></script>
+  <script>hljs.highlightAll();</script>
+</body>
+</html>
