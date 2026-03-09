@@ -5,6 +5,7 @@
 
 ## 2026 年
 
+- [2026-03-09 - Amazon CloudWatch Logs - クエリ同時実行数と API リミットの引き上げ](2026/2026-03-09-amazon-cloudwatch-logs-increased-limits.md)
 - [2026-03-06 - Amazon Redshift - 半構造化データ処理向け 9 つの新しい配列関数](2026/2026-03-06-amazon-redshift-nine-new-array-functions.md)
 - [2026-03-06 - Amazon EC2 R8g インスタンス - 追加リージョンでの提供開始](2026/2026-03-06-amazon-ec2-r8g-instances-additional-regions.md)
 - [2026-03-06 - Amazon Redshift - COPY コマンド用再利用可能テンプレート](2026/2026-03-06-amazon-redshift-reusable-templates-copy.md)

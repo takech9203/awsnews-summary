@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Amazon CloudWatch Logs - クエリ同時実行数と API リミットの引き上げ</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap');
+
+    :root {
+      --aws-squid-ink: #232F3E;
+      --aws-dark-squid: #1A242F;
+      --aws-orange: #FF9900;
+      --aws-smile-orange: #FFAD33;
+      --aws-white: #FFFFFF;
+      --aws-light-gray: #D5DBDB;
+      --aws-teal: #00A1C9;
+      --aws-purple: #8C4FFF;
+      --aws-green: #1D8102;
+      --aws-red: #D13212;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background-color: var(--aws-squid-ink);
+      font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+      color: var(--aws-light-gray);
+      font-size: 16px;
+      line-height: 1.6;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    /* Header */
+    .header {
+      margin-bottom: 32px;
+      padding-bottom: 24px;
+      border-bottom: 3px solid var(--aws-orange);
+    }
+    .header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    .service-badge {
+      display: inline-block;
+      background: var(--aws-orange);
+      color: var(--aws-squid-ink);
+      padding: 4px 16px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 700;
+    }
+    .date-badge {
+      font-size: 14px;
+      color: var(--aws-light-gray);
+    }
+    h1 {
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--aws-white);
+      margin-top: 8px;
+      line-height: 1.3;
+    }
+    .header-subtitle {
+      font-size: 16px;
+      color: var(--aws-light-gray);
+      margin-top: 8px;
+    }
+
+    /* Sections */
+    .section {
+      background: var(--aws-dark-squid);
+      border-radius: 8px;
+      padding: 24px;
+      margin-bottom: 24px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    h2 {
+      font-size: 22px;
+      font-weight: 600;
+      color: var(--aws-orange);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    h3 {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--aws-white);
+      margin: 16px 0 8px;
+    }
+    p { margin-bottom: 12px; }
+
+    .highlight {
+      background-color: rgba(255, 153, 0, 0.2);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 600;
+      color: var(--aws-orange);
+    }
+
+    /* Stats cards */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin: 20px 0;
+    }
+    .stat-card {
+      background: linear-gradient(135deg, rgba(255, 153, 0, 0.15), rgba(255, 153, 0, 0.05));
+      border: 1px solid rgba(255, 153, 0, 0.3);
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+    }
+    .stat-value {
+      font-size: 36px;
+      font-weight: 700;
+      color: var(--aws-orange);
+      display: block;
+    }
+    .stat-label {
+      font-size: 13px;
+      color: var(--aws-light-gray);
+      margin-top: 4px;
+    }
+
+    /* Before/After */
+    .comparison-grid {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 16px;
+      align-items: stretch;
+      margin: 16px 0;
+    }
+    .comparison-card {
+      border-radius: 8px;
+      padding: 16px;
+    }
+    .comparison-card.before {
+      background: rgba(209, 50, 18, 0.1);
+      border: 1px solid rgba(209, 50, 18, 0.4);
+    }
+    .comparison-card.after {
+      background: rgba(29, 129, 2, 0.1);
+      border: 1px solid rgba(29, 129, 2, 0.4);
+    }
+    .comparison-card h3 {
+      color: var(--aws-red);
+      font-size: 16px;
+      margin: 0 0 12px;
+    }
+    .comparison-card.after h3 {
+      color: var(--aws-green);
+    }
+    .comparison-arrow {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      color: var(--aws-orange);
+    }
+    .comparison-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      margin: 8px 0;
+      font-size: 14px;
+    }
+
+    /* Feature cards */
+    .feature-card {
+      background: var(--aws-dark-squid);
+      border-left: 4px solid var(--aws-orange);
+      border-radius: 0 8px 8px 0;
+      padding: 16px 20px;
+      margin: 12px 0;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      border-right: 1px solid rgba(255, 255, 255, 0.05);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    .feature-card-title {
+      font-weight: 600;
+      color: var(--aws-white);
+      margin-bottom: 6px;
+      font-size: 16px;
+    }
+    .feature-card p {
+      font-size: 14px;
+      margin-bottom: 4px;
+    }
+
+    /* Table */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0;
+      font-size: 14px;
+    }
+    th {
+      background: rgba(255, 153, 0, 0.15);
+      color: var(--aws-orange);
+      padding: 10px 12px;
+      text-align: left;
+      font-weight: 600;
+      border-bottom: 2px solid var(--aws-orange);
+    }
+    td {
+      padding: 10px 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    tr:hover td {
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    /* Usecase cards */
+    .usecase-card {
+      background: linear-gradient(135deg, rgba(255, 153, 0, 0.08), rgba(255, 153, 0, 0.02));
+      border: 1px solid rgba(255, 153, 0, 0.2);
+      border-radius: 8px;
+      padding: 20px;
+      margin: 12px 0;
+    }
+    .usecase-card h3 {
+      color: var(--aws-orange);
+      font-size: 16px;
+      margin: 0 0 8px;
+    }
+    .usecase-card p {
+      font-size: 14px;
+    }
+    .usecase-effect {
+      background: rgba(29, 129, 2, 0.1);
+      border-left: 3px solid var(--aws-green);
+      padding: 8px 12px;
+      border-radius: 0 4px 4px 0;
+      margin-top: 8px;
+      font-size: 13px;
+    }
+
+    /* Flow diagram */
+    .flow-diagram {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin: 24px 0;
+    }
+    .flow-step {
+      background: var(--aws-dark-squid);
+      border: 2px solid var(--aws-orange);
+      border-radius: 8px;
+      padding: 12px 20px;
+      text-align: center;
+      min-width: 100px;
+    }
+    .flow-arrow {
+      color: var(--aws-orange);
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    /* Check items */
+    .check-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      margin: 8px 0;
+      font-size: 14px;
+    }
+
+    /* Merit/Demerit */
+    .merit-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin: 16px 0;
+    }
+    .merit-card {
+      border-radius: 8px;
+      padding: 16px;
+    }
+    .merit-card.business {
+      background: rgba(0, 161, 201, 0.1);
+      border: 1px solid rgba(0, 161, 201, 0.3);
+    }
+    .merit-card.tech {
+      background: rgba(140, 79, 255, 0.1);
+      border: 1px solid rgba(140, 79, 255, 0.3);
+    }
+    .merit-card h3 {
+      font-size: 15px;
+      margin: 0 0 12px;
+    }
+    .merit-card.business h3 { color: var(--aws-teal); }
+    .merit-card.tech h3 { color: var(--aws-purple); }
+
+    /* Pricing */
+    .pricing-note {
+      background: rgba(29, 129, 2, 0.1);
+      border: 1px solid rgba(29, 129, 2, 0.3);
+      border-radius: 8px;
+      padding: 16px;
+      margin: 16px 0;
+      text-align: center;
+    }
+    .pricing-note .big {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--aws-green);
+    }
+
+    /* Mermaid */
+    .mermaid-container {
+      background: #FFFFFF;
+      border-radius: 12px;
+      padding: 24px;
+      margin: 20px 0;
+      border: 2px solid rgba(255, 153, 0, 0.3);
+      overflow-x: auto;
+    }
+    .mermaid {
+      display: flex;
+      justify-content: center;
+    }
+
+    /* Code blocks */
+    .code-block {
+      background: #1a1a2e;
+      border-radius: 8px;
+      overflow: hidden;
+      margin: 16px 0;
+    }
+    .code-header {
+      background: #16213e;
+      padding: 8px 16px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+    }
+    .code-lang {
+      color: var(--aws-orange);
+      font-weight: bold;
+    }
+    .code-title {
+      color: var(--aws-light-gray);
+    }
+    .code-block pre {
+      margin: 0;
+      padding: 0;
+      overflow-x: auto;
+    }
+    .code-block code {
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      line-height: 1.5;
+      padding: 16px !important;
+    }
+
+    /* Caution card */
+    .caution-card {
+      background: rgba(209, 50, 18, 0.08);
+      border: 1px solid rgba(209, 50, 18, 0.3);
+      border-radius: 8px;
+      padding: 16px;
+      margin: 12px 0;
+    }
+    .caution-card h3 {
+      color: var(--aws-red);
+      font-size: 15px;
+      margin: 0 0 8px;
+    }
+    .caution-card .check-item {
+      font-size: 13px;
+    }
+
+    /* Links */
+    .aws-link {
+      color: var(--aws-teal);
+      text-decoration: none;
+    }
+    .aws-link:hover {
+      color: var(--aws-smile-orange);
+    }
+
+    /* Related services */
+    .related-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+      margin: 16px 0;
+    }
+    .related-card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 12px;
+      font-size: 13px;
+    }
+    .related-card strong {
+      color: var(--aws-white);
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    /* Footer */
+    footer {
+      margin-top: 24px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(255, 255, 255, 0.2);
+      font-size: 12px;
+      color: var(--aws-light-gray);
+    }
+    footer a {
+      color: var(--aws-teal);
+      text-decoration: none;
+      word-break: break-all;
+    }
+    footer a:hover {
+      color: var(--aws-smile-orange);
+    }
+    footer ul {
+      list-style: none;
+      padding: 0;
+      margin: 8px 0;
+    }
+    footer li {
+      margin: 4px 0;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      h1 { font-size: 24px; }
+      .comparison-grid { grid-template-columns: 1fr; }
+      .comparison-arrow { transform: rotate(90deg); }
+      .merit-grid { grid-template-columns: 1fr; }
+      .stats-grid { grid-template-columns: 1fr 1fr; }
+      .flow-diagram { flex-direction: column; }
+      .flow-arrow { transform: rotate(90deg); }
+    }
+  </style>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/styles/atom-one-dark.min.css">
+</head>
+<body>
+  <div class="container">
+
+    <!-- Header -->
+    <div class="header">
+      <div class="header-top">
+        <span class="service-badge">Amazon CloudWatch Logs</span>
+        <span class="date-badge">2026-03-09</span>
+      </div>
+      <h1>Logs Insights クエリ同時実行数と API リミットの引き上げ</h1>
+      <p class="header-subtitle">Logs Insights QL を使用したクエリの同時実行数と API コールレートが大幅に強化され、大規模チームでのログ分析が加速</p>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <span class="stat-value">30 &rarr; 100</span>
+        <span class="stat-label">同時実行クエリ数</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-value">3.3x</span>
+        <span class="stat-label">同時実行数の増加倍率</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-value">10 calls/sec</span>
+        <span class="stat-label">StartQuery API コールレート</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-value">10 calls/sec</span>
+        <span class="stat-label">GetQueryResults API コールレート</span>
+      </div>
+    </div>
+
+    <!-- Overview / Before-After -->
+    <div class="section">
+      <h2>📋 概要: Before / After</h2>
+      <p>Amazon CloudWatch Logs が、Logs Insights Query Language を使用したクエリの同時実行数と API コールのリミットを大幅に引き上げました。より多くのユーザーが同時にクエリを実行し、ダッシュボードを活用できるようになります。</p>
+
+      <div class="comparison-grid">
+        <div class="comparison-card before">
+          <h3>&#10060; Before</h3>
+          <div class="comparison-item"><span>&#8226;</span><span>同時実行クエリ数が <strong>30</strong> に制限され、大規模チームでクエリがブロック</span></div>
+          <div class="comparison-item"><span>&#8226;</span><span>API コールレートが低く、プログラムからの大量クエリでスロットリング発生</span></div>
+          <div class="comparison-item"><span>&#8226;</span><span>ダッシュボードで多数の Logs Insights QL ウィジェット使用時にデータ表示が遅延</span></div>
+        </div>
+        <div class="comparison-arrow">&rarr;</div>
+        <div class="comparison-card after">
+          <h3>&#9989; After</h3>
+          <div class="comparison-item"><span>&#8226;</span><span>同時実行クエリ数が <strong>100</strong> に増加し、並列クエリ実行が可能に</span></div>
+          <div class="comparison-item"><span>&#8226;</span><span>StartQuery / GetQueryResults API が毎秒 <strong>10</strong> 回に引き上げ</span></div>
+          <div class="comparison-item"><span>&#8226;</span><span>ダッシュボードのパフォーマンスが向上し、迅速な結果表示が可能に</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Architecture Diagram (Mermaid) -->
+    <div class="section">
+      <h2>&#9881;&#65039; アーキテクチャ図</h2>
+      <p>CloudWatch Logs Insights のクエリフローを示しています。ユーザーやアプリケーションが StartQuery API を通じてクエリを発行し、Logs Insights クエリエンジンがロググループのデータを検索して、GetQueryResults API 経由で結果を返します。</p>
+      <div class="mermaid-container">
+        <pre class="mermaid">
+flowchart LR
+    subgraph Users["&#128101; ユーザーとアプリケーション"]
+        direction LR
+        U1(["&#128100; アナリスト"])
+        U2(["&#128202; ダッシュボード"])
+        U3(["&#129302; 自動化スクリプト"])
+        U1 ~~~ U2 ~~~ U3
+    end
+
+    subgraph CWL["&#9729;&#65039; CloudWatch Logs"]
+        direction LR
+        API["&#128268; StartQuery API&lt;br/&gt;10 calls/sec"]
+        Engine["&#9889; Logs Insights&lt;br/&gt;クエリエンジン&lt;br/&gt;最大 100 同時実行"]
+        Result["&#128203; GetQueryResults API&lt;br/&gt;10 calls/sec"]
+        API --> Engine --> Result
+    end
+
+    subgraph LogGroups["&#128452;&#65039; ログデータ"]
+        direction LR
+        LG1[("&#128203; ロググループ A")]
+        LG2[("&#128203; ロググループ B")]
+        LG3[("&#128203; ロググループ C")]
+        LG1 ~~~ LG2 ~~~ LG3
+    end
+
+    Users --> API
+    Result --> Users
+    Engine --> LogGroups
+
+    classDef cloud fill:none,stroke:#CCCCCC,stroke-width:2px,color:#666666
+    classDef layer fill:none,stroke:#E1BEE7,stroke-width:2px,color:#666666
+    classDef compute fill:#FFE0B2,stroke:#FFCC80,stroke-width:2px,color:#5D4037
+    classDef storage fill:#DCEDC8,stroke:#C5E1A5,stroke-width:2px,color:#33691E
+    classDef user fill:#E3F2FD,stroke:#BBDEFB,stroke-width:2px,color:#1565C0
+
+    class CWL cloud
+    class Users,LogGroups layer
+    class API,Engine,Result compute
+    class LG1,LG2,LG3 storage
+    class U1,U2,U3 user
+        </pre>
+      </div>
+    </div>
+
+    <!-- Key Features -->
+    <div class="section">
+      <h2>&#128640; 主要機能</h2>
+
+      <div class="feature-card">
+        <div class="feature-card-title">1. クエリ同時実行数の引き上げ</div>
+        <p>従来のアカウントあたり最大 <span class="highlight">30</span> から最大 <span class="highlight">100</span> の同時実行クエリに増加。約 3.3 倍の向上により、大規模チームでの並列クエリ実行が可能になりました。</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-card-title">2. StartQuery API コールレートの引き上げ</div>
+        <p>アカウント / リージョンあたり毎秒 <span class="highlight">10 回</span>の StartQuery API コールが可能。プログラムからの大量クエリ発行時のスロットリングリスクを軽減し、自動化スクリプトやダッシュボードからのクエリ発行を効率化します。</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-card-title">3. GetQueryResults API コールレートの引き上げ</div>
+        <p>アカウント / リージョンあたり毎秒 <span class="highlight">10 回</span>の GetQueryResults API コールが可能。クエリ結果のポーリング頻度を上げられるため、結果取得までの時間を短縮し、複数クエリ結果の並列取得時のスロットリングを回避できます。</p>
+      </div>
+    </div>
+
+    <!-- Technical Specs -->
+    <div class="section">
+      <h2>&#128295; 技術仕様</h2>
+
+      <h3>リミット比較</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>項目</th>
+            <th>変更前</th>
+            <th>変更後</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>同時実行クエリ数</td>
+            <td>30 / アカウント</td>
+            <td><span class="highlight">100</span> / アカウント</td>
+          </tr>
+          <tr>
+            <td>StartQuery API コールレート</td>
+            <td>非公開</td>
+            <td><span class="highlight">10 calls/sec</span> / アカウント / リージョン</td>
+          </tr>
+          <tr>
+            <td>GetQueryResults API コールレート</td>
+            <td>非公開</td>
+            <td><span class="highlight">10 calls/sec</span> / アカウント / リージョン</td>
+          </tr>
+          <tr>
+            <td>対象クエリ言語</td>
+            <td>Logs Insights QL</td>
+            <td>Logs Insights QL</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>API 変更履歴</h3>
+      <p style="font-size:14px;">今回のクエリ同時実行数および API リミットの引き上げは、既存の API インターフェースの変更を伴わないサービス側のリミット変更です。</p>
+      <table>
+        <thead>
+          <tr>
+            <th>日付</th>
+            <th>サービス</th>
+            <th>変更内容</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>2026/03/03</td>
+            <td><a href="https://awsapichanges.com/archive/changes/ec3b3e-logs.html" class="aws-link">Amazon CloudWatch Logs</a></td>
+            <td style="font-size:13px;">1 new 1 updated api methods - PutBearerTokenAuthentication API の追加、DescribeLogGroups の更新</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Setup / Code Samples -->
+    <div class="section">
+      <h2>&#128187; 設定方法とコードサンプル</h2>
+
+      <h3>前提条件</h3>
+      <div class="check-item"><span style="color:var(--aws-green);">&#10003;</span><span>AWS アカウントを持っていること</span></div>
+      <div class="check-item"><span style="color:var(--aws-green);">&#10003;</span><span>CloudWatch Logs へのアクセス権限 (logs:StartQuery, logs:GetQueryResults) があること</span></div>
+      <div class="check-item"><span style="color:var(--aws-green);">&#10003;</span><span>クエリ対象のロググループが存在すること</span></div>
+
+      <h3>ステップ 1: 新しいリミットの確認</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash</span>
+          <span class="code-title">Service Quotas で現在のリミットを確認</span>
+        </div>
+        <pre><code class="language-bash"># Service Quotas で現在のリミットを確認
+aws service-quotas get-service-quota \
+    --service-code logs \
+    --quota-code L-32C48DCB</code></pre>
+      </div>
+
+      <h3>ステップ 2: 複数の同時クエリの実行</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash</span>
+          <span class="code-title">複数のクエリを同時に実行する例</span>
+        </div>
+        <pre><code class="language-bash"># 複数のクエリを同時に実行する例
+for i in $(seq 1 10); do
+    aws logs start-query \
+        --log-group-name "/aws/lambda/my-function-$i" \
+        --start-time 1709942400 \
+        --end-time 1710028800 \
+        --query-string 'stats count(*) by @logStream' &
+done
+wait</code></pre>
+      </div>
+
+      <h3>ステップ 3: クエリ結果の取得</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash</span>
+          <span class="code-title">クエリ結果を取得</span>
+        </div>
+        <pre><code class="language-bash"># クエリ結果を取得 (ステータスが Complete になるまでポーリング)
+aws logs get-query-results \
+    --query-id "12345678-1234-1234-1234-123456789012"</code></pre>
+      </div>
+    </div>
+
+    <!-- Merits -->
+    <div class="section">
+      <h2>&#127775; メリット</h2>
+      <div class="merit-grid">
+        <div class="merit-card business">
+          <h3>&#128188; ビジネス面</h3>
+          <div class="check-item"><span style="color:var(--aws-teal);">&#10003;</span><span><strong>チーム生産性の向上</strong>: 同時実行数が 3.3 倍に増加、大規模チームが同時にログ分析可能</span></div>
+          <div class="check-item"><span style="color:var(--aws-teal);">&#10003;</span><span><strong>ダッシュボードの応答性向上</strong>: 多数のウィジェットを持つダッシュボードのデータ更新が高速化</span></div>
+          <div class="check-item"><span style="color:var(--aws-teal);">&#10003;</span><span><strong>インシデント対応の迅速化</strong>: 複数エンジニアが同時にログ分析、原因特定時間を短縮</span></div>
+        </div>
+        <div class="merit-card tech">
+          <h3>&#128296; 技術面</h3>
+          <div class="check-item"><span style="color:var(--aws-purple);">&#10003;</span><span><strong>スロットリング回避</strong>: API コールレート引き上げにより自動化パイプラインのエラー減少</span></div>
+          <div class="check-item"><span style="color:var(--aws-purple);">&#10003;</span><span><strong>並列処理の効率化</strong>: 複数ロググループへの並列クエリで処理時間短縮</span></div>
+          <div class="check-item"><span style="color:var(--aws-purple);">&#10003;</span><span><strong>既存コードの変更不要</strong>: サービス側の変更のため、アプリケーションコード変更なしで恩恵を享受</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Demerits / Constraints -->
+    <div class="section">
+      <h2>&#9888;&#65039; デメリットと制約事項</h2>
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+        <div class="caution-card">
+          <h3>&#128683; 制限事項</h3>
+          <div class="check-item"><span style="color:var(--aws-red);">&#8226;</span><span>リミット引き上げは Logs Insights QL に適用。他のクエリ言語には適用されない場合がある</span></div>
+          <div class="check-item"><span style="color:var(--aws-red);">&#8226;</span><span>各クエリのスキャンデータ量やクエリ実行時間の既存制約は変更なし</span></div>
+          <div class="check-item"><span style="color:var(--aws-red);">&#8226;</span><span>アカウント / リージョン単位のリミット。クロスアカウントクエリ時は各アカウントのリミットが適用</span></div>
+        </div>
+        <div class="caution-card">
+          <h3>&#128161; 考慮すべき点</h3>
+          <div class="check-item"><span style="color:var(--aws-orange);">&#8226;</span><span>大量のクエリ同時実行によるコスト増加の可能性に注意</span></div>
+          <div class="check-item"><span style="color:var(--aws-orange);">&#8226;</span><span>料金はスキャンデータ量に基づくため、並列クエリ増加に伴うコスト監視を推奨</span></div>
+          <div class="check-item"><span style="color:var(--aws-orange);">&#8226;</span><span>追加のリミット引き上げが必要な場合は Service Quotas でリクエスト可能</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Use Cases -->
+    <div class="section">
+      <h2>&#128161; ユースケース</h2>
+
+      <div class="usecase-card">
+        <h3>&#128101; ユースケース 1: 大規模 SRE チームでの同時ログ分析</h3>
+        <p>50 名以上の SRE チームが本番環境のインシデント対応中に、それぞれ異なるロググループのログを同時に分析するシナリオ。</p>
+        <div class="code-block">
+          <div class="code-header">
+            <span class="code-lang">Bash</span>
+            <span class="code-title">各メンバーが個別にクエリを実行</span>
+          </div>
+          <pre><code class="language-bash">aws logs start-query \
+    --log-group-name "/aws/ecs/production-service-a" \
+    --start-time 1709942400 \
+    --end-time 1710028800 \
+    --query-string 'fields @timestamp, @message | filter @message like /Exception/ | sort @timestamp desc | limit 100'</code></pre>
+        </div>
+        <div class="usecase-effect">&#9989; <strong>効果</strong>: 従来は 30 名までだった同時クエリが 100 名まで可能になり、インシデント対応チーム全体が並行してログ分析を実施できる。</div>
+      </div>
+
+      <div class="usecase-card">
+        <h3>&#128202; ユースケース 2: 多数のウィジェットを持つ運用ダッシュボード</h3>
+        <p>CloudWatch ダッシュボードに 50 以上の Logs Insights QL ウィジェットを配置し、複数のマイクロサービスのログを一覧表示するシナリオ。</p>
+        <div class="code-block">
+          <div class="code-header">
+            <span class="code-lang">Bash</span>
+            <span class="code-title">ダッシュボードウィジェット用クエリ</span>
+          </div>
+          <pre><code class="language-bash">aws logs start-query \
+    --log-group-names "/aws/lambda/service-a" "/aws/lambda/service-b" \
+    --start-time 1709942400 \
+    --end-time 1710028800 \
+    --query-string 'stats count(*) as errorCount by bin(5m) | filter @message like /ERROR/'</code></pre>
+        </div>
+        <div class="usecase-effect">&#9989; <strong>効果</strong>: 多数のクエリが同時発行されても同時実行数の上限に到達しにくくなり、すべてのウィジェットが迅速にデータを表示。</div>
+      </div>
+
+      <div class="usecase-card">
+        <h3>&#129302; ユースケース 3: 自動化されたログ分析パイプライン</h3>
+        <p>Lambda 関数やスクリプトから定期的に StartQuery API を呼び出し、複数のロググループに対して自動化されたログ分析を実行するシナリオ。</p>
+        <div class="code-block">
+          <div class="code-header">
+            <span class="code-lang">Python</span>
+            <span class="code-title">自動化パイプラインの実装例</span>
+          </div>
+          <pre><code class="language-python">import boto3
+import time
+
+client = boto3.client('logs')
+
+log_groups = [f"/aws/lambda/service-{i}" for i in range(50)]
+query_ids = []
+
+# 複数のクエリを同時に開始
+for lg in log_groups:
+    response = client.start_query(
+        logGroupName=lg,
+        startTime=int(time.time()) - 3600,
+        endTime=int(time.time()),
+        queryString='stats count(*) by @logStream'
+    )
+    query_ids.append(response['queryId'])
+
+# 結果を取得
+for qid in query_ids:
+    result = client.get_query_results(queryId=qid)
+    print(result['status'], result['results'])</code></pre>
+        </div>
+        <div class="usecase-effect">&#9989; <strong>効果</strong>: API コールレートの引き上げにより、50 のロググループに対するクエリ発行がスロットリングなしで実行でき、分析パイプラインの安定性と速度が向上。</div>
+      </div>
+    </div>
+
+    <!-- Pricing -->
+    <div class="section">
+      <h2>&#128176; 料金</h2>
+      <div class="pricing-note">
+        <span class="big">&#9989; リミット引き上げ自体に追加料金なし</span>
+        <p style="margin-top:8px;">CloudWatch Logs Insights のクエリ料金は、スキャンしたデータ量に基づいて課金されます。</p>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>使用量</th>
+            <th>月額料金 (概算、us-east-1)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>1 GB のデータスキャン</td>
+            <td>$0.0050</td>
+          </tr>
+          <tr>
+            <td>100 GB のデータスキャン</td>
+            <td>$0.50</td>
+          </tr>
+          <tr>
+            <td>1 TB のデータスキャン</td>
+            <td>$5.00</td>
+          </tr>
+        </tbody>
+      </table>
+      <p style="font-size:13px;">同時実行クエリ数が増加することで、より多くのクエリを実行する場合はスキャンデータ量に応じたコスト増加に注意が必要です。詳細は <a href="https://aws.amazon.com/cloudwatch/pricing/" class="aws-link" target="_blank" rel="noopener noreferrer">CloudWatch 料金ページ</a>を参照してください。</p>
+    </div>
+
+    <!-- Region -->
+    <div class="section">
+      <h2>&#127758; 利用可能リージョン</h2>
+      <p>CloudWatch Logs Insights が利用可能な<span class="highlight">すべての AWS リージョン</span>で、この引き上げられたリミットが適用されます。</p>
+    </div>
+
+    <!-- Related Services -->
+    <div class="section">
+      <h2>&#128279; 関連サービス</h2>
+      <div class="related-grid">
+        <div class="related-card">
+          <strong>&#9729;&#65039; Amazon CloudWatch</strong>
+          メトリクス、アラーム、ダッシュボードなどの監視機能全般を提供する親サービス
+        </div>
+        <div class="related-card">
+          <strong>&#128270; CloudWatch Logs Insights</strong>
+          ログデータに対するインタラクティブなクエリと可視化機能
+        </div>
+        <div class="related-card">
+          <strong>&#9889; AWS Lambda</strong>
+          ログの自動分析やアラート生成のためのサーバーレスコンピュート
+        </div>
+        <div class="related-card">
+          <strong>&#128228; Amazon EventBridge</strong>
+          ログ分析結果に基づくイベント駆動型の自動化処理
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+      <p><strong>&#128206; 出典:</strong></p>
+      <ul>
+        <li><a href="https://aws.amazon.com/about-aws/whats-new/2026/03/amazon-cloudwatch-logs-increased-limits/" target="_blank" rel="noopener noreferrer">https://aws.amazon.com/about-aws/whats-new/2026/03/amazon-cloudwatch-logs-increased-limits/</a></li>
+        <li><a href="https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/AnalyzingLogData.html" target="_blank" rel="noopener noreferrer">https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/AnalyzingLogData.html</a></li>
+        <li><a href="https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/cloudwatch_limits_cwl.html" target="_blank" rel="noopener noreferrer">https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/cloudwatch_limits_cwl.html</a></li>
+        <li><a href="https://aws.amazon.com/cloudwatch/pricing/" target="_blank" rel="noopener noreferrer">https://aws.amazon.com/cloudwatch/pricing/</a></li>
+      </ul>
+      <p style="margin-top:12px; color: rgba(255,255,255,0.4); font-size:11px;">Generated on 2026-03-09</p>
+    </footer>
+
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'base',
+      themeVariables: {
+        primaryColor: '#FF9900',
+        primaryTextColor: '#232F3E',
+        primaryBorderColor: '#FF9900',
+        lineColor: '#FF9900',
+        secondaryColor: '#F5F5F5',
+        tertiaryColor: '#FAFAFA',
+        background: '#FFFFFF',
+        mainBkg: '#FFF3E0',
+        nodeBorder: '#FF9900',
+        clusterBkg: '#FFF8E1',
+        clusterBorder: '#FF9900',
+        edgeLabelBackground: '#FFFFFF',
+        textColor: '#232F3E'
+      }
+    });
+  </script>
+  <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/highlight.min.js"></script>
+  <script>hljs.highlightAll();</script>
+</body>
+</html>
