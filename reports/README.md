@@ -5,7 +5,18 @@
 
 ## 2026 年
 
+- [2026-03-10 - AWS Builder ID - GitHub および Amazon ソーシャルログインのサポート](2026/2026-03-10-aws-builder-id-sign-in-github-amazon.md)
+- [2026-03-10 - Amazon Connect - AI を活用したマネージャーアシスタンス](2026/2026-03-10-amazon-connect-ai-powered-manager-assistance.md)
+- [2026-03-10 - Amazon Connect - AI 搭載予測インサイトの機能強化](2026/2026-03-10-amazon-connect-predictive-insights.md)
+- [2026-03-10 - Amazon OpenSearch Service - インプレースボリュームサイズ拡張の全サイズ対応](2026/2026-03-10-amazon-opensearch-service-in-place-volume.md)
+- [2026-03-10 - Amazon Connect - E メール向け会話分析](2026/2026-03-10-amazon-connect-conversational-analytics-email.md)
+- [2026-03-09 - Amazon Route 53 - Global Resolver の一般提供開始](2026/2026-03-09-amazon-route-53-global-resolver.md)
+- [2026-03-09 - Amazon SageMaker Unified Studio - Visual ETL の高速データプレビュー](2026/2026-03-09-amazon-sagemaker-unified-studio-faster-data-preview.md)
+- [2026-03-09 - Amazon EC2 G7e - ソウルおよびスペインリージョンで利用可能に](2026/2026-03-09-amazon-ec2-g7e-seoul-spain-regions.md)
 - [2026-03-09 - Amazon CloudWatch Logs - クエリ同時実行数と API リミットの引き上げ](2026/2026-03-09-amazon-cloudwatch-logs-increased-limits.md)
+- [2026-03-09 - Amazon Quick Suite - User Preferences によるチャットパーソナライゼーション](2026/2026-03-09-user-preferences-in-quick.md)
+- [2026-03-09 - IAM Roles Anywhere - ポスト量子デジタル証明書のサポート](2026/2026-03-09-iam-roles-anywhere-post-quantum-digital-certificates.md)
+- [2026-03-09 - Amazon Cognito - アジアパシフィック (台北) およびアジアパシフィック (ニュージーランド) リージョンで利用可能に](2026/2026-03-09-cognito-taipei-and-new-zealand-regions.md)
 - [2026-03-06 - Amazon Redshift - 半構造化データ処理向け 9 つの新しい配列関数](2026/2026-03-06-amazon-redshift-nine-new-array-functions.md)
 - [2026-03-06 - Amazon EC2 R8g インスタンス - 追加リージョンでの提供開始](2026/2026-03-06-amazon-ec2-r8g-instances-additional-regions.md)
 - [2026-03-06 - Amazon Redshift - COPY コマンド用再利用可能テンプレート](2026/2026-03-06-amazon-redshift-reusable-templates-copy.md)

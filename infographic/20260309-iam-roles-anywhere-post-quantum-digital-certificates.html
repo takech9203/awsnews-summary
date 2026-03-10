@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IAM Roles Anywhere - ML-DSA Post-Quantum Digital Certificates</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap');
+
+    :root {
+      --aws-squid-ink: #232F3E;
+      --aws-dark-squid: #1A242F;
+      --aws-orange: #FF9900;
+      --aws-smile-orange: #FFAD33;
+      --aws-white: #FFFFFF;
+      --aws-light-gray: #D5DBDB;
+      --aws-teal: #00A1C9;
+      --aws-purple: #8C4FFF;
+      --aws-green: #1D8102;
+      --aws-red: #D13212;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      background-color: var(--aws-squid-ink);
+      font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+      color: var(--aws-light-gray);
+      font-size: 16px;
+      line-height: 1.6;
+      padding: 20px;
+      margin: 0;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 32px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .header-left { flex: 1; min-width: 280px; }
+    .service-badge {
+      display: inline-block;
+      background: var(--aws-orange);
+      color: var(--aws-squid-ink);
+      font-size: 13px;
+      font-weight: 700;
+      padding: 4px 14px;
+      border-radius: 20px;
+      margin-bottom: 12px;
+    }
+    h1 {
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--aws-white);
+      margin: 0 0 8px 0;
+      line-height: 1.3;
+    }
+    .subtitle {
+      font-size: 15px;
+      color: var(--aws-light-gray);
+    }
+    .header-date {
+      font-size: 14px;
+      color: var(--aws-light-gray);
+      white-space: nowrap;
+      padding-top: 8px;
+    }
+
+    /* Sections */
+    .section {
+      background: var(--aws-dark-squid);
+      border-radius: 8px;
+      padding: 24px;
+      margin-bottom: 24px;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    h2 {
+      font-size: 22px;
+      font-weight: 600;
+      color: var(--aws-orange);
+      margin: 0 0 16px 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    h3 {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--aws-white);
+      margin: 20px 0 12px 0;
+    }
+    p { margin: 8px 0; }
+
+    .highlight {
+      background-color: rgba(255,153,0,0.2);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 600;
+      color: var(--aws-orange);
+    }
+
+    /* Before/After */
+    .before-after {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin: 16px 0;
+    }
+    .before-box, .after-box {
+      border-radius: 8px;
+      padding: 16px;
+    }
+    .before-box {
+      background: rgba(209,50,18,0.1);
+      border: 1px solid rgba(209,50,18,0.4);
+    }
+    .after-box {
+      background: rgba(29,129,2,0.1);
+      border: 1px solid rgba(29,129,2,0.4);
+    }
+    .before-box .ba-label {
+      color: var(--aws-red);
+      font-weight: 700;
+      font-size: 14px;
+      margin-bottom: 8px;
+    }
+    .after-box .ba-label {
+      color: var(--aws-green);
+      font-weight: 700;
+      font-size: 14px;
+      margin-bottom: 8px;
+    }
+    .ba-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      margin: 6px 0;
+      font-size: 14px;
+    }
+
+    /* Feature Cards */
+    .feature-card {
+      background: var(--aws-dark-squid);
+      border-radius: 8px;
+      padding: 16px 16px 16px 20px;
+      margin: 12px 0;
+      border: 1px solid rgba(255,153,0,0.3);
+      border-left: 4px solid var(--aws-orange);
+    }
+    .feature-card .fc-title {
+      color: var(--aws-white);
+      font-weight: 600;
+      font-size: 16px;
+      margin-bottom: 8px;
+    }
+    .feature-card ul {
+      margin: 4px 0;
+      padding-left: 20px;
+      font-size: 14px;
+    }
+    .feature-card li { margin: 4px 0; }
+
+    /* Stat Cards */
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin: 16px 0;
+    }
+    .stat-card {
+      background: linear-gradient(135deg, rgba(255,153,0,0.15), rgba(140,79,255,0.1));
+      border: 1px solid rgba(255,153,0,0.3);
+      border-radius: 8px;
+      padding: 20px;
+      text-align: center;
+    }
+    .stat-value {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--aws-orange);
+    }
+    .stat-label {
+      font-size: 13px;
+      color: var(--aws-light-gray);
+      margin-top: 4px;
+    }
+
+    /* Use Case Cards */
+    .usecase-card {
+      background: rgba(255,153,0,0.08);
+      border: 1px solid rgba(255,153,0,0.25);
+      border-radius: 8px;
+      padding: 20px;
+      margin: 12px 0;
+    }
+    .usecase-card .uc-title {
+      font-weight: 600;
+      color: var(--aws-white);
+      font-size: 16px;
+      margin-bottom: 6px;
+    }
+    .usecase-card .uc-scenario {
+      font-size: 14px;
+      margin-bottom: 8px;
+    }
+    .usecase-card .uc-effect {
+      font-size: 14px;
+      color: var(--aws-green);
+    }
+
+    /* Table */
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0;
+      font-size: 14px;
+    }
+    .data-table th {
+      background: rgba(255,153,0,0.2);
+      color: var(--aws-orange);
+      font-weight: 600;
+      text-align: left;
+      padding: 10px 12px;
+      border-bottom: 2px solid rgba(255,153,0,0.4);
+    }
+    .data-table td {
+      padding: 10px 12px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+
+    /* Code block */
+    .code-block {
+      background: #1a1a2e;
+      border-radius: 8px;
+      overflow: hidden;
+      margin: 16px 0;
+    }
+    .code-header {
+      background: #16213e;
+      padding: 8px 16px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+    }
+    .code-lang {
+      color: var(--aws-orange);
+      font-weight: bold;
+    }
+    .code-title {
+      color: var(--aws-light-gray);
+    }
+    .code-block pre {
+      margin: 0;
+      padding: 0;
+      overflow-x: auto;
+    }
+    .code-block code {
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      line-height: 1.5;
+      padding: 16px !important;
+    }
+
+    /* Mermaid */
+    .mermaid-container {
+      background: #FFFFFF;
+      border-radius: 12px;
+      padding: 24px;
+      margin: 20px 0;
+      border: 2px solid rgba(255,153,0,0.3);
+      overflow-x: auto;
+    }
+    .mermaid {
+      display: flex;
+      justify-content: center;
+    }
+
+    /* Flow diagram */
+    .flow-diagram {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin: 24px 0;
+    }
+    .flow-step {
+      background: var(--aws-dark-squid);
+      border: 2px solid var(--aws-orange);
+      border-radius: 8px;
+      padding: 12px 20px;
+      text-align: center;
+      min-width: 100px;
+    }
+    .flow-arrow {
+      color: var(--aws-orange);
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    /* Tags */
+    .tag-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 12px 0;
+    }
+    .tag {
+      background: rgba(255,153,0,0.15);
+      border: 1px solid rgba(255,153,0,0.3);
+      color: var(--aws-orange);
+      font-size: 13px;
+      padding: 4px 12px;
+      border-radius: 16px;
+    }
+
+    /* Links */
+    .aws-link {
+      color: var(--aws-teal);
+      text-decoration: none;
+    }
+    .aws-link:hover {
+      color: var(--aws-smile-orange);
+    }
+
+    /* Info callout */
+    .callout {
+      background: rgba(0,161,201,0.1);
+      border-left: 4px solid var(--aws-teal);
+      border-radius: 0 8px 8px 0;
+      padding: 16px;
+      margin: 16px 0;
+      font-size: 14px;
+    }
+
+    /* Responsive */
+    @media (max-width: 700px) {
+      h1 { font-size: 24px; }
+      .before-after { grid-template-columns: 1fr; }
+      .stat-grid { grid-template-columns: 1fr; }
+      .header { flex-direction: column; }
+    }
+
+    footer {
+      margin-top: 24px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(255,255,255,0.2);
+      font-size: 12px;
+      color: var(--aws-light-gray);
+    }
+    footer a { word-break: break-all; }
+  </style>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/styles/atom-one-dark.min.css">
+</head>
+<body>
+  <div class="container">
+
+    <!-- Header -->
+    <div class="header">
+      <div class="header-left">
+        <span class="service-badge">AWS IAM Roles Anywhere</span>
+        <h1>🔐 ポスト量子デジタル証明書のサポート</h1>
+        <div class="subtitle">FIPS 204 ML-DSA により、量子コンピュータ時代に備えた認証基盤を実現</div>
+      </div>
+      <div class="header-date">📅 2026-03-09</div>
+    </div>
+
+    <!-- Overview -->
+    <div class="section">
+      <h2>📋 概要</h2>
+      <p>
+        IAM Roles Anywhere が <span class="highlight">FIPS 204 ML-DSA</span> (Module-Lattice Digital Signature Standard) をサポートしました。ML-DSA は NIST が標準化した量子耐性デジタル署名アルゴリズムであり、将来の量子コンピュータによる暗号解読の脅威に対する防御を提供します。
+      </p>
+      <p>
+        オンプレミスのサーバーや IoT デバイスなど、AWS 外部のワークロードが量子耐性の認証方式で AWS リソースにアクセスすることが可能になります。
+      </p>
+
+      <!-- Stats -->
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="stat-value">FIPS 204</div>
+          <div class="stat-label">NIST 標準規格準拠</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">全リージョン</div>
+          <div class="stat-label">GovCloud / 中国含む</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">無料</div>
+          <div class="stat-label">追加料金なし</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Before/After -->
+    <div class="section">
+      <h2>🔄 Before / After</h2>
+      <div class="before-after">
+        <div class="before-box">
+          <div class="ba-label">❌ Before</div>
+          <div class="ba-item">RSA / ECDSA などの従来型署名アルゴリズムのみサポート</div>
+          <div class="ba-item">Harvest Now, Decrypt Later 攻撃への対策手段がない</div>
+          <div class="ba-item">ポスト量子暗号移行計画から IAM Roles Anywhere を除外せざるを得ない</div>
+        </div>
+        <div class="after-box">
+          <div class="ba-label">✅ After</div>
+          <div class="ba-item">FIPS 204 ML-DSA による量子耐性デジタル署名が利用可能</div>
+          <div class="ba-item">ML-DSA CA 証明書をトラストアンカーとして登録し、ポスト量子 PKI を構築可能</div>
+          <div class="ba-item">組織全体のポスト量子暗号移行計画に IAM Roles Anywhere を統合可能</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Architecture Diagram -->
+    <div class="section">
+      <h2>🏗️ アーキテクチャ図</h2>
+      <p>ML-DSA ポスト量子証明書を使用した IAM Roles Anywhere の認証フローを示しています。</p>
+      <div class="mermaid-container">
+        <pre class="mermaid">
+flowchart TD
+    subgraph OnPrem["🏢 オンプレミス環境"]
+        direction LR
+        Workload(["⚙️ ワークロード<br/>サーバー / IoT"])
+        Cert["🔏 ML-DSA<br/>エンドエンティティ証明書"]
+        Workload --> Cert
+    end
+
+    subgraph PKI["🔐 ポスト量子 PKI"]
+        direction LR
+        CA["🏛️ 認証局<br/>ML-DSA CA 証明書"]
+        CA -->|発行| Cert
+    end
+
+    subgraph AWS["☁️ AWS"]
+        direction LR
+        RA["🔌 IAM Roles Anywhere<br/>トラストアンカー"]
+        STS["⚡ AWS STS"]
+        Resources["🗄️ AWS リソース"]
+        RA --> STS --> Resources
+    end
+
+    CA -->|ML-DSA CA 証明書を登録| RA
+    Workload -->|ML-DSA 署名で認証| RA
+
+    classDef cloud fill:none,stroke:#CCCCCC,stroke-width:2px,color:#666666
+    classDef layer fill:none,stroke:#E1BEE7,stroke-width:2px,color:#666666
+    classDef compute fill:#FFE0B2,stroke:#FFCC80,stroke-width:2px,color:#5D4037
+    classDef storage fill:#DCEDC8,stroke:#C5E1A5,stroke-width:2px,color:#33691E
+    classDef user fill:#E3F2FD,stroke:#BBDEFB,stroke-width:2px,color:#1565C0
+    classDef security fill:#F3E5F5,stroke:#7B61FF,stroke-width:2px,color:#333333
+
+    class AWS cloud
+    class OnPrem,PKI layer
+    class RA,STS compute
+    class Resources storage
+    class Workload user
+    class Cert,CA security
+        </pre>
+      </div>
+    </div>
+
+    <!-- Key Features -->
+    <div class="section">
+      <h2>⚡ 主要機能</h2>
+
+      <div class="feature-card">
+        <div class="fc-title">🔑 ML-DSA トラストアンカーのサポート</div>
+        <ul>
+          <li>ML-DSA で署名された CA 証明書をトラストアンカーとして登録可能</li>
+          <li>FIPS 204 標準に準拠した量子耐性の信頼チェーンを構築</li>
+          <li>既存の RSA/ECDSA ベースのトラストアンカーと併用可能</li>
+        </ul>
+      </div>
+
+      <div class="feature-card">
+        <div class="fc-title">🔏 ML-DSA エンドエンティティ証明書のサポート</div>
+        <ul>
+          <li>ML-DSA 鍵にバインドされたエンドエンティティ証明書を使用した認証が可能</li>
+          <li>CreateSession API で ML-DSA 署名による認証リクエストを処理</li>
+          <li>従来の証明書形式と同様の認証フローで動作</li>
+        </ul>
+      </div>
+
+      <div class="feature-card">
+        <div class="fc-title">🌍 グローバルリージョン対応</div>
+        <ul>
+          <li>IAM Roles Anywhere が利用可能なすべてのリージョンで ML-DSA をサポート</li>
+          <li>GovCloud (US) リージョンでの利用が可能 - 米国政府のポスト量子要件に対応</li>
+          <li>European Sovereign Cloud および中国リージョンでも利用可能</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Technical Specs -->
+    <div class="section">
+      <h2>🔧 技術仕様</h2>
+
+      <h3>ML-DSA アルゴリズムの概要</h3>
+      <table class="data-table">
+        <tr><th>項目</th><th>詳細</th></tr>
+        <tr><td>標準規格</td><td>FIPS 204 Module-Lattice Digital Signature Standard</td></tr>
+        <tr><td>アルゴリズム名</td><td>ML-DSA (旧称: CRYSTALS-Dilithium)</td></tr>
+        <tr><td>暗号基盤</td><td>格子暗号 (Lattice-based cryptography)</td></tr>
+        <tr><td>NIST 標準化</td><td>2024 年 8 月に FIPS 204 として正式標準化</td></tr>
+        <tr><td>量子耐性</td><td>量子コンピュータによる Shor のアルゴリズム攻撃に耐性あり</td></tr>
+        <tr><td>用途</td><td>CA 証明書のトラストアンカー登録、エンドエンティティ証明書による認証</td></tr>
+      </table>
+
+      <h3>サポートされる証明書タイプ</h3>
+      <table class="data-table">
+        <tr><th>証明書タイプ</th><th>ML-DSA サポート</th><th>用途</th></tr>
+        <tr><td>CA 証明書</td><td><span style="color:var(--aws-green);">✓ サポート</span></td><td>トラストアンカーとして登録</td></tr>
+        <tr><td>エンドエンティティ証明書</td><td><span style="color:var(--aws-green);">✓ サポート</span></td><td>ワークロード認証</td></tr>
+        <tr><td>中間 CA 証明書</td><td><span style="color:var(--aws-green);">✓ サポート</span></td><td>証明書チェーンの構築</td></tr>
+      </table>
+
+      <div class="callout">
+        💡 既存の IAM Roles Anywhere API (CreateTrustAnchor、CreateSession など) が ML-DSA 証明書を受け入れるよう拡張されたサービス側の変更です。API の変更はありません。
+      </div>
+    </div>
+
+    <!-- Setup Steps -->
+    <div class="section">
+      <h2>🛠️ 設定方法</h2>
+
+      <h3>前提条件</h3>
+      <div class="ba-item">✓ ML-DSA 対応の認証局 (CA) が構築済み</div>
+      <div class="ba-item">✓ ML-DSA で署名された CA 証明書およびエンドエンティティ証明書が発行済み</div>
+      <div class="ba-item">✓ IAM Roles Anywhere の利用に必要な IAM 権限</div>
+      <div class="ba-item">✓ AWS CLI v2 または SDK がインストール済み</div>
+
+      <h3>ステップ 1: ML-DSA CA 証明書をトラストアンカーとして登録</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash</span>
+          <span class="code-title">トラストアンカーの作成</span>
+        </div>
+        <pre><code class="language-bash"># ML-DSA で署名された CA 証明書をトラストアンカーとして作成
+aws rolesanywhere create-trust-anchor \
+    --name "post-quantum-trust-anchor" \
+    --source "sourceType=CERTIFICATE_BUNDLE,sourceData={x509CertificateData=$(cat ml-dsa-ca-cert.pem)}" \
+    --enabled</code></pre>
+      </div>
+
+      <h3>ステップ 2: プロファイルの作成</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash</span>
+          <span class="code-title">プロファイルの作成</span>
+        </div>
+        <pre><code class="language-bash"># ワークロードが引き受ける IAM ロールを指定するプロファイルを作成
+aws rolesanywhere create-profile \
+    --name "post-quantum-profile" \
+    --role-arns "arn:aws:iam::123456789012:role/PostQuantumWorkloadRole" \
+    --enabled</code></pre>
+      </div>
+
+      <h3>ステップ 3: ワークロードからの認証</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash</span>
+          <span class="code-title">一時的な認証情報の取得</span>
+        </div>
+        <pre><code class="language-bash"># AWS IAM Roles Anywhere Credential Helper を使用
+aws_signing_helper credential-process \
+    --certificate /path/to/ml-dsa-end-entity-cert.pem \
+    --private-key /path/to/ml-dsa-private-key.pem \
+    --trust-anchor-arn arn:aws:rolesanywhere:us-east-1:123456789012:trust-anchor/example-id \
+    --profile-arn arn:aws:rolesanywhere:us-east-1:123456789012:profile/example-id \
+    --role-arn arn:aws:iam::123456789012:role/PostQuantumWorkloadRole</code></pre>
+      </div>
+
+      <h3>IAM ポリシーの設定例</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">JSON</span>
+          <span class="code-title">IAM 信頼ポリシー</span>
+        </div>
+        <pre><code class="language-json">{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Principal": {
+                "Service": "rolesanywhere.amazonaws.com"
+            },
+            "Action": [
+                "sts:AssumeRole",
+                "sts:SetSourceIdentity",
+                "sts:TagSession"
+            ],
+            "Condition": {
+                "ArnEquals": {
+                    "aws:SourceArn": "arn:aws:rolesanywhere:us-east-1:123456789012:trust-anchor/example-trust-anchor-id"
+                }
+            }
+        }
+    ]
+}</code></pre>
+      </div>
+    </div>
+
+    <!-- Benefits -->
+    <div class="section">
+      <h2>✅ メリット</h2>
+
+      <h3>ビジネス面</h3>
+      <div class="feature-card">
+        <div class="fc-title">🛡️ 将来の量子脅威への先行対策</div>
+        <p style="font-size:14px;">量子コンピュータが実用化される前にポスト量子暗号への移行を開始でき、Harvest Now, Decrypt Later 攻撃のリスクを低減</p>
+      </div>
+      <div class="feature-card">
+        <div class="fc-title">📜 コンプライアンス対応</div>
+        <p style="font-size:14px;">NIST 標準 (FIPS 204) に準拠した量子耐性アルゴリズムを採用しており、政府機関や規制産業のポスト量子暗号要件に対応</p>
+      </div>
+      <div class="feature-card">
+        <div class="fc-title">🔀 段階的な移行が可能</div>
+        <p style="font-size:14px;">既存の RSA/ECDSA 証明書と ML-DSA 証明書を併用できるため、段階的なポスト量子暗号移行が可能</p>
+      </div>
+
+      <h3>技術面</h3>
+      <div class="feature-card">
+        <div class="fc-title">📐 NIST 標準準拠</div>
+        <p style="font-size:14px;">FIPS 204 として正式に標準化された ML-DSA を採用しており、長期的な互換性と信頼性を確保</p>
+      </div>
+      <div class="feature-card">
+        <div class="fc-title">🔗 既存アーキテクチャとの互換性</div>
+        <p style="font-size:14px;">既存の IAM Roles Anywhere の認証フローやプロファイル設定をそのまま活用可能</p>
+      </div>
+      <div class="feature-card">
+        <div class="fc-title">🏛️ GovCloud 対応</div>
+        <p style="font-size:14px;">米国政府のポスト量子暗号移行要件 (NSA CNSA 2.0 など) に対応するための基盤として利用可能</p>
+      </div>
+    </div>
+
+    <!-- Limitations -->
+    <div class="section">
+      <h2>⚠️ デメリット・制約事項</h2>
+
+      <h3>制限事項</h3>
+      <div class="ba-item" style="margin:8px 0;">⚠️ ML-DSA 対応の認証局 (CA) を別途構築する必要があり、既存の CA インフラストラクチャの更新が必要になる場合がある</div>
+      <div class="ba-item" style="margin:8px 0;">⚠️ ML-DSA の鍵サイズおよび署名サイズは RSA や ECDSA と比較して大きく、ネットワーク帯域や証明書ストレージに影響する可能性がある</div>
+      <div class="ba-item" style="margin:8px 0;">⚠️ 一部のレガシーシステムやツールが ML-DSA 証明書をサポートしていない場合がある</div>
+
+      <h3>考慮すべき点</h3>
+      <div class="ba-item" style="margin:8px 0;">💡 ポスト量子暗号への移行は段階的に進めることが推奨され、まずは非本番環境での検証から開始するべき</div>
+      <div class="ba-item" style="margin:8px 0;">💡 ML-DSA のパフォーマンス特性は従来のアルゴリズムと異なるため、高頻度認証ワークロードではベンチマークテストが推奨</div>
+      <div class="ba-item" style="margin:8px 0;">💡 証明書チェーン全体をポスト量子対応にするには、ルート CA から末端証明書まですべて ML-DSA に移行する必要がある</div>
+    </div>
+
+    <!-- Use Cases -->
+    <div class="section">
+      <h2>🎯 ユースケース</h2>
+
+      <div class="usecase-card">
+        <div class="uc-title">🏛️ ユースケース 1: 政府機関のポスト量子暗号移行</div>
+        <div class="uc-scenario">政府機関がオンプレミスデータセンターのワークロードから AWS にアクセスする際、NSA CNSA 2.0 ガイドラインに準拠したポスト量子暗号を採用する必要がある。</div>
+        <div class="code-block">
+          <div class="code-header">
+            <span class="code-lang">Bash</span>
+            <span class="code-title">GovCloud でのトラストアンカー作成</span>
+          </div>
+          <pre><code class="language-bash"># GovCloud リージョンで ML-DSA トラストアンカーを作成
+aws rolesanywhere create-trust-anchor \
+    --name "gov-pqc-trust-anchor" \
+    --source "sourceType=CERTIFICATE_BUNDLE,sourceData={x509CertificateData=$(cat gov-ml-dsa-ca.pem)}" \
+    --enabled \
+    --region us-gov-west-1</code></pre>
+        </div>
+        <div class="uc-effect">✅ 効果: FIPS 204 準拠の量子耐性認証を GovCloud 環境で実現し、政府のポスト量子暗号移行要件を満たせる。</div>
+      </div>
+
+      <div class="usecase-card">
+        <div class="uc-title">📡 ユースケース 2: IoT デバイスの長期セキュリティ確保</div>
+        <div class="uc-scenario">産業用 IoT デバイスが 15-20 年のライフサイクルを持ち、その期間中に量子コンピュータが実用化される可能性を考慮して、デバイス証明書にポスト量子アルゴリズムを採用する。</div>
+        <div class="code-block">
+          <div class="code-header">
+            <span class="code-lang">Bash</span>
+            <span class="code-title">IoT デバイス用プロファイル作成</span>
+          </div>
+          <pre><code class="language-bash"># IoT デバイス用のプロファイルを作成
+aws rolesanywhere create-profile \
+    --name "iot-pqc-profile" \
+    --role-arns "arn:aws:iam::123456789012:role/IoTDeviceRole" \
+    --duration-seconds 3600 \
+    --enabled</code></pre>
+        </div>
+        <div class="uc-effect">✅ 効果: デバイスのライフサイクル全体を通じて量子耐性のある認証を維持し、将来の暗号解読リスクからデバイスとデータを保護できる。</div>
+      </div>
+
+      <div class="usecase-card">
+        <div class="uc-title">🏦 ユースケース 3: 金融機関のハイブリッドクラウド環境</div>
+        <div class="uc-scenario">金融機関がオンプレミスの取引システムから AWS 上のデータレイクやアナリティクス基盤にアクセスする際、規制要件に対応したポスト量子暗号認証を実装する。</div>
+        <div class="code-block">
+          <div class="code-header">
+            <span class="code-lang">Bash</span>
+            <span class="code-title">金融ワークロード用の認証設定</span>
+          </div>
+          <pre><code class="language-bash"># 金融ワークロード用の認証設定
+aws_signing_helper credential-process \
+    --certificate /etc/pki/ml-dsa/trading-system-cert.pem \
+    --private-key /etc/pki/ml-dsa/trading-system-key.pem \
+    --trust-anchor-arn arn:aws:rolesanywhere:ap-northeast-1:123456789012:trust-anchor/finance-pqc-anchor \
+    --profile-arn arn:aws:rolesanywhere:ap-northeast-1:123456789012:profile/finance-pqc-profile \
+    --role-arn arn:aws:iam::123456789012:role/TradingSystemRole</code></pre>
+        </div>
+        <div class="uc-effect">✅ 効果: 金融規制のポスト量子暗号要件に先行対応し、取引データの長期的な機密性を確保できる。</div>
+      </div>
+    </div>
+
+    <!-- Pricing -->
+    <div class="section">
+      <h2>💰 料金</h2>
+      <table class="data-table">
+        <tr><th>項目</th><th>料金</th></tr>
+        <tr><td>IAM Roles Anywhere</td><td><span style="color:var(--aws-green);font-weight:600;">無料</span></td></tr>
+        <tr><td>ML-DSA 証明書サポート</td><td><span style="color:var(--aws-green);font-weight:600;">追加料金なし</span></td></tr>
+        <tr><td>AWS Private CA (証明書発行に使用する場合)</td><td>汎用モード: $50/月/CA</td></tr>
+      </table>
+      <div class="callout">
+        💡 ML-DSA 対応の CA を AWS Private CA で構築する場合は、AWS Private CA の料金が適用されます。
+      </div>
+    </div>
+
+    <!-- Regions -->
+    <div class="section">
+      <h2>🌍 利用可能リージョン</h2>
+      <p>IAM Roles Anywhere が利用可能なすべての AWS リージョンで ML-DSA ポスト量子証明書をサポートします。</p>
+      <div class="tag-row">
+        <span class="tag">すべての商用リージョン</span>
+        <span class="tag">AWS GovCloud (US)</span>
+        <span class="tag">European Sovereign Cloud</span>
+        <span class="tag">中国リージョン (北京、寧夏)</span>
+      </div>
+    </div>
+
+    <!-- Related Services -->
+    <div class="section">
+      <h2>🔗 関連サービス</h2>
+      <div class="feature-card">
+        <div class="fc-title">🔌 AWS IAM Roles Anywhere</div>
+        <p style="font-size:14px;">AWS 外部のワークロードに対して X.509 証明書ベースの認証で一時的な AWS 認証情報を提供するサービス</p>
+      </div>
+      <div class="feature-card">
+        <div class="fc-title">🏛️ AWS Private Certificate Authority</div>
+        <p style="font-size:14px;">ML-DSA 対応の CA 証明書を発行するためのマネージド CA サービス</p>
+      </div>
+      <div class="feature-card">
+        <div class="fc-title">🔑 AWS Key Management Service (KMS)</div>
+        <p style="font-size:14px;">ポスト量子 TLS をサポートしており、IAM Roles Anywhere と組み合わせて包括的なポスト量子セキュリティを実現</p>
+      </div>
+      <div class="feature-card">
+        <div class="fc-title">📜 AWS Certificate Manager</div>
+        <p style="font-size:14px;">証明書のライフサイクル管理を提供し、ポスト量子暗号移行の管理を支援</p>
+      </div>
+    </div>
+
+    <!-- Summary -->
+    <div class="section">
+      <h2>📝 まとめ</h2>
+      <p>
+        IAM Roles Anywhere が <span class="highlight">FIPS 204 ML-DSA ポスト量子デジタル署名アルゴリズム</span>をサポートしました。オンプレミスや IoT デバイスなどの AWS 外部ワークロードが量子耐性のある認証方式で AWS リソースにアクセスできるようになります。GovCloud を含むすべてのリージョンで利用可能であり、将来の量子コンピュータの脅威に備えたポスト量子暗号移行を段階的に進めることが推奨されます。
+      </p>
+      <div class="flow-diagram">
+        <div class="flow-step">🔏 ML-DSA 証明書<br/>を準備</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-step">🔑 トラストアンカー<br/>に登録</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-step">⚙️ プロファイル<br/>を作成</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-step">☁️ 量子耐性<br/>認証で接続</div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+      <p>📎 出典:</p>
+      <ul style="margin:4px 0;padding-left:20px;">
+        <li><a href="https://aws.amazon.com/about-aws/whats-new/2026/03/iam-roles-anywhere-post-quantum-digital-certificates" target="_blank" rel="noopener noreferrer" class="aws-link">公式発表 (What's New)</a></li>
+        <li><a href="https://docs.aws.amazon.com/rolesanywhere/latest/userguide/introduction.html" target="_blank" rel="noopener noreferrer" class="aws-link">ドキュメント: IAM Roles Anywhere</a></li>
+        <li><a href="https://docs.aws.amazon.com/rolesanywhere/latest/userguide/trust-anchors.html" target="_blank" rel="noopener noreferrer" class="aws-link">ドキュメント: IAM Roles Anywhere Trust Anchors</a></li>
+        <li><a href="https://aws.amazon.com/security/post-quantum-cryptography/" target="_blank" rel="noopener noreferrer" class="aws-link">AWS Post-Quantum Cryptography</a></li>
+      </ul>
+      <p style="margin-top:12px;color:rgba(213,219,219,0.6);">Generated: 2026-03-10</p>
+    </footer>
+
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'base',
+      themeVariables: {
+        primaryColor: '#FF9900',
+        primaryTextColor: '#232F3E',
+        primaryBorderColor: '#FF9900',
+        lineColor: '#FF9900',
+        secondaryColor: '#F5F5F5',
+        tertiaryColor: '#FAFAFA',
+        background: '#FFFFFF',
+        mainBkg: '#FFF3E0',
+        nodeBorder: '#FF9900',
+        clusterBkg: '#FFF8E1',
+        clusterBorder: '#FF9900',
+        edgeLabelBackground: '#FFFFFF',
+        textColor: '#232F3E'
+      }
+    });
+  </script>
+  <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/highlight.min.js"></script>
+  <script>hljs.highlightAll();</script>
+</body>
+</html>

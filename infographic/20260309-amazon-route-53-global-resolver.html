@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Amazon Route 53 Global Resolver - GA</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap');
+
+    :root {
+      --aws-squid-ink: #232F3E;
+      --aws-dark-squid: #1A242F;
+      --aws-orange: #FF9900;
+      --aws-smile-orange: #FFAD33;
+      --aws-white: #FFFFFF;
+      --aws-light-gray: #D5DBDB;
+      --aws-teal: #00A1C9;
+      --aws-purple: #8C4FFF;
+      --aws-green: #1D8102;
+      --aws-red: #D13212;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--aws-squid-ink);
+      font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+      color: var(--aws-light-gray);
+      font-size: 16px;
+      line-height: 1.6;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 32px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .header-left { flex: 1; min-width: 280px; }
+
+    .service-badge {
+      display: inline-block;
+      background: var(--aws-orange);
+      color: var(--aws-squid-ink);
+      font-size: 13px;
+      font-weight: 700;
+      padding: 4px 14px;
+      border-radius: 20px;
+      margin-bottom: 12px;
+    }
+
+    h1 {
+      font-size: 34px;
+      font-weight: 700;
+      color: var(--aws-white);
+      line-height: 1.3;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      font-size: 16px;
+      color: var(--aws-light-gray);
+    }
+
+    .header-right {
+      text-align: right;
+      font-size: 14px;
+      color: var(--aws-light-gray);
+    }
+
+    /* Sections */
+    .section {
+      background: var(--aws-dark-squid);
+      border-radius: 8px;
+      padding: 24px;
+      margin-bottom: 24px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    h2 {
+      font-size: 22px;
+      font-weight: 600;
+      color: var(--aws-orange);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    h3 {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--aws-white);
+      margin: 20px 0 10px;
+    }
+
+    p { margin-bottom: 12px; }
+
+    .highlight {
+      background-color: rgba(255, 153, 0, 0.2);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 600;
+      color: var(--aws-orange);
+    }
+
+    /* Before/After */
+    .before-after {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin: 16px 0;
+    }
+
+    .before-card, .after-card {
+      border-radius: 8px;
+      padding: 16px;
+    }
+
+    .before-card {
+      background: rgba(209, 50, 18, 0.1);
+      border: 1px solid rgba(209, 50, 18, 0.4);
+    }
+
+    .after-card {
+      background: rgba(29, 129, 2, 0.1);
+      border: 1px solid rgba(29, 129, 2, 0.4);
+    }
+
+    .before-card .label {
+      color: var(--aws-red);
+      font-weight: 700;
+      font-size: 14px;
+      margin-bottom: 8px;
+    }
+
+    .after-card .label {
+      color: var(--aws-green);
+      font-weight: 700;
+      font-size: 14px;
+      margin-bottom: 8px;
+    }
+
+    .before-card ul, .after-card ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    .before-card li, .after-card li {
+      padding: 4px 0;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .before-card li::before {
+      content: "✗ ";
+      color: var(--aws-red);
+      font-weight: bold;
+    }
+
+    .after-card li::before {
+      content: "✓ ";
+      color: var(--aws-green);
+      font-weight: bold;
+    }
+
+    /* Stats */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin: 16px 0;
+    }
+
+    .stat-card {
+      background: linear-gradient(135deg, rgba(255, 153, 0, 0.15), rgba(255, 153, 0, 0.05));
+      border: 1px solid rgba(255, 153, 0, 0.3);
+      border-radius: 8px;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .stat-number {
+      font-size: 36px;
+      font-weight: 700;
+      color: var(--aws-orange);
+      line-height: 1.2;
+    }
+
+    .stat-label {
+      font-size: 14px;
+      color: var(--aws-light-gray);
+      margin-top: 4px;
+    }
+
+    /* Feature cards */
+    .feature-card {
+      background: var(--aws-squid-ink);
+      border-left: 4px solid var(--aws-orange);
+      border-radius: 0 8px 8px 0;
+      padding: 16px 20px;
+      margin: 12px 0;
+    }
+
+    .feature-card .feature-title {
+      font-weight: 600;
+      color: var(--aws-white);
+      font-size: 16px;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .feature-card .feature-desc {
+      font-size: 14px;
+      color: var(--aws-light-gray);
+    }
+
+    .feature-card .feature-desc ul {
+      list-style: none;
+      padding: 0;
+      margin-top: 6px;
+    }
+
+    .feature-card .feature-desc li {
+      padding: 2px 0;
+    }
+
+    .feature-card .feature-desc li::before {
+      content: "  -> ";
+      color: var(--aws-orange);
+    }
+
+    /* Usecase cards */
+    .usecase-card {
+      background: rgba(255, 153, 0, 0.08);
+      border: 1px solid rgba(255, 153, 0, 0.25);
+      border-radius: 8px;
+      padding: 20px;
+      margin: 12px 0;
+    }
+
+    .usecase-card .usecase-title {
+      font-weight: 600;
+      color: var(--aws-orange);
+      font-size: 16px;
+      margin-bottom: 6px;
+    }
+
+    .usecase-card .usecase-scenario {
+      font-size: 14px;
+      color: var(--aws-light-gray);
+      margin-bottom: 10px;
+    }
+
+    .usecase-card .usecase-impl {
+      font-size: 14px;
+      color: var(--aws-light-gray);
+    }
+
+    .usecase-card .usecase-impl ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    .usecase-card .usecase-impl li {
+      padding: 2px 0;
+    }
+
+    .usecase-card .usecase-impl li::before {
+      content: "-> ";
+      color: var(--aws-orange);
+    }
+
+    .usecase-card .usecase-effect {
+      margin-top: 10px;
+      font-size: 14px;
+      padding: 8px 12px;
+      background: rgba(29, 129, 2, 0.1);
+      border-radius: 6px;
+      border-left: 3px solid var(--aws-green);
+      color: var(--aws-light-gray);
+    }
+
+    /* Tables */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0;
+      font-size: 14px;
+    }
+
+    th {
+      background: rgba(255, 153, 0, 0.15);
+      color: var(--aws-orange);
+      font-weight: 600;
+      text-align: left;
+      padding: 10px 14px;
+      border-bottom: 2px solid rgba(255, 153, 0, 0.3);
+    }
+
+    td {
+      padding: 10px 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      color: var(--aws-light-gray);
+    }
+
+    tr:hover td {
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    /* Flow diagram */
+    .flow-diagram {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin: 24px 0;
+    }
+
+    .flow-step {
+      background: var(--aws-dark-squid);
+      border: 2px solid var(--aws-orange);
+      border-radius: 8px;
+      padding: 12px 20px;
+      text-align: center;
+      min-width: 100px;
+      font-size: 14px;
+    }
+
+    .flow-arrow {
+      color: var(--aws-orange);
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    /* Mermaid */
+    .mermaid-container {
+      background: #FFFFFF;
+      border-radius: 12px;
+      padding: 24px;
+      margin: 20px 0;
+      border: 2px solid rgba(255, 153, 0, 0.3);
+      overflow-x: auto;
+    }
+
+    .mermaid {
+      display: flex;
+      justify-content: center;
+    }
+
+    /* Warning / Note boxes */
+    .note-box {
+      background: rgba(255, 153, 0, 0.08);
+      border-left: 4px solid var(--aws-orange);
+      border-radius: 0 8px 8px 0;
+      padding: 14px 18px;
+      margin: 12px 0;
+      font-size: 14px;
+    }
+
+    .warning-box {
+      background: rgba(209, 50, 18, 0.08);
+      border-left: 4px solid var(--aws-red);
+      border-radius: 0 8px 8px 0;
+      padding: 14px 18px;
+      margin: 12px 0;
+      font-size: 14px;
+    }
+
+    /* Steps */
+    .steps-list {
+      list-style: none;
+      padding: 0;
+      counter-reset: step-counter;
+    }
+
+    .steps-list li {
+      counter-increment: step-counter;
+      padding: 10px 0 10px 48px;
+      position: relative;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      font-size: 14px;
+    }
+
+    .steps-list li::before {
+      content: counter(step-counter);
+      position: absolute;
+      left: 0;
+      top: 8px;
+      width: 32px;
+      height: 32px;
+      background: var(--aws-orange);
+      color: var(--aws-squid-ink);
+      font-weight: 700;
+      font-size: 14px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .steps-list li:last-child { border-bottom: none; }
+
+    /* Related services */
+    .related-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .related-item {
+      background: var(--aws-squid-ink);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      padding: 14px;
+      font-size: 14px;
+    }
+
+    .related-item strong {
+      color: var(--aws-teal);
+    }
+
+    /* Pricing */
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .pricing-item {
+      background: var(--aws-squid-ink);
+      border: 1px solid rgba(255, 153, 0, 0.2);
+      border-radius: 8px;
+      padding: 16px;
+      text-align: center;
+      font-size: 14px;
+    }
+
+    .pricing-item .pricing-label {
+      color: var(--aws-orange);
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    /* Links */
+    a {
+      color: var(--aws-teal);
+      text-decoration: none;
+    }
+
+    a:hover {
+      color: var(--aws-smile-orange);
+    }
+
+    /* Footer */
+    footer {
+      margin-top: 24px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(255, 255, 255, 0.2);
+      font-size: 12px;
+      color: var(--aws-light-gray);
+    }
+
+    footer a {
+      word-break: break-all;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      h1 { font-size: 26px; }
+      .before-after { grid-template-columns: 1fr; }
+      .stats-grid { grid-template-columns: 1fr 1fr; }
+      .header { flex-direction: column; }
+      .header-right { text-align: left; }
+    }
+
+    @media (max-width: 480px) {
+      body { padding: 12px; }
+      .section { padding: 16px; }
+      .stats-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <!-- Header -->
+    <div class="header">
+      <div class="header-left">
+        <span class="service-badge">Amazon Route 53</span>
+        <h1>🌐 Route 53 Global Resolver の一般提供開始</h1>
+        <p class="subtitle">30 リージョン対応のエニーキャスト DNS リゾルバで、パブリック / プライベートドメイン解決と DNS セキュリティを統合</p>
+      </div>
+      <div class="header-right">
+        <div>📅 2026 年 3 月 9 日</div>
+        <div style="margin-top: 4px; color: var(--aws-orange); font-weight: 600;">GA</div>
+      </div>
+    </div>
+
+    <!-- Overview + Stats -->
+    <div class="section">
+      <h2>📋 概要</h2>
+      <p>Amazon Route 53 Global Resolver が一般提供 (GA) を開始しました。<span class="highlight">30 の AWS リージョン</span>にまたがるインターネット到達可能なエニーキャスト DNS リゾルバであり、IPv4 と IPv6 の両方をサポートしています。re:Invent 2025 でプレビューとして発表されたこのサービスが、正式に利用可能になりました。</p>
+      <p>パブリックインターネットドメインの DNS 解決に加え、Route 53 プライベートホストゾーンに関連付けられたプライベートドメインのエニーキャスト DNS 解決を提供します。オンプレミスやリモート環境からも AWS 内のプライベートリソースに対する名前解決が可能になります。</p>
+      <p>悪意のあるドメイン、NSFW ドメイン、DNS トンネリング、DGA 脅威に対する DNS クエリフィルタリング機能を備えており、新たに <span class="highlight">Dictionary DGA 保護</span>も追加されています。一元化されたクエリログ機能により、DNS クエリの可視化と監査が容易になります。</p>
+
+      <div class="stats-grid" style="margin-top: 20px;">
+        <div class="stat-card">
+          <div class="stat-number">30</div>
+          <div class="stat-label">AWS リージョン対応</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">IPv4/v6</div>
+          <div class="stat-label">デュアルスタック対応</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">5</div>
+          <div class="stat-label">脅威フィルタリング種別</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">30 日</div>
+          <div class="stat-label">無料トライアル</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Before / After -->
+    <div class="section">
+      <h2>🔄 Before / After</h2>
+      <div class="before-after">
+        <div class="before-card">
+          <div class="label">❌ BEFORE</div>
+          <ul>
+            <li>パブリック DNS リゾルバとプライベート DNS 解決を統合管理する AWS ネイティブなソリューションが存在しなかった</li>
+            <li>オンプレミスやリモート環境からプライベートホストゾーンを解決するには VPN / Direct Connect 経由で Resolver エンドポイントを構成する必要があった</li>
+            <li>DNS レベルでの脅威フィルタリングにはサードパーティサービスが別途必要だった</li>
+          </ul>
+        </div>
+        <div class="after-card">
+          <div class="label">✅ AFTER</div>
+          <ul>
+            <li>30 リージョンのエニーキャスト DNS リゾルバで、インターネット経由でパブリック / プライベートドメインの名前解決が可能に</li>
+            <li>DNS クエリフィルタリングで悪意のあるドメイン、NSFW、DNS トンネリング、DGA 脅威をブロック</li>
+            <li>一元化されたクエリログで DNS クエリの監視と分析が容易に</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Architecture Diagram -->
+    <div class="section">
+      <h2>🏗️ アーキテクチャ図</h2>
+      <p>Route 53 Global Resolver は、ユーザー環境からの DNS クエリをエニーキャストで受信し、パブリックドメインとプライベートドメインの名前解決を提供します。同時に、DNS クエリフィルタリングにより悪意のあるトラフィックをブロックします。</p>
+      <div class="mermaid-container">
+        <pre class="mermaid">
+flowchart TD
+    subgraph Users["👤 ユーザー環境"]
+        direction LR
+        OnPrem["🏢 オンプレミス"]
+        Remote["💻 リモートデバイス"]
+        Branch["🏬 ブランチオフィス"]
+        OnPrem ~~~ Remote ~~~ Branch
+    end
+
+    subgraph GlobalResolver["☁️ Route 53 Global Resolver"]
+        direction LR
+        Anycast["🌐 エニーキャスト DNS<br/>IPv4 / IPv6"]
+        Filter["🛡️ DNS クエリ<br/>フィルタリング"]
+        Logging["📋 一元化<br/>クエリログ"]
+        Anycast ~~~ Filter ~~~ Logging
+    end
+
+    subgraph Resolution["🔍 DNS 解決先"]
+        direction LR
+        Public["🌍 パブリック<br/>インターネットドメイン"]
+        Private["🔒 Route 53<br/>プライベートホストゾーン"]
+        Public ~~~ Private
+    end
+
+    subgraph Threats["⚠️ フィルタリング対象"]
+        direction LR
+        Malware["🦠 悪意のある<br/>ドメイン"]
+        NSFW["🚫 NSFW<br/>ドメイン"]
+        Tunnel["🕳️ DNS<br/>トンネリング"]
+        DGA["🤖 DGA /<br/>Dictionary DGA"]
+        Malware ~~~ NSFW ~~~ Tunnel ~~~ DGA
+    end
+
+    Users -->|DNS クエリ| GlobalResolver
+    GlobalResolver -->|名前解決| Resolution
+    Filter -.->|ブロック| Threats
+
+    classDef cloud fill:none,stroke:#CCCCCC,stroke-width:2px,color:#666666
+    classDef layer fill:none,stroke:#E1BEE7,stroke-width:2px,color:#666666
+    classDef compute fill:#FFE0B2,stroke:#FFCC80,stroke-width:2px,color:#5D4037
+    classDef storage fill:#DCEDC8,stroke:#C5E1A5,stroke-width:2px,color:#33691E
+    classDef user fill:#E3F2FD,stroke:#BBDEFB,stroke-width:2px,color:#1565C0
+    classDef security fill:#FFEBEE,stroke:#F44336,stroke-width:2px,color:#B71C1C
+
+    class Users user
+    class GlobalResolver cloud
+    class Resolution layer
+    class Threats security
+    class Anycast,Filter,Logging compute
+    class Public,Private storage
+    class Malware,NSFW,Tunnel,DGA security
+        </pre>
+      </div>
+    </div>
+
+    <!-- Key Features -->
+    <div class="section">
+      <h2>⚙️ 主要機能</h2>
+
+      <div class="feature-card">
+        <div class="feature-title">🌐 エニーキャスト DNS リゾルバ</div>
+        <div class="feature-desc">
+          <ul>
+            <li>30 の AWS リージョンに展開されたグローバルなエニーキャスト DNS リゾルバ</li>
+            <li>IPv4 および IPv6 の両方をサポート</li>
+            <li>インターネット経由でアクセス可能</li>
+            <li>最寄りのリージョンに自動ルーティングされ、低レイテンシーの DNS 解決を提供</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-title">🔒 プライベートドメイン解決</div>
+        <div class="feature-desc">
+          <ul>
+            <li>Route 53 プライベートホストゾーンに関連付けられたドメインの DNS 解決</li>
+            <li>VPN や Direct Connect を経由せずにプライベートドメインを解決可能</li>
+            <li>オンプレミスやリモートワーカーからのアクセスを簡素化</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-title">🛡️ DNS クエリフィルタリング</div>
+        <div class="feature-desc">
+          <ul>
+            <li>悪意のあるドメインのブロック</li>
+            <li>NSFW ドメインのフィルタリング</li>
+            <li>DNS トンネリングの検出とブロック</li>
+            <li>DGA 脅威の検出</li>
+            <li>新機能: Dictionary DGA 保護による高度な脅威検出</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-title">📋 一元化されたクエリログ</div>
+        <div class="feature-desc">
+          <ul>
+            <li>すべての DNS クエリを一元的にログ記録</li>
+            <li>クエリパターンの分析と可視化</li>
+            <li>セキュリティ監査およびコンプライアンス要件への対応</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Technical Specifications -->
+    <div class="section">
+      <h2>📐 技術仕様</h2>
+
+      <h3>サービス仕様</h3>
+      <table>
+        <tr><th>項目</th><th>詳細</th></tr>
+        <tr><td>プロトコル</td><td>IPv4、IPv6</td></tr>
+        <tr><td>展開リージョン</td><td>30 の AWS リージョン</td></tr>
+        <tr><td>DNS 解決対象</td><td>パブリックインターネットドメイン、Route 53 プライベートホストゾーン</td></tr>
+        <tr><td>フィルタリング</td><td>悪意のあるドメイン、NSFW、DNS トンネリング、DGA、Dictionary DGA</td></tr>
+        <tr><td>ログ機能</td><td>一元化されたクエリログ</td></tr>
+        <tr><td>無料トライアル</td><td>新規のお客様に 30 日間</td></tr>
+      </table>
+
+      <h3 style="margin-top: 24px;">DNS クエリフィルタリングカテゴリ</h3>
+      <table>
+        <tr><th>フィルタリング種別</th><th>説明</th></tr>
+        <tr><td>悪意のあるドメイン</td><td>マルウェア、フィッシング、コマンド & コントロールに使用されるドメインをブロック</td></tr>
+        <tr><td>NSFW ドメイン</td><td>不適切なコンテンツを含むドメインをフィルタリング</td></tr>
+        <tr><td>DNS トンネリング</td><td>DNS プロトコルを悪用したデータ漏洩やトンネリングを検出</td></tr>
+        <tr><td>DGA 脅威</td><td>アルゴリズムで生成されたドメイン名を検出してブロック</td></tr>
+        <tr><td>Dictionary DGA</td><td>辞書ベースの DGA により生成された、より自然に見えるドメイン名を検出</td></tr>
+      </table>
+    </div>
+
+    <!-- Setup Steps -->
+    <div class="section">
+      <h2>🔧 設定方法</h2>
+
+      <div class="note-box" style="margin-bottom: 16px;">
+        <strong>前提条件:</strong> AWS アカウント、Route 53 の利用権限、プライベートドメイン解決を利用する場合は Route 53 プライベートホストゾーンが設定済みであること
+      </div>
+
+      <ol class="steps-list">
+        <li><strong>Route 53 コンソールで Global Resolver を有効化</strong><br/>AWS マネジメントコンソールにサインインし、Route 53 サービスの Global Resolver セクションにアクセスして、サービスを有効化します。</li>
+        <li><strong>DNS クエリフィルタリングの設定</strong><br/>セキュリティ要件に応じて、フィルタリングポリシーを設定します。悪意のあるドメイン、NSFW コンテンツ、DNS トンネリング、DGA 脅威のブロックを有効化できます。</li>
+        <li><strong>プライベートホストゾーンの関連付け</strong><br/>Route 53 プライベートホストゾーンを Global Resolver に関連付けることで、インターネット経由でプライベートドメインの名前解決が可能になります。</li>
+        <li><strong>クライアントの DNS 設定を更新</strong><br/>オンプレミスデバイスやリモートクライアントの DNS リゾルバ設定を、Route 53 Global Resolver のエニーキャスト IP アドレスに変更します。</li>
+        <li><strong>クエリログの有効化</strong><br/>一元化されたクエリログを有効化して、DNS クエリの監視と分析を開始します。</li>
+      </ol>
+    </div>
+
+    <!-- Benefits -->
+    <div class="section">
+      <h2>✅ メリット</h2>
+
+      <h3>ビジネス面</h3>
+      <div class="feature-card">
+        <div class="feature-title">💰 運用コストの削減</div>
+        <div class="feature-desc">サードパーティの DNS フィルタリングサービスが不要になり、AWS ネイティブなソリューションで一元管理が可能</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-title">🛡️ セキュリティの強化</div>
+        <div class="feature-desc">DNS レベルでの脅威フィルタリングにより、悪意のあるドメインへのアクセスを未然に防止</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-title">📋 コンプライアンス対応</div>
+        <div class="feature-desc">一元化されたクエリログにより、監査要件への対応が容易</div>
+      </div>
+
+      <h3 style="margin-top: 20px;">技術面</h3>
+      <div class="feature-card">
+        <div class="feature-title">🌐 グローバルな低レイテンシー</div>
+        <div class="feature-desc">30 リージョンにまたがるエニーキャストにより、最寄りのリージョンで DNS 解決が行われる</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-title">🔗 ハイブリッド環境の簡素化</div>
+        <div class="feature-desc">VPN や Direct Connect なしでプライベートドメインを解決可能</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-title">🤖 高度な脅威検出</div>
+        <div class="feature-desc">Dictionary DGA 保護を含む包括的な DNS セキュリティフィルタリング</div>
+      </div>
+    </div>
+
+    <!-- Limitations -->
+    <div class="section">
+      <h2>⚠️ デメリット / 制約事項</h2>
+
+      <h3>制限事項</h3>
+      <div class="warning-box">
+        <ul style="list-style: none; padding: 0;">
+          <li style="padding: 4px 0;">⚠️ 詳細な料金体系は公式料金ページで確認が必要 (30 日間の無料トライアル後は課金が発生)</li>
+          <li style="padding: 4px 0;">⚠️ プライベートホストゾーンの解決をインターネット経由で公開するため、適切なアクセス制御の設計が必要</li>
+          <li style="padding: 4px 0;">⚠️ 既存の Route 53 Resolver エンドポイントとの使い分けを検討する必要がある</li>
+        </ul>
+      </div>
+
+      <h3>考慮すべき点</h3>
+      <div class="warning-box">
+        <ul style="list-style: none; padding: 0;">
+          <li style="padding: 4px 0;">💡 プライベートドメインをインターネット経由で解決する場合のセキュリティ設計を慎重に検討すること</li>
+          <li style="padding: 4px 0;">💡 DNS クエリフィルタリングの誤検知 (正当なドメインのブロック) が発生する可能性を考慮すること</li>
+          <li style="padding: 4px 0;">💡 既存の DNS インフラストラクチャからの移行計画を策定すること</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Use Cases -->
+    <div class="section">
+      <h2>🎯 ユースケース</h2>
+
+      <div class="usecase-card">
+        <div class="usecase-title">💻 ユースケース 1: リモートワーク環境での社内リソースアクセス</div>
+        <div class="usecase-scenario"><strong>シナリオ:</strong> リモートワーカーが VPN なしで社内のプライベートリソースに名前解決でアクセスする必要がある。</div>
+        <div class="usecase-impl">
+          <strong>実装例:</strong>
+          <ul>
+            <li>Route 53 Global Resolver を有効化し、プライベートホストゾーンを関連付け</li>
+            <li>リモートデバイスの DNS 設定を Global Resolver のエニーキャスト IP に変更</li>
+            <li>DNS クエリフィルタリングで悪意のあるドメインをブロック</li>
+          </ul>
+        </div>
+        <div class="usecase-effect">✅ <strong>効果:</strong> VPN の負荷を軽減しつつ、セキュアなプライベートドメイン解決を実現。DNS レベルでの脅威保護も同時に提供。</div>
+      </div>
+
+      <div class="usecase-card">
+        <div class="usecase-title">🌍 ユースケース 2: マルチリージョン環境での DNS セキュリティ統合</div>
+        <div class="usecase-scenario"><strong>シナリオ:</strong> 複数のリージョンに展開されたワークロードに対して、一貫した DNS セキュリティポリシーを適用したい。</div>
+        <div class="usecase-impl">
+          <strong>実装例:</strong>
+          <ul>
+            <li>Route 53 Global Resolver のフィルタリングポリシーを一元的に設定</li>
+            <li>悪意のあるドメイン、DNS トンネリング、DGA 脅威のブロックを有効化</li>
+            <li>クエリログを有効化して、全リージョンの DNS アクティビティを監視</li>
+          </ul>
+        </div>
+        <div class="usecase-effect">✅ <strong>効果:</strong> 30 リージョンにまたがる一貫した DNS セキュリティポリシーの適用と、一元的な監視体制の構築。</div>
+      </div>
+
+      <div class="usecase-card">
+        <div class="usecase-title">🏬 ユースケース 3: ブランチオフィスの DNS 管理簡素化</div>
+        <div class="usecase-scenario"><strong>シナリオ:</strong> 複数のブランチオフィスから AWS 上のプライベートリソースへのアクセスを簡素化したい。</div>
+        <div class="usecase-impl">
+          <strong>実装例:</strong>
+          <ul>
+            <li>各ブランチオフィスの DNS リゾルバを Route 53 Global Resolver に向ける</li>
+            <li>NSFW フィルタリングと悪意のあるドメインのブロックを有効化</li>
+            <li>クエリログで各拠点の DNS アクティビティを監視</li>
+          </ul>
+        </div>
+        <div class="usecase-effect">✅ <strong>効果:</strong> 各拠点に個別の DNS フォワーダーや VPN を構成する必要がなくなり、運用が大幅に簡素化。</div>
+      </div>
+    </div>
+
+    <!-- Pricing -->
+    <div class="section">
+      <h2>💲 料金</h2>
+      <p>新規のお客様には <span class="highlight">30 日間の無料トライアル</span>が提供されます。無料トライアル期間終了後の料金体系については、Route 53 の料金ページをご確認ください。</p>
+
+      <div class="pricing-grid">
+        <div class="pricing-item">
+          <div class="pricing-label">DNS クエリ料金</div>
+          <div>クエリ数に応じた従量課金</div>
+        </div>
+        <div class="pricing-item">
+          <div class="pricing-label">フィルタリング料金</div>
+          <div>DNS クエリフィルタリング機能の利用料金</div>
+        </div>
+        <div class="pricing-item">
+          <div class="pricing-label">クエリログ料金</div>
+          <div>ログの保存と分析に応じた料金</div>
+        </div>
+        <div class="pricing-item">
+          <div class="pricing-label">無料トライアル</div>
+          <div>新規のお客様に 30 日間提供</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Region -->
+    <div class="section">
+      <h2>🗺️ 利用可能リージョン</h2>
+      <p>Route 53 Global Resolver は <span class="highlight">30 の AWS リージョン</span>で利用可能です。エニーキャストルーティングにより、クライアントからのクエリは自動的に最寄りのリージョンにルーティングされます。</p>
+    </div>
+
+    <!-- Related Services -->
+    <div class="section">
+      <h2>🔗 関連サービス / 機能</h2>
+      <div class="related-grid">
+        <div class="related-item">
+          <strong>Amazon Route 53 Resolver</strong><br/>
+          VPC 内での DNS 解決とオンプレミスとの DNS フォワーディング
+        </div>
+        <div class="related-item">
+          <strong>Route 53 プライベートホストゾーン</strong><br/>
+          VPC 内のプライベートドメイン管理
+        </div>
+        <div class="related-item">
+          <strong>AWS Network Firewall</strong><br/>
+          ネットワークレベルのトラフィックフィルタリングとセキュリティ
+        </div>
+        <div class="related-item">
+          <strong>Amazon CloudWatch</strong><br/>
+          DNS クエリログの監視とアラート
+        </div>
+        <div class="related-item">
+          <strong>AWS Firewall Manager</strong><br/>
+          複数アカウントにまたがるファイアウォールポリシーの一元管理
+        </div>
+      </div>
+    </div>
+
+    <!-- Summary -->
+    <div class="section" style="border: 1px solid rgba(255, 153, 0, 0.3);">
+      <h2>📝 まとめ</h2>
+      <p>Amazon Route 53 Global Resolver の一般提供開始により、30 の AWS リージョンにまたがるインターネット到達可能なエニーキャスト DNS リゾルバが利用可能になりました。パブリックドメインとプライベートドメインの統合的な名前解決、DNS クエリフィルタリングによる脅威保護、一元化されたクエリログを AWS ネイティブなソリューションとして提供します。</p>
+      <p>特にリモートワーク環境やハイブリッドクラウド構成において、DNS 管理の簡素化とセキュリティ強化に効果を発揮するため、新規のお客様は <span class="highlight">30 日間の無料トライアル</span>を活用して評価することをお勧めします。</p>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+      <p>📎 出典:</p>
+      <ul style="list-style: none; padding: 0; margin-top: 4px;">
+        <li style="padding: 2px 0;"><a href="https://aws.amazon.com/about-aws/whats-new/2026/03/amazon-route-53-global-resolver/" target="_blank" rel="noopener noreferrer">公式発表 (What's New)</a></li>
+        <li style="padding: 2px 0;"><a href="https://aws.amazon.com/route53/" target="_blank" rel="noopener noreferrer">Amazon Route 53 製品ページ</a></li>
+        <li style="padding: 2px 0;"><a href="https://aws.amazon.com/route53/pricing/" target="_blank" rel="noopener noreferrer">Route 53 料金ページ</a></li>
+        <li style="padding: 2px 0;"><a href="https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/resolver-global.html" target="_blank" rel="noopener noreferrer">Route 53 Global Resolver ドキュメント</a></li>
+      </ul>
+    </footer>
+
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'base',
+      themeVariables: {
+        primaryColor: '#FF9900',
+        primaryTextColor: '#232F3E',
+        primaryBorderColor: '#FF9900',
+        lineColor: '#FF9900',
+        secondaryColor: '#F5F5F5',
+        tertiaryColor: '#FAFAFA',
+        background: '#FFFFFF',
+        mainBkg: '#FFF3E0',
+        nodeBorder: '#FF9900',
+        clusterBkg: '#FFF8E1',
+        clusterBorder: '#FF9900',
+        edgeLabelBackground: '#FFFFFF',
+        textColor: '#232F3E'
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,1023 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Amazon EC2 G7e - Seoul / Spain Regions</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap');
+
+    :root {
+      --aws-squid-ink: #232F3E;
+      --aws-dark-squid: #1A242F;
+      --aws-orange: #FF9900;
+      --aws-smile-orange: #FFAD33;
+      --aws-white: #FFFFFF;
+      --aws-light-gray: #D5DBDB;
+      --aws-teal: #00A1C9;
+      --aws-purple: #8C4FFF;
+      --aws-green: #1D8102;
+      --aws-red: #D13212;
+    }
+
+    body {
+      background-color: var(--aws-squid-ink);
+      font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+      color: var(--aws-light-gray);
+      font-size: 16px;
+      line-height: 1.6;
+      padding: 20px;
+      margin: 0;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 32px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    h1 {
+      font-size: 36px;
+      font-weight: 700;
+      color: var(--aws-white);
+      margin: 0;
+      line-height: 1.3;
+    }
+
+    h1 .accent {
+      color: var(--aws-orange);
+    }
+
+    .subtitle {
+      font-size: 14px;
+      color: var(--aws-light-gray);
+      text-align: right;
+    }
+
+    .service-badge {
+      display: inline-block;
+      background: var(--aws-orange);
+      color: var(--aws-squid-ink);
+      padding: 4px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+
+    h2 {
+      font-size: 24px;
+      font-weight: 600;
+      color: var(--aws-orange);
+      margin: 0 0 16px 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    h3 {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--aws-white);
+      margin: 16px 0 8px 0;
+    }
+
+    .section {
+      background: var(--aws-dark-squid);
+      border-radius: 8px;
+      padding: 24px;
+      margin-bottom: 24px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .highlight {
+      background-color: rgba(255, 153, 0, 0.2);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 600;
+      color: var(--aws-orange);
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 8px;
+      padding: 16px;
+      margin: 12px 0;
+      border-left: 4px solid var(--aws-orange);
+    }
+
+    .card-title {
+      font-weight: 600;
+      color: var(--aws-white);
+      margin-bottom: 6px;
+    }
+
+    .card p {
+      margin: 4px 0;
+      font-size: 14px;
+    }
+
+    /* Stats grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin: 20px 0;
+    }
+
+    .stat-card {
+      background: linear-gradient(135deg, rgba(255, 153, 0, 0.15), rgba(255, 153, 0, 0.05));
+      border: 1px solid rgba(255, 153, 0, 0.3);
+      border-radius: 8px;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 36px;
+      font-weight: 700;
+      color: var(--aws-orange);
+      line-height: 1.1;
+    }
+
+    .stat-label {
+      font-size: 13px;
+      color: var(--aws-light-gray);
+      margin-top: 6px;
+    }
+
+    /* Before/After */
+    .before-after {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin: 16px 0;
+    }
+
+    @media (max-width: 600px) {
+      .before-after {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .before {
+      background: rgba(209, 50, 18, 0.1);
+      border: 1px solid rgba(209, 50, 18, 0.3);
+      border-radius: 8px;
+      padding: 16px;
+    }
+
+    .before h3 {
+      color: var(--aws-red);
+      margin-top: 0;
+    }
+
+    .after {
+      background: rgba(29, 129, 2, 0.1);
+      border: 1px solid rgba(29, 129, 2, 0.3);
+      border-radius: 8px;
+      padding: 16px;
+    }
+
+    .after h3 {
+      color: var(--aws-green);
+      margin-top: 0;
+    }
+
+    .before li, .after li {
+      margin: 6px 0;
+      font-size: 14px;
+    }
+
+    /* Feature cards grid */
+    .feature-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+      margin: 16px 0;
+    }
+
+    .feature-card {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 153, 0, 0.2);
+      border-radius: 8px;
+      padding: 20px;
+    }
+
+    .feature-card h3 {
+      margin-top: 0;
+      font-size: 16px;
+    }
+
+    .feature-card ul {
+      margin: 8px 0 0 0;
+      padding-left: 20px;
+    }
+
+    .feature-card li {
+      font-size: 14px;
+      margin: 4px 0;
+    }
+
+    /* Tables */
+    .table-wrapper {
+      overflow-x: auto;
+      margin: 16px 0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    th {
+      background: rgba(255, 153, 0, 0.2);
+      color: var(--aws-orange);
+      padding: 10px 12px;
+      text-align: left;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    td {
+      padding: 10px 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      color: var(--aws-light-gray);
+    }
+
+    tr:hover td {
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    /* Use case cards */
+    .usecase-card {
+      background: linear-gradient(135deg, rgba(255, 153, 0, 0.08), rgba(255, 173, 51, 0.04));
+      border: 1px solid rgba(255, 153, 0, 0.2);
+      border-radius: 8px;
+      padding: 20px;
+      margin: 16px 0;
+    }
+
+    .usecase-card h3 {
+      margin-top: 0;
+      color: var(--aws-orange);
+    }
+
+    .usecase-card .scenario {
+      font-size: 14px;
+      margin-bottom: 12px;
+    }
+
+    .usecase-card .effect {
+      font-size: 14px;
+      background: rgba(29, 129, 2, 0.1);
+      border-left: 3px solid var(--aws-green);
+      padding: 8px 12px;
+      border-radius: 0 6px 6px 0;
+      margin-top: 12px;
+    }
+
+    /* Check items */
+    .check-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      margin: 8px 0;
+      font-size: 14px;
+    }
+
+    .check-icon {
+      color: var(--aws-green);
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+
+    .warn-icon {
+      color: var(--aws-orange);
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+
+    /* Region tags */
+    .region-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 16px 0;
+    }
+
+    .region-tag {
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: var(--aws-light-gray);
+    }
+
+    .region-tag.new {
+      background: rgba(29, 129, 2, 0.15);
+      border: 1px solid rgba(29, 129, 2, 0.4);
+      color: #7CFC00;
+    }
+
+    /* Mermaid */
+    .mermaid-container {
+      background: #FFFFFF;
+      border-radius: 12px;
+      padding: 24px;
+      margin: 20px 0;
+      border: 2px solid rgba(255, 153, 0, 0.3);
+      overflow-x: auto;
+    }
+
+    .mermaid {
+      display: flex;
+      justify-content: center;
+    }
+
+    /* Code block */
+    .code-block {
+      background: #0d1117;
+      border-radius: 8px;
+      overflow: hidden;
+      margin: 16px 0;
+      border: 1px solid rgba(255, 153, 0, 0.2);
+    }
+
+    .code-header {
+      background: #161b22;
+      padding: 8px 16px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+    }
+
+    .code-lang {
+      color: var(--aws-orange);
+      font-weight: bold;
+    }
+
+    .code-title {
+      color: var(--aws-light-gray);
+    }
+
+    .code-block pre {
+      margin: 0;
+      padding: 0;
+      overflow-x: auto;
+    }
+
+    .code-block code {
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      line-height: 1.5;
+      padding: 16px !important;
+    }
+
+    /* Links */
+    .aws-link {
+      color: var(--aws-teal);
+      text-decoration: none;
+    }
+
+    .aws-link:hover {
+      color: var(--aws-smile-orange);
+      text-decoration: underline;
+    }
+
+    /* Pricing table */
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin: 16px 0;
+    }
+
+    @media (max-width: 600px) {
+      .pricing-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .pricing-card {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 16px;
+      text-align: center;
+    }
+
+    .pricing-card h4 {
+      color: var(--aws-white);
+      margin: 0 0 6px 0;
+      font-size: 15px;
+    }
+
+    .pricing-card p {
+      font-size: 13px;
+      margin: 0;
+      color: var(--aws-light-gray);
+    }
+
+    /* Related services */
+    .related-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin: 16px 0;
+    }
+
+    @media (max-width: 600px) {
+      .related-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .related-card {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      padding: 14px;
+    }
+
+    .related-card strong {
+      color: var(--aws-white);
+      font-size: 14px;
+    }
+
+    .related-card p {
+      font-size: 13px;
+      margin: 4px 0 0 0;
+    }
+
+    footer {
+      margin-top: 24px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(255, 255, 255, 0.2);
+      font-size: 12px;
+      color: var(--aws-light-gray);
+    }
+
+    footer a {
+      color: var(--aws-teal);
+      text-decoration: none;
+      word-break: break-all;
+    }
+
+    footer a:hover {
+      color: var(--aws-smile-orange);
+    }
+
+    footer ul {
+      list-style: none;
+      padding: 0;
+      margin: 8px 0;
+    }
+
+    footer li {
+      margin: 4px 0;
+    }
+  </style>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/styles/atom-one-dark.min.css">
+</head>
+<body>
+  <div class="container">
+
+    <!-- Header -->
+    <div class="header">
+      <div>
+        <span class="service-badge">Amazon EC2</span>
+        <h1>Amazon EC2 <span class="accent">G7e</span><br>Seoul / Spain Regions</h1>
+      </div>
+      <div class="subtitle">2026-03-09</div>
+    </div>
+
+    <!-- Overview -->
+    <div class="section">
+      <h2>📋 概要</h2>
+      <p>
+        Amazon EC2 G7e インスタンスが <span class="highlight">Asia Pacific (Seoul)</span> および <span class="highlight">Europe (Spain)</span> リージョンで利用可能になった。G7e インスタンスは NVIDIA RTX PRO 6000 Blackwell Server Edition GPU を搭載し、前世代の G6e インスタンスと比較して<span class="highlight">最大 2.3 倍の推論パフォーマンス</span>を提供する。
+      </p>
+      <p>
+        LLM、エージェント型 AI、マルチモーダル生成 AI、フィジカル AI モデルのデプロイに適しており、空間コンピューティングやグラフィックスと AI 処理の両方を必要とするワークロードで最高のパフォーマンスを提供する。
+      </p>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-value">2.3x</div>
+        <div class="stat-label">推論パフォーマンス向上<br>(vs G6e)</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">6</div>
+        <div class="stat-label">利用可能リージョン<br>(+2 新規)</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">96 GB</div>
+        <div class="stat-label">GPU メモリ / GPU<br>(GDDR7)</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">1600 Gbps</div>
+        <div class="stat-label">EFA ネットワーク帯域幅<br>(G6e の 4 倍)</div>
+      </div>
+    </div>
+
+    <!-- Before / After -->
+    <div class="section">
+      <h2>🔄 Before / After</h2>
+      <div class="before-after">
+        <div class="before">
+          <h3>❌ Before</h3>
+          <ul>
+            <li>G7e は US East (N. Virginia, Ohio)、US West (Oregon)、Asia Pacific (Tokyo) の 4 リージョンのみ</li>
+            <li>韓国やスペインのユーザーは他リージョンを使用する必要があった</li>
+            <li>ソウル/スペインでは G6e が最新で、Blackwell GPU を活用不可</li>
+            <li>データレジデンシー要件を満たしつつ低レイテンシー推論が困難</li>
+          </ul>
+        </div>
+        <div class="after">
+          <h3>✅ After</h3>
+          <ul>
+            <li>ソウル/スペインで G7e が利用可能に</li>
+            <li>Blackwell GPU の最大 2.3 倍推論パフォーマンスを近接リージョンで活用</li>
+            <li>韓国/欧州南部のデータレジデンシー要件を満たしながら最新 GPU ワークロードを実行可能</li>
+            <li>合計 6 リージョンに拡大、グローバル展開が進展</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Architecture Diagram (Mermaid) -->
+    <div class="section">
+      <h2>🗺️ アーキテクチャ図</h2>
+      <p>G7e インスタンスの利用可能リージョンと構成。今回新たにソウルとスペインが追加され、合計 6 リージョンで利用可能になった。</p>
+      <div class="mermaid-container">
+        <pre class="mermaid">
+flowchart TD
+    subgraph Global["🌍 Amazon EC2 G7e 利用可能リージョン"]
+        subgraph US["🇺🇸 米国"]
+            direction LR
+            NV["N. Virginia<br/>us-east-1"]
+            OH["Ohio<br/>us-east-2"]
+            OR["Oregon<br/>us-west-2"]
+            NV ~~~ OH ~~~ OR
+        end
+        subgraph APAC["🌏 アジア太平洋"]
+            direction LR
+            TK["Tokyo<br/>ap-northeast-1"]
+            SL["Seoul<br/>ap-northeast-2<br/>**新規**"]
+            TK ~~~ SL
+        end
+        subgraph EU["🇪🇺 欧州"]
+            SP["Spain<br/>eu-south-2<br/>**新規**"]
+        end
+    end
+
+    subgraph G7e["⚡ G7e インスタンス構成"]
+        direction LR
+        GPU["🎮 NVIDIA RTX PRO 6000<br/>Blackwell Server Edition<br/>最大 8 GPU / 96 GB each"]
+        CPU["🖥️ 5th Gen Intel Xeon<br/>最大 192 vCPUs"]
+        NET["📡 EFA<br/>最大 1600 Gbps"]
+        GPU ~~~ CPU ~~~ NET
+    end
+
+    Global --> G7e
+
+    classDef cloud fill:none,stroke:#CCCCCC,stroke-width:2px,color:#666666
+    classDef region fill:#E8F1FF,stroke:#4A90E2,stroke-width:2px,color:#333333
+    classDef newRegion fill:#E9F7EC,stroke:#66BB6A,stroke-width:2px,color:#333333
+    classDef gpu fill:#FFE0B2,stroke:#FFCC80,stroke-width:2px,color:#5D4037
+
+    class Global cloud
+    class US,APAC,EU cloud
+    class NV,OH,OR,TK region
+    class SL,SP newRegion
+    class G7e,GPU,CPU,NET gpu
+        </pre>
+      </div>
+    </div>
+
+    <!-- Key Features -->
+    <div class="section">
+      <h2>⚡ 主要機能</h2>
+      <div class="feature-grid">
+        <div class="feature-card">
+          <h3>🎮 NVIDIA RTX PRO 6000 Blackwell Server Edition GPU</h3>
+          <ul>
+            <li>GPU あたり 96 GB の GDDR7 メモリ、1597 GB/s のメモリ帯域幅</li>
+            <li>第 5 世代 NVIDIA Tensor Core で FP4 精度をサポート</li>
+            <li>第 4 世代レイトレーシングコアでニューラルグラフィクスベースの技術に対応</li>
+            <li>最大 8 GPU (合計 768 GB GPU メモリ) を搭載可能</li>
+          </ul>
+        </div>
+        <div class="feature-card">
+          <h3>📡 高性能ネットワーキング</h3>
+          <ul>
+            <li>EFA で最大 1600 Gbps のネットワーク帯域幅 (G6e の 4 倍)</li>
+            <li>NVIDIA GPUDirect Peer to Peer (P2P) によるマルチ GPU ワークロードの低レイテンシー化</li>
+            <li>NVIDIA GPUDirect RDMA (EFA 対応) で EC2 UltraClusters における小規模マルチノードワークロードのレイテンシーを削減</li>
+          </ul>
+        </div>
+        <div class="feature-card">
+          <h3>🚀 AI 推論パフォーマンスの大幅向上</h3>
+          <ul>
+            <li>G6e と比較して最大 2.3 倍の推論パフォーマンス</li>
+            <li>1.85 倍の GPU メモリ帯域幅でリアルタイムエージェント型 AI およびマルチモーダル AI 推論に対応</li>
+            <li>CPU-GPU 間帯域幅が 4 倍に向上し、レコメンダーや RAG ワークロードの推論性能が改善</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Instance Sizes Table -->
+    <div class="section">
+      <h2>📊 インスタンスサイズ</h2>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>サイズ</th>
+              <th>GPU 数</th>
+              <th>GPU メモリ</th>
+              <th>vCPUs</th>
+              <th>システムメモリ</th>
+              <th>ストレージ</th>
+              <th>EBS 帯域幅</th>
+              <th>ネットワーク</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>g7e.2xlarge</td>
+              <td>1</td>
+              <td>96 GB</td>
+              <td>8</td>
+              <td>64 GiB</td>
+              <td>1.9 TB x 1</td>
+              <td>最大 5 Gbps</td>
+              <td>50 Gbps</td>
+            </tr>
+            <tr>
+              <td>g7e.4xlarge</td>
+              <td>1</td>
+              <td>96 GB</td>
+              <td>16</td>
+              <td>128 GiB</td>
+              <td>1.9 TB x 1</td>
+              <td>8 Gbps</td>
+              <td>50 Gbps</td>
+            </tr>
+            <tr>
+              <td>g7e.8xlarge</td>
+              <td>1</td>
+              <td>96 GB</td>
+              <td>32</td>
+              <td>256 GiB</td>
+              <td>1.9 TB x 1</td>
+              <td>16 Gbps</td>
+              <td>100 Gbps</td>
+            </tr>
+            <tr>
+              <td>g7e.12xlarge</td>
+              <td>2</td>
+              <td>192 GB</td>
+              <td>48</td>
+              <td>512 GiB</td>
+              <td>3.8 TB x 1</td>
+              <td>25 Gbps</td>
+              <td>400 Gbps</td>
+            </tr>
+            <tr>
+              <td>g7e.24xlarge</td>
+              <td>4</td>
+              <td>384 GB</td>
+              <td>96</td>
+              <td>1024 GiB</td>
+              <td>3.8 TB x 2</td>
+              <td>50 Gbps</td>
+              <td>800 Gbps</td>
+            </tr>
+            <tr>
+              <td>g7e.48xlarge</td>
+              <td>8</td>
+              <td>768 GB</td>
+              <td>192</td>
+              <td>2048 GiB</td>
+              <td>3.8 TB x 4</td>
+              <td>100 Gbps</td>
+              <td>1600 Gbps</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- G6e vs G7e Comparison -->
+    <div class="section">
+      <h2>📈 G6e vs G7e 比較</h2>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>項目</th>
+              <th>G6e</th>
+              <th>G7e</th>
+              <th>改善率</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>GPU</td>
+              <td>NVIDIA L40S</td>
+              <td>NVIDIA RTX PRO 6000 Blackwell</td>
+              <td>-</td>
+            </tr>
+            <tr>
+              <td>GPU メモリ/GPU</td>
+              <td>48 GB</td>
+              <td>96 GB</td>
+              <td><span class="highlight">2 倍</span></td>
+            </tr>
+            <tr>
+              <td>GPU メモリ帯域幅</td>
+              <td>-</td>
+              <td>1597 GB/s</td>
+              <td><span class="highlight">1.85 倍</span></td>
+            </tr>
+            <tr>
+              <td>推論パフォーマンス</td>
+              <td>ベースライン</td>
+              <td>最大 2.3 倍</td>
+              <td><span class="highlight">2.3 倍</span></td>
+            </tr>
+            <tr>
+              <td>GPU 間通信帯域幅</td>
+              <td>ベースライン</td>
+              <td>最大 4 倍</td>
+              <td><span class="highlight">4 倍</span></td>
+            </tr>
+            <tr>
+              <td>EFA ネットワーク帯域幅</td>
+              <td>400 Gbps</td>
+              <td>1600 Gbps</td>
+              <td><span class="highlight">4 倍</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Setup -->
+    <div class="section">
+      <h2>🔧 設定方法</h2>
+      <h3>前提条件</h3>
+      <div class="check-item"><span class="check-icon">✓</span><span>AWS アカウント</span></div>
+      <div class="check-item"><span class="check-icon">✓</span><span>ソウルリージョン (ap-northeast-2) またはスペインリージョン (eu-south-2) での G7e インスタンスのサービスクォータ</span></div>
+      <div class="check-item"><span class="check-icon">✓</span><span>NVIDIA ドライバーがインストールされた AMI (AWS Deep Learning AMI 推奨)</span></div>
+
+      <h3>ステップ 1: AWS CLI でインスタンスを起動</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash</span>
+          <span class="code-title">Seoul region</span>
+        </div>
+        <pre><code class="language-bash"># ソウルリージョンで起動する場合
+aws ec2 run-instances \
+  --region ap-northeast-2 \
+  --instance-type g7e.2xlarge \
+  --image-id ami-xxxxxxxx \
+  --key-name my-key-pair \
+  --security-group-ids sg-xxxxxxxx \
+  --subnet-id subnet-xxxxxxxx</code></pre>
+      </div>
+      <p style="font-size:14px;">スペインリージョンの場合は <code>--region eu-south-2</code> に変更する。</p>
+
+      <h3>ステップ 2: GPU の動作確認</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash</span>
+          <span class="code-title">GPU verification</span>
+        </div>
+        <pre><code class="language-bash">nvidia-smi</code></pre>
+      </div>
+      <p style="font-size:14px;">SSH 接続後、nvidia-smi コマンドで NVIDIA RTX PRO 6000 GPU が正しく認識されていることを確認する。</p>
+    </div>
+
+    <!-- Benefits -->
+    <div class="section">
+      <h2>✅ メリット</h2>
+      <h3>ビジネス面</h3>
+      <div class="card">
+        <div class="card-title">🎯 低レイテンシー AI 推論</div>
+        <p>ソウル/スペインリージョンで推論を実行し、韓国/欧州南部のエンドユーザーへのレスポンス時間を大幅に短縮</p>
+      </div>
+      <div class="card">
+        <div class="card-title">🔒 データレジデンシー対応</div>
+        <p>韓国/スペイン国内にデータを保持しながら高性能 GPU ワークロードを実行。GDPR や韓国のデータ保護法に対応</p>
+      </div>
+      <div class="card">
+        <div class="card-title">💰 コスト効率</div>
+        <p>2.3 倍の推論パフォーマンスにより、スループットあたりのコストを削減</p>
+      </div>
+
+      <h3>技術面</h3>
+      <div class="card">
+        <div class="card-title">⚡ Blackwell アーキテクチャ</div>
+        <p>FP4 精度サポートやニューラルグラフィクスなど最先端の機能を利用可能</p>
+      </div>
+      <div class="card">
+        <div class="card-title">📡 高帯域幅ネットワーキング</div>
+        <p>EFA で最大 1600 Gbps、マルチノードワークロードに対応</p>
+      </div>
+      <div class="card">
+        <div class="card-title">🧠 大容量 GPU メモリ</div>
+        <p>GPU あたり 96 GB で、最大 70B パラメータの FP8 モデルを単一 GPU 上で実行可能</p>
+      </div>
+    </div>
+
+    <!-- Limitations -->
+    <div class="section">
+      <h2>⚠️ デメリット / 制約事項</h2>
+      <h3>制限事項</h3>
+      <div class="check-item"><span class="warn-icon">⚠</span><span>新規リージョンでの提供開始直後はキャパシティに制約がある可能性</span></div>
+      <div class="check-item"><span class="warn-icon">⚠</span><span>ベアメタルインスタンスサイズは提供されていない (最大 g7e.48xlarge)</span></div>
+      <div class="check-item"><span class="warn-icon">⚠</span><span>Reserved Instances は未対応。Savings Plans または On-Demand のみ</span></div>
+
+      <h3>考慮すべき点</h3>
+      <div class="check-item"><span class="warn-icon">💡</span><span>G6e からの移行時には NVIDIA ドライバーバージョンの互換性確認が必要</span></div>
+      <div class="check-item"><span class="warn-icon">💡</span><span>大規模マルチノードトレーニングには P5/P6 の方が適している場合がある (G7e は主に推論と中規模トレーニング向け)</span></div>
+      <div class="check-item"><span class="warn-icon">💡</span><span>ソウル/スペインリージョンのオンデマンド料金は米国リージョンと異なる場合がある</span></div>
+    </div>
+
+    <!-- Use Cases -->
+    <div class="section">
+      <h2>💡 ユースケース</h2>
+
+      <div class="usecase-card">
+        <h3>🇰🇷 韓国向け LLM リアルタイム推論</h3>
+        <div class="scenario">韓国市場向けのチャットボットサービスで、大規模言語モデルの推論を低レイテンシーで提供する必要がある。</div>
+        <div class="code-block">
+          <div class="code-header">
+            <span class="code-lang">Bash</span>
+            <span class="code-title">g7e.8xlarge - 70B FP8</span>
+          </div>
+          <pre><code class="language-bash"># g7e.8xlarge (1 GPU, 96 GB) で 70B パラメータモデルを FP8 でデプロイ
+aws ec2 run-instances \
+  --region ap-northeast-2 \
+  --instance-type g7e.8xlarge \
+  --image-id ami-xxxxxxxx</code></pre>
+        </div>
+        <div class="effect">✅ 96 GB の GPU メモリにより 70B パラメータモデルを単一 GPU に収容。G6e と比較して 2.3 倍高速な推論レスポンスを韓国国内から提供可能。</div>
+      </div>
+
+      <div class="usecase-card">
+        <h3>🇪🇺 欧州南部向け空間コンピューティング</h3>
+        <div class="scenario">欧州の製造業向けデジタルツインシミュレーションで、リアルタイムなレイトレーシングと AI 処理を組み合わせ、GDPR 準拠のためデータを欧州内に保持する必要がある。</div>
+        <div class="code-block">
+          <div class="code-header">
+            <span class="code-lang">Bash</span>
+            <span class="code-title">g7e.24xlarge - Multi-GPU rendering</span>
+          </div>
+          <pre><code class="language-bash"># g7e.24xlarge (4 GPU) でマルチ GPU レンダリング
+aws ec2 run-instances \
+  --region eu-south-2 \
+  --instance-type g7e.24xlarge \
+  --image-id ami-xxxxxxxx \
+  --placement GroupName=my-cluster-group</code></pre>
+        </div>
+        <div class="effect">✅ 第 4 世代レイトレーシングコアとニューラルグラフィクス対応により、高品質なリアルタイムビジュアライゼーションをスペインリージョンから GDPR 準拠で提供。GPUDirect P2P で GPU 間通信を高速化。</div>
+      </div>
+
+      <div class="usecase-card">
+        <h3>🌐 マルチモーダル AI 推論サービス</h3>
+        <div class="scenario">画像、テキスト、音声を統合的に処理するマルチモーダル AI サービスを、アジアおよび欧州のユーザーに向けて展開する。</div>
+        <div class="code-block">
+          <div class="code-header">
+            <span class="code-lang">Bash</span>
+            <span class="code-title">g7e.12xlarge - Multi-modal</span>
+          </div>
+          <pre><code class="language-bash"># g7e.12xlarge (2 GPU, 192 GB) でマルチモーダルモデルをデプロイ
+aws ec2 run-instances \
+  --region ap-northeast-2 \
+  --instance-type g7e.12xlarge \
+  --image-id ami-xxxxxxxx</code></pre>
+        </div>
+        <div class="effect">✅ 2 GPU 構成で 192 GB の GPU メモリを活用し、大規模マルチモーダルモデルを効率的にホスティング。GPUDirect P2P により GPU 間のデータ転送を最適化。</div>
+      </div>
+    </div>
+
+    <!-- Pricing -->
+    <div class="section">
+      <h2>💰 料金</h2>
+      <p>G7e インスタンスは、オンデマンド、スポットインスタンス、Savings Plans で購入可能。ソウルおよびスペインリージョンの具体的な料金は <a href="https://aws.amazon.com/ec2/pricing/on-demand/" target="_blank" class="aws-link">EC2 料金ページ</a> を参照。</p>
+      <div class="pricing-grid">
+        <div class="pricing-card">
+          <h4>💳 オンデマンド</h4>
+          <p>長期コミットメントなしで利用可能</p>
+        </div>
+        <div class="pricing-card">
+          <h4>📉 スポットインスタンス</h4>
+          <p>最大 90% の割引、中断許容ワークロード向け</p>
+        </div>
+        <div class="pricing-card">
+          <h4>📋 Savings Plans</h4>
+          <p>1 年または 3 年のコミットメントで割引</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Available Regions -->
+    <div class="section">
+      <h2>🌍 利用可能リージョン</h2>
+      <div class="region-tags">
+        <div class="region-tag">🇺🇸 US East (N. Virginia)</div>
+        <div class="region-tag">🇺🇸 US East (Ohio)</div>
+        <div class="region-tag">🇺🇸 US West (Oregon)</div>
+        <div class="region-tag">🇯🇵 Asia Pacific (Tokyo)</div>
+        <div class="region-tag new">🇰🇷 Asia Pacific (Seoul) - 新規</div>
+        <div class="region-tag new">🇪🇸 Europe (Spain) - 新規</div>
+      </div>
+    </div>
+
+    <!-- Related Services -->
+    <div class="section">
+      <h2>🔗 関連サービス</h2>
+      <div class="related-grid">
+        <div class="related-card">
+          <strong>🧠 Amazon SageMaker AI</strong>
+          <p>G7e をマネージド ML プラットフォームから利用し、モデルトレーニングと推論のデプロイを簡素化</p>
+        </div>
+        <div class="related-card">
+          <strong>📦 AWS Deep Learning AMI</strong>
+          <p>NVIDIA ドライバーとフレームワークがプリインストールされた AMI で迅速にセットアップ可能</p>
+        </div>
+        <div class="related-card">
+          <strong>🐳 Amazon EKS / Amazon ECS</strong>
+          <p>コンテナオーケストレーションで G7e インスタンスを GPU ワークロード用ノードとして活用</p>
+        </div>
+        <div class="related-card">
+          <strong>🔗 EC2 UltraClusters</strong>
+          <p>EFA と GPUDirect RDMA を活用したマルチノード GPU クラスタリング</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Summary -->
+    <div class="section" style="border: 1px solid rgba(255, 153, 0, 0.4); background: linear-gradient(135deg, rgba(255, 153, 0, 0.08), var(--aws-dark-squid));">
+      <h2>📝 まとめ</h2>
+      <p>
+        Amazon EC2 G7e インスタンスの Seoul / Spain リージョン対応により、韓国および欧州南部のユーザーは NVIDIA RTX PRO 6000 Blackwell GPU の<span class="highlight">最大 2.3 倍の推論パフォーマンス向上</span>を低レイテンシーで活用できるようになった。G7e の利用可能リージョンは合計 6 リージョンに拡大。AI 推論、空間コンピューティング、マルチモーダル AI など GPU 集約型ワークロードをソウルやスペインリージョンで実行する必要がある場合、サービスクォータの確認と G7e への移行検討を推奨する。
+      </p>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+      <p>📎 出典:</p>
+      <ul>
+        <li><a href="https://aws.amazon.com/about-aws/whats-new/2026/03/amazon-ec2-g7e-seoul-spain-regions/" target="_blank" rel="noopener noreferrer">公式発表 (What's New)</a></li>
+        <li><a href="https://aws.amazon.com/blogs/aws/announcing-amazon-ec2-g7e-instances-accelerated-by-nvidia-rtx-pro-6000-blackwell-server-edition-gpus/" target="_blank" rel="noopener noreferrer">AWS Blog - Announcing Amazon EC2 G7e instances</a></li>
+        <li><a href="https://aws.amazon.com/ec2/instance-types/g7e/" target="_blank" rel="noopener noreferrer">G7e インスタンス製品ページ</a></li>
+        <li><a href="https://aws.amazon.com/ec2/pricing/on-demand/" target="_blank" rel="noopener noreferrer">EC2 料金ページ</a></li>
+      </ul>
+    </footer>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'base',
+      themeVariables: {
+        primaryColor: '#FF9900',
+        primaryTextColor: '#232F3E',
+        primaryBorderColor: '#FF9900',
+        lineColor: '#FF9900',
+        secondaryColor: '#F5F5F5',
+        tertiaryColor: '#FAFAFA',
+        background: '#FFFFFF',
+        mainBkg: '#FFF3E0',
+        nodeBorder: '#FF9900',
+        clusterBkg: '#FFF8E1',
+        clusterBorder: '#FF9900',
+        edgeLabelBackground: '#FFFFFF',
+        textColor: '#232F3E'
+      }
+    });
+  </script>
+  <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/highlight.min.js"></script>
+  <script>hljs.highlightAll();</script>
+</body>
+</html>

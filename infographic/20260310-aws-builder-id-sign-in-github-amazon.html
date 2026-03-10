@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AWS Builder ID - GitHub / Amazon ソーシャルログインサポート</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap');
+
+    :root {
+      --aws-squid-ink: #232F3E;
+      --aws-dark-squid: #1A242F;
+      --aws-orange: #FF9900;
+      --aws-smile-orange: #FFAD33;
+      --aws-white: #FFFFFF;
+      --aws-light-gray: #D5DBDB;
+      --aws-teal: #00A1C9;
+      --aws-purple: #8C4FFF;
+      --aws-green: #1D8102;
+      --aws-red: #D13212;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--aws-squid-ink);
+      font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+      color: var(--aws-light-gray);
+      font-size: 16px;
+      line-height: 1.6;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 32px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .header-left { flex: 1; min-width: 280px; }
+
+    .service-badge {
+      display: inline-block;
+      background: var(--aws-orange);
+      color: var(--aws-squid-ink);
+      font-size: 13px;
+      font-weight: 700;
+      padding: 4px 14px;
+      border-radius: 20px;
+      margin-bottom: 12px;
+    }
+
+    h1 {
+      font-size: 34px;
+      font-weight: 700;
+      color: var(--aws-white);
+      line-height: 1.3;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      font-size: 16px;
+      color: var(--aws-light-gray);
+    }
+
+    .header-right {
+      text-align: right;
+      font-size: 14px;
+      color: var(--aws-light-gray);
+    }
+
+    /* Sections */
+    .section {
+      background: var(--aws-dark-squid);
+      border-radius: 8px;
+      padding: 24px;
+      margin-bottom: 24px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    h2 {
+      font-size: 22px;
+      font-weight: 600;
+      color: var(--aws-orange);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    h3 {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--aws-white);
+      margin: 20px 0 10px;
+    }
+
+    p { margin-bottom: 12px; }
+
+    .highlight {
+      background-color: rgba(255, 153, 0, 0.2);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 600;
+      color: var(--aws-orange);
+    }
+
+    /* Before/After */
+    .before-after {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin: 16px 0;
+    }
+
+    .before-card, .after-card {
+      border-radius: 8px;
+      padding: 16px;
+    }
+
+    .before-card {
+      background: rgba(209, 50, 18, 0.1);
+      border: 1px solid rgba(209, 50, 18, 0.4);
+    }
+
+    .after-card {
+      background: rgba(29, 129, 2, 0.1);
+      border: 1px solid rgba(29, 129, 2, 0.4);
+    }
+
+    .before-card .label {
+      color: var(--aws-red);
+      font-weight: 700;
+      font-size: 14px;
+      margin-bottom: 8px;
+    }
+
+    .after-card .label {
+      color: var(--aws-green);
+      font-weight: 700;
+      font-size: 14px;
+      margin-bottom: 8px;
+    }
+
+    .before-card ul, .after-card ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    .before-card li, .after-card li {
+      padding: 4px 0;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .before-card li::before {
+      content: "\2717  ";
+      color: var(--aws-red);
+      font-weight: bold;
+    }
+
+    .after-card li::before {
+      content: "\2713  ";
+      color: var(--aws-green);
+      font-weight: bold;
+    }
+
+    /* Stats */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin: 16px 0;
+    }
+
+    .stat-card {
+      background: linear-gradient(135deg, rgba(255, 153, 0, 0.15), rgba(255, 153, 0, 0.05));
+      border: 1px solid rgba(255, 153, 0, 0.3);
+      border-radius: 8px;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .stat-number {
+      font-size: 36px;
+      font-weight: 700;
+      color: var(--aws-orange);
+      line-height: 1.2;
+    }
+
+    .stat-label {
+      font-size: 14px;
+      color: var(--aws-light-gray);
+      margin-top: 4px;
+    }
+
+    /* Feature cards */
+    .feature-card {
+      background: var(--aws-squid-ink);
+      border-left: 4px solid var(--aws-orange);
+      border-radius: 0 8px 8px 0;
+      padding: 16px 20px;
+      margin: 12px 0;
+    }
+
+    .feature-card .feature-title {
+      font-weight: 600;
+      color: var(--aws-white);
+      font-size: 16px;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .feature-card .feature-desc {
+      font-size: 14px;
+      color: var(--aws-light-gray);
+    }
+
+    .feature-card .feature-desc ul {
+      list-style: none;
+      padding: 0;
+      margin-top: 6px;
+    }
+
+    .feature-card .feature-desc li {
+      padding: 2px 0;
+    }
+
+    .feature-card .feature-desc li::before {
+      content: "  -> ";
+      color: var(--aws-orange);
+    }
+
+    /* Usecase cards */
+    .usecase-card {
+      background: rgba(255, 153, 0, 0.08);
+      border: 1px solid rgba(255, 153, 0, 0.25);
+      border-radius: 8px;
+      padding: 20px;
+      margin: 12px 0;
+    }
+
+    .usecase-card .usecase-title {
+      font-weight: 600;
+      color: var(--aws-orange);
+      font-size: 16px;
+      margin-bottom: 6px;
+    }
+
+    .usecase-card .usecase-scenario {
+      font-size: 14px;
+      color: var(--aws-light-gray);
+      margin-bottom: 10px;
+    }
+
+    .usecase-card .usecase-effect {
+      margin-top: 10px;
+      font-size: 14px;
+      padding: 8px 12px;
+      background: rgba(29, 129, 2, 0.1);
+      border-radius: 6px;
+      border-left: 3px solid var(--aws-green);
+      color: var(--aws-light-gray);
+    }
+
+    /* Tables */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0;
+      font-size: 14px;
+    }
+
+    th {
+      background: rgba(255, 153, 0, 0.15);
+      color: var(--aws-orange);
+      font-weight: 600;
+      text-align: left;
+      padding: 10px 14px;
+      border-bottom: 2px solid rgba(255, 153, 0, 0.3);
+    }
+
+    td {
+      padding: 10px 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      color: var(--aws-light-gray);
+    }
+
+    tr:hover td {
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .badge-new {
+      display: inline-block;
+      background: var(--aws-green);
+      color: var(--aws-white);
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 10px;
+    }
+
+    .badge-existing {
+      display: inline-block;
+      background: rgba(255, 255, 255, 0.15);
+      color: var(--aws-light-gray);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 10px;
+    }
+
+    /* Flow diagram */
+    .flow-diagram {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin: 24px 0;
+    }
+
+    .flow-step {
+      background: var(--aws-dark-squid);
+      border: 2px solid var(--aws-orange);
+      border-radius: 8px;
+      padding: 12px 20px;
+      text-align: center;
+      min-width: 100px;
+      font-size: 14px;
+    }
+
+    .flow-arrow {
+      color: var(--aws-orange);
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    /* Mermaid */
+    .mermaid-container {
+      background: #FFFFFF;
+      border-radius: 12px;
+      padding: 24px;
+      margin: 20px 0;
+      border: 2px solid rgba(255, 153, 0, 0.3);
+      overflow-x: auto;
+    }
+
+    .mermaid {
+      display: flex;
+      justify-content: center;
+    }
+
+    /* Note / Warning boxes */
+    .note-box {
+      background: rgba(255, 153, 0, 0.08);
+      border-left: 4px solid var(--aws-orange);
+      border-radius: 0 8px 8px 0;
+      padding: 14px 18px;
+      margin: 12px 0;
+      font-size: 14px;
+    }
+
+    .warning-box {
+      background: rgba(209, 50, 18, 0.08);
+      border-left: 4px solid var(--aws-red);
+      border-radius: 0 8px 8px 0;
+      padding: 14px 18px;
+      margin: 12px 0;
+      font-size: 14px;
+    }
+
+    /* Steps */
+    .steps-list {
+      list-style: none;
+      padding: 0;
+      counter-reset: step-counter;
+    }
+
+    .steps-list li {
+      counter-increment: step-counter;
+      padding: 10px 0 10px 48px;
+      position: relative;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      font-size: 14px;
+    }
+
+    .steps-list li::before {
+      content: counter(step-counter);
+      position: absolute;
+      left: 0;
+      top: 8px;
+      width: 32px;
+      height: 32px;
+      background: var(--aws-orange);
+      color: var(--aws-squid-ink);
+      font-weight: 700;
+      font-size: 14px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .steps-list li:last-child { border-bottom: none; }
+
+    /* Related services */
+    .related-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .related-item {
+      background: var(--aws-squid-ink);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      padding: 14px;
+      font-size: 14px;
+    }
+
+    .related-item strong {
+      color: var(--aws-teal);
+    }
+
+    /* Links */
+    a {
+      color: var(--aws-teal);
+      text-decoration: none;
+    }
+
+    a:hover {
+      color: var(--aws-smile-orange);
+    }
+
+    /* Footer */
+    footer {
+      margin-top: 24px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(255, 255, 255, 0.2);
+      font-size: 12px;
+      color: var(--aws-light-gray);
+    }
+
+    footer a {
+      word-break: break-all;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      h1 { font-size: 26px; }
+      .before-after { grid-template-columns: 1fr; }
+      .stats-grid { grid-template-columns: 1fr 1fr; }
+      .header { flex-direction: column; }
+      .header-right { text-align: left; }
+    }
+
+    @media (max-width: 480px) {
+      body { padding: 12px; }
+      .section { padding: 16px; }
+      .stats-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <!-- Header -->
+    <div class="header">
+      <div class="header-left">
+        <span class="service-badge">AWS Builder ID</span>
+        <h1>GitHub / Amazon ソーシャルログインサポート</h1>
+        <p class="subtitle">既存の Google、Apple に加え、GitHub と Amazon アカウントによるサインインが可能に。合計 4 つのソーシャルログインオプションで AWS エコシステムへのアクセスがさらに簡便に</p>
+      </div>
+      <div class="header-right">
+        <div>2026 年 3 月 10 日</div>
+        <div style="margin-top: 4px; color: var(--aws-green); font-weight: 600;">GA</div>
+      </div>
+    </div>
+
+    <!-- Overview + Stats -->
+    <div class="section">
+      <h2>概要</h2>
+      <p>AWS Builder ID が、新たに <span class="highlight">GitHub</span> および <span class="highlight">Amazon</span> アカウントによるソーシャルログインをサポートしました。既存の Google および Apple によるサインインに加え、合計 4 つのソーシャルログインオプションが利用可能になります。</p>
+      <p>AWS Builder ID は、AWS Builder Center、AWS Training and Certification、Kiro などの AWS アプリケーションにアクセスするための個人プロファイルです。特に開発者にとって馴染みの深い GitHub アカウントを使ったシームレスなサインインが実現し、AWS エコシステムへのアクセスがさらに簡便になります。</p>
+
+      <div class="stats-grid" style="margin-top: 20px;">
+        <div class="stat-card">
+          <div class="stat-number">4</div>
+          <div class="stat-label">ソーシャルログインオプション</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">+2</div>
+          <div class="stat-label">新規追加プロバイダー</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">FREE</div>
+          <div class="stat-label">追加料金なし</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">Global</div>
+          <div class="stat-label">全リージョン対応</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Before / After -->
+    <div class="section">
+      <h2>Before / After</h2>
+      <div class="before-after">
+        <div class="before-card">
+          <div class="label">BEFORE</div>
+          <ul>
+            <li>ソーシャルログインは Google と Apple の 2 つのみ</li>
+            <li>開発者が日常的に使用する GitHub アカウントでのサインインが不可</li>
+            <li>Amazon アカウントを保有していても Builder ID への活用ができなかった</li>
+          </ul>
+        </div>
+        <div class="after-card">
+          <div class="label">AFTER</div>
+          <ul>
+            <li>GitHub、Amazon を含む 4 つのソーシャルログインに対応</li>
+            <li>GitHub の OAuth 認証で開発者がシームレスにサインイン可能</li>
+            <li>既存の Amazon アカウントでスムーズに Builder ID を利用開始</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Architecture Diagram -->
+    <div class="section">
+      <h2>アーキテクチャ図</h2>
+      <p>ユーザーが 4 つのソーシャル ID プロバイダーのいずれかを使用して AWS Builder ID に認証し、各 AWS アプリケーションにアクセスするフローを示しています。</p>
+      <div class="mermaid-container">
+        <pre class="mermaid">
+flowchart TD
+    subgraph IdP["&#128274; ソーシャル ID プロバイダー"]
+        direction LR
+        GitHub["&#128025; GitHub"]
+        Amazon["&#128230; Amazon"]
+        Google["&#128269; Google"]
+        Apple["&#127822; Apple"]
+        GitHub ~~~ Amazon ~~~ Google ~~~ Apple
+    end
+
+    subgraph BuilderID["&#9729;&#65039; AWS Builder ID"]
+        Auth["&#128268; 認証ゲートウェイ"]
+        Profile["&#128100; ユーザープロファイル"]
+        Auth --> Profile
+    end
+
+    subgraph Apps["&#128241; AWS アプリケーション"]
+        direction LR
+        BC["&#127959;&#65039; AWS Builder Center"]
+        TC["&#128218; Training and<br/>Certification"]
+        Kiro["&#9889; Kiro"]
+        BC ~~~ TC ~~~ Kiro
+    end
+
+    IdP --> Auth
+    Profile --> Apps
+
+    classDef cloud fill:none,stroke:#CCCCCC,stroke-width:2px,color:#666666
+    classDef layer fill:none,stroke:#E1BEE7,stroke-width:2px,color:#666666
+    classDef compute fill:#FFE0B2,stroke:#FFCC80,stroke-width:2px,color:#5D4037
+    classDef storage fill:#DCEDC8,stroke:#C5E1A5,stroke-width:2px,color:#33691E
+    classDef user fill:#E3F2FD,stroke:#BBDEFB,stroke-width:2px,color:#1565C0
+    classDef input fill:#E9F7EC,stroke:#66BB6A,stroke-width:2px,color:#333333
+
+    class BuilderID cloud
+    class IdP,Apps layer
+    class Auth,Profile compute
+    class BC,TC,Kiro user
+    class GitHub,Amazon,Google,Apple input
+        </pre>
+      </div>
+    </div>
+
+    <!-- Key Features -->
+    <div class="section">
+      <h2>主要機能</h2>
+
+      <div class="feature-card">
+        <div class="feature-title">GitHub アカウントによるサインイン</div>
+        <div class="feature-desc">
+          <ul>
+            <li>GitHub の OAuth 認証を利用して AWS Builder ID にサインイン可能</li>
+            <li>開発者が日常的に使用する GitHub アカウントを活用でき、追加の認証情報管理が不要</li>
+            <li>GitHub のセキュリティ設定 (2FA など) がそのまま適用される</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-title">Amazon アカウントによるサインイン</div>
+        <div class="feature-desc">
+          <ul>
+            <li>既存の Amazon ショッピングアカウントを利用して AWS Builder ID にサインイン可能</li>
+            <li>新たなアカウント作成の手間を省き、即座に AWS Builder ID の利用を開始できる</li>
+            <li>Amazon の多要素認証設定がそのまま活用される</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-title">4 つのソーシャルログインオプション</div>
+        <div class="feature-desc">
+          <ul>
+            <li>Google、Apple、GitHub、Amazon の 4 つのプロバイダーから選択可能</li>
+            <li>ユーザーの好みや既存アカウントの状況に応じて最適な認証方法を選択できる</li>
+            <li>すべてのソーシャルログインで同一の AWS Builder ID プロファイルにアクセス可能</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Technical Specifications -->
+    <div class="section">
+      <h2>技術仕様</h2>
+
+      <h3>サポートされるソーシャルログインプロバイダー</h3>
+      <table>
+        <tr><th>プロバイダー</th><th>ステータス</th><th>備考</th></tr>
+        <tr><td>Google</td><td><span class="badge-existing">既存</span></td><td>従来からサポート</td></tr>
+        <tr><td>Apple</td><td><span class="badge-existing">既存</span></td><td>従来からサポート</td></tr>
+        <tr><td>GitHub</td><td><span class="badge-new">NEW</span></td><td>今回のアップデートで追加</td></tr>
+        <tr><td>Amazon</td><td><span class="badge-new">NEW</span></td><td>今回のアップデートで追加</td></tr>
+      </table>
+
+      <h3 style="margin-top: 24px;">対応 AWS アプリケーション</h3>
+      <table>
+        <tr><th>アプリケーション</th><th>説明</th></tr>
+        <tr><td>AWS Builder Center</td><td>AWS の開発者向けリソースハブ</td></tr>
+        <tr><td>AWS Training and Certification</td><td>AWS のトレーニングと認定資格プログラム</td></tr>
+        <tr><td>Kiro</td><td>AWS の AI 搭載開発ツール</td></tr>
+      </table>
+
+      <div class="note-box" style="margin-top: 16px;">
+        今回のアップデートに関連する公開 API の変更は確認されていません。ソーシャルログインの追加は AWS Builder ID の認証サービス側の変更であり、ユーザー向け API の変更を伴いません。
+      </div>
+    </div>
+
+    <!-- Setup Steps -->
+    <div class="section">
+      <h2>設定方法</h2>
+
+      <div class="note-box" style="margin-bottom: 16px;">
+        <strong>前提条件:</strong> GitHub アカウントまたは Amazon アカウントを保有していること。各アカウントのメールアドレスが有効であること。Web ブラウザからインターネットにアクセスできること。
+      </div>
+
+      <ol class="steps-list">
+        <li><strong>AWS Builder ID のサインインページにアクセス</strong><br/>AWS Builder Center、AWS Training and Certification、Kiro などのサインインページにアクセスします。</li>
+        <li><strong>ソーシャルログインプロバイダーの選択</strong><br/>「Sign in with GitHub」または「Sign in with Amazon」を選択します。既存の Google や Apple でのサインインも引き続き利用可能です。</li>
+        <li><strong>プロバイダーでの認証</strong><br/>選択したプロバイダーの認証ページにリダイレクトされます。GitHub または Amazon の認証情報を入力し、AWS Builder ID へのアクセスを承認します。</li>
+        <li><strong>AWS Builder ID プロファイルの確認</strong><br/>初回サインイン時は、AWS Builder ID プロファイルの設定を確認または完了します。以降は選択したソーシャルログインで直接サインインが可能です。</li>
+      </ol>
+    </div>
+
+    <!-- Benefits -->
+    <div class="section">
+      <h2>メリット</h2>
+
+      <h3>ビジネス面</h3>
+      <div class="feature-card">
+        <div class="feature-title">開発者の導入障壁低下</div>
+        <div class="feature-desc">GitHub アカウントでのサインインにより、開発者が AWS エコシステムに参加しやすくなる</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-title">ユーザーベースの拡大</div>
+        <div class="feature-desc">ソーシャルログインオプションの増加により、より多くのユーザーが AWS Builder ID を利用開始できる</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-title">アカウント管理の簡素化</div>
+        <div class="feature-desc">既存のソーシャルアカウントを活用することで、パスワード管理の負担が軽減される</div>
+      </div>
+
+      <h3 style="margin-top: 20px;">技術面</h3>
+      <div class="feature-card">
+        <div class="feature-title">認証フローの簡素化</div>
+        <div class="feature-desc">OAuth ベースのソーシャルログインにより、認証プロセスが短縮される</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-title">セキュリティの向上</div>
+        <div class="feature-desc">ソーシャルプロバイダーの多要素認証がそのまま活用でき、セキュリティレベルが維持される</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-title">シングルサインオン体験</div>
+        <div class="feature-desc">1 つのソーシャルアカウントで複数の AWS アプリケーションにアクセスでき、認証の一貫性が向上</div>
+      </div>
+    </div>
+
+    <!-- Limitations -->
+    <div class="section">
+      <h2>デメリット / 制約事項</h2>
+
+      <h3>制限事項</h3>
+      <div class="warning-box">
+        <ul style="list-style: none; padding: 0;">
+          <li style="padding: 4px 0;">ソーシャルログインは AWS Builder ID のみに適用され、AWS マネジメントコンソールへの IAM サインインとは異なる</li>
+          <li style="padding: 4px 0;">ソーシャルプロバイダー側のアカウントが無効化された場合、AWS Builder ID へのサインインにも影響が生じる可能性がある</li>
+          <li style="padding: 4px 0;">組織のセキュリティポリシーによっては、特定のソーシャルログインプロバイダーの使用が制限される場合がある</li>
+        </ul>
+      </div>
+
+      <h3>考慮すべき点</h3>
+      <div class="warning-box">
+        <ul style="list-style: none; padding: 0;">
+          <li style="padding: 4px 0;">ソーシャルログインで使用するメールアドレスと既存の AWS Builder ID のメールアドレスが異なる場合、アカウントのリンクに注意が必要</li>
+          <li style="padding: 4px 0;">企業環境では、どのソーシャルログインプロバイダーを許可するかについてガバナンスポリシーの検討が推奨される</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Use Cases -->
+    <div class="section">
+      <h2>ユースケース</h2>
+
+      <div class="usecase-card">
+        <div class="usecase-title">開発者の AWS 学習開始</div>
+        <div class="usecase-scenario"><strong>シナリオ:</strong> GitHub を日常的に使用するソフトウェアエンジニアが、AWS の認定資格取得に向けてトレーニングを開始したい。</div>
+        <div class="usecase-effect"><strong>効果:</strong> GitHub アカウントでワンクリックサインインし、AWS Training and Certification にすぐにアクセスできる。新たなアカウント作成やパスワード設定の手間が不要になり、学習開始までの時間が短縮される。</div>
+      </div>
+
+      <div class="usecase-card">
+        <div class="usecase-title">Kiro を使用した AI 開発ワークフロー</div>
+        <div class="usecase-scenario"><strong>シナリオ:</strong> オープンソースプロジェクトを GitHub で管理している開発チームが、Kiro を活用して AI 搭載のアプリケーション開発を行いたい。</div>
+        <div class="usecase-effect"><strong>効果:</strong> チームメンバーが普段使用している GitHub アカウントで Kiro にサインインでき、開発環境の統一感が向上する。GitHub と Kiro の間でシームレスなワークフローが実現される。</div>
+      </div>
+
+      <div class="usecase-card">
+        <div class="usecase-title">Amazon ユーザーの AWS エコシステムへの参入</div>
+        <div class="usecase-scenario"><strong>シナリオ:</strong> Amazon のサービスを利用しているユーザーが、AWS Builder Center で最新の AWS サービスや開発者リソースを探索したい。</div>
+        <div class="usecase-effect"><strong>効果:</strong> 既存の Amazon アカウントでサインインでき、新たなアカウント作成なしで AWS Builder Center のリソースにアクセスできる。AWS エコシステムへの移行がスムーズになる。</div>
+      </div>
+    </div>
+
+    <!-- Pricing -->
+    <div class="section">
+      <h2>料金</h2>
+      <p>AWS Builder ID の利用およびソーシャルログイン機能に<span class="highlight">追加料金はかかりません</span>。AWS Builder ID は無料で提供されています。</p>
+    </div>
+
+    <!-- Region -->
+    <div class="section">
+      <h2>利用可能リージョン</h2>
+      <p>AWS Builder ID はグローバルサービスであり、<span class="highlight">すべてのリージョン</span>のユーザーが GitHub および Amazon によるソーシャルログインを利用できます。</p>
+    </div>
+
+    <!-- Related Services -->
+    <div class="section">
+      <h2>関連サービス / 機能</h2>
+      <div class="related-grid">
+        <div class="related-item">
+          <strong>AWS IAM Identity Center</strong><br/>
+          組織向けの ID 管理とシングルサインオンを提供。AWS Builder ID とは異なり、企業の AWS アカウントへのアクセス管理に使用される
+        </div>
+        <div class="related-item">
+          <strong>Amazon Cognito</strong><br/>
+          アプリケーション向けのユーザー認証・認可サービス。ソーシャルログインを含む多様な認証フローをサポート
+        </div>
+        <div class="related-item">
+          <strong>Kiro</strong><br/>
+          AWS の AI 搭載開発ツール。AWS Builder ID でサインインして利用可能
+        </div>
+        <div class="related-item">
+          <strong>AWS Training and Certification</strong><br/>
+          AWS の学習プラットフォーム。AWS Builder ID でアクセスしてトレーニングや認定試験を受験可能
+        </div>
+      </div>
+    </div>
+
+    <!-- Summary -->
+    <div class="section" style="border: 1px solid rgba(255, 153, 0, 0.3);">
+      <h2>まとめ</h2>
+      <p>AWS Builder ID が GitHub および Amazon アカウントによるソーシャルログインをサポートしました。既存の Google、Apple と合わせて <span class="highlight">4 つのソーシャルログインオプション</span>が利用可能になり、特に開発者にとって馴染みの深い GitHub アカウントでの認証が実現しています。</p>
+      <p>AWS Builder Center、AWS Training and Certification、Kiro などの AWS アプリケーションへのアクセスがさらに簡便になるため、まだ AWS Builder ID を持っていないユーザーはこの機会にソーシャルログインを活用して利用を開始することを推奨します。</p>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+      <p>出典:</p>
+      <ul style="list-style: none; padding: 0; margin-top: 4px;">
+        <li style="padding: 2px 0;"><a href="https://aws.amazon.com/about-aws/whats-new/2026/03/aws-builder-id-sign-in-github-amazon/" target="_blank" rel="noopener noreferrer">公式発表 (What's New)</a></li>
+        <li style="padding: 2px 0;"><a href="https://docs.aws.amazon.com/signin/latest/userguide/sign-in-aws_builder_id.html" target="_blank" rel="noopener noreferrer">AWS Builder ID ドキュメント</a></li>
+      </ul>
+    </footer>
+
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'base',
+      themeVariables: {
+        primaryColor: '#FF9900',
+        primaryTextColor: '#232F3E',
+        primaryBorderColor: '#FF9900',
+        lineColor: '#FF9900',
+        secondaryColor: '#F5F5F5',
+        tertiaryColor: '#FAFAFA',
+        background: '#FFFFFF',
+        mainBkg: '#FFF3E0',
+        nodeBorder: '#FF9900',
+        clusterBkg: '#FFF8E1',
+        clusterBorder: '#FF9900',
+        edgeLabelBackground: '#FFFFFF',
+        textColor: '#232F3E'
+      }
+    });
+  </script>
+</body>
+</html>
