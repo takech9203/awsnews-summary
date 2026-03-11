@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Amazon EC2 R7gd - 南米 (サンパウロ) リージョンで利用可能に</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap');
+
+    :root {
+      --aws-squid-ink: #232F3E;
+      --aws-dark-squid: #1A242F;
+      --aws-orange: #FF9900;
+      --aws-smile-orange: #FFAD33;
+      --aws-white: #FFFFFF;
+      --aws-light-gray: #D5DBDB;
+      --aws-teal: #00A1C9;
+      --aws-purple: #8C4FFF;
+      --aws-green: #1D8102;
+      --aws-red: #D13212;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--aws-squid-ink);
+      font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+      color: var(--aws-light-gray);
+      font-size: 16px;
+      line-height: 1.6;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 32px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .header-left { flex: 1; min-width: 280px; }
+
+    .service-badge {
+      display: inline-block;
+      background: var(--aws-orange);
+      color: var(--aws-squid-ink);
+      padding: 4px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    h1 {
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--aws-white);
+      line-height: 1.3;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      font-size: 15px;
+      color: var(--aws-light-gray);
+    }
+
+    .header-date {
+      font-size: 14px;
+      color: var(--aws-light-gray);
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    /* Sections */
+    .section {
+      background: var(--aws-dark-squid);
+      border-radius: 8px;
+      padding: 24px;
+      margin-bottom: 24px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    h2 {
+      font-size: 22px;
+      font-weight: 600;
+      color: var(--aws-orange);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    h3 {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--aws-white);
+      margin: 16px 0 10px;
+    }
+
+    .highlight {
+      background-color: rgba(255, 153, 0, 0.2);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 600;
+      color: var(--aws-orange);
+    }
+
+    /* Stats cards */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin: 20px 0;
+    }
+
+    .stat-card {
+      background: linear-gradient(135deg, rgba(255,153,0,0.15), rgba(255,153,0,0.05));
+      border: 1px solid rgba(255,153,0,0.3);
+      border-radius: 10px;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 36px;
+      font-weight: 700;
+      color: var(--aws-orange);
+      line-height: 1.1;
+    }
+
+    .stat-label {
+      font-size: 13px;
+      color: var(--aws-light-gray);
+      margin-top: 6px;
+    }
+
+    /* Before/After */
+    .before-after {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin: 16px 0;
+    }
+
+    .before-card, .after-card {
+      border-radius: 8px;
+      padding: 16px;
+    }
+
+    .before-card {
+      background: rgba(209, 50, 18, 0.1);
+      border: 1px solid rgba(209, 50, 18, 0.3);
+    }
+
+    .after-card {
+      background: rgba(29, 129, 2, 0.1);
+      border: 1px solid rgba(29, 129, 2, 0.3);
+    }
+
+    .before-card .ba-label {
+      color: var(--aws-red);
+      font-weight: 700;
+      font-size: 14px;
+      margin-bottom: 10px;
+    }
+
+    .after-card .ba-label {
+      color: var(--aws-green);
+      font-weight: 700;
+      font-size: 14px;
+      margin-bottom: 10px;
+    }
+
+    .ba-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      margin: 8px 0;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .ba-item span:first-child {
+      flex-shrink: 0;
+    }
+
+    /* Feature cards */
+    .feature-card {
+      background: var(--aws-dark-squid);
+      border-left: 4px solid var(--aws-orange);
+      border-radius: 0 8px 8px 0;
+      padding: 16px 20px;
+      margin: 12px 0;
+      border-top: 1px solid rgba(255,255,255,0.05);
+      border-right: 1px solid rgba(255,255,255,0.05);
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .feature-card .feature-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--aws-white);
+      margin-bottom: 8px;
+    }
+
+    .feature-card ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    .feature-card li {
+      font-size: 14px;
+      padding: 3px 0;
+      display: flex;
+      align-items: flex-start;
+      gap: 6px;
+    }
+
+    .feature-card li::before {
+      content: none;
+    }
+
+    /* Spec table */
+    .spec-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0;
+      font-size: 14px;
+    }
+
+    .spec-table th, .spec-table td {
+      padding: 10px 14px;
+      text-align: left;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .spec-table th {
+      background: rgba(255,153,0,0.15);
+      color: var(--aws-orange);
+      font-weight: 600;
+      font-size: 13px;
+    }
+
+    .spec-table td {
+      color: var(--aws-light-gray);
+    }
+
+    .spec-table tr:hover td {
+      background: rgba(255,255,255,0.03);
+    }
+
+    /* Use case cards */
+    .usecase-card {
+      background: linear-gradient(135deg, rgba(255,153,0,0.08), rgba(255,153,0,0.02));
+      border: 1px solid rgba(255,153,0,0.2);
+      border-radius: 8px;
+      padding: 20px;
+      margin: 14px 0;
+    }
+
+    .usecase-card .uc-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--aws-orange);
+      margin-bottom: 8px;
+    }
+
+    .usecase-card .uc-scenario {
+      font-size: 14px;
+      color: var(--aws-light-gray);
+      margin-bottom: 10px;
+    }
+
+    .usecase-card .uc-effect {
+      font-size: 14px;
+      color: var(--aws-light-gray);
+      background: rgba(29,129,2,0.1);
+      border-left: 3px solid var(--aws-green);
+      padding: 8px 12px;
+      border-radius: 0 6px 6px 0;
+    }
+
+    /* Mermaid */
+    .mermaid-container {
+      background: #FFFFFF;
+      border-radius: 12px;
+      padding: 24px;
+      margin: 20px 0;
+      border: 2px solid rgba(255, 153, 0, 0.3);
+      overflow-x: auto;
+    }
+
+    .mermaid {
+      display: flex;
+      justify-content: center;
+    }
+
+    /* Code block */
+    .code-block {
+      background: #1a1a2e;
+      border-radius: 8px;
+      overflow: hidden;
+      margin: 16px 0;
+    }
+
+    .code-header {
+      background: #16213e;
+      padding: 8px 16px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+    }
+
+    .code-lang {
+      color: var(--aws-orange);
+      font-weight: bold;
+    }
+
+    .code-title {
+      color: var(--aws-light-gray);
+    }
+
+    .code-block pre {
+      margin: 0;
+      padding: 0;
+      overflow-x: auto;
+    }
+
+    .code-block code {
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      line-height: 1.5;
+      padding: 16px !important;
+    }
+
+    /* Region badges */
+    .region-badges {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin: 12px 0;
+    }
+
+    .region-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(0, 161, 201, 0.15);
+      border: 1px solid rgba(0, 161, 201, 0.3);
+      border-radius: 20px;
+      padding: 6px 14px;
+      font-size: 14px;
+      color: var(--aws-teal);
+    }
+
+    /* Caution card */
+    .caution-card {
+      background: rgba(209, 50, 18, 0.08);
+      border: 1px solid rgba(209, 50, 18, 0.2);
+      border-radius: 8px;
+      padding: 16px 20px;
+      margin: 12px 0;
+    }
+
+    .caution-card li {
+      font-size: 14px;
+      padding: 4px 0;
+      color: var(--aws-light-gray);
+    }
+
+    .caution-card ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    /* Related services */
+    .related-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 12px;
+      margin: 12px 0;
+    }
+
+    .related-item {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 8px;
+      padding: 14px;
+      font-size: 14px;
+    }
+
+    .related-item strong {
+      color: var(--aws-orange);
+    }
+
+    /* Links */
+    .aws-link {
+      color: var(--aws-teal);
+      text-decoration: none;
+    }
+
+    .aws-link:hover {
+      color: var(--aws-smile-orange);
+      text-decoration: underline;
+    }
+
+    /* Footer */
+    footer {
+      margin-top: 24px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(255, 255, 255, 0.2);
+      font-size: 12px;
+      color: var(--aws-light-gray);
+    }
+
+    footer a {
+      color: var(--aws-teal);
+      text-decoration: none;
+      word-break: break-all;
+    }
+
+    footer a:hover {
+      color: var(--aws-smile-orange);
+    }
+
+    /* Responsive */
+    @media (max-width: 640px) {
+      h1 { font-size: 24px; }
+      .before-after { grid-template-columns: 1fr; }
+      .stats-row { grid-template-columns: 1fr 1fr; }
+      .stat-value { font-size: 28px; }
+      .section { padding: 16px; }
+    }
+  </style>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/styles/atom-one-dark.min.css">
+</head>
+<body>
+  <div class="container">
+
+    <!-- Header -->
+    <div class="header">
+      <div class="header-left">
+        <div class="service-badge">Amazon EC2</div>
+        <h1>R7gd インスタンスが南米 サンパウロ リージョンで利用可能に</h1>
+        <div class="subtitle">AWS Graviton3 搭載 メモリ最適化インスタンス + ローカル NVMe SSD ストレージ</div>
+      </div>
+      <div class="header-date">2026-03-11</div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-value">25%</div>
+        <div class="stat-label">コンピューティング<br>パフォーマンス向上<br>(Graviton2 比)</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">45%</div>
+        <div class="stat-label">NVMe ストレージ<br>パフォーマンス向上</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">50%</div>
+        <div class="stat-label">DDR5 メモリ<br>帯域幅向上</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">3.8 TB</div>
+        <div class="stat-label">最大ローカル<br>NVMe SSD</div>
+      </div>
+    </div>
+
+    <!-- Overview / Before-After -->
+    <div class="section">
+      <h2>&#x1F4CB; 概要</h2>
+      <p>Amazon EC2 R7gd インスタンスが<span class="highlight">南米 サンパウロ sa-east-1</span> リージョンで利用可能になりました。R7gd は AWS Graviton3 プロセッサーを搭載し、DDR5 メモリと最大 3.8 TB のローカル NVMe SSD ストレージを提供するメモリ最適化インスタンスです。AWS Nitro System 上に構築され、オープンソース DB、インメモリキャッシュ、リアルタイムビッグデータ分析などに最適です。</p>
+
+      <div class="before-after" style="margin-top:20px;">
+        <div class="before-card">
+          <div class="ba-label">&#x274C; Before</div>
+          <div class="ba-item"><span>&#x2022;</span><span>サンパウロで R7gd が利用不可、Graviton3 + ローカル NVMe SSD のメモリ最適化を活用できず</span></div>
+          <div class="ba-item"><span>&#x2022;</span><span>ローカル SSD 付きメモリ最適化は旧世代インスタンスに依存</span></div>
+          <div class="ba-item"><span>&#x2022;</span><span>最新 Graviton による価格パフォーマンス向上を南米で享受できず</span></div>
+        </div>
+        <div class="after-card">
+          <div class="ba-label">&#x2705; After</div>
+          <div class="ba-item"><span>&#x2022;</span><span>サンパウロで R7gd を利用可能、Graviton3 + NVMe SSD を活用</span></div>
+          <div class="ba-item"><span>&#x2022;</span><span>Graviton2 比で最大 25% コンピューティング向上、45% NVMe 向上</span></div>
+          <div class="ba-item"><span>&#x2022;</span><span>DDR5 メモリで DDR4 比 50% 高いメモリ帯域幅を実現</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Architecture Diagram (Mermaid) -->
+    <div class="section">
+      <h2>&#x1F3D7; アーキテクチャ図</h2>
+      <div class="mermaid-container">
+        <pre class="mermaid">
+flowchart TB
+    subgraph SaoPaulo["&#127758; 南米 サンパウロ sa-east-1"]
+        subgraph R7gdInstances["&#128187; EC2 R7gd インスタンス"]
+            direction LR
+            Small["r7gd.medium<br/>1 vCPU / 8 GiB<br/>59 GB NVMe SSD"]
+            Mid["r7gd.4xlarge<br/>16 vCPU / 128 GiB<br/>950 GB NVMe SSD"]
+            Large["r7gd.16xlarge<br/>64 vCPU / 512 GiB<br/>3.8 TB NVMe SSD"]
+            Small ~~~ Mid ~~~ Large
+        end
+    end
+
+    subgraph Hardware["&#9881;&#65039; ハードウェア基盤"]
+        direction LR
+        Graviton3["&#128295; AWS Graviton3<br/>プロセッサー"]
+        DDR5["&#129504; DDR5 メモリ"]
+        NVMe["&#128190; ローカル NVMe SSD"]
+        Graviton3 ~~~ DDR5 ~~~ NVMe
+    end
+
+    subgraph Workloads["&#128202; 対象ワークロード"]
+        direction LR
+        DB["&#128451;&#65039; オープンソース<br/>データベース"]
+        Cache["&#9889; インメモリ<br/>キャッシュ"]
+        Analytics["&#128200; リアルタイム<br/>ビッグデータ分析"]
+        Temp["&#128193; 一時ストレージ<br/>スクラッチスペース"]
+        DB ~~~ Cache ~~~ Analytics ~~~ Temp
+    end
+
+    Hardware -->|パワー| R7gdInstances
+    R7gdInstances --> Workloads
+
+    classDef region fill:#FFF4E6,stroke:#FF9800,stroke-width:2px,color:#E65100
+    classDef instance fill:#E3F2FD,stroke:#2196F3,stroke-width:2px,color:#0D47A1
+    classDef hardware fill:#F3E5F5,stroke:#9C27B0,stroke-width:2px,color:#4A148C
+    classDef workload fill:#E8F5E9,stroke:#4CAF50,stroke-width:2px,color:#1B5E20
+
+    class SaoPaulo region
+    class Small,Mid,Large instance
+    class Graviton3,DDR5,NVMe hardware
+    class DB,Cache,Analytics,Temp workload
+        </pre>
+      </div>
+      <p style="font-size:14px; color:var(--aws-light-gray); margin-top:8px;">南米 サンパウロ リージョンで新たに利用可能になった R7gd インスタンスのサイズバリエーション、ハードウェア基盤、対象ワークロードの関係を示しています。</p>
+    </div>
+
+    <!-- Key Features -->
+    <div class="section">
+      <h2>&#x1F527; 主要機能</h2>
+
+      <div class="feature-card">
+        <div class="feature-title">&#x1F680; AWS Graviton3 プロセッサー搭載</div>
+        <ul>
+          <li><span style="color:var(--aws-orange);">&#x2794;</span> Arm ベースの AWS 独自設計プロセッサー</li>
+          <li><span style="color:var(--aws-orange);">&#x2794;</span> Graviton2 と比較して最大 <strong style="color:var(--aws-orange);">25%</strong> 優れたコンピューティングパフォーマンス</li>
+          <li><span style="color:var(--aws-orange);">&#x2794;</span> 最大 <strong style="color:var(--aws-orange);">2 倍</strong>の浮動小数点パフォーマンス</li>
+          <li><span style="color:var(--aws-orange);">&#x2794;</span> 最大 <strong style="color:var(--aws-orange);">2 倍</strong>の暗号化ワークロードパフォーマンス</li>
+          <li><span style="color:var(--aws-orange);">&#x2794;</span> ML ワークロードで最大 <strong style="color:var(--aws-orange);">3 倍</strong>のパフォーマンス (bfloat16 サポート)</li>
+        </ul>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-title">&#x1F4BE; ローカル NVMe SSD ストレージ</div>
+        <ul>
+          <li><span style="color:var(--aws-orange);">&#x2794;</span> 最大 <strong style="color:var(--aws-orange);">3.8 TB</strong> (2 x 1900 GB) のローカル NVMe SSD</li>
+          <li><span style="color:var(--aws-orange);">&#x2794;</span> Graviton2 比で最大 <strong style="color:var(--aws-orange);">45%</strong> 優れたリアルタイム NVMe ストレージパフォーマンス</li>
+          <li><span style="color:var(--aws-orange);">&#x2794;</span> 高速かつ低レイテンシーのローカルストレージアクセス</li>
+        </ul>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-title">&#x1F9E0; DDR5 メモリと AWS Nitro System</div>
+        <ul>
+          <li><span style="color:var(--aws-orange);">&#x2794;</span> DDR5 メモリにより DDR4 比で <strong style="color:var(--aws-orange);">50%</strong> 高いメモリ帯域幅</li>
+          <li><span style="color:var(--aws-orange);">&#x2794;</span> AWS Nitro System 上に構築、高い仮想化効率とセキュリティ</li>
+          <li><span style="color:var(--aws-orange);">&#x2794;</span> 16xlarge / metal サイズで <strong style="color:var(--aws-orange);">EFA</strong> サポート</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Technical Specs -->
+    <div class="section">
+      <h2>&#x1F4D0; 技術仕様</h2>
+
+      <h3>R7gd インスタンスサイズ一覧</h3>
+      <div style="overflow-x:auto;">
+        <table class="spec-table">
+          <thead>
+            <tr><th>インスタンスサイズ</th><th>vCPU</th><th>メモリ</th><th>ローカルストレージ</th><th>NW 帯域幅</th><th>EBS 帯域幅</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>r7gd.medium</td><td>1</td><td>8 GiB</td><td>1 x 59 GB</td><td>最大 12.5 Gbps</td><td>最大 10 Gbps</td></tr>
+            <tr><td>r7gd.large</td><td>2</td><td>16 GiB</td><td>1 x 118 GB</td><td>最大 12.5 Gbps</td><td>最大 10 Gbps</td></tr>
+            <tr><td>r7gd.xlarge</td><td>4</td><td>32 GiB</td><td>1 x 237 GB</td><td>最大 12.5 Gbps</td><td>最大 10 Gbps</td></tr>
+            <tr><td>r7gd.2xlarge</td><td>8</td><td>64 GiB</td><td>1 x 474 GB</td><td>最大 15 Gbps</td><td>最大 10 Gbps</td></tr>
+            <tr><td>r7gd.4xlarge</td><td>16</td><td>128 GiB</td><td>1 x 950 GB</td><td>最大 15 Gbps</td><td>最大 10 Gbps</td></tr>
+            <tr><td>r7gd.8xlarge</td><td>32</td><td>256 GiB</td><td>1 x 1900 GB</td><td>15 Gbps</td><td>10 Gbps</td></tr>
+            <tr><td>r7gd.12xlarge</td><td>48</td><td>384 GiB</td><td>2 x 1425 GB</td><td>22.5 Gbps</td><td>15 Gbps</td></tr>
+            <tr><td>r7gd.16xlarge</td><td>64</td><td>512 GiB</td><td>2 x 1900 GB</td><td>30 Gbps</td><td>20 Gbps</td></tr>
+            <tr><td>r7gd.metal</td><td>64</td><td>512 GiB</td><td>2 x 1900 GB</td><td>30 Gbps</td><td>20 Gbps</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>パフォーマンス比較 (Graviton2 比)</h3>
+      <table class="spec-table">
+        <thead>
+          <tr><th>項目</th><th>パフォーマンス向上</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>コンピューティング</td><td><span class="highlight">最大 25% 向上</span></td></tr>
+          <tr><td>リアルタイム NVMe ストレージ</td><td><span class="highlight">最大 45% 向上</span></td></tr>
+          <tr><td>メモリ帯域幅 (DDR5 vs DDR4)</td><td><span class="highlight">50% 向上</span></td></tr>
+          <tr><td>浮動小数点演算</td><td><span class="highlight">最大 2 倍</span></td></tr>
+          <tr><td>暗号化ワークロード</td><td><span class="highlight">最大 2 倍</span></td></tr>
+          <tr><td>ML ワークロード (bfloat16)</td><td><span class="highlight">最大 3 倍</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Setup Guide -->
+    <div class="section">
+      <h2>&#x2699;&#xFE0F; 設定方法</h2>
+
+      <h3>前提条件</h3>
+      <ul style="list-style:none; padding:0; margin:0 0 16px;">
+        <li class="ba-item"><span style="color:var(--aws-orange);">&#x2714;</span> AWS アカウントと適切な IAM 権限</li>
+        <li class="ba-item"><span style="color:var(--aws-orange);">&#x2714;</span> 南米 サンパウロ リージョン sa-east-1 へのアクセス</li>
+        <li class="ba-item"><span style="color:var(--aws-orange);">&#x2714;</span> Arm (Graviton) アーキテクチャ対応の AMI</li>
+      </ul>
+
+      <h3>Step 1: 利用可能な R7gd インスタンスタイプを確認</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash</span>
+          <span class="code-title">R7gd インスタンスタイプの確認</span>
+        </div>
+        <pre><code class="language-bash"># sa-east-1 リージョンで利用可能な R7gd インスタンスタイプを確認
+aws ec2 describe-instance-types \
+  --filters "Name=instance-type,Values=r7gd.*" \
+  --region sa-east-1 \
+  --query "InstanceTypes[].{Type:InstanceType,vCPU:VCpuInfo.DefaultVCpus,Memory:MemoryInfo.SizeInMiB,Storage:InstanceStorageInfo.TotalSizeInGB}" \
+  --output table</code></pre>
+      </div>
+
+      <h3>Step 2: Graviton 対応 AMI を選択</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash</span>
+          <span class="code-title">Amazon Linux 2023 Arm64 AMI を検索</span>
+        </div>
+        <pre><code class="language-bash"># Amazon Linux 2023 の Arm64 AMI を検索
+aws ec2 describe-images \
+  --owners amazon \
+  --filters "Name=name,Values=al2023-ami-2023*-arm64" \
+             "Name=state,Values=available" \
+  --region sa-east-1 \
+  --query "Images | sort_by(@, &CreationDate) | [-1].{ImageId:ImageId,Name:Name}" \
+  --output table</code></pre>
+      </div>
+
+      <h3>Step 3: R7gd インスタンスを起動</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash</span>
+          <span class="code-title">サンパウロリージョンで起動</span>
+        </div>
+        <pre><code class="language-bash"># R7gd インスタンスを起動
+aws ec2 run-instances \
+  --image-id ami-xxxxxxxxxxxxxxxxx \
+  --instance-type r7gd.2xlarge \
+  --region sa-east-1 \
+  --subnet-id subnet-xxxxxxxxxxxxxxxxx \
+  --security-group-ids sg-xxxxxxxxxxxxxxxxx \
+  --key-name my-key-pair</code></pre>
+      </div>
+      <p style="font-size:13px; color:var(--aws-light-gray); margin-top:8px;">&#x26A0;&#xFE0F; ローカル NVMe SSD は自動的にアタッチされますが、使用前にフォーマットとマウントが必要です。</p>
+    </div>
+
+    <!-- Benefits -->
+    <div class="section">
+      <h2>&#x2705; メリット</h2>
+
+      <h3>&#x1F4BC; ビジネス面</h3>
+      <div class="feature-card">
+        <ul>
+          <li><span style="color:var(--aws-green);">&#x2714;</span> <strong>コスト効率の向上</strong>: Graviton3 により x86 比で優れた価格パフォーマンス、メモリ集約的ワークロードのコスト削減</li>
+          <li><span style="color:var(--aws-green);">&#x2714;</span> <strong>レイテンシー最適化</strong>: 南米のエンドユーザーに近い場所でワークロードを実行し、応答時間を短縮</li>
+          <li><span style="color:var(--aws-green);">&#x2714;</span> <strong>データレジデンシー対応</strong>: ブラジル LGPD などのデータ保護規制に準拠しながら最新インスタンスを活用</li>
+        </ul>
+      </div>
+
+      <h3>&#x1F527; 技術面</h3>
+      <div class="feature-card">
+        <ul>
+          <li><span style="color:var(--aws-green);">&#x2714;</span> <strong>高速ローカルストレージ</strong>: NVMe SSD による低レイテンシーアクセスで一時データ処理やキャッシュの性能向上</li>
+          <li><span style="color:var(--aws-green);">&#x2714;</span> <strong>メモリ帯域幅の向上</strong>: DDR5 で DDR4 比 50% 高い帯域幅、メモリ集約的アプリのスループット向上</li>
+          <li><span style="color:var(--aws-green);">&#x2714;</span> <strong>NVMe パフォーマンス</strong>: Graviton2 比で最大 45% 優れたリアルタイムストレージ性能</li>
+          <li><span style="color:var(--aws-green);">&#x2714;</span> <strong>EFA サポート</strong>: 16xlarge / metal で Elastic Fabric Adapter 対応、HPC やノード間通信を最適化</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Limitations -->
+    <div class="section">
+      <h2>&#x26A0;&#xFE0F; 制限事項・注意点</h2>
+      <div class="caution-card">
+        <ul>
+          <li>&#x26A0;&#xFE0F; ローカル NVMe SSD はエフェメラルストレージ &#x2014; インスタンス停止・終了でデータ消失</li>
+          <li>&#x26A0;&#xFE0F; Arm (Graviton) アーキテクチャ対応のソフトウェア / AMI が必要 &#x2014; x86 専用アプリはそのまま動作不可</li>
+          <li>&#x26A0;&#xFE0F; すべてのリージョンで利用可能ではなく、対応リージョンは順次拡大中</li>
+          <li>&#x1F4A1; 永続データは Amazon EBS または Amazon S3 に別途保存する設計が必要</li>
+          <li>&#x1F4A1; x86 からの移行時は Arm アーキテクチャへの互換性テストとパフォーマンス検証を推奨</li>
+          <li>&#x1F4A1; ローカルストレージ容量はインスタンスサイズに固定、EBS のように柔軟なサイズ変更は不可</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Use Cases -->
+    <div class="section">
+      <h2>&#x1F3AF; ユースケース</h2>
+
+      <div class="usecase-card">
+        <div class="uc-title">&#x1F5C4;&#xFE0F; オープンソースデータベースのキャッシュ層</div>
+        <div class="uc-scenario">南米向け E コマースプラットフォームが Redis / Memcached でデータベースクエリ結果をキャッシュし、応答時間を短縮。r7gd.4xlarge を使用。</div>
+        <div class="uc-effect">&#x1F4C8; 128 GiB メモリと 950 GB NVMe SSD で大量のキャッシュデータを低レイテンシー処理。DDR5 の高帯域幅によりキャッシュヒット率向上とレスポンス時間短縮を実現</div>
+      </div>
+
+      <div class="usecase-card">
+        <div class="uc-title">&#x1F4CA; リアルタイムビッグデータ分析</div>
+        <div class="uc-scenario">金融テクノロジー企業が南米市場のトランザクションデータをリアルタイム分析し、不正検知を実行。r7gd.8xlarge x 3 ノードを使用。</div>
+        <div class="uc-effect">&#x1F4C8; 256 GiB メモリと 1.9 TB NVMe SSD を各ノードで活用。シャッフル / スピルオーバーデータをローカルストレージに高速書き込みし、分析パイプラインのスループットを向上</div>
+      </div>
+
+      <div class="usecase-card">
+        <div class="uc-title">&#x1F4C1; 一時データ処理パイプライン</div>
+        <div class="uc-scenario">メディア企業が動画トランスコーディングの一時ファイルを高速処理。r7gd.12xlarge を使用。</div>
+        <div class="uc-effect">&#x1F4C8; 384 GiB メモリと 2.85 TB (2 x 1425 GB) NVMe SSD で大容量一時ファイルを高速読み書き、トランスコーディング処理時間を大幅短縮</div>
+      </div>
+    </div>
+
+    <!-- Pricing -->
+    <div class="section">
+      <h2>&#x1F4B0; 料金</h2>
+      <p>R7gd の料金はインスタンスサイズ、リージョン、購入オプションにより異なります。Graviton ベースのインスタンスは同等 x86 比で一般的にコスト効率が高くなっています。</p>
+      <table class="spec-table" style="margin-top:12px;">
+        <thead>
+          <tr><th>購入オプション</th><th>説明</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>オンデマンドインスタンス</td><td>使用した分だけ支払い</td></tr>
+          <tr><td>Savings Plans</td><td>1 年 / 3 年のコミットメントで割引</td></tr>
+          <tr><td>スポットインスタンス</td><td>未使用の EC2 容量を大幅割引で利用</td></tr>
+          <tr><td>リザーブドインスタンス</td><td>1 年 / 3 年のコミットメントで割引</td></tr>
+        </tbody>
+      </table>
+      <p style="font-size:13px; margin-top:10px;">&#x1F4A1; 詳細な料金については <a href="https://aws.amazon.com/ec2/pricing/" target="_blank" class="aws-link">Amazon EC2 料金ページ</a> を参照してください。</p>
+    </div>
+
+    <!-- Available Regions -->
+    <div class="section">
+      <h2>&#x1F30D; 利用可能リージョン</h2>
+      <p style="margin-bottom:12px;">今回のアップデートで追加されたリージョン:</p>
+      <div class="region-badges">
+        <div class="region-badge">&#x1F1E7;&#x1F1F7; 南米 サンパウロ - sa-east-1</div>
+      </div>
+      <p style="font-size:13px; margin-top:10px;">その他の対応リージョンについては、<a href="https://aws.amazon.com/ec2/instance-types/r7g/" target="_blank" class="aws-link">Amazon EC2 R7g インスタンスタイプページ</a>を参照してください。</p>
+    </div>
+
+    <!-- Related Services -->
+    <div class="section">
+      <h2>&#x1F517; 関連サービス</h2>
+      <div class="related-grid">
+        <div class="related-item"><strong>Amazon EC2 R7g</strong><br>同じ Graviton3 搭載、ローカルストレージなし (EBS のみ) のメモリ最適化インスタンス</div>
+        <div class="related-item"><strong>Amazon EBS</strong><br>R7gd のローカル NVMe SSD と併用して永続データを保存するブロックストレージサービス</div>
+        <div class="related-item"><strong>Amazon ElastiCache</strong><br>セルフマネージドの Redis / Memcached 運用の代替となるフルマネージドキャッシュサービス</div>
+        <div class="related-item"><strong>AWS Graviton</strong><br>Arm ベースの AWS 独自設計プロセッサーファミリー。R7gd は Graviton3 を搭載</div>
+      </div>
+    </div>
+
+    <!-- Summary -->
+    <div class="section" style="border:1px solid rgba(255,153,0,0.3); background:linear-gradient(135deg, rgba(255,153,0,0.08), rgba(255,153,0,0.02));">
+      <h2>&#x1F4DD; まとめ</h2>
+      <p>Amazon EC2 R7gd インスタンスが南米 サンパウロ リージョンで利用可能になり、Graviton3 プロセッサーの優れた価格パフォーマンスと最大 3.8 TB のローカル NVMe SSD を活用したメモリ集約的ワークロードを実行できるようになりました。オープンソース DB、インメモリキャッシュ、リアルタイムビッグデータ分析など、高速ローカルストレージが求められるワークロードを南米リージョンで運用しているユーザーは、R7gd インスタンスへの移行を検討してください。</p>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+      <p>&#x1F4CE; 出典:</p>
+      <ul style="list-style:none; padding:0; margin:4px 0 0;">
+        <li style="margin:4px 0;"><a href="https://aws.amazon.com/about-aws/whats-new/2026/03/amazon-ec2-r7gd-instances-available/" target="_blank" rel="noopener noreferrer">公式発表 (What's New)</a></li>
+        <li style="margin:4px 0;"><a href="https://aws.amazon.com/ec2/instance-types/r7g/" target="_blank" rel="noopener noreferrer">Amazon EC2 R7g インスタンスタイプページ</a></li>
+        <li style="margin:4px 0;"><a href="https://aws.amazon.com/ec2/pricing/" target="_blank" rel="noopener noreferrer">Amazon EC2 料金ページ</a></li>
+        <li style="margin:4px 0;"><a href="https://aws.amazon.com/ec2/graviton/" target="_blank" rel="noopener noreferrer">AWS Graviton プロセッサー</a></li>
+        <li style="margin:4px 0;"><a href="https://docs.aws.amazon.com/ec2/" target="_blank" rel="noopener noreferrer">Amazon EC2 ドキュメント</a></li>
+      </ul>
+    </footer>
+
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'base',
+      themeVariables: {
+        primaryColor: '#FF9900',
+        primaryTextColor: '#232F3E',
+        primaryBorderColor: '#FF9900',
+        lineColor: '#FF9900',
+        secondaryColor: '#F5F5F5',
+        tertiaryColor: '#FAFAFA',
+        background: '#FFFFFF',
+        mainBkg: '#FFF3E0',
+        nodeBorder: '#FF9900',
+        clusterBkg: '#FFF8E1',
+        clusterBorder: '#FF9900',
+        edgeLabelBackground: '#FFFFFF',
+        textColor: '#232F3E'
+      }
+    });
+  </script>
+  <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/highlight.min.js"></script>
+  <script>hljs.highlightAll();</script>
+</body>
+</html>

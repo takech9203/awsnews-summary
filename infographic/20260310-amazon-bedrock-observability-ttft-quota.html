@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Amazon Bedrock - First Token Latency およびクォータ消費のオブザーバビリティ</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap');
+
+    :root {
+      --aws-squid-ink: #232F3E;
+      --aws-dark-squid: #1A242F;
+      --aws-orange: #FF9900;
+      --aws-smile-orange: #FFAD33;
+      --aws-white: #FFFFFF;
+      --aws-light-gray: #D5DBDB;
+      --aws-teal: #00A1C9;
+      --aws-purple: #8C4FFF;
+      --aws-green: #1D8102;
+      --aws-red: #D13212;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--aws-squid-ink);
+      font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+      color: var(--aws-light-gray);
+      font-size: 16px;
+      line-height: 1.6;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 32px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .header-left { flex: 1; min-width: 280px; }
+    .service-badge {
+      display: inline-block;
+      background: var(--aws-orange);
+      color: var(--aws-squid-ink);
+      font-weight: 700;
+      font-size: 13px;
+      padding: 4px 14px;
+      border-radius: 20px;
+      margin-bottom: 12px;
+    }
+    h1 {
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--aws-white);
+      line-height: 1.3;
+      margin-bottom: 8px;
+    }
+    .subtitle {
+      font-size: 15px;
+      color: var(--aws-light-gray);
+    }
+    .header-right {
+      text-align: right;
+      font-size: 14px;
+      color: var(--aws-light-gray);
+      white-space: nowrap;
+    }
+
+    /* Section */
+    .section {
+      background: var(--aws-dark-squid);
+      border-radius: 8px;
+      padding: 24px;
+      margin-bottom: 24px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    h2 {
+      font-size: 22px;
+      font-weight: 600;
+      color: var(--aws-orange);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    h3 {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--aws-white);
+      margin: 20px 0 10px;
+    }
+
+    /* Highlight */
+    .highlight {
+      background-color: rgba(255, 153, 0, 0.2);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 600;
+      color: var(--aws-orange);
+    }
+
+    /* Cards */
+    .card {
+      background: var(--aws-dark-squid);
+      border-radius: 8px;
+      padding: 16px;
+      margin: 12px 0;
+      border: 1px solid rgba(255, 153, 0, 0.3);
+    }
+    .card-title {
+      font-weight: 600;
+      color: var(--aws-white);
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Feature card with left border */
+    .feature-card {
+      background: rgba(255, 153, 0, 0.05);
+      border-left: 4px solid var(--aws-orange);
+      border-radius: 0 8px 8px 0;
+      padding: 16px 20px;
+      margin: 14px 0;
+    }
+    .feature-card .card-title {
+      font-size: 17px;
+      margin-bottom: 8px;
+    }
+
+    /* Before/After */
+    .before-after {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin: 16px 0;
+    }
+    .before-box, .after-box {
+      border-radius: 8px;
+      padding: 16px;
+    }
+    .before-box {
+      background: rgba(209, 50, 18, 0.12);
+      border: 1px solid rgba(209, 50, 18, 0.4);
+    }
+    .after-box {
+      background: rgba(29, 129, 2, 0.12);
+      border: 1px solid rgba(29, 129, 2, 0.4);
+    }
+    .before-box .ba-label {
+      color: var(--aws-red);
+      font-weight: 700;
+      font-size: 14px;
+      margin-bottom: 8px;
+    }
+    .after-box .ba-label {
+      color: var(--aws-green);
+      font-weight: 700;
+      font-size: 14px;
+      margin-bottom: 8px;
+    }
+    .ba-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      margin: 6px 0;
+      font-size: 14px;
+    }
+
+    /* Stats grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin: 16px 0;
+    }
+    .stat-card {
+      background: linear-gradient(135deg, rgba(255, 153, 0, 0.15) 0%, rgba(140, 79, 255, 0.1) 100%);
+      border: 1px solid rgba(255, 153, 0, 0.3);
+      border-radius: 8px;
+      padding: 20px;
+      text-align: center;
+    }
+    .stat-value {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--aws-orange);
+      margin-bottom: 4px;
+    }
+    .stat-label {
+      font-size: 13px;
+      color: var(--aws-light-gray);
+    }
+
+    /* Table */
+    .table-wrapper {
+      overflow-x: auto;
+      margin: 16px 0;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+    th {
+      background: rgba(255, 153, 0, 0.2);
+      color: var(--aws-orange);
+      font-weight: 600;
+      padding: 10px 14px;
+      text-align: left;
+      border-bottom: 2px solid var(--aws-orange);
+    }
+    td {
+      padding: 10px 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    /* Usecase */
+    .usecase-card {
+      background: rgba(255, 153, 0, 0.08);
+      border: 1px solid rgba(255, 153, 0, 0.25);
+      border-radius: 8px;
+      padding: 20px;
+      margin: 14px 0;
+    }
+    .usecase-card .card-title {
+      font-size: 17px;
+      color: var(--aws-orange);
+    }
+    .usecase-scenario {
+      font-size: 14px;
+      color: var(--aws-light-gray);
+      margin: 8px 0 12px;
+    }
+    .usecase-effect {
+      background: rgba(29, 129, 2, 0.1);
+      border-left: 3px solid var(--aws-green);
+      padding: 10px 14px;
+      border-radius: 0 6px 6px 0;
+      font-size: 14px;
+      margin-top: 10px;
+    }
+
+    /* Flow diagram */
+    .flow-diagram {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin: 24px 0;
+    }
+    .flow-step {
+      background: var(--aws-dark-squid);
+      border: 2px solid var(--aws-orange);
+      border-radius: 8px;
+      padding: 12px 20px;
+      text-align: center;
+      min-width: 100px;
+    }
+    .flow-arrow {
+      color: var(--aws-orange);
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    /* Check items */
+    .check-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      margin: 8px 0;
+    }
+    .check-icon { color: var(--aws-green); font-size: 18px; }
+    .cross-icon { color: var(--aws-red); font-size: 18px; }
+    .warn-icon { color: var(--aws-orange); font-size: 18px; }
+
+    /* Mermaid */
+    .mermaid-container {
+      background: #FFFFFF;
+      border-radius: 12px;
+      padding: 24px;
+      margin: 20px 0;
+      border: 2px solid rgba(255, 153, 0, 0.3);
+      overflow-x: auto;
+    }
+    .mermaid {
+      display: flex;
+      justify-content: center;
+    }
+
+    /* Code block */
+    .code-block {
+      background: #1a1a2e;
+      border-radius: 8px;
+      overflow: hidden;
+      margin: 16px 0;
+    }
+    .code-header {
+      background: #16213e;
+      padding: 8px 16px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+    }
+    .code-lang {
+      color: var(--aws-orange);
+      font-weight: bold;
+    }
+    .code-title {
+      color: var(--aws-light-gray);
+    }
+    .code-block pre {
+      margin: 0;
+      padding: 0;
+      overflow-x: auto;
+    }
+    .code-block code {
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      line-height: 1.5;
+      padding: 16px !important;
+    }
+
+    /* Pricing */
+    .pricing-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    .pricing-row:last-child { border-bottom: none; }
+    .pricing-label { font-size: 14px; }
+    .pricing-value { font-weight: 600; color: var(--aws-orange); font-size: 14px; }
+    .pricing-free {
+      background: rgba(29, 129, 2, 0.2);
+      color: var(--aws-green);
+      padding: 2px 10px;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 13px;
+    }
+
+    /* Link */
+    .aws-link {
+      color: var(--aws-teal);
+      text-decoration: none;
+    }
+    .aws-link:hover {
+      color: var(--aws-smile-orange);
+    }
+
+    /* Tags */
+    .tag-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 12px 0;
+    }
+    .tag {
+      background: rgba(0, 161, 201, 0.15);
+      border: 1px solid rgba(0, 161, 201, 0.4);
+      color: var(--aws-teal);
+      font-size: 12px;
+      padding: 3px 12px;
+      border-radius: 14px;
+    }
+
+    /* Footer */
+    footer {
+      margin-top: 24px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(255, 255, 255, 0.2);
+      font-size: 12px;
+      color: var(--aws-light-gray);
+    }
+    footer a {
+      color: var(--aws-teal);
+      word-break: break-all;
+    }
+
+    /* Responsive */
+    @media (max-width: 700px) {
+      h1 { font-size: 24px; }
+      .before-after { grid-template-columns: 1fr; }
+      .stats-grid { grid-template-columns: 1fr; }
+      .header { flex-direction: column; }
+      .header-right { text-align: left; }
+    }
+  </style>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/styles/atom-one-dark.min.css">
+</head>
+<body>
+  <div class="container">
+
+    <!-- Header -->
+    <div class="header">
+      <div class="header-left">
+        <span class="service-badge">Amazon Bedrock</span>
+        <h1>First Token Latency およびクォータ消費のオブザーバビリティ</h1>
+        <p class="subtitle">CloudWatch メトリクス <span class="highlight">TimeToFirstToken</span> / <span class="highlight">EstimatedTPMQuotaUsage</span> が追加</p>
+      </div>
+      <div class="header-right">
+        2026-03-10
+      </div>
+    </div>
+
+    <!-- Overview -->
+    <div class="section">
+      <h2>📋 概要</h2>
+      <p>Amazon Bedrock に 2 つの新しい CloudWatch メトリクスが追加されました。<span class="highlight">TimeToFirstToken</span> はストリーミング API におけるファーストトークンレイテンシーを計測し、<span class="highlight">EstimatedTPMQuotaUsage</span> は Tokens Per Minute (TPM) クォータの推定消費量を追跡します。</p>
+      <p style="margin-top: 10px;">追加設定やオプトイン不要で CloudWatch にそのまま公開され、クライアント側の計測コードなしに推論パフォーマンスとクォータ使用状況をモニタリングできます。</p>
+
+      <!-- Stats -->
+      <div class="stats-grid" style="margin-top: 20px;">
+        <div class="stat-card">
+          <div class="stat-value">2</div>
+          <div class="stat-label">新規 CloudWatch メトリクス</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">0</div>
+          <div class="stat-label">追加設定 / オプトイン</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">無料</div>
+          <div class="stat-label">メトリクス記録コスト</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Before/After -->
+    <div class="section">
+      <h2>🔄 Before / After</h2>
+      <div class="before-after">
+        <div class="before-box">
+          <div class="ba-label">❌ Before</div>
+          <div class="ba-item"><span>-</span><span>ファーストトークンレイテンシー計測にはクライアント側の独自実装が必要</span></div>
+          <div class="ba-item"><span>-</span><span>クォータ消費状況をリアルタイムに把握する標準的手段がなく、レート制限に事前対処困難</span></div>
+          <div class="ba-item"><span>-</span><span>SLA ベースライン確立やレイテンシー劣化アラーム設定が容易ではなかった</span></div>
+        </div>
+        <div class="after-box">
+          <div class="ba-label">✅ After</div>
+          <div class="ba-item"><span>-</span><span>TimeToFirstToken が自動記録され、クライアント側計測が不要に</span></div>
+          <div class="ba-item"><span>-</span><span>EstimatedTPMQuotaUsage でモデル横断のクォータ消費追跡、プロアクティブなアラーム設定が可能</span></div>
+          <div class="ba-item"><span>-</span><span>追加コストなし、API 変更なし、オプトイン不要で即利用可能</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Architecture Diagram -->
+    <div class="section">
+      <h2>🏗️ アーキテクチャ図</h2>
+      <p style="margin-bottom: 12px;">Amazon Bedrock の推論 API が自動的に CloudWatch メトリクスを送信し、アラームやダッシュボードでモニタリングする構成を示しています。</p>
+      <div class="mermaid-container">
+        <pre class="mermaid">
+flowchart TD
+    subgraph App["⚙️ アプリケーション"]
+        Client["👤 クライアント"]
+    end
+
+    subgraph Bedrock["🧠 Amazon Bedrock"]
+        direction LR
+        CS["📡 ConverseStream"]
+        IM["📡 InvokeModelWithResponseStream"]
+        CV["📡 Converse"]
+        IV["📡 InvokeModel"]
+        CS ~~~ IM ~~~ CV ~~~ IV
+    end
+
+    subgraph CW["📊 Amazon CloudWatch"]
+        direction LR
+        TTFT["⏱️ TimeToFirstToken<br/>ストリーミング API 対象"]
+        TPM["📈 EstimatedTPMQuotaUsage<br/>全推論 API 対象"]
+        TTFT ~~~ TPM
+    end
+
+    subgraph Actions["🔔 アクション"]
+        direction LR
+        Alarm["⚠️ CloudWatch Alarms"]
+        Dashboard["📋 CloudWatch Dashboard"]
+        Alarm ~~~ Dashboard
+    end
+
+    Client --> Bedrock
+    Bedrock -->|メトリクス自動送信| CW
+    CW --> Actions
+
+    classDef cloud fill:none,stroke:#CCCCCC,stroke-width:2px,color:#666666
+    classDef compute fill:#FFE0B2,stroke:#FFCC80,stroke-width:2px,color:#5D4037
+    classDef storage fill:#DCEDC8,stroke:#C5E1A5,stroke-width:2px,color:#33691E
+    classDef user fill:#E3F2FD,stroke:#BBDEFB,stroke-width:2px,color:#1565C0
+    classDef process fill:#FFFFFF,stroke:#4A90E2,stroke-width:2px,color:#333333
+    classDef internal fill:#E8F1FF,stroke:#4A90E2,stroke-width:2px,color:#333333
+    classDef decision fill:#F3E5F5,stroke:#7B61FF,stroke-width:2px,color:#333333
+    classDef warning fill:#FFF3E0,stroke:#FF9800,stroke-width:2px,color:#5D4037
+
+    class App cloud
+    class Bedrock cloud
+    class CW cloud
+    class Actions cloud
+    class Client user
+    class CS,IM,CV,IV compute
+    class TTFT,TPM internal
+    class Alarm warning
+    class Dashboard process
+        </pre>
+      </div>
+    </div>
+
+    <!-- Key Features -->
+    <div class="section">
+      <h2>⚡ 主要機能</h2>
+
+      <div class="feature-card">
+        <div class="card-title">⏱️ TimeToFirstToken メトリクス</div>
+        <div class="check-item"><span class="check-icon">✓</span><span>リクエスト送信からファーストトークン受信までのレイテンシーを計測</span></div>
+        <div class="check-item"><span class="check-icon">✓</span><span>ストリーミング API のみ対象: ConverseStream / InvokeModelWithResponseStream</span></div>
+        <div class="check-item"><span class="check-icon">✓</span><span>CloudWatch Alarms と組み合わせてレイテンシー劣化を検知可能</span></div>
+        <div class="check-item"><span class="check-icon">✓</span><span>SLA ベースラインの確立に活用できる</span></div>
+      </div>
+
+      <div class="feature-card">
+        <div class="card-title">📈 EstimatedTPMQuotaUsage メトリクス</div>
+        <div class="check-item"><span class="check-icon">✓</span><span>TPM クォータの推定消費量を追跡</span></div>
+        <div class="check-item"><span class="check-icon">✓</span><span>キャッシュ書き込みトークンおよび出力バーンダウン乗数を含む</span></div>
+        <div class="check-item"><span class="check-icon">✓</span><span>全推論 API 対象: Converse / InvokeModel / ConverseStream / InvokeModelWithResponseStream</span></div>
+        <div class="check-item"><span class="check-icon">✓</span><span>クォータ上限到達前にプロアクティブなアラームを設定可能</span></div>
+      </div>
+
+      <div class="feature-card">
+        <div class="card-title">🔧 ゼロ設定での利用</div>
+        <div class="check-item"><span class="check-icon">✓</span><span>API 変更やオプトインは不要</span></div>
+        <div class="check-item"><span class="check-icon">✓</span><span>CloudWatch にそのまま公開、追加のメトリクス送信コストなし</span></div>
+        <div class="check-item"><span class="check-icon">✓</span><span>正常に完了したリクエストに対して毎分更新</span></div>
+      </div>
+    </div>
+
+    <!-- Technical Specs -->
+    <div class="section">
+      <h2>🔍 技術仕様</h2>
+
+      <h3>メトリクス詳細</h3>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>項目</th>
+              <th>TimeToFirstToken</th>
+              <th>EstimatedTPMQuotaUsage</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>計測内容</td>
+              <td>ファーストトークンレイテンシー</td>
+              <td>推定 TPM クォータ消費量</td>
+            </tr>
+            <tr>
+              <td>対象 API</td>
+              <td>ConverseStream,<br/>InvokeModelWithResponseStream</td>
+              <td>Converse, InvokeModel,<br/>ConverseStream,<br/>InvokeModelWithResponseStream</td>
+            </tr>
+            <tr>
+              <td>更新頻度</td>
+              <td>毎分</td>
+              <td>毎分</td>
+            </tr>
+            <tr>
+              <td>対象リクエスト</td>
+              <td>正常完了リクエストのみ</td>
+              <td>正常完了リクエストのみ</td>
+            </tr>
+            <tr>
+              <td>含まれるトークン</td>
+              <td>-</td>
+              <td>キャッシュ書き込みトークン、<br/>出力バーンダウン乗数</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>対応する推論タイプ</h3>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr><th>推論タイプ</th><th>サポート状況</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>クロスリージョン推論プロファイル</td><td><span style="color: var(--aws-green); font-weight: 600;">✓ 対応</span></td></tr>
+            <tr><td>リージョン内推論</td><td><span style="color: var(--aws-green); font-weight: 600;">✓ 対応</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>API 変更履歴</h3>
+      <p style="font-size: 14px;">今回のアップデートに対応する API 変更はありません。新しい CloudWatch メトリクスの追加であり、Bedrock の API 自体には変更はありません。</p>
+    </div>
+
+    <!-- Setup Guide -->
+    <div class="section">
+      <h2>🛠️ 設定方法</h2>
+
+      <h3>前提条件</h3>
+      <div class="check-item"><span class="check-icon">✓</span><span>Amazon Bedrock を利用できる AWS アカウント</span></div>
+      <div class="check-item"><span class="check-icon">✓</span><span>CloudWatch へのアクセス権限 (cloudwatch:GetMetricData, cloudwatch:PutMetricAlarm など)</span></div>
+      <div class="check-item"><span class="check-icon">✓</span><span>Bedrock の推論 API を使用するアプリケーション</span></div>
+
+      <h3>ステップ 1: CloudWatch コンソールでメトリクスを確認</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash</span>
+          <span class="code-title">メトリクスの存在確認</span>
+        </div>
+        <pre><code class="language-bash"># AWS CLI でメトリクスの存在を確認
+aws cloudwatch list-metrics \
+  --namespace "AWS/Bedrock" \
+  --metric-name "TimeToFirstToken"</code></pre>
+      </div>
+      <p style="font-size: 14px;">オプトインは不要で、推論リクエストを実行すると自動的にメトリクスが記録されます。</p>
+
+      <h3>ステップ 2: レイテンシー監視アラームの作成</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash</span>
+          <span class="code-title">TimeToFirstToken が 5 秒を超えた場合にアラーム発報</span>
+        </div>
+        <pre><code class="language-bash"># TimeToFirstToken が 5 秒を超えた場合にアラームを発報する例
+aws cloudwatch put-metric-alarm \
+  --alarm-name "Bedrock-TTFT-High-Latency" \
+  --namespace "AWS/Bedrock" \
+  --metric-name "TimeToFirstToken" \
+  --statistic "Average" \
+  --period 300 \
+  --threshold 5000 \
+  --comparison-operator "GreaterThanThreshold" \
+  --evaluation-periods 2 \
+  --alarm-actions "arn:aws:sns:us-east-1:123456789012:bedrock-alerts"</code></pre>
+      </div>
+      <p style="font-size: 14px;">閾値はアプリケーションの SLA に合わせて調整してください。</p>
+
+      <h3>ステップ 3: クォータ消費量の監視アラームの作成</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash</span>
+          <span class="code-title">クォータの 80% 到達でアラーム発報</span>
+        </div>
+        <pre><code class="language-bash"># EstimatedTPMQuotaUsage がクォータの 80% に達した場合にアラーム
+aws cloudwatch put-metric-alarm \
+  --alarm-name "Bedrock-TPM-Quota-Warning" \
+  --namespace "AWS/Bedrock" \
+  --metric-name "EstimatedTPMQuotaUsage" \
+  --statistic "Maximum" \
+  --period 60 \
+  --threshold 80 \
+  --comparison-operator "GreaterThanThreshold" \
+  --evaluation-periods 3 \
+  --alarm-actions "arn:aws:sns:us-east-1:123456789012:bedrock-alerts"</code></pre>
+      </div>
+      <p style="font-size: 14px;">クォータ消費量が閾値に近づいた段階で事前に通知を受け、レート制限を回避できます。</p>
+    </div>
+
+    <!-- Benefits -->
+    <div class="section">
+      <h2>💡 メリット</h2>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+        <div>
+          <h3>🏢 ビジネス面</h3>
+          <div class="check-item"><span class="check-icon">✓</span><span><strong>SLA 管理の強化</strong>: ファーストトークンレイテンシーを定量的に監視し、サービスレベル維持を証明</span></div>
+          <div class="check-item"><span class="check-icon">✓</span><span><strong>コスト最適化</strong>: クォータ消費量の可視化で事前の増枠リクエスト計画が可能</span></div>
+          <div class="check-item"><span class="check-icon">✓</span><span><strong>運用工数削減</strong>: クライアント側計測実装が不要、開発リソースをビジネスロジックに集中</span></div>
+        </div>
+        <div>
+          <h3>⚙️ 技術面</h3>
+          <div class="check-item"><span class="check-icon">✓</span><span><strong>ゼロ設定</strong>: API 変更やオプトイン不要で即座に利用可能</span></div>
+          <div class="check-item"><span class="check-icon">✓</span><span><strong>プロアクティブ監視</strong>: クォータ上限到達前にアラーム設定、レート制限を事前回避</span></div>
+          <div class="check-item"><span class="check-icon">✓</span><span><strong>包括的な可視性</strong>: キャッシュ書き込みトークンや出力バーンダウン乗数を含む正確なクォータ消費量</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Limitations -->
+    <div class="section">
+      <h2>⚠️ 制限事項・注意点</h2>
+      <h3>制限事項</h3>
+      <div class="check-item"><span class="cross-icon">✗</span><span>TimeToFirstToken はストリーミング API のみ対象。非ストリーミング API では利用不可</span></div>
+      <div class="check-item"><span class="cross-icon">✗</span><span>メトリクスは正常完了リクエストのみ対象。エラーリクエストのレイテンシーは記録されない</span></div>
+      <div class="check-item"><span class="cross-icon">✗</span><span>更新頻度は毎分。秒単位のリアルタイムモニタリングには不向き</span></div>
+
+      <h3 style="margin-top: 16px;">考慮すべき点</h3>
+      <div class="check-item"><span class="warn-icon">⚠</span><span>EstimatedTPMQuotaUsage は「推定」値であり、実際のクォータ消費量とは若干の差異が生じる可能性あり</span></div>
+      <div class="check-item"><span class="warn-icon">⚠</span><span>クォータ上限値はアカウントごとに異なるため、アラーム閾値はアカウントのクォータに合わせて設定が必要</span></div>
+    </div>
+
+    <!-- Use Cases -->
+    <div class="section">
+      <h2>🎯 ユースケース</h2>
+
+      <div class="usecase-card">
+        <div class="card-title">💬 チャットアプリケーションの応答速度監視</div>
+        <p class="usecase-scenario">生成 AI チャットボットを提供し、最初のレスポンスまでの待ち時間を一定以内に保つ SLA を設定しているシナリオ。</p>
+        <div class="code-block">
+          <div class="code-header">
+            <span class="code-lang">Bash</span>
+            <span class="code-title">P99 レイテンシーアラーム</span>
+          </div>
+          <pre><code class="language-bash"># P99 レイテンシーが 3 秒を超えた場合にアラーム
+aws cloudwatch put-metric-alarm \
+  --alarm-name "ChatBot-TTFT-P99" \
+  --namespace "AWS/Bedrock" \
+  --metric-name "TimeToFirstToken" \
+  --extended-statistic "p99" \
+  --period 300 \
+  --threshold 3000 \
+  --comparison-operator "GreaterThanThreshold" \
+  --evaluation-periods 2 \
+  --alarm-actions "arn:aws:sns:us-east-1:123456789012:chatbot-ops"</code></pre>
+        </div>
+        <div class="usecase-effect">✅ クライアント側の計測コードなしにレイテンシー SLA を監視でき、劣化時に即座にアラートを受け取れる。</div>
+      </div>
+
+      <div class="usecase-card">
+        <div class="card-title">🔀 マルチモデル環境でのクォータ管理</div>
+        <p class="usecase-scenario">複数の基盤モデルを使い分けるアプリケーションで、モデルごとのクォータ消費量を把握し、上限到達前に増枠を申請するシナリオ。</p>
+        <div class="code-block">
+          <div class="code-header">
+            <span class="code-lang">Bash</span>
+            <span class="code-title">モデルごとの TPM 消費量を可視化</span>
+          </div>
+          <pre><code class="language-bash"># CloudWatch ダッシュボードでモデルごとの TPM 消費量を可視化
+aws cloudwatch get-metric-data \
+  --metric-data-queries '[
+    {
+      "Id": "tpm_usage",
+      "MetricStat": {
+        "Metric": {
+          "Namespace": "AWS/Bedrock",
+          "MetricName": "EstimatedTPMQuotaUsage"
+        },
+        "Period": 300,
+        "Stat": "Maximum"
+      }
+    }
+  ]' \
+  --start-time "2026-03-10T00:00:00Z" \
+  --end-time "2026-03-10T23:59:59Z"</code></pre>
+        </div>
+        <div class="usecase-effect">✅ モデルごとのクォータ消費傾向を把握し、事前にクォータ増枠をリクエストしてレート制限によるサービス中断を防止。</div>
+      </div>
+
+      <div class="usecase-card">
+        <div class="card-title">📊 推論パフォーマンスのベースライン確立</div>
+        <p class="usecase-scenario">新しい基盤モデルの導入検討時に、ファーストトークンレイテンシーのベースラインデータを収集して比較評価するシナリオ。</p>
+        <div class="code-block">
+          <div class="code-header">
+            <span class="code-lang">Bash</span>
+            <span class="code-title">1 週間分の TTFT 統計を取得</span>
+          </div>
+          <pre><code class="language-bash"># 1 週間分の TTFT 統計を取得してベースラインを確立
+aws cloudwatch get-metric-statistics \
+  --namespace "AWS/Bedrock" \
+  --metric-name "TimeToFirstToken" \
+  --start-time "2026-03-03T00:00:00Z" \
+  --end-time "2026-03-10T00:00:00Z" \
+  --period 3600 \
+  --statistics "Average" "p50" "p99"</code></pre>
+        </div>
+        <div class="usecase-effect">✅ モデル間のレイテンシー比較をデータドリブンに行い、アプリケーション要件に最適なモデルを選定。</div>
+      </div>
+    </div>
+
+    <!-- Pricing -->
+    <div class="section">
+      <h2>💰 料金</h2>
+      <p style="margin-bottom: 12px;">追加された CloudWatch メトリクスに対する追加料金は発生しません。</p>
+      <div class="card">
+        <div class="pricing-row">
+          <span class="pricing-label">メトリクスの記録・公開</span>
+          <span class="pricing-free">無料</span>
+        </div>
+        <div class="pricing-row">
+          <span class="pricing-label">CloudWatch Alarms</span>
+          <span class="pricing-value">$0.10 / アラーム / 月</span>
+        </div>
+        <div class="pricing-row">
+          <span class="pricing-label">CloudWatch Dashboards</span>
+          <span class="pricing-value">$3.00 / ダッシュボード / 月</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Region -->
+    <div class="section">
+      <h2>🌍 利用可能リージョン</h2>
+      <p><span class="highlight">全商用 Bedrock リージョン</span>で利用可能。クロスリージョン推論プロファイルおよびリージョン内推論の両方に対応しています。</p>
+    </div>
+
+    <!-- Related Services -->
+    <div class="section">
+      <h2>🔗 関連サービス・機能</h2>
+      <div class="tag-row">
+        <span class="tag">Amazon CloudWatch</span>
+        <span class="tag">Amazon Bedrock</span>
+        <span class="tag">AWS Service Quotas</span>
+      </div>
+      <div class="check-item" style="margin-top: 12px;"><span class="flow-arrow" style="font-size: 16px;">→</span><span><strong>Amazon CloudWatch</strong>: メトリクスの記録、アラーム設定、ダッシュボード作成に使用</span></div>
+      <div class="check-item"><span class="flow-arrow" style="font-size: 16px;">→</span><span><strong>Amazon Bedrock クロスリージョン推論</strong>: 複数リージョンにまたがる推論で、各リージョンのメトリクスを統合監視可能</span></div>
+      <div class="check-item"><span class="flow-arrow" style="font-size: 16px;">→</span><span><strong>AWS Service Quotas</strong>: EstimatedTPMQuotaUsage と組み合わせて、クォータの増枠リクエストを管理</span></div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+      <p>📎 出典:</p>
+      <ul style="list-style: none; padding: 0; margin: 8px 0;">
+        <li style="margin: 4px 0;">- <a href="https://aws.amazon.com/about-aws/whats-new/2026/03/amazon-bedrock-observability-ttft-quota/" target="_blank" rel="noopener noreferrer">公式発表 (What's New)</a></li>
+        <li style="margin: 4px 0;">- <a href="https://docs.aws.amazon.com/bedrock/latest/userguide/" target="_blank" rel="noopener noreferrer">Amazon Bedrock ドキュメント</a></li>
+        <li style="margin: 4px 0;">- <a href="https://aws.amazon.com/bedrock/pricing/" target="_blank" rel="noopener noreferrer">Amazon Bedrock 料金ページ</a></li>
+        <li style="margin: 4px 0;">- <a href="https://aws.amazon.com/cloudwatch/pricing/" target="_blank" rel="noopener noreferrer">Amazon CloudWatch 料金ページ</a></li>
+      </ul>
+      <p style="margin-top: 12px; color: rgba(213, 219, 219, 0.6);">Generated on 2026-03-11</p>
+    </footer>
+
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'base',
+      themeVariables: {
+        primaryColor: '#FF9900',
+        primaryTextColor: '#232F3E',
+        primaryBorderColor: '#FF9900',
+        lineColor: '#FF9900',
+        secondaryColor: '#F5F5F5',
+        tertiaryColor: '#FAFAFA',
+        background: '#FFFFFF',
+        mainBkg: '#FFF3E0',
+        nodeBorder: '#FF9900',
+        clusterBkg: '#FFF8E1',
+        clusterBorder: '#FF9900',
+        edgeLabelBackground: '#FFFFFF',
+        textColor: '#232F3E'
+      }
+    });
+  </script>
+  <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/highlight.min.js"></script>
+  <script>hljs.highlightAll();</script>
+</body>
+</html>

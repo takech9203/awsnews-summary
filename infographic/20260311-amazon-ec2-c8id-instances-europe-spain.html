@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Amazon EC2 - C8id インスタンスが欧州 (スペイン) リージョンで利用可能に</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap');
+
+    :root {
+      --aws-squid-ink: #232F3E;
+      --aws-dark-squid: #1A242F;
+      --aws-orange: #FF9900;
+      --aws-smile-orange: #FFAD33;
+      --aws-white: #FFFFFF;
+      --aws-light-gray: #D5DBDB;
+      --aws-teal: #00A1C9;
+      --aws-purple: #8C4FFF;
+      --aws-green: #1D8102;
+      --aws-red: #D13212;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--aws-squid-ink);
+      font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+      color: var(--aws-light-gray);
+      font-size: 16px;
+      line-height: 1.6;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 32px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .header-left { flex: 1; min-width: 280px; }
+    .service-badge {
+      display: inline-block;
+      background: var(--aws-orange);
+      color: var(--aws-squid-ink);
+      font-weight: 700;
+      font-size: 13px;
+      padding: 4px 14px;
+      border-radius: 20px;
+      margin-bottom: 12px;
+    }
+    h1 {
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--aws-white);
+      line-height: 1.3;
+    }
+    .header-meta {
+      font-size: 14px;
+      color: var(--aws-light-gray);
+      margin-top: 8px;
+    }
+
+    /* Sections */
+    .section {
+      background: var(--aws-dark-squid);
+      border-radius: 8px;
+      padding: 24px;
+      margin-bottom: 24px;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    h2 {
+      font-size: 22px;
+      font-weight: 600;
+      color: var(--aws-orange);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    h3 {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--aws-white);
+      margin: 16px 0 10px;
+    }
+    p { margin-bottom: 12px; }
+
+    .highlight {
+      background-color: rgba(255,153,0,0.2);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 600;
+      color: var(--aws-orange);
+    }
+
+    /* KPI cards */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin: 20px 0;
+    }
+    @media (max-width: 700px) { .kpi-grid { grid-template-columns: 1fr 1fr; } }
+    .kpi-card {
+      background: var(--aws-squid-ink);
+      border-radius: 8px;
+      padding: 16px;
+      text-align: center;
+      border: 1px solid rgba(255,153,0,0.3);
+    }
+    .kpi-value {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--aws-orange);
+      line-height: 1.2;
+    }
+    .kpi-label {
+      font-size: 12px;
+      color: var(--aws-light-gray);
+      margin-top: 6px;
+    }
+
+    /* Before/After */
+    .ba-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin: 16px 0;
+    }
+    @media (max-width: 600px) { .ba-grid { grid-template-columns: 1fr; } }
+    .ba-card {
+      border-radius: 8px;
+      padding: 16px;
+    }
+    .ba-card.before {
+      background: rgba(209,50,18,0.1);
+      border: 1px solid rgba(209,50,18,0.4);
+    }
+    .ba-card.after {
+      background: rgba(29,129,2,0.1);
+      border: 1px solid rgba(29,129,2,0.4);
+    }
+    .ba-label {
+      font-weight: 700;
+      font-size: 14px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .ba-card.before .ba-label { color: var(--aws-red); }
+    .ba-card.after .ba-label { color: var(--aws-green); }
+    .ba-card ul {
+      list-style: none;
+      padding: 0;
+    }
+    .ba-card li {
+      padding: 4px 0;
+      padding-left: 20px;
+      position: relative;
+      font-size: 14px;
+    }
+    .ba-card.before li::before { content: "\2717 "; position: absolute; left: 0; color: var(--aws-red); }
+    .ba-card.after li::before { content: "\2713 "; position: absolute; left: 0; color: var(--aws-green); }
+
+    /* Feature cards */
+    .feature-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-top: 16px;
+    }
+    @media (max-width: 600px) { .feature-grid { grid-template-columns: 1fr; } }
+    .feature-card {
+      background: var(--aws-squid-ink);
+      border-left: 4px solid var(--aws-orange);
+      border-radius: 0 8px 8px 0;
+      padding: 16px;
+    }
+    .feature-card .fc-title {
+      font-weight: 600;
+      color: var(--aws-white);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 15px;
+    }
+    .feature-card .fc-body {
+      font-size: 14px;
+      color: var(--aws-light-gray);
+    }
+    .feature-card .fc-body ul {
+      list-style: none;
+      padding: 0;
+    }
+    .feature-card .fc-body li {
+      padding: 3px 0;
+      padding-left: 16px;
+      position: relative;
+    }
+    .feature-card .fc-body li::before {
+      content: "\2192 ";
+      position: absolute;
+      left: 0;
+      color: var(--aws-orange);
+    }
+
+    /* Mermaid */
+    .mermaid-container {
+      background: #FFFFFF;
+      border-radius: 12px;
+      padding: 24px;
+      margin: 20px 0;
+      border: 2px solid rgba(255,153,0,0.3);
+      overflow-x: auto;
+    }
+    .mermaid {
+      display: flex;
+      justify-content: center;
+    }
+
+    /* Use case cards */
+    .usecase-card {
+      background: rgba(255,153,0,0.08);
+      border: 1px solid rgba(255,153,0,0.25);
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+    .usecase-card .uc-title {
+      font-weight: 600;
+      font-size: 16px;
+      color: var(--aws-orange);
+      margin-bottom: 8px;
+    }
+    .usecase-card .uc-scenario {
+      font-size: 14px;
+      margin-bottom: 10px;
+      color: var(--aws-light-gray);
+    }
+    .usecase-card .uc-effect {
+      font-size: 14px;
+      background: rgba(29,129,2,0.1);
+      border-left: 3px solid var(--aws-green);
+      padding: 8px 12px;
+      border-radius: 0 6px 6px 0;
+      color: var(--aws-light-gray);
+    }
+
+    /* Spec table */
+    .spec-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0;
+      font-size: 14px;
+    }
+    .spec-table th, .spec-table td {
+      text-align: left;
+      padding: 10px 12px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    .spec-table th {
+      color: var(--aws-orange);
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .spec-table td { color: var(--aws-light-gray); }
+
+    /* Comparison table */
+    .perf-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0;
+      font-size: 14px;
+    }
+    .perf-table th, .perf-table td {
+      text-align: left;
+      padding: 10px 12px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    .perf-table th {
+      color: var(--aws-orange);
+      font-weight: 600;
+    }
+    .perf-table td { color: var(--aws-light-gray); }
+    .perf-table .perf-value {
+      font-weight: 700;
+      color: var(--aws-green);
+    }
+
+    /* Merit / Demerit */
+    .merit-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      margin: 8px 0;
+      font-size: 14px;
+    }
+    .merit-icon {
+      font-size: 18px;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    /* Code block */
+    .code-block {
+      background: #1a1a2e;
+      border-radius: 8px;
+      overflow: hidden;
+      margin: 16px 0;
+    }
+    .code-header {
+      background: #16213e;
+      padding: 8px 16px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+    }
+    .code-lang { color: var(--aws-orange); font-weight: bold; }
+    .code-title { color: var(--aws-light-gray); }
+    .code-block pre { margin: 0; padding: 0; overflow-x: auto; }
+    .code-block code { font-family: 'Courier New', monospace; font-size: 13px; line-height: 1.5; padding: 16px !important; }
+
+    /* Region tags */
+    .region-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 12px 0;
+    }
+    .region-tag {
+      background: var(--aws-squid-ink);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 6px;
+      padding: 8px 14px;
+      font-size: 13px;
+      color: var(--aws-light-gray);
+    }
+    .region-tag.new {
+      border-color: var(--aws-green);
+      background: rgba(29,129,2,0.1);
+      color: var(--aws-green);
+      font-weight: 600;
+    }
+
+    /* Pricing */
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 12px;
+      margin-top: 12px;
+    }
+    @media (max-width: 600px) { .pricing-grid { grid-template-columns: 1fr; } }
+    .pricing-item {
+      background: var(--aws-squid-ink);
+      border-radius: 8px;
+      padding: 16px;
+      text-align: center;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    .pricing-item .pi-label {
+      font-size: 13px;
+      color: var(--aws-light-gray);
+      margin-bottom: 8px;
+    }
+    .pricing-item .pi-value {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--aws-orange);
+    }
+
+    /* Links */
+    .aws-link {
+      color: var(--aws-teal);
+      text-decoration: none;
+    }
+    .aws-link:hover { color: var(--aws-smile-orange); }
+
+    .related-links {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .related-links a {
+      color: var(--aws-teal);
+      text-decoration: none;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .related-links a:hover { color: var(--aws-smile-orange); }
+
+    /* Steps */
+    .steps { margin: 16px 0; }
+    .step-item {
+      display: flex;
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+    .step-num {
+      flex-shrink: 0;
+      width: 32px;
+      height: 32px;
+      background: var(--aws-orange);
+      color: var(--aws-squid-ink);
+      font-weight: 700;
+      font-size: 16px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .step-content { font-size: 14px; }
+    .step-content strong { color: var(--aws-white); }
+
+    footer {
+      margin-top: 24px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(255,255,255,0.2);
+      font-size: 12px;
+      color: var(--aws-light-gray);
+    }
+    footer a { color: var(--aws-teal); text-decoration: none; word-break: break-all; }
+    footer a:hover { color: var(--aws-smile-orange); }
+  </style>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/styles/atom-one-dark.min.css">
+</head>
+<body>
+  <div class="container">
+
+    <!-- Header -->
+    <div class="header">
+      <div class="header-left">
+        <span class="service-badge">Amazon EC2</span>
+        <h1>C8id インスタンスが欧州スペインリージョンで利用可能に</h1>
+        <div class="header-meta">Intel Xeon 6 搭載 / NVMe SSD / 最大 43% パフォーマンス向上</div>
+      </div>
+      <div class="header-meta" style="text-align:right;">
+        2026 年 3 月 11 日<br>
+        AWS Service Update
+      </div>
+    </div>
+
+    <!-- KPI -->
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-value">+43%</div>
+        <div class="kpi-label">全体パフォーマンス向上<br>vs C6id</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-value">3.3x</div>
+        <div class="kpi-label">メモリ帯域幅<br>vs C6id</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-value">+46%</div>
+        <div class="kpi-label">I/O 集約型 DB<br>パフォーマンス向上</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-value">+30%</div>
+        <div class="kpi-label">リアルタイム分析<br>クエリ高速化</div>
+      </div>
+    </div>
+
+    <!-- 概要 -->
+    <div class="section">
+      <h2>概要</h2>
+      <p>AWS は Amazon EC2 <span class="highlight">C8id インスタンス</span>が<span class="highlight">欧州スペインリージョン (eu-south-2)</span> で利用可能になったことを発表しました。C8id インスタンスは、AWS 専用のカスタム Intel Xeon 6 プロセッサーを搭載し、最大 384 vCPU、768 GiB のメモリ、22.8 TB の NVMe SSD ストレージを提供します。</p>
+      <p>前世代の C6id インスタンスと比較して最大 43% 高いパフォーマンスと 3.3 倍のメモリ帯域幅を実現します。また、<span class="highlight">Instance Bandwidth Configuration</span> をサポートしており、ネットワークと EBS 帯域幅間で 25% の柔軟な配分が可能です。</p>
+    </div>
+
+    <!-- Before / After -->
+    <div class="section">
+      <h2>Before / After</h2>
+      <div class="ba-grid">
+        <div class="ba-card before">
+          <div class="ba-label">Before: アップデート前の課題</div>
+          <ul>
+            <li>欧州スペインリージョンでは C8id インスタンスが利用できなかった</li>
+            <li>C6id インスタンスでは I/O 集約的なワークロードのパフォーマンスが不十分な場合があった</li>
+            <li>ネットワークと EBS 帯域幅の配分を柔軟に変更できなかった</li>
+          </ul>
+        </div>
+        <div class="ba-card after">
+          <div class="ba-label">After: アップデート後の改善</div>
+          <ul>
+            <li>欧州スペインリージョンで C8id インスタンスが利用可能に</li>
+            <li>C6id 比で最大 43% のパフォーマンス向上と 3.3 倍のメモリ帯域幅</li>
+            <li>Instance Bandwidth Configuration で 25% の柔軟な帯域幅配分が可能に</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- アーキテクチャ図 -->
+    <div class="section">
+      <h2>アーキテクチャ図</h2>
+      <p>C8id インスタンスの主要仕様、利用可能なリージョン、および最適なワークロードの関係を示しています。</p>
+      <div class="mermaid-container">
+        <pre class="mermaid">
+flowchart TB
+    subgraph Regions["C8id 利用可能リージョン"]
+        direction LR
+        subgraph US["米国"]
+            USEast1["us-east-1<br/>バージニア北部"]
+            USEast2["us-east-2<br/>オハイオ"]
+            USWest2["us-west-2<br/>オレゴン"]
+        end
+        subgraph EU["欧州"]
+            EUFrankfurt["eu-central-1<br/>フランクフルト"]
+            EUSpain["eu-south-2<br/>スペイン NEW"]
+        end
+        subgraph AP["アジアパシフィック"]
+            APTokyo["ap-northeast-1<br/>東京"]
+        end
+    end
+
+    subgraph Specs["C8id インスタンス仕様"]
+        CPU["Intel Xeon 6<br/>最大 384 vCPU"]
+        MEM["最大 768 GiB メモリ"]
+        SSD["最大 22.8 TB NVMe SSD"]
+        BW["Instance Bandwidth<br/>Configuration 対応"]
+        CPU ~~~ MEM ~~~ SSD ~~~ BW
+    end
+
+    subgraph Workloads["最適なワークロード"]
+        DB["I/O 集約型<br/>データベース<br/>+46%"]
+        Analytics["リアルタイム<br/>データ分析<br/>+30%"]
+        Web["高性能<br/>Web サーバー"]
+        Batch["バッチ処理/<br/>動画エンコーディング"]
+        DB ~~~ Analytics ~~~ Web ~~~ Batch
+    end
+
+    Specs --> Regions
+    Regions --> Workloads
+
+    classDef region fill:#E3F2FD,stroke:#BBDEFB,stroke-width:2px,color:#1565C0
+    classDef newRegion fill:#E8F5E9,stroke:#66BB6A,stroke-width:2px,color:#2E7D32
+    classDef spec fill:#F3E5F5,stroke:#CE93D8,stroke-width:2px,color:#6A1B9A
+    classDef workload fill:#FFF3E0,stroke:#FFCC80,stroke-width:2px,color:#E65100
+
+    class USEast1,USEast2,USWest2,EUFrankfurt,APTokyo region
+    class EUSpain newRegion
+    class CPU,MEM,SSD,BW spec
+    class DB,Analytics,Web,Batch workload
+        </pre>
+      </div>
+    </div>
+
+    <!-- 主要機能 -->
+    <div class="section">
+      <h2>主要機能</h2>
+      <div class="feature-grid">
+        <div class="feature-card">
+          <div class="fc-title">高性能コンピューティング</div>
+          <div class="fc-body">
+            <ul>
+              <li>カスタム Intel Xeon 6 プロセッサー搭載で最大 384 vCPU、768 GiB メモリ</li>
+              <li>C6id 比で最大 43% 高いパフォーマンスを実現</li>
+              <li>メモリ帯域幅が前世代比 3.3 倍に向上</li>
+            </ul>
+          </div>
+        </div>
+        <div class="feature-card">
+          <div class="fc-title">大容量 NVMe SSD ストレージ</div>
+          <div class="fc-body">
+            <ul>
+              <li>最大 22.8 TB の NVMe SSD インスタンスストレージ</li>
+              <li>I/O 集約的なデータベースで最大 46% パフォーマンス向上</li>
+              <li>リアルタイムデータ分析で最大 30% 高速なクエリ結果</li>
+            </ul>
+          </div>
+        </div>
+        <div class="feature-card">
+          <div class="fc-title">Instance Bandwidth Configuration</div>
+          <div class="fc-body">
+            <ul>
+              <li>ネットワークと EBS 帯域幅間で 25% の柔軟な配分</li>
+              <li>ワークロード特性に応じたリソース最適配分</li>
+              <li>ネットワーク集約型/ストレージ集約型それぞれに最適化可能</li>
+            </ul>
+          </div>
+        </div>
+        <div class="feature-card">
+          <div class="fc-title">欧州スペインリージョン対応</div>
+          <div class="fc-body">
+            <ul>
+              <li>eu-south-2 で C8id インスタンスが利用可能に</li>
+              <li>南欧のユーザーに低レイテンシーでサービス提供</li>
+              <li>GDPR 等の欧州データ保護規制への準拠を支援</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 技術仕様 -->
+    <div class="section">
+      <h2>技術仕様</h2>
+      <h3>C8id インスタンスの主要仕様</h3>
+      <table class="spec-table">
+        <tr><th>プロセッサー</th><td>カスタム Intel Xeon 6 (AWS 専用)</td></tr>
+        <tr><th>最大 vCPU</th><td>384</td></tr>
+        <tr><th>最大メモリ</th><td>768 GiB</td></tr>
+        <tr><th>最大 NVMe SSD</th><td>22.8 TB</td></tr>
+        <tr><th>Instance Bandwidth Configuration</th><td>対応 (25% 柔軟配分)</td></tr>
+      </table>
+
+      <h3>パフォーマンス比較: C8id vs C6id</h3>
+      <table class="perf-table">
+        <tr><th>指標</th><th>改善率</th></tr>
+        <tr><td>全体パフォーマンス</td><td class="perf-value">最大 43% 向上</td></tr>
+        <tr><td>メモリ帯域幅</td><td class="perf-value">3.3 倍</td></tr>
+        <tr><td>I/O 集約型データベース</td><td class="perf-value">最大 46% 向上</td></tr>
+        <tr><td>リアルタイムデータ分析クエリ</td><td class="perf-value">最大 30% 高速化</td></tr>
+      </table>
+    </div>
+
+    <!-- 設定方法 -->
+    <div class="section">
+      <h2>設定手順</h2>
+      <h3>前提条件</h3>
+      <div style="margin-bottom: 16px;">
+        <div class="merit-item"><span class="merit-icon">1.</span><span>AWS アカウントと適切な IAM 権限</span></div>
+        <div class="merit-item"><span class="merit-icon">2.</span><span>欧州スペインリージョン (eu-south-2) へのアクセス</span></div>
+        <div class="merit-item"><span class="merit-icon">3.</span><span>必要な VPC およびサブネット設定</span></div>
+      </div>
+
+      <h3>手順</h3>
+      <div class="steps">
+        <div class="step-item">
+          <div class="step-num">1</div>
+          <div class="step-content"><strong>利用可能なインスタンスタイプを確認</strong><br>欧州スペインリージョンで利用可能な C8id インスタンスタイプとスペック一覧を表示します。</div>
+        </div>
+      </div>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash</span>
+          <span class="code-title">C8id インスタンスタイプの確認</span>
+        </div>
+        <pre><code class="language-bash">aws ec2 describe-instance-types \
+  --filters "Name=instance-type,Values=c8id*" \
+  --region eu-south-2 \
+  --query "InstanceTypes[].{Type:InstanceType,vCPU:VCpuInfo.DefaultVCpus,Memory:MemoryInfo.SizeInMiB}" \
+  --output table</code></pre>
+      </div>
+
+      <div class="steps">
+        <div class="step-item">
+          <div class="step-num">2</div>
+          <div class="step-content"><strong>C8id インスタンスを起動</strong><br>欧州スペインリージョン (eu-south-2) で C8id インスタンスを起動します。AMI ID はリージョンに応じて適切なものを指定してください。</div>
+        </div>
+      </div>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash</span>
+          <span class="code-title">C8id インスタンスの起動</span>
+        </div>
+        <pre><code class="language-bash">aws ec2 run-instances \
+  --image-id ami-xxxxxxxxxxxxxxxxx \
+  --instance-type c8id.8xlarge \
+  --region eu-south-2 \
+  --subnet-id subnet-xxxxxxxxxxxxxxxxx \
+  --security-group-ids sg-xxxxxxxxxxxxxxxxx \
+  --key-name my-key-pair</code></pre>
+      </div>
+
+      <div class="steps">
+        <div class="step-item">
+          <div class="step-num">3</div>
+          <div class="step-content"><strong>Instance Bandwidth Configuration の活用</strong><br>ワークロードの特性に応じて、ネットワーク帯域幅を増やすか EBS 帯域幅を増やすかを選択し、最適な配分を設定します。</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- メリット -->
+    <div class="section">
+      <h2>メリット</h2>
+      <h3>ビジネス面</h3>
+      <div class="merit-item"><span class="merit-icon">🎯</span><span><strong style="color:var(--aws-white)">欧州でのレイテンシー削減</strong>: スペインリージョンでの提供により、南欧のユーザーに低レイテンシーでサービスを提供可能</span></div>
+      <div class="merit-item"><span class="merit-icon">📈</span><span><strong style="color:var(--aws-white)">コスト効率の向上</strong>: 前世代比最大 43% のパフォーマンス向上により、同じワークロードをより少ないインスタンスで処理可能</span></div>
+      <div class="merit-item"><span class="merit-icon">🔒</span><span><strong style="color:var(--aws-white)">データレジデンシー対応</strong>: EU 内のリージョン拡大により、欧州のデータ保護規制 (GDPR 等) への準拠が容易に</span></div>
+
+      <h3>技術面</h3>
+      <div class="merit-item"><span class="merit-icon">⚙️</span><span><strong style="color:var(--aws-white)">I/O パフォーマンスの大幅向上</strong>: NVMe SSD 搭載によりデータベースワークロードで最大 46% のパフォーマンス向上</span></div>
+      <div class="merit-item"><span class="merit-icon">🔀</span><span><strong style="color:var(--aws-white)">柔軟な帯域幅配分</strong>: Instance Bandwidth Configuration でワークロードに最適なネットワーク/EBS 帯域幅バランスを実現</span></div>
+      <div class="merit-item"><span class="merit-icon">💾</span><span><strong style="color:var(--aws-white)">大容量ローカルストレージ</strong>: 最大 22.8 TB の NVMe SSD により、一時データの高速処理が可能</span></div>
+      <div class="merit-item"><span class="merit-icon">⚡</span><span><strong style="color:var(--aws-white)">高メモリ帯域幅</strong>: 前世代比 3.3 倍のメモリ帯域幅により、メモリ集約的な処理が高速化</span></div>
+    </div>
+
+    <!-- デメリット -->
+    <div class="section">
+      <h2>デメリット・制約事項</h2>
+      <h3>制限事項</h3>
+      <div class="merit-item"><span class="merit-icon" style="color:var(--aws-red)">!</span><span>NVMe SSD インスタンスストレージはエフェメラルであり、インスタンス停止時にデータが消失する</span></div>
+      <div class="merit-item"><span class="merit-icon" style="color:var(--aws-red)">!</span><span>すべてのリージョンで利用可能ではない (現在 6 リージョン)</span></div>
+      <div class="merit-item"><span class="merit-icon" style="color:var(--aws-red)">!</span><span>大規模インスタンスタイプはオンデマンド料金が高額になる可能性がある</span></div>
+
+      <h3>考慮すべき点</h3>
+      <div class="merit-item"><span class="merit-icon">💡</span><span>重要なデータは EBS または S3 に保存する必要がある</span></div>
+      <div class="merit-item"><span class="merit-icon">💡</span><span>C6id からの移行時にはアプリケーションの互換性テストを実施することを推奨</span></div>
+      <div class="merit-item"><span class="merit-icon">💡</span><span>Instance Bandwidth Configuration の最適な設定はベンチマークで確認すべき</span></div>
+    </div>
+
+    <!-- ユースケース -->
+    <div class="section">
+      <h2>ユースケース</h2>
+
+      <div class="usecase-card">
+        <div class="uc-title">1. I/O 集約型データベース</div>
+        <div class="uc-scenario">
+          <strong style="color:var(--aws-white)">シナリオ</strong>: 欧州の E コマース企業が、スペインリージョンで高速なトランザクション処理を必要とするデータベースを運用。C8id.16xlarge インスタンスでデータベースサーバーを起動し、NVMe SSD の高速 I/O を活用。
+        </div>
+        <div class="uc-effect">I/O 集約型データベースワークロードで C6id 比最大 46% のパフォーマンス向上を実現し、トランザクション処理のスループットが大幅に改善</div>
+      </div>
+
+      <div class="usecase-card">
+        <div class="uc-title">2. リアルタイムデータ分析</div>
+        <div class="uc-scenario">
+          <strong style="color:var(--aws-white)">シナリオ</strong>: フィンテック企業が、欧州市場のリアルタイム取引データを分析して即座にインサイトを提供。C8id.24xlarge インスタンスで分析クラスターを構成。
+        </div>
+        <div class="uc-effect">リアルタイムデータ分析で最大 30% 高速なクエリ結果を実現し、NVMe SSD ストレージによる高速な一時データ処理で分析パイプラインを加速</div>
+      </div>
+
+      <div class="usecase-card">
+        <div class="uc-title">3. 動画エンコーディングとバッチ処理</div>
+        <div class="uc-scenario">
+          <strong style="color:var(--aws-white)">シナリオ</strong>: メディア企業が、欧州向けのコンテンツを大量にエンコードし低レイテンシーで配信。C8id.metal-48xl インスタンスで動画エンコーディングジョブを実行。
+        </div>
+        <div class="uc-effect">最大 384 vCPU と 22.8 TB の NVMe SSD により大量の動画ファイルを高速にエンコードし、スペインリージョンからの配信で南欧ユーザーへのレイテンシーを削減</div>
+      </div>
+    </div>
+
+    <!-- 料金 -->
+    <div class="section">
+      <h2>料金情報</h2>
+      <p>C8id インスタンスの料金は、選択したインスタンスタイプ、リージョン、購入オプションによって異なります。</p>
+      <div class="pricing-grid">
+        <div class="pricing-item">
+          <div class="pi-label">オンデマンド</div>
+          <div class="pi-value">従量課金</div>
+          <div style="font-size:12px; margin-top:4px;">時間単位</div>
+        </div>
+        <div class="pricing-item">
+          <div class="pi-label">Savings Plans</div>
+          <div class="pi-value">割引あり</div>
+          <div style="font-size:12px; margin-top:4px;">1 年 / 3 年コミット</div>
+        </div>
+        <div class="pricing-item">
+          <div class="pi-label">スポットインスタンス</div>
+          <div class="pi-value">最大割引</div>
+          <div style="font-size:12px; margin-top:4px;">中断許容ワークロード向け</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- リージョン -->
+    <div class="section">
+      <h2>利用可能リージョン</h2>
+      <p>C8id インスタンスは以下の 6 リージョンで利用可能です。</p>
+      <h3>新規対応リージョン (2026 年 3 月 11 日)</h3>
+      <div class="region-grid">
+        <div class="region-tag new">eu-south-2 欧州スペイン NEW</div>
+      </div>
+      <h3>既存対応リージョン</h3>
+      <div class="region-grid">
+        <div class="region-tag">us-east-1 バージニア北部</div>
+        <div class="region-tag">us-east-2 オハイオ</div>
+        <div class="region-tag">us-west-2 オレゴン</div>
+        <div class="region-tag">eu-central-1 フランクフルト</div>
+        <div class="region-tag">ap-northeast-1 東京</div>
+      </div>
+    </div>
+
+    <!-- 関連サービス -->
+    <div class="section">
+      <h2>関連サービス・機能</h2>
+      <div class="feature-grid">
+        <div class="feature-card">
+          <div class="fc-title">Amazon EBS</div>
+          <div class="fc-body">C8id インスタンスと組み合わせて永続ストレージを提供。Instance Bandwidth Configuration で EBS 帯域幅を最適化可能</div>
+        </div>
+        <div class="feature-card">
+          <div class="fc-title">Amazon EC2 Auto Scaling</div>
+          <div class="fc-body">C8id インスタンスを使用してワークロードに応じた自動スケーリングを実現</div>
+        </div>
+        <div class="feature-card">
+          <div class="fc-title">AWS Nitro System</div>
+          <div class="fc-body">C8id インスタンスの基盤技術として、セキュリティとパフォーマンスを最適化</div>
+        </div>
+        <div class="feature-card">
+          <div class="fc-title">Elastic Load Balancing</div>
+          <div class="fc-body">複数の C8id インスタンス間でトラフィックを分散</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 参考リンク -->
+    <div class="section">
+      <h2>参考リンク</h2>
+      <div class="related-links">
+        <a href="https://aws.amazon.com/about-aws/whats-new/2026/03/amazon-ec2-c8id-instances-europe-spain/" target="_blank" rel="noopener noreferrer">公式発表 (What's New)</a>
+        <a href="https://aws.amazon.com/ec2/instance-types/c8id/" target="_blank" rel="noopener noreferrer">C8id インスタンス製品ページ</a>
+        <a href="https://aws.amazon.com/ec2/pricing/" target="_blank" rel="noopener noreferrer">Amazon EC2 料金ページ</a>
+        <a href="https://docs.aws.amazon.com/ec2/" target="_blank" rel="noopener noreferrer">Amazon EC2 ドキュメント</a>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+      <p>出典: <a href="https://aws.amazon.com/about-aws/whats-new/2026/03/amazon-ec2-c8id-instances-europe-spain/" target="_blank" rel="noopener noreferrer">https://aws.amazon.com/about-aws/whats-new/2026/03/amazon-ec2-c8id-instances-europe-spain/</a></p>
+      <p style="margin-top: 8px;">Generated on 2026-03-11 | AWS News Infographic</p>
+    </footer>
+
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'base',
+      themeVariables: {
+        primaryColor: '#FF9900',
+        primaryTextColor: '#232F3E',
+        primaryBorderColor: '#FF9900',
+        lineColor: '#FF9900',
+        secondaryColor: '#F5F5F5',
+        tertiaryColor: '#FAFAFA',
+        background: '#FFFFFF',
+        mainBkg: '#FFF3E0',
+        nodeBorder: '#FF9900',
+        clusterBkg: '#FFF8E1',
+        clusterBorder: '#FF9900',
+        edgeLabelBackground: '#FFFFFF',
+        textColor: '#232F3E'
+      }
+    });
+  </script>
+  <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/highlight.min.js"></script>
+  <script>hljs.highlightAll();</script>
+</body>
+</html>

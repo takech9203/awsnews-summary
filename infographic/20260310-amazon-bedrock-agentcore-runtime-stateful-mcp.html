@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Amazon Bedrock AgentCore Runtime - Stateful MCP Server</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap');
+
+        :root {
+            --aws-squid-ink: #232F3E;
+            --aws-dark-squid: #1A242F;
+            --aws-orange: #FF9900;
+            --aws-smile-orange: #FFAD33;
+            --aws-white: #FFFFFF;
+            --aws-light-gray: #D5DBDB;
+            --aws-teal: #00A1C9;
+            --aws-purple: #8C4FFF;
+            --aws-green: #1D8102;
+            --aws-red: #D13212;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background-color: var(--aws-squid-ink);
+            font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            color: var(--aws-light-gray);
+            font-size: 16px;
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        /* Header */
+        .header {
+            margin-bottom: 32px;
+            padding-bottom: 24px;
+            border-bottom: 3px solid var(--aws-orange);
+        }
+        .header .service-badge {
+            display: inline-block;
+            background: var(--aws-orange);
+            color: var(--aws-squid-ink);
+            font-size: 13px;
+            font-weight: 700;
+            padding: 4px 14px;
+            border-radius: 20px;
+            margin-bottom: 12px;
+        }
+        .header h1 {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--aws-white);
+            line-height: 1.3;
+            margin-bottom: 8px;
+        }
+        .header .subtitle {
+            font-size: 15px;
+            color: var(--aws-light-gray);
+        }
+        .header .date {
+            font-size: 14px;
+            color: var(--aws-orange);
+            margin-top: 8px;
+        }
+
+        /* Section */
+        .section {
+            background: var(--aws-dark-squid);
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        h2 {
+            font-size: 22px;
+            font-weight: 600;
+            color: var(--aws-orange);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        h3 {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--aws-white);
+            margin: 16px 0 10px 0;
+        }
+
+        p { margin-bottom: 12px; }
+
+        .highlight {
+            background-color: rgba(255, 153, 0, 0.2);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+            color: var(--aws-orange);
+        }
+
+        /* Before / After */
+        .before-after {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin: 16px 0;
+        }
+        @media (max-width: 640px) {
+            .before-after { grid-template-columns: 1fr; }
+        }
+        .before-card, .after-card {
+            border-radius: 8px;
+            padding: 16px;
+        }
+        .before-card {
+            background: rgba(209, 50, 18, 0.1);
+            border: 1px solid rgba(209, 50, 18, 0.4);
+        }
+        .after-card {
+            background: rgba(29, 129, 2, 0.1);
+            border: 1px solid rgba(29, 129, 2, 0.4);
+        }
+        .before-card .label {
+            color: var(--aws-red);
+            font-weight: 700;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+        .after-card .label {
+            color: var(--aws-green);
+            font-weight: 700;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+        .before-card li, .after-card li {
+            margin-bottom: 6px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        /* Feature cards */
+        .feature-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-top: 16px;
+        }
+        @media (max-width: 640px) {
+            .feature-grid { grid-template-columns: 1fr; }
+        }
+        .feature-card {
+            background: var(--aws-squid-ink);
+            border-radius: 8px;
+            padding: 18px;
+            border-left: 4px solid var(--aws-orange);
+        }
+        .feature-card .feature-icon {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+        .feature-card .feature-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--aws-white);
+            margin-bottom: 6px;
+        }
+        .feature-card .feature-desc {
+            font-size: 14px;
+            color: var(--aws-light-gray);
+            line-height: 1.5;
+        }
+
+        /* Spec table */
+        .spec-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 12px 0;
+            font-size: 14px;
+        }
+        .spec-table th, .spec-table td {
+            padding: 10px 14px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+        .spec-table th {
+            background: rgba(255,153,0,0.12);
+            color: var(--aws-orange);
+            font-weight: 600;
+        }
+        .spec-table td {
+            color: var(--aws-light-gray);
+        }
+        .spec-table .dir-badge {
+            display: inline-block;
+            font-size: 12px;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-weight: 600;
+        }
+        .dir-badge.client-server {
+            background: rgba(0,161,201,0.2);
+            color: var(--aws-teal);
+        }
+        .dir-badge.server-client {
+            background: rgba(140,79,255,0.2);
+            color: var(--aws-purple);
+        }
+
+        /* Use case cards */
+        .usecase-card {
+            background: rgba(255,153,0,0.06);
+            border: 1px solid rgba(255,153,0,0.2);
+            border-radius: 8px;
+            padding: 18px;
+            margin: 12px 0;
+        }
+        .usecase-card .usecase-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--aws-white);
+            margin-bottom: 6px;
+        }
+        .usecase-card .usecase-desc {
+            font-size: 14px;
+            color: var(--aws-light-gray);
+        }
+
+        /* Merit / Demerit */
+        .merit-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-top: 12px;
+        }
+        @media (max-width: 640px) {
+            .merit-grid { grid-template-columns: 1fr; }
+        }
+        .merit-col h3 { font-size: 16px; margin-bottom: 10px; }
+        .merit-col ul { padding-left: 0; list-style: none; }
+        .merit-col li {
+            font-size: 14px;
+            margin-bottom: 8px;
+            padding-left: 22px;
+            position: relative;
+            line-height: 1.5;
+        }
+        .merit-col li::before {
+            position: absolute;
+            left: 0;
+        }
+        .merit-col.pro li::before { content: "✅"; }
+        .merit-col.con li::before { content: "⚠️"; }
+
+        /* Region */
+        .region-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 8px;
+            margin-top: 12px;
+        }
+        .region-item {
+            font-size: 13px;
+            padding: 8px 12px;
+            background: var(--aws-squid-ink);
+            border-radius: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .region-item .region-name { color: var(--aws-light-gray); }
+        .region-item .region-code { color: var(--aws-teal); font-family: monospace; font-size: 12px; }
+
+        /* Stat cards */
+        .stat-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin: 16px 0;
+        }
+        @media (max-width: 640px) {
+            .stat-row { grid-template-columns: 1fr; }
+        }
+        .stat-card {
+            background: linear-gradient(135deg, rgba(255,153,0,0.15), rgba(140,79,255,0.1));
+            border-radius: 8px;
+            padding: 18px;
+            text-align: center;
+            border: 1px solid rgba(255,153,0,0.2);
+        }
+        .stat-card .stat-num {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--aws-orange);
+        }
+        .stat-card .stat-label {
+            font-size: 13px;
+            color: var(--aws-light-gray);
+            margin-top: 4px;
+        }
+
+        /* Flow diagram */
+        .flow-diagram {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin: 24px 0;
+        }
+        .flow-step {
+            background: var(--aws-dark-squid);
+            border: 2px solid var(--aws-orange);
+            border-radius: 8px;
+            padding: 12px 20px;
+            text-align: center;
+            min-width: 100px;
+        }
+        .flow-arrow {
+            color: var(--aws-orange);
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        /* Mermaid */
+        .mermaid-container {
+            background: #FFFFFF;
+            border-radius: 12px;
+            padding: 24px;
+            margin: 20px 0;
+            border: 2px solid rgba(255, 153, 0, 0.3);
+            overflow-x: auto;
+        }
+        .mermaid {
+            display: flex;
+            justify-content: center;
+        }
+
+        /* Code block */
+        .code-block {
+            background: #1a1a2e;
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 16px 0;
+        }
+        .code-header {
+            background: #16213e;
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+        }
+        .code-lang {
+            color: var(--aws-orange);
+            font-weight: bold;
+        }
+        .code-title {
+            color: var(--aws-light-gray);
+        }
+        .code-block pre {
+            margin: 0;
+            padding: 0;
+            overflow-x: auto;
+        }
+        .code-block code {
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            padding: 16px !important;
+        }
+
+        /* Link list */
+        .link-list { list-style: none; padding: 0; }
+        .link-list li { margin-bottom: 8px; }
+        .link-list a {
+            color: var(--aws-teal);
+            text-decoration: none;
+            font-size: 14px;
+            word-break: break-all;
+        }
+        .link-list a:hover { color: var(--aws-smile-orange); }
+
+        /* Footer */
+        footer {
+            margin-top: 24px;
+            padding-top: 16px;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            font-size: 12px;
+            color: var(--aws-light-gray);
+        }
+        footer a {
+            color: var(--aws-teal);
+            text-decoration: none;
+            word-break: break-all;
+        }
+        footer a:hover { color: var(--aws-smile-orange); }
+    </style>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/styles/atom-one-dark.min.css">
+</head>
+<body>
+    <div class="container">
+
+        <!-- Header -->
+        <div class="header">
+            <span class="service-badge">Amazon Bedrock AgentCore Runtime</span>
+            <h1>&#9889; Stateful MCP Server<br>&#8212; Elicitation / Sampling / Progress Notifications</h1>
+            <p class="subtitle">MCP Server がステートフルに進化。エリシテーション、サンプリング、プログレス通知で高度なインタラクティブエージェントワークフローを実現</p>
+            <p class="date">&#128197; 2026 年 3 月 10 日</p>
+        </div>
+
+        <!-- Stats -->
+        <div class="stat-row">
+            <div class="stat-card">
+                <div class="stat-num">3</div>
+                <div class="stat-label">&#128316; 新しいステートフル機能</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-num">14</div>
+                <div class="stat-label">&#127757; 利用可能リージョン</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-num">4</div>
+                <div class="stat-label">&#128268; 対応プロトコル</div>
+            </div>
+        </div>
+
+        <!-- Overview -->
+        <div class="section">
+            <h2>&#128218; 概要</h2>
+            <p>Amazon Bedrock AgentCore Runtime が<span class="highlight">ステートフルな Model Context Protocol (MCP) サーバー機能</span>をサポート。開発者はエリシテーション、サンプリング、プログレス通知を活用した MCP サーバーを構築でき、既存のリソース、プロンプト、ツールのサポートに加えて、より高度なインタラクティブエージェントワークフローが実現可能に。</p>
+            <p>各ユーザーセッションは<span class="highlight">専用の microVM</span> 上で分離されたリソースとともに実行され、<span class="highlight">Mcp-Session-Id</span> ヘッダーを使用して複数のインタラクションにわたるセッションコンテキストを維持する。</p>
+        </div>
+
+        <!-- Before / After -->
+        <div class="section">
+            <h2>&#128260; Before / After</h2>
+            <div class="before-after">
+                <div class="before-card">
+                    <div class="label">&#10060; Before</div>
+                    <ul>
+                        <li>MCP サーバーはステートレスな動作に限定、セッション間でコンテキスト維持不可</li>
+                        <li>ツール実行中にユーザーからインタラクティブに入力を収集する手段がなかった</li>
+                        <li>サーバーからクライアント側の LLM にテキスト生成をリクエストする仕組みがなかった</li>
+                        <li>長時間オペレーションの進捗をリアルタイムで通知する方法がなかった</li>
+                    </ul>
+                </div>
+                <div class="after-card">
+                    <div class="label">&#9989; After</div>
+                    <ul>
+                        <li>エリシテーションにより、サーバー起動のマルチターン会話でユーザー情報を収集可能に</li>
+                        <li>サンプリングにより、サーバーがクライアントに AI テキスト生成をリクエスト可能に</li>
+                        <li>プログレス通知により、長時間オペレーションの進捗をリアルタイム通知可能に</li>
+                        <li>専用 microVM による分離とセッション ID によるコンテキスト維持が可能に</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Architecture Diagram (Mermaid) -->
+        <div class="section">
+            <h2>&#128202; Architecture Diagram</h2>
+            <p>ステートフル MCP セッションにおけるエリシテーション、サンプリング、プログレス通知の処理フロー。各ユーザーセッションは専用の microVM 上で動作し、セッション ID によりコンテキストが維持される。</p>
+            <div class="mermaid-container">
+                <pre class="mermaid">
+sequenceDiagram
+    participant U as 👤 ユーザー
+    participant C as 🤖 MCP クライアント
+    participant R as ☁️ AgentCore Runtime
+    participant S as 🔧 MCP サーバー microVM
+
+    U->>C: リクエスト送信
+    C->>R: MCP セッション開始
+    R->>S: 専用 microVM 起動
+    S-->>R: Mcp-Session-Id 発行
+    R-->>C: セッション ID 返却
+
+    Note over C,S: ステートフルセッション開始
+
+    C->>S: ツール実行リクエスト
+    S->>C: エリシテーション要求
+    C->>U: ユーザー入力を要求
+    U->>C: 入力を提供
+    C->>S: 入力を返送
+
+    S->>C: サンプリング要求
+    C->>C: LLM でテキスト生成
+    C->>S: 生成結果を返送
+
+    S-->>C: プログレス通知 50%
+    S-->>C: プログレス通知 100%
+    S-->>C: 最終結果を返却
+    C-->>U: レスポンス表示
+                </pre>
+            </div>
+        </div>
+
+        <!-- Key Features -->
+        <div class="section">
+            <h2>&#128273; 主要機能</h2>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">&#128172;</div>
+                    <div class="feature-title">Elicitation</div>
+                    <div class="feature-desc">サーバーからクライアントへマルチターン会話を開始し、ユーザーの嗜好や設定情報をインタラクティブに収集。旅行予約エージェントが座席の好みや食事制限を確認するなどの場面で活用。</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#129302;</div>
+                    <div class="feature-title">Sampling</div>
+                    <div class="feature-desc">MCP サーバーがクライアント側の LLM に AI テキスト生成をリクエスト。パーソナライズされた推薦文やコンテンツ生成に活用可能。サーバー側で別途モデル管理が不要。</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#128336;</div>
+                    <div class="feature-title">Progress Notifications</div>
+                    <div class="feature-desc">長時間実行されるオペレーションの進捗状況をリアルタイムでクライアントに通知。フライト検索、予約処理、データ分析などの処理中にユーザーへフィードバックを提供。</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#128737;</div>
+                    <div class="feature-title">Stateful Session Management</div>
+                    <div class="feature-desc">各ユーザーセッションが専用 microVM で実行されリソースが分離。Mcp-Session-Id ヘッダーにより複数インタラクションにわたるコンテキストを維持。</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tech Spec -->
+        <div class="section">
+            <h2>&#128295; 技術仕様</h2>
+            <h3>&#9881; セッション管理</h3>
+            <table class="spec-table">
+                <tr><th>項目</th><th>詳細</th></tr>
+                <tr><td>セッション識別</td><td>Mcp-Session-Id ヘッダーによる管理</td></tr>
+                <tr><td>実行環境</td><td>専用 microVM による分離実行</td></tr>
+                <tr><td>サポートプロトコル</td><td>MCP, HTTP, A2A, AGUI</td></tr>
+                <tr><td>ランタイム</td><td>Python 3.10 - 3.14</td></tr>
+            </table>
+
+            <h3>&#128203; ステートフル MCP 機能一覧</h3>
+            <table class="spec-table">
+                <tr><th>機能</th><th>方向</th><th>説明</th></tr>
+                <tr><td>リソース</td><td><span class="dir-badge client-server">Client &#8594; Server</span></td><td>コンテキストデータの提供</td></tr>
+                <tr><td>プロンプト</td><td><span class="dir-badge client-server">Client &#8594; Server</span></td><td>テンプレート化されたプロンプトの利用</td></tr>
+                <tr><td>ツール</td><td><span class="dir-badge client-server">Client &#8594; Server</span></td><td>サーバー側機能の呼び出し</td></tr>
+                <tr><td>エリシテーション</td><td><span class="dir-badge server-client">Server &#8594; Client</span></td><td>ユーザー入力の収集</td></tr>
+                <tr><td>サンプリング</td><td><span class="dir-badge server-client">Server &#8594; Client</span></td><td>AI テキスト生成のリクエスト</td></tr>
+                <tr><td>プログレス通知</td><td><span class="dir-badge server-client">Server &#8594; Client</span></td><td>処理進捗のリアルタイム通知</td></tr>
+            </table>
+
+            <h3>&#128221; API 変更履歴</h3>
+            <table class="spec-table">
+                <tr><th>日付</th><th>サービス</th><th>変更内容</th></tr>
+                <tr><td>2026/03/10</td><td>Amazon Bedrock AgentCore Control</td><td>3 updated API methods - AGUI プロトコルサポートの追加 (CreateAgentRuntime, GetAgentRuntime, UpdateAgentRuntime)</td></tr>
+            </table>
+        </div>
+
+        <!-- Code Sample: Implementation -->
+        <div class="section">
+            <h2>&#128187; 実装例</h2>
+
+            <h3>&#128296; MCP サーバーの実装</h3>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Python</span>
+                    <span class="code-title">Stateful MCP Server - Elicitation / Sampling / Progress</span>
+                </div>
+                <pre><code class="language-python">from mcp.server import Server
+
+server = Server("my-stateful-server")
+
+@server.tool()
+async def book_flight(destination: str):
+    # Elicitation: ユーザーの座席の好みを収集
+    seat_pref = await server.elicit(
+        prompt="座席のご希望はありますか?",
+        options=["窓側", "通路側", "指定なし"]
+    )
+
+    # Progress: 検索中であることを通知
+    await server.notify_progress(0.3, "フライトを検索中...")
+
+    # Sampling: クライアント LLM にパーソナライズされた提案を生成依頼
+    recommendation = await server.sample(
+        prompt=f"{destination} へのフライト提案を作成してください"
+    )
+
+    await server.notify_progress(1.0, "検索完了")
+    return recommendation</code></pre>
+            </div>
+
+            <h3>&#128640; AgentCore Runtime へのデプロイ</h3>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Python</span>
+                    <span class="code-title">Boto3 - create_agent_runtime</span>
+                </div>
+                <pre><code class="language-python">import boto3
+
+client = boto3.client('bedrock-agentcore-control')
+
+response = client.create_agent_runtime(
+    agentRuntimeName='my-stateful-mcp-server',
+    agentRuntimeArtifact={
+        'containerConfiguration': {
+            'containerUri': '123456789012.dkr.ecr.us-east-1.amazonaws.com/my-mcp-server:latest'
+        }
+    },
+    roleArn='arn:aws:iam::123456789012:role/AgentCoreRuntimeRole',
+    protocolConfiguration={
+        'serverProtocol': 'MCP'
+    },
+    lifecycleConfiguration={
+        'idleRuntimeSessionTimeout': 300,
+        'maxLifetime': 3600
+    },
+    networkConfiguration={
+        'networkMode': 'PUBLIC'
+    }
+)</code></pre>
+            </div>
+
+            <h3>&#128279; ステートフルセッションの利用</h3>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Bash</span>
+                    <span class="code-title">cURL - Tool Call with Session ID</span>
+                </div>
+                <pre><code class="language-bash"># セッションの開始とツール呼び出し
+# レスポンスの Mcp-Session-Id ヘッダーを以降のリクエストに含める
+curl -X POST https://&lt;runtime-endpoint&gt;/mcp/v1/tools/call \
+  -H "Content-Type: application/json" \
+  -H "Mcp-Session-Id: &lt;session-id&gt;" \
+  -d '{"tool": "book_flight", "arguments": {"destination": "Tokyo"}}'</code></pre>
+            </div>
+        </div>
+
+        <!-- Use Cases -->
+        <div class="section">
+            <h2>&#127919; ユースケース</h2>
+            <div class="usecase-card">
+                <div class="usecase-title">&#9992; ユースケース 1: 旅行予約エージェント</div>
+                <div class="usecase-desc">ユーザーが旅行の予約を行う際に、エージェントがインタラクティブに詳細を確認しながら最適なプランを提案。エリシテーションで旅行日程や予算を確認し、サンプリングでパーソナライズされた旅程を生成。ユーザーとの対話を通じて要件を正確に把握し、最適な旅行プランを提供。</div>
+            </div>
+            <div class="usecase-card">
+                <div class="usecase-title">&#128161; ユースケース 2: カスタマーサポートエージェント</div>
+                <div class="usecase-desc">技術サポートにおいて、問題の切り分けのために段階的にユーザーから情報を収集し、解決策を提示。エリシテーションで環境情報やエラーメッセージを収集し、ナレッジベースを検索後、サンプリングで的確な解決策を生成。セッションコンテキストを維持しながら段階的に問題を特定。</div>
+            </div>
+            <div class="usecase-card">
+                <div class="usecase-title">&#128200; ユースケース 3: データ分析パイプライン</div>
+                <div class="usecase-desc">大量のデータ分析処理をバックグラウンドで実行しながら、プログレス通知で進捗状況をリアルタイムでユーザーに通知。データ読み込み、前処理、分析実行の各段階で進捗を報告し、完了後にサンプリングで分析結果の要約を生成。</div>
+            </div>
+        </div>
+
+        <!-- Merit / Demerit -->
+        <div class="section">
+            <h2>&#128300; メリットと注意点</h2>
+            <div class="merit-grid">
+                <div class="merit-col pro">
+                    <h3>&#127775; メリット</h3>
+                    <ul>
+                        <li>エリシテーションとプログレス通知により、エージェントとのインタラクションがより自然で情報量の多いものに</li>
+                        <li>サンプリング機能により、クライアント側の LLM を活用したパーソナライズされたコンテンツ生成が可能</li>
+                        <li>マルチターン会話やコンテキスト維持により、予約やサポートなどの複雑なビジネスプロセスを自動化</li>
+                        <li>各セッションが専用 microVM で動作し、マルチテナント環境でのセキュリティが確保</li>
+                        <li>Mcp-Session-Id による標準的なセッション管理で独自実装が不要</li>
+                        <li>MCP 標準準拠で既存エコシステムとの互換性を維持</li>
+                    </ul>
+                </div>
+                <div class="merit-col con">
+                    <h3>&#9888; 制限事項・考慮点</h3>
+                    <ul>
+                        <li>専用 microVM 使用のため、ステートレスモードと比較してリソースコストが増加する可能性</li>
+                        <li>アイドルタイムアウトと最大ライフタイムの制限があり、長時間セッション維持には設計上の考慮が必要</li>
+                        <li>エリシテーションやサンプリングはクライアント側の対応が必要で、すべての MCP クライアントが対応しているとは限らない</li>
+                        <li>microVM 起動時間がコールドスタートとして影響する可能性</li>
+                        <li>セッション数に応じた microVM のスケーリングとコスト管理の計画が必要</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pricing -->
+        <div class="section">
+            <h2>&#128176; 料金</h2>
+            <p>AgentCore Runtime の料金は、microVM の実行時間とリソース使用量に基づく。ステートフルセッションでは専用 microVM が割り当てられるため、<span class="highlight">セッション数とセッション期間</span>が料金に影響する。詳細な料金情報は <a href="https://aws.amazon.com/bedrock/pricing/" target="_blank" rel="noopener noreferrer" style="color: var(--aws-teal);">Amazon Bedrock の料金ページ</a>を参照のこと。</p>
+        </div>
+
+        <!-- Regions -->
+        <div class="section">
+            <h2>&#127758; 利用可能リージョン (14 Regions)</h2>
+            <div class="region-grid">
+                <div class="region-item"><span class="region-name">&#127482;&#127480; 米国東部 バージニア北部</span><span class="region-code">us-east-1</span></div>
+                <div class="region-item"><span class="region-name">&#127482;&#127480; 米国東部 オハイオ</span><span class="region-code">us-east-2</span></div>
+                <div class="region-item"><span class="region-name">&#127482;&#127480; 米国西部 オレゴン</span><span class="region-code">us-west-2</span></div>
+                <div class="region-item"><span class="region-name">&#127470;&#127475; アジア ムンバイ</span><span class="region-code">ap-south-1</span></div>
+                <div class="region-item"><span class="region-name">&#127464;&#127462; カナダ 中部</span><span class="region-code">ca-central-1</span></div>
+                <div class="region-item"><span class="region-name">&#127472;&#127479; アジア ソウル</span><span class="region-code">ap-northeast-2</span></div>
+                <div class="region-item"><span class="region-name">&#127480;&#127468; アジア シンガポール</span><span class="region-code">ap-southeast-1</span></div>
+                <div class="region-item"><span class="region-name">&#127462;&#127482; アジア シドニー</span><span class="region-code">ap-southeast-2</span></div>
+                <div class="region-item"><span class="region-name">&#127471;&#127477; アジア 東京</span><span class="region-code">ap-northeast-1</span></div>
+                <div class="region-item"><span class="region-name">&#127465;&#127466; 欧州 フランクフルト</span><span class="region-code">eu-central-1</span></div>
+                <div class="region-item"><span class="region-name">&#127470;&#127466; 欧州 アイルランド</span><span class="region-code">eu-west-1</span></div>
+                <div class="region-item"><span class="region-name">&#127468;&#127463; 欧州 ロンドン</span><span class="region-code">eu-west-2</span></div>
+                <div class="region-item"><span class="region-name">&#127467;&#127479; 欧州 パリ</span><span class="region-code">eu-west-3</span></div>
+                <div class="region-item"><span class="region-name">&#127480;&#127466; 欧州 ストックホルム</span><span class="region-code">eu-north-1</span></div>
+            </div>
+        </div>
+
+        <!-- Related Services -->
+        <div class="section">
+            <h2>&#128279; 関連サービス</h2>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="feature-title">Amazon Bedrock AgentCore</div>
+                    <div class="feature-desc">MCP サーバーのホスティング基盤。ブラウザツール、メモリ、コード実行などの機能も提供。</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-title">Amazon Bedrock Agents</div>
+                    <div class="feature-desc">AgentCore Runtime 上の MCP サーバーをツールとして利用可能なエージェントフレームワーク。</div>
+                </div>
+                <div class="feature-card" style="grid-column: 1 / -1;">
+                    <div class="feature-title">Model Context Protocol</div>
+                    <div class="feature-desc">Anthropic が策定したオープンスタンダードで、AI モデルとツール間の通信プロトコル。</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- References -->
+        <div class="section">
+            <h2>&#128206; 参考リンク</h2>
+            <ul class="link-list">
+                <li>&#128196; <a href="https://aws.amazon.com/about-aws/whats-new/2026/03/amazon-bedrock-agentcore-runtime-stateful-mcp/" target="_blank" rel="noopener noreferrer">公式発表 (What's New)</a></li>
+                <li>&#128214; <a href="https://docs.aws.amazon.com/bedrock/latest/userguide/agentcore.html" target="_blank" rel="noopener noreferrer">Amazon Bedrock AgentCore ドキュメント</a></li>
+                <li>&#128176; <a href="https://aws.amazon.com/bedrock/pricing/" target="_blank" rel="noopener noreferrer">Amazon Bedrock 料金ページ</a></li>
+            </ul>
+        </div>
+
+        <!-- Summary -->
+        <div class="section" style="border: 2px solid var(--aws-orange);">
+            <h2>&#128221; まとめ</h2>
+            <p>Amazon Bedrock AgentCore Runtime のステートフル MCP サーバー機能により、<span class="highlight">エリシテーション</span>、<span class="highlight">サンプリング</span>、<span class="highlight">プログレス通知</span>を活用した高度なインタラクティブエージェントワークフローが実現可能に。専用 microVM によるセキュリティ分離とセッションコンテキストの維持により、旅行予約やカスタマーサポートなどの複雑なビジネスプロセスの自動化に適している。14 リージョンで利用可能であり、<span class="highlight">東京リージョン</span>でも利用できるため、日本のユーザーも即座に活用を開始できる。</p>
+        </div>
+
+        <!-- Footer -->
+        <footer>
+            <p>&#128206; 出典: <a href="https://aws.amazon.com/about-aws/whats-new/2026/03/amazon-bedrock-agentcore-runtime-stateful-mcp/" target="_blank" rel="noopener noreferrer">https://aws.amazon.com/about-aws/whats-new/2026/03/amazon-bedrock-agentcore-runtime-stateful-mcp/</a></p>
+            <p style="margin-top: 8px;">Generated on 2026-03-11</p>
+        </footer>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'base',
+            themeVariables: {
+                primaryColor: '#FF9900',
+                primaryTextColor: '#232F3E',
+                primaryBorderColor: '#FF9900',
+                lineColor: '#FF9900',
+                secondaryColor: '#F5F5F5',
+                tertiaryColor: '#FAFAFA',
+                background: '#FFFFFF',
+                mainBkg: '#FFF3E0',
+                nodeBorder: '#FF9900',
+                clusterBkg: '#FFF8E1',
+                clusterBorder: '#FF9900',
+                edgeLabelBackground: '#FFFFFF',
+                textColor: '#232F3E'
+            }
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/highlight.min.js"></script>
+    <script>hljs.highlightAll();</script>
+</body>
+</html>

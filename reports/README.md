@@ -5,8 +5,16 @@
 
 ## 2026 年
 
+- [2026-03-11 - Amazon Connect - 送信元メールアドレスの選択機能](2026/2026-03-11-amazon-connect-agents-select-from-email.md)
+- [2026-03-11 - Amazon EC2 - High Memory U7i インスタンスのリージョン拡大](2026/2026-03-11-amazon-ec2-high-memory-u7i-instances.md)
+- [2026-03-11 - Amazon EC2 - R7gd インスタンスが南米 (サンパウロ) リージョンで利用可能に](2026/2026-03-11-amazon-ec2-r7gd-instances-available.md)
+- [2026-03-11 - Amazon EC2 - C8id インスタンスが欧州 (スペイン) リージョンで利用可能に](2026/2026-03-11-amazon-ec2-c8id-instances-europe-spain.md)
+- [2026-03-11 - Amazon EC2 - C8gd / M8gd インスタンスが追加リージョンで利用可能に](2026/2026-03-11-amazon-ec2-c8gd-m8gd-instances-available.md)
+- [2026-03-11 - Amazon Connect - 統合エージェントコーチングワークフロー](2026/2026-03-11-amazon-connect-integrated-agent-coaching-workflows.md)
+- [2026-03-10 - Amazon Bedrock - First Token Latency およびクォータ消費のオブザーバビリティ](2026/2026-03-10-amazon-bedrock-observability-ttft-quota.md)
 - [2026-03-10 - AWS Builder ID - GitHub および Amazon ソーシャルログインのサポート](2026/2026-03-10-aws-builder-id-sign-in-github-amazon.md)
 - [2026-03-10 - Amazon Connect - AI を活用したマネージャーアシスタンス](2026/2026-03-10-amazon-connect-ai-powered-manager-assistance.md)
+- [2026-03-10 - Amazon Bedrock AgentCore Runtime - ステートフル MCP サーバー機能のサポート](2026/2026-03-10-amazon-bedrock-agentcore-runtime-stateful-mcp.md)
 - [2026-03-10 - Amazon Connect - AI 搭載予測インサイトの機能強化](2026/2026-03-10-amazon-connect-predictive-insights.md)
 - [2026-03-10 - Amazon OpenSearch Service - インプレースボリュームサイズ拡張の全サイズ対応](2026/2026-03-10-amazon-opensearch-service-in-place-volume.md)
 - [2026-03-10 - Amazon Connect - E メール向け会話分析](2026/2026-03-10-amazon-connect-conversational-analytics-email.md)
