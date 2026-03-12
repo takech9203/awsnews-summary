@@ -1,0 +1,968 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Amazon WorkSpaces - Windows Server 2025 サポート</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap');
+
+    :root {
+      --aws-squid-ink: #232F3E;
+      --aws-dark-squid: #1A242F;
+      --aws-orange: #FF9900;
+      --aws-smile-orange: #FFAD33;
+      --aws-white: #FFFFFF;
+      --aws-light-gray: #D5DBDB;
+      --aws-teal: #00A1C9;
+      --aws-purple: #8C4FFF;
+      --aws-green: #1D8102;
+      --aws-red: #D13212;
+    }
+
+    body {
+      background-color: var(--aws-squid-ink);
+      font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+      color: var(--aws-light-gray);
+      font-size: 16px;
+      line-height: 1.6;
+      padding: 20px;
+      margin: 0;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 32px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .header-left {
+      flex: 1;
+    }
+
+    h1 {
+      font-size: 36px;
+      font-weight: 700;
+      color: var(--aws-white);
+      margin: 0 0 8px 0;
+    }
+
+    .service-badge {
+      display: inline-block;
+      background: var(--aws-orange);
+      color: var(--aws-squid-ink);
+      font-weight: 700;
+      font-size: 14px;
+      padding: 4px 12px;
+      border-radius: 4px;
+      margin-bottom: 12px;
+    }
+
+    .subtitle {
+      font-size: 16px;
+      color: var(--aws-light-gray);
+    }
+
+    .date-badge {
+      font-size: 14px;
+      color: var(--aws-light-gray);
+      background: var(--aws-dark-squid);
+      padding: 8px 16px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      white-space: nowrap;
+    }
+
+    h2 {
+      font-size: 24px;
+      font-weight: 600;
+      color: var(--aws-orange);
+      margin: 0 0 16px 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    h3 {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--aws-white);
+      margin: 16px 0 8px 0;
+    }
+
+    .section {
+      background: var(--aws-dark-squid);
+      border-radius: 8px;
+      padding: 24px;
+      margin-bottom: 24px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .highlight {
+      background-color: rgba(255, 153, 0, 0.2);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 600;
+      color: var(--aws-orange);
+    }
+
+    .card {
+      background: var(--aws-dark-squid);
+      border-radius: 8px;
+      padding: 16px;
+      margin: 12px 0;
+      border: 1px solid rgba(255, 153, 0, 0.3);
+    }
+
+    /* Before/After */
+    .before-after {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin: 16px 0;
+    }
+
+    @media (max-width: 600px) {
+      .before-after {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .before-card {
+      background: rgba(209, 50, 18, 0.1);
+      border: 1px solid rgba(209, 50, 18, 0.4);
+      border-radius: 8px;
+      padding: 16px;
+    }
+
+    .before-card .label {
+      color: var(--aws-red);
+      font-weight: 700;
+      font-size: 14px;
+      margin-bottom: 8px;
+    }
+
+    .after-card {
+      background: rgba(29, 129, 2, 0.1);
+      border: 1px solid rgba(29, 129, 2, 0.4);
+      border-radius: 8px;
+      padding: 16px;
+    }
+
+    .after-card .label {
+      color: var(--aws-green);
+      font-weight: 700;
+      font-size: 14px;
+      margin-bottom: 8px;
+    }
+
+    .before-card ul, .after-card ul {
+      margin: 0;
+      padding-left: 20px;
+      font-size: 14px;
+    }
+
+    .before-card li, .after-card li {
+      margin-bottom: 6px;
+    }
+
+    /* Feature cards */
+    .feature-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+
+    .feature-card {
+      background: rgba(255, 153, 0, 0.05);
+      border-left: 4px solid var(--aws-orange);
+      border-radius: 0 8px 8px 0;
+      padding: 16px 20px;
+    }
+
+    .feature-card .feature-title {
+      font-weight: 600;
+      color: var(--aws-white);
+      font-size: 16px;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .feature-card .feature-desc {
+      font-size: 14px;
+      color: var(--aws-light-gray);
+    }
+
+    .feature-card ul {
+      margin: 8px 0 0;
+      padding-left: 20px;
+      font-size: 14px;
+    }
+
+    .feature-card li {
+      margin-bottom: 4px;
+    }
+
+    /* Security badges */
+    .security-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 16px 0;
+    }
+
+    .security-badge {
+      background: rgba(140, 79, 255, 0.15);
+      border: 1px solid rgba(140, 79, 255, 0.4);
+      border-radius: 20px;
+      padding: 6px 16px;
+      font-size: 14px;
+      font-weight: 500;
+      color: #C9A8FF;
+    }
+
+    /* Stats */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin: 16px 0;
+    }
+
+    .stat-card {
+      background: linear-gradient(135deg, rgba(255, 153, 0, 0.15), rgba(255, 153, 0, 0.05));
+      border: 1px solid rgba(255, 153, 0, 0.3);
+      border-radius: 8px;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--aws-orange);
+    }
+
+    .stat-label {
+      font-size: 13px;
+      color: var(--aws-light-gray);
+      margin-top: 4px;
+    }
+
+    /* Table */
+    .spec-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0;
+      font-size: 14px;
+    }
+
+    .spec-table th {
+      background: rgba(255, 153, 0, 0.2);
+      color: var(--aws-orange);
+      padding: 10px 14px;
+      text-align: left;
+      font-weight: 600;
+      border-bottom: 2px solid rgba(255, 153, 0, 0.3);
+    }
+
+    .spec-table td {
+      padding: 10px 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    /* API table */
+    .api-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0;
+      font-size: 13px;
+    }
+
+    .api-table th {
+      background: rgba(255, 153, 0, 0.15);
+      color: var(--aws-orange);
+      padding: 8px 12px;
+      text-align: left;
+      font-weight: 600;
+      border-bottom: 2px solid rgba(255, 153, 0, 0.3);
+    }
+
+    .api-table td {
+      padding: 8px 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      font-family: 'Courier New', monospace;
+    }
+
+    .api-table td:first-child {
+      color: var(--aws-teal);
+      white-space: nowrap;
+    }
+
+    .api-table td:last-child {
+      font-family: 'Noto Sans JP', sans-serif;
+      color: var(--aws-light-gray);
+    }
+
+    /* Usecase */
+    .usecase-card {
+      background: rgba(255, 153, 0, 0.08);
+      border: 1px solid rgba(255, 153, 0, 0.25);
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+
+    .usecase-card .usecase-title {
+      font-weight: 600;
+      font-size: 16px;
+      color: var(--aws-white);
+      margin-bottom: 8px;
+    }
+
+    .usecase-card .usecase-scenario {
+      font-size: 14px;
+      color: var(--aws-light-gray);
+      margin-bottom: 8px;
+    }
+
+    .usecase-card .usecase-effect {
+      font-size: 14px;
+      color: var(--aws-green);
+      background: rgba(29, 129, 2, 0.08);
+      border-radius: 4px;
+      padding: 8px 12px;
+    }
+
+    /* Merit/Demerit */
+    .merit-list, .demerit-list {
+      margin: 8px 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .merit-list li, .demerit-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
+
+    .merit-icon {
+      color: var(--aws-green);
+      flex-shrink: 0;
+    }
+
+    .demerit-icon {
+      color: var(--aws-red);
+      flex-shrink: 0;
+    }
+
+    .caution-icon {
+      color: #FF9800;
+      flex-shrink: 0;
+    }
+
+    /* Mermaid */
+    .mermaid-container {
+      background: #FFFFFF;
+      border-radius: 12px;
+      padding: 24px;
+      margin: 20px 0;
+      border: 2px solid rgba(255, 153, 0, 0.3);
+      overflow-x: auto;
+    }
+
+    .mermaid {
+      display: flex;
+      justify-content: center;
+    }
+
+    /* Code block */
+    .code-block {
+      background: #1a1a2e;
+      border-radius: 8px;
+      overflow: hidden;
+      margin: 16px 0;
+    }
+
+    .code-header {
+      background: #16213e;
+      padding: 8px 16px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+    }
+
+    .code-lang {
+      color: var(--aws-orange);
+      font-weight: bold;
+    }
+
+    .code-title {
+      color: var(--aws-light-gray);
+    }
+
+    .code-block pre {
+      margin: 0;
+      padding: 0;
+      overflow-x: auto;
+    }
+
+    .code-block code {
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      line-height: 1.5;
+      padding: 16px !important;
+    }
+
+    /* Flow */
+    .flow-diagram {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin: 24px 0;
+    }
+
+    .flow-step {
+      background: var(--aws-dark-squid);
+      border: 2px solid var(--aws-orange);
+      border-radius: 8px;
+      padding: 12px 20px;
+      text-align: center;
+      min-width: 100px;
+    }
+
+    .flow-arrow {
+      color: var(--aws-orange);
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    /* Links */
+    .aws-link {
+      color: var(--aws-teal);
+      text-decoration: none;
+    }
+
+    .aws-link:hover {
+      color: var(--aws-smile-orange);
+    }
+
+    .related-links {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 8px;
+    }
+
+    .related-links a {
+      color: var(--aws-teal);
+      text-decoration: none;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .related-links a:hover {
+      color: var(--aws-smile-orange);
+    }
+
+    /* Steps */
+    .step {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .step-number {
+      background: var(--aws-orange);
+      color: var(--aws-squid-ink);
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+
+    .step-content {
+      flex: 1;
+    }
+
+    .step-content h4 {
+      margin: 0 0 4px;
+      color: var(--aws-white);
+      font-size: 15px;
+    }
+
+    .step-content p {
+      margin: 0;
+      font-size: 14px;
+    }
+
+    footer {
+      margin-top: 24px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(255, 255, 255, 0.2);
+      font-size: 12px;
+      color: var(--aws-light-gray);
+    }
+
+    footer a {
+      color: var(--aws-teal);
+      text-decoration: none;
+      word-break: break-all;
+    }
+
+    footer a:hover {
+      color: var(--aws-smile-orange);
+    }
+
+    @media (max-width: 600px) {
+      h1 {
+        font-size: 24px;
+      }
+      h2 {
+        font-size: 20px;
+      }
+      .stats-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+  </style>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/styles/atom-one-dark.min.css">
+</head>
+<body>
+  <div class="container">
+
+    <!-- Header -->
+    <div class="header">
+      <div class="header-left">
+        <span class="service-badge">Amazon WorkSpaces</span>
+        <h1>Windows Server 2025 サポート</h1>
+        <div class="subtitle">WorkSpaces Personal / Core で最新 OS バンドルが利用可能に</div>
+      </div>
+      <div class="date-badge">2026 年 3 月 12 日</div>
+    </div>
+
+    <!-- Overview -->
+    <div class="section">
+      <h2>📋 概要</h2>
+      <p>Amazon WorkSpaces が <span class="highlight">Windows Server 2025</span> を搭載した新しいバンドルの提供を開始した。Amazon WorkSpaces Personal および Amazon WorkSpaces Core で利用可能であり、最新の Windows Server オペレーティングシステムの機能を活用した仮想デスクトップ環境を構築できる。</p>
+
+      <div class="security-grid">
+        <span class="security-badge">TPM 2.0</span>
+        <span class="security-badge">UEFI セキュアブート</span>
+        <span class="security-badge">Secured-core</span>
+        <span class="security-badge">Credential Guard</span>
+        <span class="security-badge">HVCI</span>
+        <span class="security-badge">DNS-over-HTTPS</span>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="section">
+      <h2>📊 数字で見るアップデート</h2>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-value">6</div>
+          <div class="stat-label">新しいセキュリティ機能</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">4</div>
+          <div class="stat-label">更新された API メソッド</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">2</div>
+          <div class="stat-label">対応サービスタイプ</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">4</div>
+          <div class="stat-label">選択可能な OS バージョン</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Before / After -->
+    <div class="section">
+      <h2>🔄 Before / After</h2>
+      <div class="before-after">
+        <div class="before-card">
+          <div class="label">❌ BEFORE</div>
+          <ul>
+            <li>最新の Windows Server は 2022 まで</li>
+            <li>Windows Server 2025 のセキュリティ機能を活用不可</li>
+            <li>Microsoft 365 Apps for enterprise の動作要件を満たせないケース</li>
+            <li>TPM 2.0 や UEFI セキュアブートが仮想デスクトップで利用不可</li>
+          </ul>
+        </div>
+        <div class="after-card">
+          <div class="label">✅ AFTER</div>
+          <ul>
+            <li>Windows Server 2025 バンドルを選択して起動可能</li>
+            <li>TPM 2.0、Credential Guard、HVCI など最新セキュリティ機能を利用可能</li>
+            <li>Microsoft 365 Apps for enterprise を実行可能</li>
+            <li>マネージド / カスタムバンドル両方に対応</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Architecture Diagram -->
+    <div class="section">
+      <h2>🏗️ アーキテクチャ図</h2>
+      <p>管理者が Windows Server 2025 バンドルを選択して WorkSpaces を起動し、エンドユーザーが最新のセキュリティ機能を備えた仮想デスクトップを利用する構成を示している。</p>
+      <div class="mermaid-container">
+        <pre class="mermaid">
+flowchart TD
+    subgraph Admin["管理者"]
+        A(["管理者"])
+    end
+
+    subgraph WS["Amazon WorkSpaces"]
+        direction LR
+        subgraph Bundles["バンドル選択"]
+            direction LR
+            B1["Windows Server 2016"]
+            B2["Windows Server 2019"]
+            B3["Windows Server 2022"]
+            B4["Windows Server 2025<br/>NEW"]
+            B1 ~~~ B2 ~~~ B3 ~~~ B4
+        end
+        subgraph Types["提供タイプ"]
+            direction LR
+            T1["WorkSpaces Personal"]
+            T2["WorkSpaces Core"]
+            T1 ~~~ T2
+        end
+    end
+
+    subgraph Security["Windows Server 2025 セキュリティ機能"]
+        direction LR
+        S1["TPM 2.0"]
+        S2["UEFI セキュアブート"]
+        S3["Credential Guard"]
+        S4["HVCI"]
+        S5["DNS-over-HTTPS"]
+        S1 ~~~ S2 ~~~ S3 ~~~ S4 ~~~ S5
+    end
+
+    subgraph User["エンドユーザー"]
+        U(["エンドユーザー"])
+    end
+
+    A --> Bundles
+    Bundles --> Types
+    B4 -.-> Security
+    Types --> U
+
+    classDef cloud fill:none,stroke:#CCCCCC,stroke-width:2px,color:#666666
+    classDef layer fill:none,stroke:#E1BEE7,stroke-width:2px,color:#666666
+    classDef compute fill:#FFE0B2,stroke:#FFCC80,stroke-width:2px,color:#5D4037
+    classDef newFeature fill:#E9F7EC,stroke:#66BB6A,stroke-width:2px,color:#33691E
+    classDef security fill:#E8EAF6,stroke:#C5CAE9,stroke-width:2px,color:#283593
+    classDef user fill:#E3F2FD,stroke:#BBDEFB,stroke-width:2px,color:#1565C0
+
+    class WS cloud
+    class Bundles,Types,Security layer
+    class B1,B2,B3 compute
+    class B4 newFeature
+    class S1,S2,S3,S4,S5 security
+    class T1,T2 compute
+    class A,U user
+        </pre>
+      </div>
+    </div>
+
+    <!-- Key Features -->
+    <div class="section">
+      <h2>⚡ 主要機能</h2>
+      <div class="feature-grid">
+        <div class="feature-card">
+          <div class="feature-title">🖥️ Windows Server 2025 バンドル</div>
+          <div class="feature-desc">
+            <ul>
+              <li>Amazon WorkSpaces Personal および Amazon WorkSpaces Core で利用可能</li>
+              <li>マネージドバンドルとして提供、カスタムバンドルやイメージの作成にも対応</li>
+              <li>既存の Windows Server 2016、2019、2022 バンドルとの併用が可能</li>
+            </ul>
+          </div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-title">🔒 強化されたセキュリティ機能</div>
+          <div class="feature-desc">
+            <ul>
+              <li><strong>TPM 2.0</strong>: ハードウェアベースのセキュリティ機能</li>
+              <li><strong>UEFI セキュアブート</strong>: 起動プロセスの整合性検証</li>
+              <li><strong>Secured-core サーバー</strong>: ファームウェアレベルからの保護</li>
+              <li><strong>Credential Guard</strong>: 資格情報の分離保護</li>
+              <li><strong>HVCI</strong>: カーネルモードコードの整合性保護</li>
+              <li><strong>DNS-over-HTTPS</strong>: DNS クエリの暗号化</li>
+            </ul>
+          </div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-title">📦 アプリケーション互換性の向上</div>
+          <div class="feature-desc">
+            <ul>
+              <li>Microsoft 365 Apps for enterprise など、新しい Windows バージョンを必要とするアプリケーションの実行をサポート</li>
+              <li>最新の Windows Server OS 機能を活用したアプリケーション開発・運用が可能</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Technical Specs -->
+    <div class="section">
+      <h2>🔧 技術仕様</h2>
+      <h3>対応 OS バージョン</h3>
+      <table class="spec-table">
+        <tr>
+          <th>項目</th>
+          <th>詳細</th>
+        </tr>
+        <tr>
+          <td>OS バージョン</td>
+          <td>Windows Server 2025</td>
+        </tr>
+        <tr>
+          <td>対応サービス</td>
+          <td>WorkSpaces Personal、WorkSpaces Core</td>
+        </tr>
+        <tr>
+          <td>バンドルタイプ</td>
+          <td>マネージドバンドル、カスタムバンドル</td>
+        </tr>
+        <tr>
+          <td>既存 OS サポート</td>
+          <td>Windows Server 2016、2019、2022 は引き続き利用可能</td>
+        </tr>
+      </table>
+
+      <h3>API 変更履歴</h3>
+      <p style="font-size:14px;">2026/03/11 に <a href="https://awsapichanges.com/archive/changes/537c33-workspaces.html" class="aws-link" target="_blank">workspaces API</a> が更新され、<span class="highlight">OperatingSystemName</span> に <code style="color:var(--aws-teal);">WINDOWS_SERVER_2025</code> が追加された。</p>
+      <table class="api-table">
+        <tr>
+          <th>API メソッド</th>
+          <th>変更内容</th>
+        </tr>
+        <tr>
+          <td>CreateWorkspaces</td>
+          <td>WorkspaceProperties.OperatingSystemName に WINDOWS_SERVER_2025 を追加</td>
+        </tr>
+        <tr>
+          <td>DescribeApplications</td>
+          <td>OperatingSystemNames フィルタおよびレスポンスに追加</td>
+        </tr>
+        <tr>
+          <td>DescribeWorkspaces</td>
+          <td>レスポンスの WorkspaceProperties.OperatingSystemName に追加</td>
+        </tr>
+        <tr>
+          <td>ModifyWorkspaceProperties</td>
+          <td>WorkspaceProperties.OperatingSystemName に追加</td>
+        </tr>
+      </table>
+    </div>
+
+    <!-- Setup -->
+    <div class="section">
+      <h2>🛠️ 設定方法</h2>
+      <h3>前提条件</h3>
+      <ul class="merit-list">
+        <li><span class="merit-icon">✓</span> Amazon WorkSpaces が利用可能な AWS アカウント</li>
+        <li><span class="merit-icon">✓</span> WorkSpaces ディレクトリの設定済み環境</li>
+        <li><span class="merit-icon">✓</span> 適切な IAM 権限</li>
+      </ul>
+
+      <h3>手順</h3>
+      <div class="step">
+        <div class="step-number">1</div>
+        <div class="step-content">
+          <h4>マネージドバンドルで WorkSpaces を起動</h4>
+          <p>AWS マネジメントコンソールから WorkSpaces を作成する際に、Windows Server 2025 搭載のバンドルを選択する。</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-number">2</div>
+        <div class="step-content">
+          <h4>AWS CLI を使用した WorkSpaces の作成</h4>
+          <p><code style="color:var(--aws-teal);">OperatingSystemName</code> を <code style="color:var(--aws-teal);">WINDOWS_SERVER_2025</code> に指定して起動する。</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-number">3</div>
+        <div class="step-content">
+          <h4>カスタムバンドルの作成</h4>
+          <p>独自のアプリケーションや設定が必要な場合は、Windows Server 2025 ベースのカスタムバンドルおよびイメージを作成して利用する。</p>
+        </div>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash</span>
+          <span class="code-title">AWS CLI - WorkSpaces 作成例</span>
+        </div>
+        <pre><code class="language-bash">aws workspaces create-workspaces \
+  --workspaces '[{
+    "DirectoryId": "d-xxxxxxxxxx",
+    "UserName": "username",
+    "BundleId": "wsb-xxxxxxxxx",
+    "WorkspaceProperties": {
+      "RunningMode": "AUTO_STOP",
+      "OperatingSystemName": "WINDOWS_SERVER_2025"
+    }
+  }]'</code></pre>
+      </div>
+    </div>
+
+    <!-- Merits -->
+    <div class="section">
+      <h2>✅ メリット</h2>
+      <h3>ビジネス面</h3>
+      <ul class="merit-list">
+        <li><span class="merit-icon">✓</span> <strong>コンプライアンス対応</strong>: 最新の OS を要件とするセキュリティポリシーやコンプライアンス要件への対応が容易になる</li>
+        <li><span class="merit-icon">✓</span> <strong>アプリケーション互換性</strong>: Microsoft 365 Apps for enterprise など最新ビジネスアプリケーションを仮想デスクトップで利用可能</li>
+        <li><span class="merit-icon">✓</span> <strong>長期サポート</strong>: Windows Server 2025 の長期サポートライフサイクルにより安定した運用が見込める</li>
+      </ul>
+      <h3>技術面</h3>
+      <ul class="merit-list">
+        <li><span class="merit-icon">✓</span> <strong>セキュリティ強化</strong>: TPM 2.0、UEFI セキュアブート、Credential Guard、HVCI などのハードウェアベースのセキュリティ機能</li>
+        <li><span class="merit-icon">✓</span> <strong>DNS-over-HTTPS</strong>: DNS クエリの暗号化により、ネットワークレベルのプライバシーが向上</li>
+        <li><span class="merit-icon">✓</span> <strong>Secured-core サーバー</strong>: ファームウェアレベルからの保護により、高度な脅威に対する防御力が向上</li>
+      </ul>
+    </div>
+
+    <!-- Demerits / Constraints -->
+    <div class="section">
+      <h2>⚠️ 制約事項・考慮点</h2>
+      <h3>制限事項</h3>
+      <ul class="demerit-list">
+        <li><span class="demerit-icon">!</span> WorkSpaces Personal と WorkSpaces Core のみ対応。WorkSpaces Pools への対応状況は公式発表に記載なし</li>
+        <li><span class="demerit-icon">!</span> 既存の Windows Server 2022 以前からの直接的なインプレースアップグレード情報は記載なし</li>
+      </ul>
+      <h3>考慮すべき点</h3>
+      <ul class="demerit-list">
+        <li><span class="caution-icon">⚡</span> 既存のカスタムイメージやバンドルは Windows Server 2025 用に再作成する必要がある</li>
+        <li><span class="caution-icon">⚡</span> アプリケーションの互換性テストを事前に実施することを推奨</li>
+        <li><span class="caution-icon">⚡</span> Windows Server 2025 固有のライセンス要件を確認する必要がある</li>
+      </ul>
+    </div>
+
+    <!-- Use Cases -->
+    <div class="section">
+      <h2>🎯 ユースケース</h2>
+
+      <div class="usecase-card">
+        <div class="usecase-title">🏦 ユースケース 1: セキュリティ要件の厳しい企業環境</div>
+        <div class="usecase-scenario">金融機関や政府機関など、厳格なセキュリティポリシーを持つ組織が、TPM 2.0 や Credential Guard を必須要件とする仮想デスクトップ環境を構築する。</div>
+        <div class="usecase-effect">✅ ハードウェアベースのセキュリティ機能により、資格情報の盗取やカーネルレベルの攻撃に対する防御力が向上し、コンプライアンス要件を満たすことができる。</div>
+      </div>
+
+      <div class="usecase-card">
+        <div class="usecase-title">💼 ユースケース 2: Microsoft 365 Apps の最新要件への対応</div>
+        <div class="usecase-scenario">組織が Microsoft 365 Apps for enterprise を利用しており、新しい Windows バージョンが動作要件として求められている。</div>
+        <div class="usecase-effect">✅ Windows Server 2025 バンドルを使用することで、最新の Microsoft 365 Apps を WorkSpaces 上で実行でき、生産性ツールの継続的な利用が可能になる。</div>
+      </div>
+
+      <div class="usecase-card">
+        <div class="usecase-title">🌐 ユースケース 3: DNS セキュリティの強化</div>
+        <div class="usecase-scenario">ネットワークセキュリティの強化を目指す組織が、DNS クエリの暗号化により中間者攻撃や DNS スプーフィングのリスクを低減したい。</div>
+        <div class="usecase-effect">✅ Windows Server 2025 の DNS-over-HTTPS 機能により、仮想デスクトップからの DNS 通信が暗号化され、ネットワークレベルのセキュリティが向上する。</div>
+      </div>
+    </div>
+
+    <!-- Pricing -->
+    <div class="section">
+      <h2>💰 料金</h2>
+      <p>Amazon WorkSpaces の既存の料金体系に従う。Windows Server 2025 バンドルの利用に追加料金が発生するかどうかは、<a href="https://aws.amazon.com/workspaces/pricing/" class="aws-link" target="_blank">Amazon WorkSpaces の料金ページ</a>を参照のこと。</p>
+    </div>
+
+    <!-- Region -->
+    <div class="section">
+      <h2>🌍 利用可能リージョン</h2>
+      <p>Amazon WorkSpaces が利用可能な<span class="highlight">すべての AWS リージョン</span>で利用可能。</p>
+    </div>
+
+    <!-- Related Services -->
+    <div class="section">
+      <h2>🔗 関連サービス</h2>
+      <div class="feature-grid">
+        <div class="feature-card">
+          <div class="feature-title">🖥️ Amazon WorkSpaces Personal</div>
+          <div class="feature-desc">個人ユーザー向けの永続的な仮想デスクトップサービス</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-title">⚙️ Amazon WorkSpaces Core</div>
+          <div class="feature-desc">サードパーティの VDI ソリューションと統合可能な WorkSpaces の基盤サービス</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-title">📂 AWS Directory Service</div>
+          <div class="feature-desc">WorkSpaces のユーザー認証やディレクトリ管理に使用</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Reference Links -->
+    <div class="section">
+      <h2>📎 参考リンク</h2>
+      <div class="related-links">
+        <a href="https://aws.amazon.com/about-aws/whats-new/2026/03/amazon-workspaces-windows-server-2025/" target="_blank" rel="noopener noreferrer">→ 公式発表 (What's New)</a>
+        <a href="https://aws.amazon.com/workspaces/faqs/" target="_blank" rel="noopener noreferrer">→ Amazon WorkSpaces FAQ</a>
+        <a href="https://aws.amazon.com/workspaces/pricing/" target="_blank" rel="noopener noreferrer">→ Amazon WorkSpaces 料金ページ</a>
+        <a href="https://docs.aws.amazon.com/workspaces/" target="_blank" rel="noopener noreferrer">→ Amazon WorkSpaces ドキュメント</a>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+      <p>📎 出典: <a href="https://aws.amazon.com/about-aws/whats-new/2026/03/amazon-workspaces-windows-server-2025/" target="_blank" rel="noopener noreferrer">https://aws.amazon.com/about-aws/whats-new/2026/03/amazon-workspaces-windows-server-2025/</a></p>
+    </footer>
+
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'base',
+      themeVariables: {
+        primaryColor: '#FF9900',
+        primaryTextColor: '#232F3E',
+        primaryBorderColor: '#FF9900',
+        lineColor: '#FF9900',
+        secondaryColor: '#F5F5F5',
+        tertiaryColor: '#FAFAFA',
+        background: '#FFFFFF',
+        mainBkg: '#FFF3E0',
+        nodeBorder: '#FF9900',
+        clusterBkg: '#FFF8E1',
+        clusterBorder: '#FF9900',
+        edgeLabelBackground: '#FFFFFF',
+        textColor: '#232F3E'
+      }
+    });
+  </script>
+  <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/highlight.min.js"></script>
+  <script>hljs.highlightAll();</script>
+</body>
+</html>

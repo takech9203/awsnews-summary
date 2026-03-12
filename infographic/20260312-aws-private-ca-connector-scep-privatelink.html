@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AWS Private CA Connector for SCEP - AWS PrivateLink サポート</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap');
+
+    :root {
+      --aws-squid-ink: #232F3E;
+      --aws-dark-squid: #1A242F;
+      --aws-orange: #FF9900;
+      --aws-smile-orange: #FFAD33;
+      --aws-white: #FFFFFF;
+      --aws-light-gray: #D5DBDB;
+      --aws-teal: #00A1C9;
+      --aws-purple: #8C4FFF;
+      --aws-green: #1D8102;
+      --aws-red: #D13212;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--aws-squid-ink);
+      font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+      color: var(--aws-light-gray);
+      font-size: 16px;
+      line-height: 1.6;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 32px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .header-left { flex: 1; min-width: 280px; }
+
+    .service-badge {
+      display: inline-block;
+      background: var(--aws-orange);
+      color: var(--aws-squid-ink);
+      font-size: 13px;
+      font-weight: 700;
+      padding: 4px 14px;
+      border-radius: 20px;
+      margin-bottom: 12px;
+    }
+
+    h1 {
+      font-size: 34px;
+      font-weight: 700;
+      color: var(--aws-white);
+      line-height: 1.3;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      font-size: 16px;
+      color: var(--aws-light-gray);
+    }
+
+    .header-right {
+      text-align: right;
+      font-size: 14px;
+      color: var(--aws-light-gray);
+    }
+
+    /* Sections */
+    .section {
+      background: var(--aws-dark-squid);
+      border-radius: 8px;
+      padding: 24px;
+      margin-bottom: 24px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    h2 {
+      font-size: 22px;
+      font-weight: 600;
+      color: var(--aws-orange);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    h3 {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--aws-white);
+      margin: 16px 0 8px 0;
+    }
+
+    .highlight {
+      background-color: rgba(255, 153, 0, 0.2);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 600;
+      color: var(--aws-orange);
+    }
+
+    .icon-text {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      margin: 8px 0;
+      color: var(--aws-light-gray);
+    }
+
+    .arrow { color: var(--aws-orange); font-size: 20px; }
+
+    .aws-link {
+      color: var(--aws-teal);
+      text-decoration: none;
+    }
+    .aws-link:hover { color: var(--aws-smile-orange); }
+
+    /* Before/After */
+    .before-after {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin: 16px 0;
+    }
+    @media (max-width: 640px) {
+      .before-after { grid-template-columns: 1fr; }
+    }
+
+    .before-card {
+      background: rgba(209, 50, 18, 0.1);
+      border: 1px solid rgba(209, 50, 18, 0.4);
+      border-radius: 8px;
+      padding: 16px;
+    }
+    .before-card .ba-label {
+      color: var(--aws-red);
+      font-weight: 700;
+      font-size: 14px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .after-card {
+      background: rgba(29, 129, 2, 0.1);
+      border: 1px solid rgba(29, 129, 2, 0.4);
+      border-radius: 8px;
+      padding: 16px;
+    }
+    .after-card .ba-label {
+      color: var(--aws-green);
+      font-weight: 700;
+      font-size: 14px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .ba-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      margin: 6px 0;
+      font-size: 14px;
+    }
+
+    /* Feature cards */
+    .feature-cards {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+      margin-top: 16px;
+    }
+
+    .feature-card {
+      background: var(--aws-dark-squid);
+      border-left: 4px solid var(--aws-orange);
+      border-radius: 0 8px 8px 0;
+      padding: 16px 20px;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      border-right: 1px solid rgba(255, 255, 255, 0.05);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    .feature-card .fc-title {
+      font-weight: 600;
+      color: var(--aws-white);
+      font-size: 16px;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .feature-card .fc-body {
+      font-size: 14px;
+      color: var(--aws-light-gray);
+    }
+    .feature-card .fc-body li {
+      margin: 4px 0 4px 16px;
+    }
+
+    /* Use case cards */
+    .usecase-cards {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 16px;
+      margin-top: 16px;
+    }
+    @media (max-width: 768px) {
+      .usecase-cards { grid-template-columns: 1fr; }
+    }
+
+    .usecase-card {
+      background: rgba(255, 153, 0, 0.08);
+      border: 1px solid rgba(255, 153, 0, 0.25);
+      border-radius: 8px;
+      padding: 20px;
+    }
+    .usecase-card .uc-title {
+      font-weight: 600;
+      color: var(--aws-orange);
+      font-size: 15px;
+      margin-bottom: 8px;
+    }
+    .usecase-card .uc-scenario {
+      font-size: 13px;
+      color: var(--aws-light-gray);
+      margin-bottom: 8px;
+    }
+    .usecase-card .uc-effect {
+      font-size: 13px;
+      color: var(--aws-green);
+      display: flex;
+      align-items: flex-start;
+      gap: 6px;
+    }
+
+    /* Spec table */
+    .spec-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0;
+      font-size: 14px;
+    }
+    .spec-table th {
+      background: rgba(255, 153, 0, 0.15);
+      color: var(--aws-orange);
+      font-weight: 600;
+      text-align: left;
+      padding: 10px 14px;
+      border-bottom: 2px solid rgba(255, 153, 0, 0.3);
+    }
+    .spec-table td {
+      padding: 10px 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      color: var(--aws-light-gray);
+    }
+
+    /* Steps */
+    .steps {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 12px;
+    }
+    .step-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+    }
+    .step-num {
+      background: var(--aws-orange);
+      color: var(--aws-squid-ink);
+      font-weight: 700;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+    .step-content {
+      flex: 1;
+    }
+    .step-content strong {
+      color: var(--aws-white);
+    }
+
+    /* Merit/Demerit */
+    .merit-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-top: 12px;
+    }
+    @media (max-width: 640px) {
+      .merit-grid { grid-template-columns: 1fr; }
+    }
+
+    .merit-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      margin: 6px 0;
+      font-size: 14px;
+    }
+
+    /* Region tags */
+    .region-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .region-tag {
+      background: rgba(0, 161, 201, 0.12);
+      border: 1px solid rgba(0, 161, 201, 0.3);
+      color: var(--aws-teal);
+      font-size: 13px;
+      padding: 4px 12px;
+      border-radius: 16px;
+    }
+
+    /* Related services */
+    .related-list {
+      list-style: none;
+      padding: 0;
+      margin: 12px 0 0 0;
+    }
+    .related-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      margin: 8px 0;
+      font-size: 14px;
+    }
+
+    /* Mermaid */
+    .mermaid-container {
+      background: #FFFFFF;
+      border-radius: 12px;
+      padding: 24px;
+      margin: 20px 0;
+      border: 2px solid rgba(255, 153, 0, 0.3);
+      overflow-x: auto;
+    }
+    .mermaid {
+      display: flex;
+      justify-content: center;
+    }
+
+    /* Flow diagram */
+    .flow-diagram {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin: 24px 0;
+    }
+    .flow-step {
+      background: var(--aws-dark-squid);
+      border: 2px solid var(--aws-orange);
+      border-radius: 8px;
+      padding: 12px 20px;
+      text-align: center;
+      min-width: 100px;
+    }
+    .flow-arrow {
+      color: var(--aws-orange);
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    /* Pricing table */
+    .pricing-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0;
+      font-size: 14px;
+    }
+    .pricing-table th {
+      background: rgba(255, 153, 0, 0.15);
+      color: var(--aws-orange);
+      font-weight: 600;
+      text-align: left;
+      padding: 10px 14px;
+      border-bottom: 2px solid rgba(255, 153, 0, 0.3);
+    }
+    .pricing-table td {
+      padding: 10px 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      color: var(--aws-light-gray);
+    }
+
+    /* Caution card */
+    .caution-card {
+      background: rgba(255, 153, 0, 0.08);
+      border: 1px solid rgba(255, 153, 0, 0.3);
+      border-radius: 8px;
+      padding: 16px 20px;
+      margin-top: 12px;
+    }
+    .caution-card li {
+      margin: 6px 0 6px 16px;
+      font-size: 14px;
+    }
+
+    /* Code block */
+    .code-block {
+      background: #1a1a2e;
+      border-radius: 8px;
+      overflow: hidden;
+      margin: 16px 0;
+    }
+    .code-header {
+      background: #16213e;
+      padding: 8px 16px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+    }
+    .code-lang {
+      color: var(--aws-orange);
+      font-weight: bold;
+    }
+    .code-title {
+      color: var(--aws-light-gray);
+    }
+    .code-block pre {
+      margin: 0;
+      padding: 0;
+      overflow-x: auto;
+    }
+    .code-block code {
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      line-height: 1.5;
+      padding: 16px !important;
+    }
+
+    footer {
+      margin-top: 24px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(255, 255, 255, 0.2);
+      font-size: 12px;
+      color: var(--aws-light-gray);
+    }
+    footer a {
+      color: var(--aws-teal);
+      text-decoration: none;
+      word-break: break-all;
+    }
+    footer a:hover { color: var(--aws-smile-orange); }
+  </style>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/styles/atom-one-dark.min.css">
+</head>
+<body>
+  <div class="container">
+
+    <!-- Header -->
+    <div class="header">
+      <div class="header-left">
+        <span class="service-badge">AWS Private CA Connector for SCEP</span>
+        <h1>&#128274; AWS PrivateLink サポート</h1>
+        <div class="subtitle">Private Connectivity for SCEP Certificate Enrollment via AWS PrivateLink</div>
+      </div>
+      <div class="header-right">
+        <div>2026 年 3 月 12 日</div>
+      </div>
+    </div>
+
+    <!-- Overview -->
+    <div class="section">
+      <h2>&#128203; 概要</h2>
+      <p>AWS Private CA Connector for SCEP が <span class="highlight">AWS PrivateLink</span> をサポートし、Amazon VPC 内のプライベートエンドポイントを通じて SCEP コネクタにアクセスできるようになりました。証明書の登録リクエストが<span class="highlight">パブリックインターネットを経由せず</span>、すべてのトラフィックが AWS ネットワーク内に留まります。</p>
+      <p style="margin-top:10px;">SCEP はモバイルデバイス、ネットワーク機器、IoT デバイスの自動証明書登録および更新に広く使用されているプロトコルです。今回の PrivateLink サポートにより、証明書管理にプライベート接続を必須とするコンプライアンス要件への対応が容易になります。</p>
+
+      <!-- Before / After -->
+      <div class="before-after" style="margin-top:20px;">
+        <div class="before-card">
+          <div class="ba-label">&#10060; Before</div>
+          <div class="ba-item"><span>&#8226;</span><span>SCEP コネクタへのアクセスにはパブリックインターネット経由の接続が必要</span></div>
+          <div class="ba-item"><span>&#8226;</span><span>インターネットゲートウェイ、NAT デバイス、VPN 接続などのネットワーク構成が必要</span></div>
+          <div class="ba-item"><span>&#8226;</span><span>証明書管理トラフィックがパブリックインターネットを経由し、セキュリティ上の懸念</span></div>
+        </div>
+        <div class="after-card">
+          <div class="ba-label">&#9989; After</div>
+          <div class="ba-item"><span>&#8226;</span><span>VPC エンドポイントを作成して SCEP コネクタにプライベートに接続可能</span></div>
+          <div class="ba-item"><span>&#8226;</span><span>インターネットゲートウェイ、NAT デバイス、VPN 接続が不要に</span></div>
+          <div class="ba-item"><span>&#8226;</span><span>すべてのトラフィックが AWS ネットワーク内に留まり、セキュリティが向上</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Architecture Diagram -->
+    <div class="section">
+      <h2>&#127959; アーキテクチャ図</h2>
+      <p>VPC 内のデバイスが PrivateLink 経由で SCEP コネクタにプライベートに接続し、AWS Private CA から証明書を取得するフローを示しています。パブリックインターネットを経由せず、すべての通信が AWS ネットワーク内で完結します。</p>
+      <div class="mermaid-container">
+        <pre class="mermaid">
+flowchart TD
+    subgraph VPC["&#9729;&#65039; Amazon VPC"]
+        subgraph PrivSubnet["&#128274; プライベートサブネット"]
+            Device["&#128241; デバイス&lt;br/&gt;モバイル / IoT / ネットワーク機器"]
+            VPCe["&#128268; VPC エンドポイント&lt;br/&gt;AWS PrivateLink"]
+        end
+    end
+
+    subgraph AWSServices["&#9881;&#65039; AWS サービス"]
+        Connector["&#128203; Private CA Connector&lt;br/&gt;for SCEP"]
+        PCA["&#128273; AWS Private CA"]
+    end
+
+    Device -->|"SCEP リクエスト&lt;br/&gt;プライベート接続"| VPCe
+    VPCe -->|"AWS ネットワーク内"| Connector
+    Connector -->|"証明書発行"| PCA
+    PCA -->|"証明書"| Connector
+    Connector -->|"証明書配布"| VPCe
+    VPCe --> Device
+
+    classDef cloud fill:none,stroke:#CCCCCC,stroke-width:2px,color:#666666
+    classDef subnet fill:none,stroke:#E1BEE7,stroke-width:2px,color:#666666
+    classDef compute fill:#FFE0B2,stroke:#FFCC80,stroke-width:2px,color:#5D4037
+    classDef storage fill:#DCEDC8,stroke:#C5E1A5,stroke-width:2px,color:#33691E
+    classDef user fill:#E3F2FD,stroke:#BBDEFB,stroke-width:2px,color:#1565C0
+
+    class VPC cloud
+    class PrivSubnet subnet
+    class Device user
+    class VPCe,Connector compute
+    class PCA storage
+        </pre>
+      </div>
+    </div>
+
+    <!-- Key Features -->
+    <div class="section">
+      <h2>&#9881; 主要機能</h2>
+      <div class="feature-cards">
+        <div class="feature-card">
+          <div class="fc-title">&#128268; VPC エンドポイントによるプライベート接続</div>
+          <div class="fc-body">
+            <ul>
+              <li>VPC 内にインターフェイス VPC エンドポイントを作成して SCEP コネクタに接続</li>
+              <li>パブリックインターネットを経由せずに証明書の登録と更新が可能</li>
+              <li>ENI ベースのエンドポイントにより、セキュリティグループによるアクセス制御が可能</li>
+            </ul>
+          </div>
+        </div>
+        <div class="feature-card">
+          <div class="fc-title">&#128295; ネットワーク構成の簡素化</div>
+          <div class="fc-body">
+            <ul>
+              <li>インターネットゲートウェイの設定が不要</li>
+              <li>NAT デバイスの構成と管理が不要</li>
+              <li>VPN 接続の設定が不要</li>
+            </ul>
+          </div>
+        </div>
+        <div class="feature-card">
+          <div class="fc-title">&#128737; コンプライアンス対応の強化</div>
+          <div class="fc-body">
+            <ul>
+              <li>証明書管理トラフィックの完全なプライベート化</li>
+              <li>規制要件に準拠したプライベート接続の実現</li>
+              <li>AWS ネットワーク内でのトラフィック閉域化</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Technical Specs -->
+    <div class="section">
+      <h2>&#128295; 技術仕様</h2>
+      <h3>構成要素</h3>
+      <table class="spec-table">
+        <thead>
+          <tr>
+            <th>項目</th>
+            <th>詳細</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>エンドポイントタイプ</td>
+            <td>インターフェイス VPC エンドポイント</td>
+          </tr>
+          <tr>
+            <td>プロトコル</td>
+            <td>SCEP (Simple Certificate Enrollment Protocol)</td>
+          </tr>
+          <tr>
+            <td>接続方式</td>
+            <td>AWS PrivateLink</td>
+          </tr>
+          <tr>
+            <td>バックエンド CA</td>
+            <td>AWS Private Certificate Authority</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3 style="margin-top:20px;">IAM ポリシーの例</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">JSON</span>
+          <span class="code-title">VPC エンドポイント作成に必要な IAM ポリシー</span>
+        </div>
+        <pre><code class="language-json">{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "ec2:CreateVpcEndpoint",
+                "ec2:DescribeVpcEndpoints"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "pca-connector-scep:*"
+            ],
+            "Resource": "*"
+        }
+    ]
+}</code></pre>
+      </div>
+    </div>
+
+    <!-- Setup Steps -->
+    <div class="section">
+      <h2>&#128640; 設定方法</h2>
+      <h3>前提条件</h3>
+      <div style="margin:8px 0 16px 0; font-size:14px;">
+        <div class="icon-text"><span class="arrow">&#8594;</span><span>AWS Private CA Connector for SCEP が設定済みであること</span></div>
+        <div class="icon-text"><span class="arrow">&#8594;</span><span>VPC およびプライベートサブネットが作成済みであること</span></div>
+        <div class="icon-text"><span class="arrow">&#8594;</span><span>適切な IAM 権限が付与されていること</span></div>
+      </div>
+
+      <h3>手順</h3>
+      <div class="steps">
+        <div class="step-item">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <strong>VPC エンドポイントの作成</strong><br/>
+            指定した VPC 内にインターフェイス VPC エンドポイントを作成します。サブネットとセキュリティグループを指定して、アクセスを制御します。
+            <div class="code-block" style="margin-top:12px;">
+              <div class="code-header">
+                <span class="code-lang">Bash</span>
+                <span class="code-title">VPC エンドポイントの作成</span>
+              </div>
+              <pre><code class="language-bash">aws ec2 create-vpc-endpoint \
+    --vpc-id vpc-0123456789abcdef0 \
+    --service-name com.amazonaws.us-east-1.pca-connector-scep \
+    --vpc-endpoint-type Interface \
+    --subnet-ids subnet-0123456789abcdef0 \
+    --security-group-ids sg-0123456789abcdef0</code></pre>
+            </div>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <strong>セキュリティグループの設定</strong><br/>
+            VPC エンドポイントに関連付けるセキュリティグループで、SCEP クライアントデバイスからの HTTPS トラフィックを許可します。
+            <div class="code-block" style="margin-top:12px;">
+              <div class="code-header">
+                <span class="code-lang">Bash</span>
+                <span class="code-title">セキュリティグループのインバウンドルール追加</span>
+              </div>
+              <pre><code class="language-bash">aws ec2 authorize-security-group-ingress \
+    --group-id sg-0123456789abcdef0 \
+    --protocol tcp \
+    --port 443 \
+    --source-group sg-device-security-group</code></pre>
+            </div>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <strong>SCEP クライアントの設定</strong><br/>
+            SCEP クライアントデバイスの SCEP URL を VPC エンドポイントの DNS 名に更新します。プライベート DNS が有効な場合、既存の SCEP コネクタエンドポイント URL がそのまま VPC エンドポイント経由で解決されます。
+          </div>
+        </div>
+      </div>
+
+      <!-- Simple flow -->
+      <div class="flow-diagram" style="margin-top:20px;">
+        <div class="flow-step">&#128268; VPC<br/>エンドポイント作成</div>
+        <span class="flow-arrow">&#8594;</span>
+        <div class="flow-step">&#128737; セキュリティ<br/>グループ設定</div>
+        <span class="flow-arrow">&#8594;</span>
+        <div class="flow-step">&#128241; SCEP クライアント<br/>URL 更新</div>
+        <span class="flow-arrow">&#8594;</span>
+        <div class="flow-step">&#128274; プライベート<br/>接続完了</div>
+      </div>
+    </div>
+
+    <!-- Merits & Demerits -->
+    <div class="section">
+      <h2>&#9989; メリット・制約事項</h2>
+      <div class="merit-grid">
+        <div>
+          <h3 style="color:var(--aws-green);">ビジネス面のメリット</h3>
+          <div class="merit-item"><span style="color:var(--aws-green);">&#10003;</span><span><strong style="color:var(--aws-white);">コンプライアンス対応の簡素化</strong>: 証明書管理のプライベート接続要件を容易に満たすことが可能</span></div>
+          <div class="merit-item"><span style="color:var(--aws-green);">&#10003;</span><span><strong style="color:var(--aws-white);">運用コストの削減</strong>: NAT ゲートウェイや VPN 接続の管理が不要になり、ネットワーク構成がシンプルに</span></div>
+          <div class="merit-item"><span style="color:var(--aws-green);">&#10003;</span><span><strong style="color:var(--aws-white);">セキュリティ体制の強化</strong>: 証明書管理トラフィックがパブリックインターネットに露出せず、攻撃対象面が縮小</span></div>
+        </div>
+        <div>
+          <h3 style="color:var(--aws-green);">技術面のメリット</h3>
+          <div class="merit-item"><span style="color:var(--aws-green);">&#10003;</span><span><strong style="color:var(--aws-white);">ネットワーク構成の簡素化</strong>: インターネットゲートウェイや NAT デバイスが不要になり、アーキテクチャがシンプルに</span></div>
+          <div class="merit-item"><span style="color:var(--aws-green);">&#10003;</span><span><strong style="color:var(--aws-white);">低レイテンシ</strong>: AWS ネットワーク内で通信が完結するため、安定した低レイテンシ接続を実現</span></div>
+          <div class="merit-item"><span style="color:var(--aws-green);">&#10003;</span><span><strong style="color:var(--aws-white);">きめ細かいアクセス制御</strong>: VPC エンドポイントに対してセキュリティグループによるネットワークアクセス制御が可能</span></div>
+        </div>
+      </div>
+
+      <h3 style="margin-top:20px; color:var(--aws-orange);">&#9888; 制限事項・考慮点</h3>
+      <div class="caution-card">
+        <ul>
+          <li>VPC エンドポイントの作成には追加のネットワーク設定が必要</li>
+          <li>インターフェイス VPC エンドポイントには別途料金が発生する</li>
+          <li>VPC エンドポイントのサブネット配置はアベイラビリティゾーンを考慮する必要がある</li>
+          <li>既存の SCEP クライアント設定をプライベートエンドポイント経由に移行する際の計画が必要</li>
+          <li>セキュリティグループおよび VPC エンドポイントポリシーの適切な設計が重要</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Use Cases -->
+    <div class="section">
+      <h2>&#128161; ユースケース</h2>
+      <div class="usecase-cards">
+        <div class="usecase-card">
+          <div class="uc-title">&#127970; 規制産業でのデバイス証明書管理</div>
+          <div class="uc-scenario">金融機関や医療機関が、規制要件によりすべての証明書管理トラフィックをプライベートネットワーク内に限定する必要があるシナリオ。</div>
+          <div class="uc-effect"><span>&#10003;</span><span>証明書の発行と更新がすべてプライベートネットワーク内で完結し、規制要件への準拠が実現</span></div>
+        </div>
+        <div class="usecase-card">
+          <div class="uc-title">&#128225; IoT デバイスのセキュアな証明書自動登録</div>
+          <div class="uc-scenario">製造業の工場ネットワーク内にある IoT デバイスが、インターネットアクセスなしで証明書を自動的に取得・更新する必要があるシナリオ。</div>
+          <div class="uc-effect"><span>&#10003;</span><span>工場内の IoT デバイスがインターネット接続なしで証明書を自動取得でき、セキュリティリスクを軽減</span></div>
+        </div>
+        <div class="usecase-card">
+          <div class="uc-title">&#127760; マルチ VPC 環境でのネットワーク機器証明書管理</div>
+          <div class="uc-scenario">大規模な企業ネットワークで、複数の VPC にまたがるネットワーク機器の証明書を一元的に管理するシナリオ。</div>
+          <div class="uc-effect"><span>&#10003;</span><span>各 VPC 内のネットワーク機器がローカルに証明書を取得でき、集中管理と分散アクセスの両立を実現</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pricing -->
+    <div class="section">
+      <h2>&#128176; 料金</h2>
+      <p>AWS PrivateLink の VPC エンドポイントに対する標準料金が適用されます。AWS Private CA Connector for SCEP 自体の料金に加え、以下の PrivateLink 関連費用が発生します。</p>
+      <table class="pricing-table" style="margin-top:16px;">
+        <thead>
+          <tr>
+            <th>項目</th>
+            <th>料金 (概算、us-east-1)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>VPC エンドポイント (1 時間あたり、1 AZ)</td>
+            <td>$0.01/時間</td>
+          </tr>
+          <tr>
+            <td>VPC エンドポイント (月額、1 AZ)</td>
+            <td>約 $7.30/月</td>
+          </tr>
+          <tr>
+            <td>データ処理 (1 GB あたり)</td>
+            <td>$0.01/GB</td>
+          </tr>
+        </tbody>
+      </table>
+      <p style="margin-top:12px; font-size:13px; color:var(--aws-light-gray);">※ AWS Private CA の証明書発行料金は別途発生します。最新の料金は <a href="https://aws.amazon.com/privatelink/pricing/" class="aws-link" target="_blank" rel="noopener noreferrer">AWS PrivateLink 料金ページ</a> を参照してください。</p>
+    </div>
+
+    <!-- Regions -->
+    <div class="section">
+      <h2>&#127760; 利用可能リージョン</h2>
+      <p>AWS Private CA Connector for SCEP が利用可能なすべての AWS リージョンで PrivateLink サポートが利用可能です。</p>
+      <p style="margin-top:8px; font-size:14px;">リージョンの詳細は <a href="https://aws.amazon.com/about-aws/global-infrastructure/regional-product-services/" class="aws-link" target="_blank" rel="noopener noreferrer">AWS リージョン表</a> を参照してください。</p>
+    </div>
+
+    <!-- Related Services -->
+    <div class="section">
+      <h2>&#128279; 関連サービス・機能</h2>
+      <ul class="related-list">
+        <li><span class="arrow">&#8594;</span><span><strong style="color:var(--aws-white);">AWS Private Certificate Authority</strong>: プライベート CA の作成と管理を行うサービス。SCEP コネクタのバックエンドとして証明書を発行</span></li>
+        <li><span class="arrow">&#8594;</span><span><strong style="color:var(--aws-white);">AWS PrivateLink</strong>: VPC 内から AWS サービスへのプライベート接続を提供する機能。今回のアップデートで SCEP コネクタに対応</span></li>
+        <li><span class="arrow">&#8594;</span><span><strong style="color:var(--aws-white);">Amazon VPC</strong>: 仮想プライベートクラウド環境。VPC エンドポイントの配置先</span></li>
+        <li><span class="arrow">&#8594;</span><span><strong style="color:var(--aws-white);">AWS IoT Core</strong>: IoT デバイスの接続と管理。SCEP を使用したデバイス証明書の自動登録と組み合わせて利用可能</span></li>
+      </ul>
+    </div>
+
+    <!-- Summary -->
+    <div class="section" style="border: 1px solid rgba(255,153,0,0.3);">
+      <h2>&#128221; まとめ</h2>
+      <p>AWS Private CA Connector for SCEP の AWS PrivateLink サポートにより、証明書管理トラフィックを完全にプライベートネットワーク内に閉じることが可能になりました。特に、コンプライアンス要件が厳しい規制産業や、インターネットアクセスを制限している環境でのデバイス証明書管理に大きな価値をもたらします。</p>
+      <p style="margin-top:10px;">既存の SCEP コネクタを利用しているユーザーは、<span class="highlight">VPC エンドポイントを追加するだけ</span>でプライベート接続に移行できるため、早期の導入を推奨します。</p>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+      <p>&#128206; 出典:</p>
+      <ul style="list-style:none; margin-top:6px;">
+        <li style="margin:4px 0;"><a href="https://aws.amazon.com/about-aws/whats-new/2026/03/aws-private-ca-connector-scep-privatelink/" target="_blank" rel="noopener noreferrer">公式発表 (What's New)</a></li>
+        <li style="margin:4px 0;"><a href="https://docs.aws.amazon.com/privateca/latest/userguide/connector-for-scep.html" target="_blank" rel="noopener noreferrer">AWS Private CA Connector for SCEP ドキュメント</a></li>
+        <li style="margin:4px 0;"><a href="https://docs.aws.amazon.com/vpc/latest/privatelink/create-interface-endpoint.html" target="_blank" rel="noopener noreferrer">AWS PrivateLink ドキュメント</a></li>
+        <li style="margin:4px 0;"><a href="https://aws.amazon.com/privatelink/pricing/" target="_blank" rel="noopener noreferrer">AWS PrivateLink 料金</a></li>
+      </ul>
+    </footer>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'base',
+      themeVariables: {
+        primaryColor: '#FF9900',
+        primaryTextColor: '#232F3E',
+        primaryBorderColor: '#FF9900',
+        lineColor: '#FF9900',
+        secondaryColor: '#F5F5F5',
+        tertiaryColor: '#FAFAFA',
+        background: '#FFFFFF',
+        mainBkg: '#FFF3E0',
+        nodeBorder: '#FF9900',
+        clusterBkg: '#FFF8E1',
+        clusterBorder: '#FF9900',
+        edgeLabelBackground: '#FFFFFF',
+        textColor: '#232F3E'
+      }
+    });
+  </script>
+  <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/highlight.min.js"></script>
+  <script>hljs.highlightAll();</script>
+</body>
+</html>

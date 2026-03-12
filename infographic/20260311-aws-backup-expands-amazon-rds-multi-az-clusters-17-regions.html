@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AWS Backup - Amazon RDS Multi-AZ クラスターのサポートを 17 リージョンに拡大</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap');
+
+    :root {
+      --aws-squid-ink: #232F3E;
+      --aws-dark-squid: #1A242F;
+      --aws-orange: #FF9900;
+      --aws-smile-orange: #FFAD33;
+      --aws-white: #FFFFFF;
+      --aws-light-gray: #D5DBDB;
+      --aws-teal: #00A1C9;
+      --aws-purple: #8C4FFF;
+      --aws-green: #1D8102;
+      --aws-red: #D13212;
+    }
+
+    body {
+      background-color: var(--aws-squid-ink);
+      font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+      color: var(--aws-light-gray);
+      font-size: 16px;
+      line-height: 1.6;
+      padding: 20px;
+      margin: 0;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 32px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .header-left {
+      flex: 1;
+      min-width: 300px;
+    }
+
+    .service-badge {
+      display: inline-block;
+      background: var(--aws-orange);
+      color: var(--aws-squid-ink);
+      padding: 4px 14px;
+      border-radius: 4px;
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    h1 {
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--aws-white);
+      margin: 0 0 8px 0;
+      line-height: 1.3;
+    }
+
+    .subtitle {
+      font-size: 15px;
+      color: var(--aws-light-gray);
+    }
+
+    .header-right {
+      text-align: right;
+      font-size: 14px;
+      color: var(--aws-light-gray);
+    }
+
+    h2 {
+      font-size: 22px;
+      font-weight: 600;
+      color: var(--aws-orange);
+      margin: 0 0 16px 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .section {
+      background: var(--aws-dark-squid);
+      border-radius: 8px;
+      padding: 24px;
+      margin-bottom: 24px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .highlight {
+      background-color: rgba(255, 153, 0, 0.2);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 600;
+      color: var(--aws-orange);
+    }
+
+    /* Stats cards */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .stat-card {
+      background: linear-gradient(135deg, rgba(255, 153, 0, 0.15), rgba(255, 153, 0, 0.05));
+      border: 1px solid rgba(255, 153, 0, 0.3);
+      border-radius: 8px;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .stat-number {
+      font-size: 36px;
+      font-weight: 700;
+      color: var(--aws-orange);
+      display: block;
+    }
+
+    .stat-label {
+      font-size: 14px;
+      color: var(--aws-light-gray);
+      margin-top: 4px;
+    }
+
+    /* Before/After */
+    .before-after {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin: 16px 0;
+    }
+
+    .before-card {
+      background: rgba(209, 50, 18, 0.1);
+      border: 1px solid rgba(209, 50, 18, 0.3);
+      border-radius: 8px;
+      padding: 16px;
+    }
+
+    .before-card h3 {
+      color: var(--aws-red);
+      font-size: 15px;
+      margin: 0 0 12px 0;
+    }
+
+    .after-card {
+      background: rgba(29, 129, 2, 0.1);
+      border: 1px solid rgba(29, 129, 2, 0.3);
+      border-radius: 8px;
+      padding: 16px;
+    }
+
+    .after-card h3 {
+      color: var(--aws-green);
+      font-size: 15px;
+      margin: 0 0 12px 0;
+    }
+
+    .before-card ul, .after-card ul {
+      margin: 0;
+      padding-left: 0;
+      list-style: none;
+    }
+
+    .before-card li, .after-card li {
+      padding: 4px 0;
+      font-size: 14px;
+      display: flex;
+      align-items: flex-start;
+      gap: 6px;
+    }
+
+    .before-card li::before {
+      content: "✗";
+      color: var(--aws-red);
+      font-weight: bold;
+      flex-shrink: 0;
+    }
+
+    .after-card li::before {
+      content: "✓";
+      color: var(--aws-green);
+      font-weight: bold;
+      flex-shrink: 0;
+    }
+
+    /* Feature cards */
+    .feature-card {
+      background: var(--aws-dark-squid);
+      border-left: 4px solid var(--aws-orange);
+      border-radius: 0 8px 8px 0;
+      padding: 16px 20px;
+      margin: 12px 0;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      border-right: 1px solid rgba(255, 255, 255, 0.05);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .feature-card h3 {
+      color: var(--aws-white);
+      font-size: 16px;
+      margin: 0 0 8px 0;
+    }
+
+    .feature-card p, .feature-card ul {
+      margin: 0;
+      font-size: 14px;
+      color: var(--aws-light-gray);
+    }
+
+    .feature-card ul {
+      padding-left: 20px;
+    }
+
+    .feature-card li {
+      margin: 4px 0;
+    }
+
+    /* Usecase cards */
+    .usecase-card {
+      background: rgba(255, 153, 0, 0.08);
+      border: 1px solid rgba(255, 153, 0, 0.2);
+      border-radius: 8px;
+      padding: 20px;
+      margin: 12px 0;
+    }
+
+    .usecase-card h3 {
+      color: var(--aws-orange);
+      font-size: 16px;
+      margin: 0 0 6px 0;
+    }
+
+    .usecase-card .scenario {
+      font-size: 14px;
+      color: var(--aws-light-gray);
+      margin-bottom: 10px;
+    }
+
+    .usecase-card .effect {
+      font-size: 14px;
+      color: var(--aws-green);
+      margin-top: 10px;
+    }
+
+    /* Region grid */
+    .region-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .region-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 12px;
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 4px;
+      font-size: 13px;
+    }
+
+    .region-name {
+      color: var(--aws-light-gray);
+    }
+
+    .region-code {
+      color: var(--aws-teal);
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+    }
+
+    .region-group-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--aws-orange);
+      margin: 12px 0 6px 0;
+    }
+
+    /* Pricing table */
+    .pricing-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0;
+      font-size: 14px;
+    }
+
+    .pricing-table th {
+      background: rgba(255, 153, 0, 0.15);
+      color: var(--aws-orange);
+      padding: 10px 14px;
+      text-align: left;
+      font-weight: 600;
+      border-bottom: 1px solid rgba(255, 153, 0, 0.3);
+    }
+
+    .pricing-table td {
+      padding: 10px 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      color: var(--aws-light-gray);
+    }
+
+    /* Mermaid */
+    .mermaid-container {
+      background: #FFFFFF;
+      border-radius: 12px;
+      padding: 24px;
+      margin: 20px 0;
+      border: 2px solid rgba(255, 153, 0, 0.3);
+      overflow-x: auto;
+    }
+
+    .mermaid {
+      display: flex;
+      justify-content: center;
+    }
+
+    /* Code block */
+    .code-block {
+      background: #1a1a2e;
+      border-radius: 8px;
+      overflow: hidden;
+      margin: 16px 0;
+    }
+
+    .code-header {
+      background: #16213e;
+      padding: 8px 16px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+    }
+
+    .code-lang {
+      color: var(--aws-orange);
+      font-weight: bold;
+    }
+
+    .code-title {
+      color: var(--aws-light-gray);
+    }
+
+    .code-block pre {
+      margin: 0;
+      padding: 0;
+      overflow-x: auto;
+    }
+
+    .code-block code {
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      line-height: 1.5;
+      padding: 16px !important;
+    }
+
+    /* Merits/Demerits */
+    .merit-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      margin: 8px 0;
+      font-size: 14px;
+    }
+
+    .merit-icon {
+      flex-shrink: 0;
+      font-size: 16px;
+    }
+
+    /* Related services */
+    .related-card {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 6px;
+      margin: 8px 0;
+      font-size: 14px;
+    }
+
+    .related-card span:first-child {
+      font-size: 20px;
+    }
+
+    /* AWS link */
+    .aws-link {
+      color: var(--aws-teal);
+      text-decoration: none;
+    }
+
+    .aws-link:hover {
+      color: var(--aws-smile-orange);
+    }
+
+    /* Footer */
+    footer {
+      margin-top: 24px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(255, 255, 255, 0.2);
+      font-size: 12px;
+      color: var(--aws-light-gray);
+    }
+
+    footer a {
+      color: var(--aws-teal);
+      text-decoration: none;
+      word-break: break-all;
+    }
+
+    footer ul {
+      list-style: none;
+      padding: 0;
+      margin: 8px 0 0 0;
+    }
+
+    footer li {
+      margin: 4px 0;
+    }
+
+    /* Note */
+    .note {
+      font-size: 13px;
+      color: #999;
+      margin-top: 8px;
+    }
+
+    /* Responsive */
+    @media (max-width: 700px) {
+      h1 { font-size: 24px; }
+      .before-after { grid-template-columns: 1fr; }
+      .stats-row { grid-template-columns: 1fr; }
+      .region-grid { grid-template-columns: 1fr; }
+      .header { flex-direction: column; }
+      .header-right { text-align: left; }
+    }
+  </style>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/styles/atom-one-dark.min.css">
+</head>
+<body>
+  <div class="container">
+
+    <!-- Header -->
+    <div class="header">
+      <div class="header-left">
+        <span class="service-badge">AWS Backup</span>
+        <h1>Amazon RDS Multi-AZ クラスターのサポートを 17 リージョンに拡大</h1>
+        <div class="subtitle">Amazon RDS Multi-AZ クラスターのバックアップサポートのリージョン拡大</div>
+      </div>
+      <div class="header-right">
+        2026 年 3 月 11 日
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <span class="stat-number">+17</span>
+        <span class="stat-label">新規対応リージョン</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-number">3 AZ</span>
+        <span class="stat-label">Multi-AZ クラスター構成</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-number">4</span>
+        <span class="stat-label">大陸にまたがるカバレッジ</span>
+      </div>
+    </div>
+
+    <!-- Overview -->
+    <div class="section">
+      <h2>📋 概要</h2>
+      <p>AWS Backup が Amazon RDS Multi-AZ クラスターのバックアップサポートを新たに <span class="highlight">17 の AWS リージョン</span>に拡大した。これにより、より多くのリージョンで RDS Multi-AZ クラスターに対して AWS Backup の包括的なデータ保護機能を利用できるようになる。</p>
+      <p>RDS Multi-AZ クラスターは、1 つのプライマリ DB インスタンスと 2 つのリーダブルスタンバイ DB インスタンスを異なるアベイラビリティーゾーンに配置する構成で、高可用性と読み取りスケーラビリティを提供する。今回の拡大により、<span class="highlight">自動ライフサイクル管理</span>や <span class="highlight">AWS Backup Vault Lock</span> によるイミュータブルバックアップなどの機能が新しいリージョンで利用可能になった。</p>
+
+      <div class="before-after">
+        <div class="before-card">
+          <h3>&#x26A0;&#xFE0F; Before</h3>
+          <ul>
+            <li>RDS Multi-AZ クラスターに対する AWS Backup のサポートが限られたリージョンでのみ利用可能</li>
+            <li>対象外リージョンではネイティブの RDS バックアップ機能のみに依存、一元的なバックアップポリシー管理が困難</li>
+            <li>グローバルに展開する組織では、リージョンごとに異なるバックアップ戦略を管理する必要があった</li>
+          </ul>
+        </div>
+        <div class="after-card">
+          <h3>&#x2728; After</h3>
+          <ul>
+            <li>17 の追加リージョンで AWS Backup による RDS Multi-AZ クラスターの一元的なバックアップ管理が可能</li>
+            <li>自動ライフサイクル管理やイミュータブルバックアップを新しいリージョンで活用可能</li>
+            <li>既存のバックアッププランに RDS Multi-AZ クラスターを追加するだけで保護を開始可能</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Architecture Diagram -->
+    <div class="section">
+      <h2>&#x1F3D7;&#xFE0F; アーキテクチャ図</h2>
+      <div class="mermaid-container">
+        <pre class="mermaid">
+flowchart TD
+    subgraph Backup["&#x1F6E1; AWS Backup"]
+        BP["&#x1F4CB; バックアッププラン"]
+        VL["&#x1F512; Vault Lock&lt;br/&gt;イミュータブルバックアップ"]
+        LM["&#x2699; ライフサイクル管理"]
+    end
+
+    subgraph RDS["&#x1F5C4; Amazon RDS Multi-AZ クラスター"]
+        direction LR
+        Primary["&#x1F4D7; プライマリ&lt;br/&gt;AZ-a"]
+        Standby1["&#x1F4D8; スタンバイ&lt;br/&gt;AZ-b"]
+        Standby2["&#x1F4D9; スタンバイ&lt;br/&gt;AZ-c"]
+        Primary ~~~ Standby1 ~~~ Standby2
+    end
+
+    BP -->|バックアップ実行| RDS
+    BP --> VL
+    BP --> LM
+
+    classDef cloud fill:none,stroke:#CCCCCC,stroke-width:2px,color:#666666
+    classDef compute fill:#FFE0B2,stroke:#FFCC80,stroke-width:2px,color:#5D4037
+    classDef storage fill:#DCEDC8,stroke:#C5E1A5,stroke-width:2px,color:#33691E
+    classDef database fill:#E8EAF6,stroke:#C5CAE9,stroke-width:2px,color:#283593
+    classDef process fill:#FFFFFF,stroke:#4A90E2,stroke-width:2px,color:#333333
+    classDef internal fill:#E8F1FF,stroke:#4A90E2,stroke-width:2px,color:#333333
+
+    class Backup cloud
+    class RDS cloud
+    class BP process
+    class VL storage
+    class LM internal
+    class Primary,Standby1,Standby2 database
+        </pre>
+      </div>
+      <p style="font-size: 14px; color: #999;">AWS Backup のバックアッププランから RDS Multi-AZ クラスターを保護する構成を示す。Vault Lock によるイミュータブルバックアップと自動ライフサイクル管理が利用可能である。</p>
+    </div>
+
+    <!-- Key Features -->
+    <div class="section">
+      <h2>&#x2B50; 主要機能</h2>
+
+      <div class="feature-card">
+        <h3>&#x1F30D; 17 リージョンへの拡大</h3>
+        <ul>
+          <li><strong>アジアパシフィック</strong>: ムンバイ、大阪、ソウル、香港、ジャカルタ、ハイデラバード、メルボルン、マレーシア</li>
+          <li><strong>ヨーロッパ</strong>: ロンドン、パリ、ミラノ、チューリッヒ、スペイン</li>
+          <li><strong>南米</strong>: サンパウロ</li>
+          <li><strong>アフリカ</strong>: ケープタウン</li>
+          <li><strong>カナダ</strong>: セントラル、カナダウェスト (カルガリー)</li>
+        </ul>
+      </div>
+
+      <div class="feature-card">
+        <h3>&#x2699;&#xFE0F; 自動ライフサイクル管理</h3>
+        <ul>
+          <li>バックアッププランによるスケジュール自動化</li>
+          <li>保持期間に基づく自動削除</li>
+          <li>コールドストレージへの自動移行</li>
+        </ul>
+      </div>
+
+      <div class="feature-card">
+        <h3>&#x1F512; AWS Backup Vault Lock</h3>
+        <ul>
+          <li>イミュータブルバックアップによるデータ保護</li>
+          <li>コンプライアンス要件への対応</li>
+          <li>ランサムウェア対策としてのバックアップ保護</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Region list -->
+    <div class="section">
+      <h2>&#x1F5FA;&#xFE0F; 対応リージョン一覧</h2>
+
+      <div class="region-group-label">&#x1F30F; アジアパシフィック</div>
+      <div class="region-grid">
+        <div class="region-item"><span class="region-name">ムンバイ</span><span class="region-code">ap-south-1</span></div>
+        <div class="region-item"><span class="region-name">大阪</span><span class="region-code">ap-northeast-3</span></div>
+        <div class="region-item"><span class="region-name">ソウル</span><span class="region-code">ap-northeast-2</span></div>
+        <div class="region-item"><span class="region-name">香港</span><span class="region-code">ap-east-1</span></div>
+        <div class="region-item"><span class="region-name">ジャカルタ</span><span class="region-code">ap-southeast-3</span></div>
+        <div class="region-item"><span class="region-name">ハイデラバード</span><span class="region-code">ap-south-2</span></div>
+        <div class="region-item"><span class="region-name">メルボルン</span><span class="region-code">ap-southeast-4</span></div>
+        <div class="region-item"><span class="region-name">マレーシア</span><span class="region-code">ap-southeast-5</span></div>
+      </div>
+
+      <div class="region-group-label">&#x1F30D; ヨーロッパ</div>
+      <div class="region-grid">
+        <div class="region-item"><span class="region-name">ロンドン</span><span class="region-code">eu-west-2</span></div>
+        <div class="region-item"><span class="region-name">パリ</span><span class="region-code">eu-west-3</span></div>
+        <div class="region-item"><span class="region-name">ミラノ</span><span class="region-code">eu-south-1</span></div>
+        <div class="region-item"><span class="region-name">チューリッヒ</span><span class="region-code">eu-central-2</span></div>
+        <div class="region-item"><span class="region-name">スペイン</span><span class="region-code">eu-south-2</span></div>
+      </div>
+
+      <div class="region-group-label">&#x1F30E; 南米 / アフリカ / カナダ</div>
+      <div class="region-grid">
+        <div class="region-item"><span class="region-name">サンパウロ</span><span class="region-code">sa-east-1</span></div>
+        <div class="region-item"><span class="region-name">ケープタウン</span><span class="region-code">af-south-1</span></div>
+        <div class="region-item"><span class="region-name">カナダ セントラル</span><span class="region-code">ca-central-1</span></div>
+        <div class="region-item"><span class="region-name">カナダウェスト カルガリー</span><span class="region-code">ca-west-1</span></div>
+      </div>
+    </div>
+
+    <!-- Setup -->
+    <div class="section">
+      <h2>&#x1F6E0;&#xFE0F; 設定方法</h2>
+
+      <h3 style="color: var(--aws-white); font-size: 16px; margin-bottom: 8px;">前提条件</h3>
+      <div class="merit-item"><span class="merit-icon">1.</span> 対象リージョンに RDS Multi-AZ クラスターが構築済みであること</div>
+      <div class="merit-item"><span class="merit-icon">2.</span> AWS Backup サービスが有効化されていること</div>
+      <div class="merit-item"><span class="merit-icon">3.</span> 適切な IAM 権限が設定されていること</div>
+
+      <h3 style="color: var(--aws-white); font-size: 16px; margin: 20px 0 8px 0;">Step 1: バックアッププランの作成</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash</span>
+          <span class="code-title">日次バックアッププラン作成 / 35 日間保持</span>
+        </div>
+        <pre><code class="language-bash">aws backup create-backup-plan \
+  --backup-plan '{"BackupPlanName":"rds-multi-az-plan","Rules":[{"RuleName":"daily-backup","TargetBackupVaultName":"Default","ScheduleExpression":"cron(0 5 ? * * *)","StartWindowMinutes":60,"CompletionWindowMinutes":180,"Lifecycle":{"DeleteAfterDays":35}}]}'</code></pre>
+      </div>
+
+      <h3 style="color: var(--aws-white); font-size: 16px; margin: 20px 0 8px 0;">Step 2: RDS Multi-AZ クラスターの割り当て</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash</span>
+          <span class="code-title">バックアッププランへのリソース割り当て</span>
+        </div>
+        <pre><code class="language-bash">aws backup create-backup-selection \
+  --backup-plan-id &lt;plan-id&gt; \
+  --backup-selection '{"SelectionName":"rds-multi-az-selection","IamRoleArn":"arn:aws:iam::&lt;account-id&gt;:role/service-role/AWSBackupDefaultServiceRole","Resources":["arn:aws:rds:&lt;region&gt;:&lt;account-id&gt;:cluster:&lt;cluster-name&gt;"]}'</code></pre>
+      </div>
+    </div>
+
+    <!-- Merits -->
+    <div class="section">
+      <h2>&#x2705; メリット</h2>
+
+      <h3 style="color: var(--aws-white); font-size: 16px; margin-bottom: 10px;">&#x1F4BC; ビジネス面</h3>
+      <div class="merit-item"><span class="merit-icon" style="color: var(--aws-green);">&#x2714;</span><span><strong>コンプライアンス対応の強化</strong>: Vault Lock によるイミュータブルバックアップで規制要件への対応が容易になる</span></div>
+      <div class="merit-item"><span class="merit-icon" style="color: var(--aws-green);">&#x2714;</span><span><strong>運用の一元化</strong>: 複数リージョンのバックアップを AWS Backup コンソールから一元的に管理できる</span></div>
+      <div class="merit-item"><span class="merit-icon" style="color: var(--aws-green);">&#x2714;</span><span><strong>グローバル展開の加速</strong>: 17 の新リージョンで同一のバックアップポリシーを適用できる</span></div>
+
+      <h3 style="color: var(--aws-white); font-size: 16px; margin: 16px 0 10px 0;">&#x1F527; 技術面</h3>
+      <div class="merit-item"><span class="merit-icon" style="color: var(--aws-green);">&#x2714;</span><span><strong>自動化による運用負荷削減</strong>: スケジュールベースの自動バックアップにより手動作業を削減</span></div>
+      <div class="merit-item"><span class="merit-icon" style="color: var(--aws-green);">&#x2714;</span><span><strong>データ保護の強化</strong>: Vault Lock によりバックアップデータの改ざんや削除を防止</span></div>
+      <div class="merit-item"><span class="merit-icon" style="color: var(--aws-green);">&#x2714;</span><span><strong>柔軟なライフサイクル管理</strong>: 保持期間やコールドストレージ移行を自動化</span></div>
+    </div>
+
+    <!-- Demerits -->
+    <div class="section">
+      <h2>&#x26A0;&#xFE0F; 制限事項・注意点</h2>
+
+      <h3 style="color: var(--aws-white); font-size: 16px; margin-bottom: 10px;">制限事項</h3>
+      <div class="merit-item"><span class="merit-icon" style="color: var(--aws-red);">&#x26A0;</span><span>今回のアップデートは 17 の追加リージョンのみが対象であり、すべてのリージョンで利用可能になったわけではない</span></div>
+      <div class="merit-item"><span class="merit-icon" style="color: var(--aws-red);">&#x26A0;</span><span>RDS Multi-AZ クラスターは MySQL および PostgreSQL エンジンのみをサポート</span></div>
+      <div class="merit-item"><span class="merit-icon" style="color: var(--aws-red);">&#x26A0;</span><span>AWS Backup によるバックアップは RDS ネイティブのスナップショットとは別に管理される</span></div>
+
+      <h3 style="color: var(--aws-white); font-size: 16px; margin: 16px 0 10px 0;">考慮すべき点</h3>
+      <div class="merit-item"><span class="merit-icon" style="color: var(--aws-orange);">&#x1F4A1;</span><span>既存の RDS ネイティブバックアップと AWS Backup の両方を使用する場合、バックアップの重複によるコスト増加に注意が必要</span></div>
+      <div class="merit-item"><span class="merit-icon" style="color: var(--aws-orange);">&#x1F4A1;</span><span>クロスリージョンコピーを設定する場合、データ転送コストが発生する</span></div>
+    </div>
+
+    <!-- Use Cases -->
+    <div class="section">
+      <h2>&#x1F4A1; ユースケース</h2>
+
+      <div class="usecase-card">
+        <h3>&#x1F30D; グローバル展開企業のバックアップ一元管理</h3>
+        <p class="scenario">複数のアジアパシフィックリージョンに RDS Multi-AZ クラスターを展開している企業が、統一されたバックアップポリシーを適用したい。</p>
+        <div class="code-block">
+          <div class="code-header">
+            <span class="code-lang">Bash</span>
+            <span class="code-title">タグベースでの一括バックアップ割り当て</span>
+          </div>
+          <pre><code class="language-bash">aws backup create-backup-selection \
+  --backup-plan-id &lt;plan-id&gt; \
+  --backup-selection '{"SelectionName":"global-rds-selection","IamRoleArn":"arn:aws:iam::&lt;account-id&gt;:role/service-role/AWSBackupDefaultServiceRole","ListOfTags":[{"ConditionType":"STRINGEQUALS","ConditionKey":"backup-policy","ConditionValue":"standard"}]}'</code></pre>
+        </div>
+        <p class="effect">&#x2192; タグベースの選択により、新しいリージョンに RDS Multi-AZ クラスターを追加しても自動的にバックアップポリシーが適用される。</p>
+      </div>
+
+      <div class="usecase-card">
+        <h3>&#x1F512; コンプライアンス要件への対応</h3>
+        <p class="scenario">金融機関がヨーロッパリージョンで運用する RDS Multi-AZ クラスターに対して、改ざん不可能なバックアップを要求されている。</p>
+        <div class="code-block">
+          <div class="code-header">
+            <span class="code-lang">Bash</span>
+            <span class="code-title">Vault Lock の設定</span>
+          </div>
+          <pre><code class="language-bash">aws backup put-backup-vault-lock-configuration \
+  --backup-vault-name compliance-vault \
+  --min-retention-days 365 \
+  --max-retention-days 2555 \
+  --changeable-for-days 3</code></pre>
+        </div>
+        <p class="effect">&#x2192; Vault Lock により最低 365 日間のバックアップ保持が強制され、コンプライアンス要件を満たすことができる。</p>
+      </div>
+
+      <div class="usecase-card">
+        <h3>&#x1F6E1;&#xFE0F; 災害復旧戦略の強化</h3>
+        <p class="scenario">大阪リージョンで本番環境を運用し、ソウルリージョンを DR サイトとして活用している組織が、両リージョンで一貫したバックアップ管理を行いたい。</p>
+        <div class="code-block">
+          <div class="code-header">
+            <span class="code-lang">Bash</span>
+            <span class="code-title">クロスリージョンコピーを含むバックアッププラン</span>
+          </div>
+          <pre><code class="language-bash">aws backup create-backup-plan \
+  --backup-plan '{"BackupPlanName":"dr-plan","Rules":[{"RuleName":"daily-with-copy","TargetBackupVaultName":"Default","ScheduleExpression":"cron(0 5 ? * * *)","Lifecycle":{"DeleteAfterDays":35},"CopyActions":[{"DestinationBackupVaultArn":"arn:aws:backup:ap-northeast-2:&lt;account-id&gt;:backup-vault:dr-vault","Lifecycle":{"DeleteAfterDays":35}}]}]}'</code></pre>
+        </div>
+        <p class="effect">&#x2192; 大阪リージョンのバックアップが自動的にソウルリージョンにコピーされ、リージョン障害時の復旧に備えることができる。</p>
+      </div>
+    </div>
+
+    <!-- Pricing -->
+    <div class="section">
+      <h2>&#x1F4B0; 料金</h2>
+      <p style="font-size: 14px;">AWS Backup の料金は、バックアップストレージ、リストア、クロスリージョンデータ転送に基づいて発生する。RDS Multi-AZ クラスターのバックアップについても、標準の AWS Backup 料金体系が適用される。</p>
+
+      <table class="pricing-table">
+        <thead>
+          <tr>
+            <th>項目</th>
+            <th>料金 (東京リージョン参考)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>ウォームバックアップストレージ</td>
+            <td>$0.05/GB-月</td>
+          </tr>
+          <tr>
+            <td>コールドバックアップストレージ</td>
+            <td>$0.01/GB-月</td>
+          </tr>
+          <tr>
+            <td>リストア</td>
+            <td>$0.02/GB</td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="note">* 料金はリージョンにより異なる。最新の料金は <a href="https://aws.amazon.com/backup/pricing/" target="_blank" class="aws-link">AWS Backup 料金ページ</a>を参照。</p>
+    </div>
+
+    <!-- Related Services -->
+    <div class="section">
+      <h2>&#x1F517; 関連サービス・機能</h2>
+      <div class="related-card">
+        <span>&#x1F5C4;&#xFE0F;</span>
+        <span><strong>Amazon RDS Multi-AZ クラスター</strong>: 高可用性と読み取りスケーラビリティを提供するデータベース構成</span>
+      </div>
+      <div class="related-card">
+        <span>&#x1F512;</span>
+        <span><strong>AWS Backup Vault Lock</strong>: バックアップデータのイミュータブル保護機能</span>
+      </div>
+      <div class="related-card">
+        <span>&#x1F3E2;</span>
+        <span><strong>AWS Organizations</strong>: 組織全体でのバックアップポリシーの一元管理</span>
+      </div>
+    </div>
+
+    <!-- Summary -->
+    <div class="section">
+      <h2>&#x1F4DD; まとめ</h2>
+      <p>AWS Backup の Amazon RDS Multi-AZ クラスターサポートが 17 リージョンに拡大されたことで、グローバルに展開する組織がより多くのリージョンで一貫したバックアップポリシーを適用できるようになった。特に<span class="highlight">大阪リージョンが対象に含まれている</span>点は、日本国内での DR 構成を検討する組織にとって重要である。既存のバックアッププランへの追加で利用を開始できるため、対象リージョンで RDS Multi-AZ クラスターを運用している場合は早期の導入を推奨する。</p>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+      <p>&#x1F4CE; 出典:</p>
+      <ul>
+        <li><a href="https://aws.amazon.com/about-aws/whats-new/2026/03/aws-backup-expands-amazon-rds-multi-az-clusters-17-regions/" target="_blank" rel="noopener noreferrer">公式発表 (What's New)</a></li>
+        <li><a href="https://docs.aws.amazon.com/aws-backup/latest/devguide/" target="_blank" rel="noopener noreferrer">AWS Backup ドキュメント</a></li>
+        <li><a href="https://aws.amazon.com/backup/pricing/" target="_blank" rel="noopener noreferrer">AWS Backup 料金ページ</a></li>
+        <li><a href="https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/multi-az-db-clusters-concepts.html" target="_blank" rel="noopener noreferrer">Amazon RDS Multi-AZ クラスター ドキュメント</a></li>
+      </ul>
+    </footer>
+
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'base',
+      themeVariables: {
+        primaryColor: '#FF9900',
+        primaryTextColor: '#232F3E',
+        primaryBorderColor: '#FF9900',
+        lineColor: '#FF9900',
+        secondaryColor: '#F5F5F5',
+        tertiaryColor: '#FAFAFA',
+        background: '#FFFFFF',
+        mainBkg: '#FFF3E0',
+        nodeBorder: '#FF9900',
+        clusterBkg: '#FFF8E1',
+        clusterBorder: '#FF9900',
+        edgeLabelBackground: '#FFFFFF',
+        textColor: '#232F3E'
+      }
+    });
+  </script>
+  <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/highlight.min.js"></script>
+  <script>hljs.highlightAll();</script>
+</body>
+</html>

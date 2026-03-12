@@ -1,0 +1,960 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Amazon Connect Cases - 分析データレイクでのケースデータ提供</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap');
+
+    :root {
+      --aws-squid-ink: #232F3E;
+      --aws-dark-squid: #1A242F;
+      --aws-orange: #FF9900;
+      --aws-smile-orange: #FFAD33;
+      --aws-white: #FFFFFF;
+      --aws-light-gray: #D5DBDB;
+      --aws-teal: #00A1C9;
+      --aws-purple: #8C4FFF;
+      --aws-green: #1D8102;
+      --aws-red: #D13212;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--aws-squid-ink);
+      font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+      color: var(--aws-light-gray);
+      font-size: 16px;
+      line-height: 1.6;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 32px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .header-left { flex: 1; min-width: 280px; }
+
+    .service-badge {
+      display: inline-block;
+      background: var(--aws-orange);
+      color: var(--aws-squid-ink);
+      font-size: 13px;
+      font-weight: 700;
+      padding: 4px 14px;
+      border-radius: 20px;
+      margin-bottom: 12px;
+    }
+
+    h1 {
+      font-size: 34px;
+      font-weight: 700;
+      color: var(--aws-white);
+      line-height: 1.3;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      font-size: 16px;
+      color: var(--aws-light-gray);
+    }
+
+    .header-right {
+      text-align: right;
+      font-size: 14px;
+      color: var(--aws-light-gray);
+    }
+
+    /* Sections */
+    .section {
+      background: var(--aws-dark-squid);
+      border-radius: 8px;
+      padding: 24px;
+      margin-bottom: 24px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    h2 {
+      font-size: 22px;
+      font-weight: 600;
+      color: var(--aws-orange);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    h3 {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--aws-white);
+      margin: 16px 0 8px 0;
+    }
+
+    .highlight {
+      background-color: rgba(255, 153, 0, 0.2);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 600;
+      color: var(--aws-orange);
+    }
+
+    .card {
+      background: var(--aws-dark-squid);
+      border-radius: 8px;
+      padding: 16px;
+      margin: 12px 0;
+      border: 1px solid rgba(255, 153, 0, 0.3);
+    }
+
+    .icon-text {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      margin: 8px 0;
+      color: var(--aws-light-gray);
+    }
+
+    .arrow { color: var(--aws-orange); font-size: 20px; }
+
+    .aws-link {
+      color: var(--aws-teal);
+      text-decoration: none;
+    }
+    .aws-link:hover { color: var(--aws-smile-orange); }
+
+    /* Before/After */
+    .before-after {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin: 16px 0;
+    }
+    @media (max-width: 640px) {
+      .before-after { grid-template-columns: 1fr; }
+    }
+
+    .before-card {
+      background: rgba(209, 50, 18, 0.1);
+      border: 1px solid rgba(209, 50, 18, 0.4);
+      border-radius: 8px;
+      padding: 16px;
+    }
+    .before-card .ba-label {
+      color: var(--aws-red);
+      font-weight: 700;
+      font-size: 14px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .after-card {
+      background: rgba(29, 129, 2, 0.1);
+      border: 1px solid rgba(29, 129, 2, 0.4);
+      border-radius: 8px;
+      padding: 16px;
+    }
+    .after-card .ba-label {
+      color: var(--aws-green);
+      font-weight: 700;
+      font-size: 14px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .ba-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      margin: 6px 0;
+      font-size: 14px;
+    }
+
+    /* Feature cards */
+    .feature-cards {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+      margin-top: 16px;
+    }
+
+    .feature-card {
+      background: var(--aws-dark-squid);
+      border-left: 4px solid var(--aws-orange);
+      border-radius: 0 8px 8px 0;
+      padding: 16px 20px;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      border-right: 1px solid rgba(255, 255, 255, 0.05);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    .feature-card .fc-title {
+      font-weight: 600;
+      color: var(--aws-white);
+      font-size: 16px;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .feature-card .fc-body {
+      font-size: 14px;
+      color: var(--aws-light-gray);
+    }
+    .feature-card .fc-body li {
+      margin: 4px 0 4px 16px;
+    }
+
+    /* Use case cards */
+    .usecase-cards {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 16px;
+      margin-top: 16px;
+    }
+    @media (max-width: 768px) {
+      .usecase-cards { grid-template-columns: 1fr; }
+    }
+
+    .usecase-card {
+      background: rgba(255, 153, 0, 0.08);
+      border: 1px solid rgba(255, 153, 0, 0.25);
+      border-radius: 8px;
+      padding: 20px;
+    }
+    .usecase-card .uc-title {
+      font-weight: 600;
+      color: var(--aws-orange);
+      font-size: 15px;
+      margin-bottom: 8px;
+    }
+    .usecase-card .uc-scenario {
+      font-size: 13px;
+      color: var(--aws-light-gray);
+      margin-bottom: 8px;
+    }
+    .usecase-card .uc-effect {
+      font-size: 13px;
+      color: var(--aws-green);
+      display: flex;
+      align-items: flex-start;
+      gap: 6px;
+    }
+
+    /* Spec table */
+    .spec-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0;
+      font-size: 14px;
+    }
+    .spec-table th {
+      background: rgba(255, 153, 0, 0.15);
+      color: var(--aws-orange);
+      font-weight: 600;
+      text-align: left;
+      padding: 10px 14px;
+      border-bottom: 2px solid rgba(255, 153, 0, 0.3);
+    }
+    .spec-table td {
+      padding: 10px 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      color: var(--aws-light-gray);
+    }
+
+    /* Steps */
+    .steps {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 12px;
+    }
+    .step-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+    }
+    .step-num {
+      background: var(--aws-orange);
+      color: var(--aws-squid-ink);
+      font-weight: 700;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+    .step-content {
+      flex: 1;
+    }
+    .step-content strong {
+      color: var(--aws-white);
+    }
+
+    /* Merit/Demerit */
+    .merit-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-top: 12px;
+    }
+    @media (max-width: 640px) {
+      .merit-grid { grid-template-columns: 1fr; }
+    }
+
+    .merit-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      margin: 6px 0;
+      font-size: 14px;
+    }
+
+    /* Region tags */
+    .region-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .region-tag {
+      background: rgba(0, 161, 201, 0.12);
+      border: 1px solid rgba(0, 161, 201, 0.3);
+      color: var(--aws-teal);
+      font-size: 13px;
+      padding: 4px 12px;
+      border-radius: 16px;
+    }
+
+    /* Related services */
+    .related-list {
+      list-style: none;
+      padding: 0;
+      margin: 12px 0 0 0;
+    }
+    .related-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      margin: 8px 0;
+      font-size: 14px;
+    }
+
+    /* Mermaid */
+    .mermaid-container {
+      background: #FFFFFF;
+      border-radius: 12px;
+      padding: 24px;
+      margin: 20px 0;
+      border: 2px solid rgba(255, 153, 0, 0.3);
+      overflow-x: auto;
+    }
+    .mermaid {
+      display: flex;
+      justify-content: center;
+    }
+
+    /* Flow diagram */
+    .flow-diagram {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin: 24px 0;
+    }
+    .flow-step {
+      background: var(--aws-dark-squid);
+      border: 2px solid var(--aws-orange);
+      border-radius: 8px;
+      padding: 12px 20px;
+      text-align: center;
+      min-width: 100px;
+    }
+    .flow-arrow {
+      color: var(--aws-orange);
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    /* Pricing callout */
+    .pricing-callout {
+      background: rgba(29, 129, 2, 0.08);
+      border: 1px solid rgba(29, 129, 2, 0.3);
+      border-radius: 8px;
+      padding: 16px 20px;
+      margin-top: 12px;
+      font-size: 15px;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    /* Caution card */
+    .caution-card {
+      background: rgba(255, 153, 0, 0.08);
+      border: 1px solid rgba(255, 153, 0, 0.3);
+      border-radius: 8px;
+      padding: 16px 20px;
+      margin-top: 12px;
+    }
+    .caution-card li {
+      margin: 6px 0 6px 16px;
+      font-size: 14px;
+    }
+
+    /* Code block */
+    .code-block {
+      background: #1a1a2e;
+      border-radius: 8px;
+      overflow: hidden;
+      margin: 16px 0;
+    }
+    .code-header {
+      background: #16213e;
+      padding: 8px 16px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+    }
+    .code-lang {
+      color: var(--aws-orange);
+      font-weight: bold;
+    }
+    .code-title {
+      color: var(--aws-light-gray);
+    }
+    .code-block pre {
+      margin: 0;
+      padding: 0;
+      overflow-x: auto;
+    }
+    .code-block code {
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      line-height: 1.5;
+      padding: 16px !important;
+    }
+
+    /* Pricing table */
+    .pricing-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0;
+      font-size: 14px;
+    }
+    .pricing-table th {
+      background: rgba(255, 153, 0, 0.15);
+      color: var(--aws-orange);
+      font-weight: 600;
+      text-align: left;
+      padding: 10px 14px;
+      border-bottom: 2px solid rgba(255, 153, 0, 0.3);
+    }
+    .pricing-table td {
+      padding: 10px 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      color: var(--aws-light-gray);
+    }
+
+    footer {
+      margin-top: 24px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(255, 255, 255, 0.2);
+      font-size: 12px;
+      color: var(--aws-light-gray);
+    }
+    footer a {
+      color: var(--aws-teal);
+      text-decoration: none;
+      word-break: break-all;
+    }
+    footer a:hover { color: var(--aws-smile-orange); }
+  </style>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/styles/atom-one-dark.min.css">
+</head>
+<body>
+  <div class="container">
+
+    <!-- Header -->
+    <div class="header">
+      <div class="header-left">
+        <span class="service-badge">Amazon Connect Cases</span>
+        <h1>&#128202; 分析データレイクでのケースデータ提供</h1>
+        <div class="subtitle">Cases Data Now Available in Analytics Data Lake</div>
+      </div>
+      <div class="header-right">
+        <div>2026 年 3 月 11 日</div>
+      </div>
+    </div>
+
+    <!-- Overview -->
+    <div class="section">
+      <h2>&#128203; 概要</h2>
+      <p>Amazon Connect Cases のデータが<span class="highlight">分析データレイク</span>で利用可能になりました。ケースデータを他の Amazon Connect 分析データと組み合わせて、<span class="highlight">Amazon Athena</span> や <span class="highlight">Amazon QuickSight</span> を使用したカスタムレポートやインサイトの生成が容易になります。</p>
+      <p style="margin-top:10px;">ケースタイプ別のボリューム分析、エージェントシフトをまたいだケース対応状況、ケース全体のコンタクト感情分析などのトレンド分析が可能となり、複雑なデータパイプラインの構築・維持が不要になる点が大きなメリットです。</p>
+
+      <!-- Before / After -->
+      <div class="before-after" style="margin-top:20px;">
+        <div class="before-card">
+          <div class="ba-label">&#10060; Before</div>
+          <div class="ba-item"><span>&#8226;</span><span>ケースデータを他の分析データと統合するには独自のデータパイプラインが必要</span></div>
+          <div class="ba-item"><span>&#8226;</span><span>トレンド分析やクロスデータ分析のために ETL プロセスの開発・運用が必要</span></div>
+          <div class="ba-item"><span>&#8226;</span><span>ケース・コンタクト・エージェントデータを横断的に分析する手段が限定的</span></div>
+        </div>
+        <div class="after-card">
+          <div class="ba-label">&#9989; After</div>
+          <div class="ba-item"><span>&#8226;</span><span>ケースデータが分析データレイクに自動的に含まれ、カスタムパイプライン不要</span></div>
+          <div class="ba-item"><span>&#8226;</span><span>Amazon Athena で SQL クエリを使用してケースデータを直接分析可能</span></div>
+          <div class="ba-item"><span>&#8226;</span><span>Amazon QuickSight と連携してビジュアルダッシュボードを作成可能</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Architecture Diagram -->
+    <div class="section">
+      <h2>&#127959; アーキテクチャ図</h2>
+      <p>Amazon Connect Cases のデータが分析データレイクに統合され、Athena や QuickSight で他のコンタクトセンターデータと横断的に分析できるアーキテクチャを示しています。</p>
+      <div class="mermaid-container">
+        <pre class="mermaid">
+flowchart TD
+    subgraph Connect["&#9729;&#65039; Amazon Connect"]
+        Cases["&#128203; Cases"]
+        Contacts["&#128222; Contacts"]
+        AgentData["&#128100; Agent Data"]
+    end
+
+    subgraph DataLake["&#128452;&#65039; Analytics Data Lake"]
+        direction LR
+        CaseData["&#128203; Case Data"]
+        ContactData["&#128222; Contact Data"]
+        AgentMetrics["&#128202; Agent Metrics"]
+        CaseData ~~~ ContactData ~~~ AgentMetrics
+    end
+
+    subgraph Analytics["&#128200; 分析ツール"]
+        direction LR
+        Athena["&#128269; Amazon Athena"]
+        QuickSight["&#128202; Amazon QuickSight"]
+        Athena ~~~ QuickSight
+    end
+
+    Cases --> CaseData
+    Contacts --> ContactData
+    AgentData --> AgentMetrics
+    DataLake --> Athena
+    DataLake --> QuickSight
+
+    classDef cloud fill:none,stroke:#CCCCCC,stroke-width:2px,color:#666666
+    classDef layer fill:none,stroke:#E1BEE7,stroke-width:2px,color:#666666
+    classDef compute fill:#FFE0B2,stroke:#FFCC80,stroke-width:2px,color:#5D4037
+    classDef storage fill:#DCEDC8,stroke:#C5E1A5,stroke-width:2px,color:#33691E
+    classDef database fill:#E8EAF6,stroke:#C5CAE9,stroke-width:2px,color:#283593
+    classDef user fill:#E3F2FD,stroke:#BBDEFB,stroke-width:2px,color:#1565C0
+
+    class Connect cloud
+    class DataLake layer
+    class Analytics layer
+    class Cases,Contacts,AgentData compute
+    class CaseData,ContactData,AgentMetrics storage
+    class Athena,QuickSight database
+        </pre>
+      </div>
+    </div>
+
+    <!-- Key Features -->
+    <div class="section">
+      <h2>&#9881; 主要機能</h2>
+      <div class="feature-cards">
+        <div class="feature-card">
+          <div class="fc-title">&#128452; ケースデータのデータレイク統合</div>
+          <div class="fc-body">
+            <ul>
+              <li>Amazon Connect Cases のケースデータが分析データレイクに自動的に格納される</li>
+              <li>既存のコンタクトデータやエージェントパフォーマンスデータと同じデータレイクで管理</li>
+              <li>追加のデータパイプライン構築なしでデータが利用可能</li>
+            </ul>
+          </div>
+        </div>
+        <div class="feature-card">
+          <div class="fc-title">&#128269; クロスデータ分析</div>
+          <div class="fc-body">
+            <ul>
+              <li>ケースデータとコンタクトデータを結合したクロス分析が可能</li>
+              <li>ケースタイプ別ボリューム、エージェントシフト間のケース対応、コンタクト感情分析を横断的に分析</li>
+              <li>SQL ベースのクエリで柔軟にデータを抽出・集計</li>
+            </ul>
+          </div>
+        </div>
+        <div class="feature-card">
+          <div class="fc-title">&#128202; BI ツールとの統合</div>
+          <div class="fc-body">
+            <ul>
+              <li>Amazon Athena を使用した SQL によるアドホッククエリ</li>
+              <li>Amazon QuickSight によるダッシュボードやレポートの作成</li>
+              <li>既存の BI ワークフローにケースデータを組み込み可能</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Technical Specs -->
+    <div class="section">
+      <h2>&#128295; 技術仕様</h2>
+      <h3>データレイク構成</h3>
+      <table class="spec-table">
+        <thead>
+          <tr>
+            <th>項目</th>
+            <th>詳細</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>データソース</td>
+            <td>Amazon Connect Cases</td>
+          </tr>
+          <tr>
+            <td>データ格納先</td>
+            <td>Amazon Connect 分析データレイク</td>
+          </tr>
+          <tr>
+            <td>クエリエンジン</td>
+            <td>Amazon Athena</td>
+          </tr>
+          <tr>
+            <td>可視化ツール</td>
+            <td>Amazon QuickSight</td>
+          </tr>
+          <tr>
+            <td>データ形式</td>
+            <td>他の Connect 分析データと統一フォーマット</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3 style="margin-top:20px;">API 変更履歴</h3>
+      <table class="spec-table">
+        <thead>
+          <tr>
+            <th>日付</th>
+            <th>サービス</th>
+            <th>変更内容</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>2026/03/10</td>
+            <td><a href="https://awsapichanges.com/archive/changes/9ed5c2-cases.html" class="aws-link">Amazon Connect Cases</a></td>
+            <td>3 updated api methods - Required/Hidden ケースルールの条件評価機能追加</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3 style="margin-top:20px;">分析可能なデータの例</h3>
+      <table class="spec-table">
+        <thead>
+          <tr>
+            <th>分析項目</th>
+            <th>説明</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>ケースボリューム</td>
+            <td>ケースタイプ別の件数推移</td>
+          </tr>
+          <tr>
+            <td>ケース対応状況</td>
+            <td>エージェントシフトをまたいだ対応状況</td>
+          </tr>
+          <tr>
+            <td>コンタクト感情</td>
+            <td>ケース全体のコンタクト感情分析</td>
+          </tr>
+          <tr>
+            <td>解決時間</td>
+            <td>ケースの平均解決時間やトレンド</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Setup Steps -->
+    <div class="section">
+      <h2>&#128640; 設定方法</h2>
+      <h3>前提条件</h3>
+      <div style="margin:8px 0 16px 0; font-size:14px;">
+        <div class="icon-text"><span class="arrow">&#8594;</span><span>Amazon Connect インスタンスが設定済みであること</span></div>
+        <div class="icon-text"><span class="arrow">&#8594;</span><span>Amazon Connect Cases が有効化されていること</span></div>
+        <div class="icon-text"><span class="arrow">&#8594;</span><span>分析データレイクが有効化されていること</span></div>
+      </div>
+
+      <h3>手順</h3>
+      <div class="steps">
+        <div class="step-item">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <strong>分析データレイクの有効化確認</strong><br/>
+            Amazon Connect コンソールにアクセスし、分析データレイクが有効になっていることを確認します。未設定の場合は、Amazon Connect の分析設定からデータレイクを有効化してください。
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <strong>Amazon Athena でのクエリ実行</strong><br/>
+            分析データレイク内のケーステーブルに対して Athena で直接 SQL クエリを実行できます。
+            <div class="code-block" style="margin-top:12px;">
+              <div class="code-header">
+                <span class="code-lang">SQL</span>
+                <span class="code-title">ケースタイプ別ボリューム確認クエリ例</span>
+              </div>
+              <pre><code class="language-sql">-- ケースタイプ別のボリュームを確認するクエリ例
+SELECT case_type, COUNT(*) as case_count
+FROM connect_analytics_data_lake.cases
+GROUP BY case_type
+ORDER BY case_count DESC;</code></pre>
+            </div>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <strong>QuickSight ダッシュボードの作成</strong><br/>
+            Amazon QuickSight で Athena をデータソースとして接続し、ケースデータを含むダッシュボードを作成します。既存のコンタクト分析ダッシュボードにケースデータを追加することも可能です。
+          </div>
+        </div>
+      </div>
+
+      <!-- Simple flow -->
+      <div class="flow-diagram" style="margin-top:20px;">
+        <div class="flow-step">&#9989; データレイク<br/>有効化</div>
+        <span class="flow-arrow">&#8594;</span>
+        <div class="flow-step">&#128203; ケースデータ<br/>自動連携</div>
+        <span class="flow-arrow">&#8594;</span>
+        <div class="flow-step">&#128269; Athena で<br/>SQL 分析</div>
+        <span class="flow-arrow">&#8594;</span>
+        <div class="flow-step">&#128202; QuickSight<br/>可視化</div>
+      </div>
+    </div>
+
+    <!-- Merits & Demerits -->
+    <div class="section">
+      <h2>&#9989; メリット・制約事項</h2>
+      <div class="merit-grid">
+        <div>
+          <h3 style="color:var(--aws-green);">ビジネス面のメリット</h3>
+          <div class="merit-item"><span style="color:var(--aws-green);">&#10003;</span><span><strong style="color:var(--aws-white);">運用コストの削減</strong>: カスタムデータパイプラインの構築・運用が不要になり、インフラ管理コストを削減</span></div>
+          <div class="merit-item"><span style="color:var(--aws-green);">&#10003;</span><span><strong style="color:var(--aws-white);">意思決定の迅速化</strong>: ケースデータとコンタクトデータの統合分析により、運用改善の意思決定を迅速化</span></div>
+          <div class="merit-item"><span style="color:var(--aws-green);">&#10003;</span><span><strong style="color:var(--aws-white);">顧客体験の向上</strong>: ケースの傾向分析を通じて、顧客対応のボトルネックを特定し改善</span></div>
+        </div>
+        <div>
+          <h3 style="color:var(--aws-green);">技術面のメリット</h3>
+          <div class="merit-item"><span style="color:var(--aws-green);">&#10003;</span><span><strong style="color:var(--aws-white);">データ統合の簡素化</strong>: データレイクにケースデータが自動統合、ETL パイプラインの開発が不要</span></div>
+          <div class="merit-item"><span style="color:var(--aws-green);">&#10003;</span><span><strong style="color:var(--aws-white);">標準 SQL によるアクセス</strong>: Amazon Athena を通じて標準 SQL でアクセスでき、学習コストが低い</span></div>
+          <div class="merit-item"><span style="color:var(--aws-green);">&#10003;</span><span><strong style="color:var(--aws-white);">スケーラブルな分析基盤</strong>: サーバーレスアーキテクチャにより、データ量の増加に応じて自動スケール</span></div>
+        </div>
+      </div>
+
+      <h3 style="margin-top:20px; color:var(--aws-orange);">&#9888; 制限事項・考慮点</h3>
+      <div class="caution-card">
+        <ul>
+          <li>分析データレイクの有効化が前提条件となるため、未設定の場合は追加の初期設定が必要</li>
+          <li>データレイクへのデータ反映にはリアルタイムではなく一定のラグが発生する可能性がある</li>
+          <li>利用可能リージョンが限定されている</li>
+          <li>Athena のクエリ実行にはスキャンしたデータ量に応じたコストが発生</li>
+          <li>QuickSight ダッシュボードの利用には別途 QuickSight のサブスクリプションが必要</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Use Cases -->
+    <div class="section">
+      <h2>&#128161; ユースケース</h2>
+      <div class="usecase-cards">
+        <div class="usecase-card">
+          <div class="uc-title">&#128200; ケースボリュームのトレンド分析</div>
+          <div class="uc-scenario">コンタクトセンターマネージャーが、ケースタイプ別の週次トレンドを把握し、リソース配分の最適化に活用したいケース。</div>
+          <div class="uc-effect"><span>&#10003;</span><span>ケースタイプ別のボリューム推移を可視化し、ピーク時期の予測やスタッフ配置の最適化に活用</span></div>
+        </div>
+        <div class="usecase-card">
+          <div class="uc-title">&#128172; コンタクト感情とケース解決の相関分析</div>
+          <div class="uc-scenario">品質管理チームが、顧客の感情スコアとケース解決時間の関係を分析し、対応品質の改善ポイントを特定したいケース。</div>
+          <div class="uc-effect"><span>&#10003;</span><span>感情スコアが低いケースタイプを特定し、重点的な改善施策を立案</span></div>
+        </div>
+        <div class="usecase-card">
+          <div class="uc-title">&#128197; エージェントシフト別の対応分析</div>
+          <div class="uc-scenario">オペレーション責任者が、シフト間でのケース引き継ぎ状況を分析し、シフト体制の改善を検討したいケース。</div>
+          <div class="uc-effect"><span>&#10003;</span><span>シフト間のケース対応バランスを把握し、引き継ぎプロセスやシフト配置を最適化</span></div>
+        </div>
+      </div>
+
+      <!-- Code samples for use cases -->
+      <h3 style="margin-top:24px;">&#128187; クエリサンプル</h3>
+      <div class="code-block" style="margin-top:12px;">
+        <div class="code-header">
+          <span class="code-lang">SQL</span>
+          <span class="code-title">ケースタイプ別の週次トレンド</span>
+        </div>
+        <pre><code class="language-sql">SELECT case_type,
+       DATE_TRUNC('week', created_at) as week,
+       COUNT(*) as case_count
+FROM connect_analytics_data_lake.cases
+GROUP BY case_type, DATE_TRUNC('week', created_at)
+ORDER BY week DESC, case_count DESC;</code></pre>
+      </div>
+      <div class="code-block" style="margin-top:12px;">
+        <div class="code-header">
+          <span class="code-lang">SQL</span>
+          <span class="code-title">コンタクト感情とケース解決の相関</span>
+        </div>
+        <pre><code class="language-sql">SELECT c.case_type,
+       AVG(ct.sentiment_score) as avg_sentiment,
+       AVG(c.resolution_time_hours) as avg_resolution_hours
+FROM connect_analytics_data_lake.cases c
+JOIN connect_analytics_data_lake.contacts ct ON c.case_id = ct.case_id
+GROUP BY c.case_type;</code></pre>
+      </div>
+      <div class="code-block" style="margin-top:12px;">
+        <div class="code-header">
+          <span class="code-lang">SQL</span>
+          <span class="code-title">エージェントシフト別のケース対応</span>
+        </div>
+        <pre><code class="language-sql">SELECT agent_shift,
+       COUNT(DISTINCT case_id) as handled_cases,
+       COUNT(CASE WHEN status = 'RESOLVED' THEN 1 END) as resolved_cases
+FROM connect_analytics_data_lake.cases
+GROUP BY agent_shift
+ORDER BY agent_shift;</code></pre>
+      </div>
+    </div>
+
+    <!-- Pricing -->
+    <div class="section">
+      <h2>&#128176; 料金</h2>
+      <div class="pricing-callout">
+        <span style="font-size:22px;">&#9989;</span>
+        <span>Amazon Connect Cases のデータレイク統合自体には<strong style="color:var(--aws-white);">追加料金は発生しません。</strong>ただし、以下の関連サービスの利用料が適用されます。</span>
+      </div>
+      <table class="pricing-table" style="margin-top:16px;">
+        <thead>
+          <tr>
+            <th>サービス</th>
+            <th>料金体系</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Amazon Connect Cases</td>
+            <td>ケースあたりの料金が適用</td>
+          </tr>
+          <tr>
+            <td>Amazon Connect 分析データレイク</td>
+            <td>データストレージとデータ取り込みに対する料金</td>
+          </tr>
+          <tr>
+            <td>Amazon Athena</td>
+            <td>スキャンしたデータ量あたり $5/TB</td>
+          </tr>
+          <tr>
+            <td>Amazon QuickSight</td>
+            <td>ユーザーあたりの月額サブスクリプション</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Regions -->
+    <div class="section">
+      <h2>&#127760; 利用可能リージョン</h2>
+      <div class="region-tags">
+        <span class="region-tag">米国東部 (バージニア北部)</span>
+        <span class="region-tag">米国西部 (オレゴン)</span>
+        <span class="region-tag">カナダ (中部)</span>
+        <span class="region-tag">欧州 (フランクフルト)</span>
+        <span class="region-tag">欧州 (ロンドン)</span>
+        <span class="region-tag">アジアパシフィック (ソウル)</span>
+        <span class="region-tag">アジアパシフィック (シンガポール)</span>
+        <span class="region-tag">アジアパシフィック (シドニー)</span>
+        <span class="region-tag">アジアパシフィック (東京)</span>
+        <span class="region-tag">アフリカ (ケープタウン)</span>
+      </div>
+    </div>
+
+    <!-- Related Services -->
+    <div class="section">
+      <h2>&#128279; 関連サービス・機能</h2>
+      <ul class="related-list">
+        <li><span class="arrow">&#8594;</span><span><strong style="color:var(--aws-white);">Amazon Connect 分析データレイク</strong>: ケースデータを含む全てのコンタクトセンターデータを一元管理するデータレイク基盤</span></li>
+        <li><span class="arrow">&#8594;</span><span><strong style="color:var(--aws-white);">Amazon Athena</strong>: データレイク内のデータに対してサーバーレスで SQL クエリを実行できる分析サービス</span></li>
+        <li><span class="arrow">&#8594;</span><span><strong style="color:var(--aws-white);">Amazon QuickSight</strong>: データの可視化とダッシュボード作成のための BI サービス</span></li>
+        <li><span class="arrow">&#8594;</span><span><strong style="color:var(--aws-white);">Amazon Connect Cases</strong>: コンタクトセンターでの顧客問題のトラッキングと管理を行うケース管理機能</span></li>
+      </ul>
+    </div>
+
+    <!-- Summary -->
+    <div class="section" style="border: 1px solid rgba(255,153,0,0.3);">
+      <h2>&#128221; まとめ</h2>
+      <p>Amazon Connect Cases のデータが分析データレイクで利用可能になったことで、コンタクトセンターの運用データをより包括的に分析できるようになりました。カスタムデータパイプラインの構築が不要になるため、分析環境の構築コストと運用負荷が大幅に軽減されます。</p>
+      <p style="margin-top:10px;">Amazon Connect を利用しているコンタクトセンターでは、<span class="highlight">分析データレイクを有効化</span>し、ケースデータを活用した<span class="highlight">トレンド分析やダッシュボード構築</span>を検討することを推奨します。</p>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+      <p>&#128206; 出典:</p>
+      <ul style="list-style:none; margin-top:6px;">
+        <li style="margin:4px 0;"><a href="https://aws.amazon.com/about-aws/whats-new/2026/03/amazon-connect-cases-data-lake/" target="_blank" rel="noopener noreferrer">公式発表 (What's New)</a></li>
+        <li style="margin:4px 0;"><a href="https://docs.aws.amazon.com/connect/latest/adminguide/cases.html" target="_blank" rel="noopener noreferrer">Amazon Connect Cases ドキュメント</a></li>
+        <li style="margin:4px 0;"><a href="https://docs.aws.amazon.com/connect/latest/adminguide/analytics-data-lake.html" target="_blank" rel="noopener noreferrer">Amazon Connect 分析データレイク ドキュメント</a></li>
+        <li style="margin:4px 0;"><a href="https://aws.amazon.com/connect/pricing/" target="_blank" rel="noopener noreferrer">Amazon Connect 料金ページ</a></li>
+      </ul>
+    </footer>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'base',
+      themeVariables: {
+        primaryColor: '#FF9900',
+        primaryTextColor: '#232F3E',
+        primaryBorderColor: '#FF9900',
+        lineColor: '#FF9900',
+        secondaryColor: '#F5F5F5',
+        tertiaryColor: '#FAFAFA',
+        background: '#FFFFFF',
+        mainBkg: '#FFF3E0',
+        nodeBorder: '#FF9900',
+        clusterBkg: '#FFF8E1',
+        clusterBorder: '#FF9900',
+        edgeLabelBackground: '#FFFFFF',
+        textColor: '#232F3E'
+      }
+    });
+  </script>
+  <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/highlight.min.js"></script>
+  <script>hljs.highlightAll();</script>
+</body>
+</html>

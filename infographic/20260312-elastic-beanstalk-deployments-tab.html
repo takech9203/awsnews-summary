@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AWS Elastic Beanstalk - Deployments タブによるデプロイ履歴とリアルタイムログの提供</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap');
+
+        :root {
+            --aws-squid-ink: #232F3E;
+            --aws-dark-squid: #1A242F;
+            --aws-orange: #FF9900;
+            --aws-smile-orange: #FFAD33;
+            --aws-white: #FFFFFF;
+            --aws-light-gray: #D5DBDB;
+            --aws-teal: #00A1C9;
+            --aws-purple: #8C4FFF;
+            --aws-green: #1D8102;
+            --aws-red: #D13212;
+        }
+
+        body {
+            background-color: var(--aws-squid-ink);
+            font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            color: var(--aws-light-gray);
+            font-size: 16px;
+            line-height: 1.6;
+            padding: 20px;
+            margin: 0;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 32px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .header-left {
+            flex: 1;
+            min-width: 280px;
+        }
+
+        .service-badge {
+            display: inline-block;
+            background: var(--aws-orange);
+            color: var(--aws-squid-ink);
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        h1 {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--aws-white);
+            margin: 0 0 8px 0;
+            line-height: 1.3;
+        }
+
+        .subtitle {
+            font-size: 16px;
+            color: var(--aws-light-gray);
+        }
+
+        .header-meta {
+            text-align: right;
+            font-size: 14px;
+            color: var(--aws-light-gray);
+            white-space: nowrap;
+        }
+
+        h2 {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--aws-orange);
+            margin: 0 0 16px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        h3 {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--aws-white);
+            margin: 16px 0 10px 0;
+        }
+
+        .section {
+            background: var(--aws-dark-squid);
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .highlight {
+            background-color: rgba(255, 153, 0, 0.2);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+            color: var(--aws-orange);
+        }
+
+        .card {
+            background: var(--aws-dark-squid);
+            border-radius: 8px;
+            padding: 16px;
+            margin: 12px 0;
+            border: 1px solid rgba(255, 153, 0, 0.3);
+        }
+
+        .icon-text {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            margin: 8px 0;
+            color: var(--aws-light-gray);
+        }
+
+        .aws-link {
+            color: var(--aws-teal);
+            text-decoration: none;
+        }
+
+        .aws-link:hover {
+            color: var(--aws-smile-orange);
+        }
+
+        /* Before/After */
+        .before-after {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin: 16px 0;
+        }
+
+        .before-card {
+            background: rgba(209, 50, 18, 0.1);
+            border: 1px solid rgba(209, 50, 18, 0.4);
+            border-radius: 8px;
+            padding: 16px;
+        }
+
+        .before-card .label {
+            color: var(--aws-red);
+            font-weight: 700;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .after-card {
+            background: rgba(29, 129, 2, 0.1);
+            border: 1px solid rgba(29, 129, 2, 0.4);
+            border-radius: 8px;
+            padding: 16px;
+        }
+
+        .after-card .label {
+            color: var(--aws-green);
+            font-weight: 700;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .before-card ul, .after-card ul {
+            margin: 0;
+            padding-left: 18px;
+            font-size: 14px;
+        }
+
+        .before-card li, .after-card li {
+            margin: 4px 0;
+        }
+
+        /* Feature cards */
+        .feature-cards {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+
+        .feature-card {
+            background: var(--aws-dark-squid);
+            border-left: 4px solid var(--aws-orange);
+            border-radius: 0 8px 8px 0;
+            padding: 16px 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .feature-card-title {
+            color: var(--aws-white);
+            font-weight: 600;
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+
+        .feature-card p, .feature-card ul {
+            margin: 4px 0;
+            font-size: 14px;
+        }
+
+        .feature-card ul {
+            padding-left: 18px;
+        }
+
+        .feature-card li {
+            margin: 3px 0;
+        }
+
+        /* Instance table */
+        .instance-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+            font-size: 14px;
+        }
+
+        .instance-table th {
+            background: rgba(255, 153, 0, 0.2);
+            color: var(--aws-orange);
+            padding: 10px 14px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid var(--aws-orange);
+        }
+
+        .instance-table td {
+            padding: 10px 14px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .instance-table tr:hover td {
+            background: rgba(255, 153, 0, 0.05);
+        }
+
+        /* Use case cards */
+        .usecase-card {
+            background: rgba(255, 153, 0, 0.08);
+            border: 1px solid rgba(255, 153, 0, 0.25);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 12px 0;
+        }
+
+        .usecase-card-title {
+            color: var(--aws-orange);
+            font-weight: 600;
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+
+        .usecase-scenario {
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .usecase-effect {
+            font-size: 14px;
+            color: var(--aws-teal);
+        }
+
+        /* Stat cards */
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin: 16px 0;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, rgba(255, 153, 0, 0.15), rgba(255, 153, 0, 0.05));
+            border: 1px solid rgba(255, 153, 0, 0.3);
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 36px;
+            font-weight: 700;
+            color: var(--aws-orange);
+            line-height: 1.1;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: var(--aws-light-gray);
+            margin-top: 6px;
+        }
+
+        /* Merit / Demerit */
+        .merit-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin: 16px 0;
+        }
+
+        .merit-section h3 {
+            color: var(--aws-green);
+        }
+
+        .demerit-section h3 {
+            color: var(--aws-red);
+        }
+
+        .merit-item, .demerit-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            margin: 8px 0;
+            font-size: 14px;
+        }
+
+        .merit-icon {
+            color: var(--aws-green);
+            flex-shrink: 0;
+        }
+
+        .demerit-icon {
+            color: var(--aws-red);
+            flex-shrink: 0;
+        }
+
+        /* Flow diagram */
+        .flow-diagram {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin: 24px 0;
+        }
+
+        .flow-step {
+            background: var(--aws-dark-squid);
+            border: 2px solid var(--aws-orange);
+            border-radius: 8px;
+            padding: 12px 20px;
+            text-align: center;
+            min-width: 100px;
+        }
+
+        .flow-arrow {
+            color: var(--aws-orange);
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        /* Related services */
+        .related-service {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            margin: 10px 0;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+        }
+
+        .related-service-icon {
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .related-service-name {
+            color: var(--aws-white);
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .related-service-desc {
+            font-size: 13px;
+            color: var(--aws-light-gray);
+        }
+
+        /* Mermaid */
+        .mermaid-container {
+            background: #FFFFFF;
+            border-radius: 12px;
+            padding: 24px;
+            margin: 20px 0;
+            border: 2px solid rgba(255, 153, 0, 0.3);
+            overflow-x: auto;
+        }
+        .mermaid {
+            display: flex;
+            justify-content: center;
+        }
+
+        /* Links list */
+        .links-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .links-list li {
+            margin: 8px 0;
+            font-size: 14px;
+        }
+
+        .links-list li::before {
+            content: "🔗 ";
+        }
+
+        footer {
+            margin-top: 24px;
+            padding-top: 16px;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            font-size: 12px;
+            color: var(--aws-light-gray);
+        }
+
+        footer a {
+            color: var(--aws-teal);
+            text-decoration: none;
+            word-break: break-all;
+        }
+
+        @media (max-width: 700px) {
+            .header {
+                flex-direction: column;
+            }
+            .header-meta {
+                text-align: left;
+            }
+            .before-after, .merit-grid {
+                grid-template-columns: 1fr;
+            }
+            .stat-grid {
+                grid-template-columns: 1fr;
+            }
+            h1 {
+                font-size: 24px;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/styles/atom-one-dark.min.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-left">
+                <span class="service-badge">AWS Elastic Beanstalk</span>
+                <h1>📋 Deployments タブ<br>デプロイ履歴とリアルタイムログの提供</h1>
+                <div class="subtitle">デプロイの可視性とトラブルシューティング体験を大幅に改善する新機能</div>
+            </div>
+            <div class="header-meta">
+                📅 2026 年 3 月 12 日<br>
+                🐧 Linux プラットフォーム対応
+            </div>
+        </div>
+
+        <!-- Overview -->
+        <div class="section">
+            <h2>📋 概要</h2>
+            <p>AWS Elastic Beanstalk の環境ダッシュボードに新しい <span class="highlight">Deployments タブ</span> が追加された。このタブにより、デプロイ履歴の一覧表示と、進行中のデプロイの <span class="highlight">リアルタイムなステップバイステップログ</span> の確認が可能になる。</p>
+            <p>デプロイのステータス、イベント、詳細ログを Elastic Beanstalk コンソールの単一のインターフェースから直接確認でき、デプロイが進行中であってもリアルタイムでログを参照できる。すべての Elastic Beanstalk Linux ベースのプラットフォームブランチでサポートされている。</p>
+        </div>
+
+        <!-- Stats -->
+        <div class="stat-grid">
+            <div class="stat-card">
+                <div class="stat-number">3</div>
+                <div class="stat-label">対応デプロイタイプ</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">5</div>
+                <div class="stat-label">統合ログのステップ数</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">1</div>
+                <div class="stat-label">統一インターフェース</div>
+            </div>
+        </div>
+
+        <!-- Before/After -->
+        <div class="section">
+            <h2>🔄 Before / After</h2>
+            <div class="before-after">
+                <div class="before-card">
+                    <div class="label">❌ BEFORE</div>
+                    <ul>
+                        <li>デプロイが完了するまでログを取得できなかった</li>
+                        <li>複数のソース (イベント、ログ、ヘルスダッシュボード) を横断して情報を相関させる必要があった</li>
+                        <li>デプロイ進行中のリアルタイムなステータス確認が困難だった</li>
+                    </ul>
+                </div>
+                <div class="after-card">
+                    <div class="label">✅ AFTER</div>
+                    <ul>
+                        <li>デプロイ進行中でもステップバイステップのログをリアルタイムで確認可能</li>
+                        <li>デプロイ履歴、イベント、詳細ログを単一のインターフェースに統合</li>
+                        <li>デプロイプロセスの各ステップを統合ログで確認可能</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Architecture Diagram -->
+        <div class="section">
+            <h2>🏗️ アーキテクチャ概要</h2>
+            <div class="mermaid-container">
+                <pre class="mermaid">
+flowchart TD
+    subgraph Console["☁️ Elastic Beanstalk コンソール"]
+        subgraph DeployTab["📋 Deployments タブ"]
+            direction LR
+            History["📜 デプロイ履歴"]
+            Detail["🔍 デプロイ詳細"]
+            Log["📝 統合ログ"]
+            History ~~~ Detail ~~~ Log
+        end
+    end
+
+    subgraph Env["⚙️ Elastic Beanstalk 環境"]
+        subgraph Steps["🔄 デプロイプロセス"]
+            S1["📦 依存関係<br/>インストール"]
+            S2["🔨 アプリケーション<br/>ビルド"]
+            S3["⚙️ .ebextensions<br/>実行"]
+            S4["🪝 プラットフォーム<br/>フック"]
+            S5["🚀 アプリケーション<br/>起動"]
+        end
+    end
+
+    User(["👤 ユーザー"]) --> DeployTab
+    History -->|"デプロイ選択"| Detail
+    Detail -->|"ログ表示"| Log
+    Env -->|"リアルタイム<br/>ログ配信"| Log
+    S1 --> S2 --> S3 --> S4 --> S5
+
+    classDef cloud fill:none,stroke:#CCCCCC,stroke-width:2px,color:#666666
+    classDef layer fill:none,stroke:#E1BEE7,stroke-width:2px,color:#666666
+    classDef compute fill:#FFE0B2,stroke:#FFCC80,stroke-width:2px,color:#5D4037
+    classDef user fill:#E3F2FD,stroke:#BBDEFB,stroke-width:2px,color:#1565C0
+    classDef process fill:#FFFFFF,stroke:#4A90E2,stroke-width:2px,color:#333333
+
+    class Console cloud
+    class DeployTab,Steps layer
+    class History,Detail,Log compute
+    class User user
+    class S1,S2,S3,S4,S5 process
+    class Env cloud
+                </pre>
+            </div>
+            <p style="font-size: 14px;">Deployments タブでは、デプロイプロセスの各ステップからリアルタイムでログが配信され、単一のインターフェースでデプロイ履歴、詳細、統合ログを確認できる。</p>
+        </div>
+
+        <!-- Key Features -->
+        <div class="section">
+            <h2>⚙️ 主要機能</h2>
+            <div class="feature-cards">
+                <div class="feature-card">
+                    <div class="feature-card-title">📜 デプロイ履歴の一覧表示</div>
+                    <ul>
+                        <li>環境の最近のデプロイ履歴を一覧で表示</li>
+                        <li>アプリケーションデプロイ、設定変更、環境起動を含む</li>
+                        <li>各デプロイのステータスを一目で確認可能</li>
+                    </ul>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-card-title">🔍 デプロイ詳細ビュー</div>
+                    <ul>
+                        <li>各デプロイのイベントとステータスの詳細表示</li>
+                        <li>デプロイプロセスの各ステップを時系列で追跡</li>
+                        <li>デプロイ進行中でもリアルタイムで情報を確認可能</li>
+                    </ul>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-card-title">📝 統合デプロイログ</div>
+                    <ul>
+                        <li>デプロイプロセスの各ステップをキャプチャする統合ログ</li>
+                        <li>依存関係のインストール、アプリケーションビルド、.ebextensions、プラットフォームフック、アプリケーション起動出力を含む</li>
+                        <li>デプロイ完了を待たずにログを参照可能</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Technical Specs -->
+        <div class="section">
+            <h2>📊 技術仕様</h2>
+
+            <h3>対応するデプロイタイプ</h3>
+            <table class="instance-table">
+                <thead>
+                    <tr>
+                        <th>デプロイタイプ</th>
+                        <th>対応状況</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>アプリケーションデプロイ</td>
+                        <td><span style="color: var(--aws-green);">対応</span></td>
+                    </tr>
+                    <tr>
+                        <td>設定変更 (Configuration updates)</td>
+                        <td><span style="color: var(--aws-green);">対応</span></td>
+                    </tr>
+                    <tr>
+                        <td>環境起動 (Environment launches)</td>
+                        <td><span style="color: var(--aws-green);">対応</span></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>統合ログに含まれるステップ</h3>
+            <table class="instance-table">
+                <thead>
+                    <tr>
+                        <th>ステップ</th>
+                        <th>説明</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>📦 依存関係インストール</td>
+                        <td>パッケージマネージャーによる依存関係の解決とインストール</td>
+                    </tr>
+                    <tr>
+                        <td>🔨 アプリケーションビルド</td>
+                        <td>アプリケーションのビルドプロセス</td>
+                    </tr>
+                    <tr>
+                        <td>⚙️ .ebextensions</td>
+                        <td>カスタム設定とリソースの適用</td>
+                    </tr>
+                    <tr>
+                        <td>🪝 プラットフォームフック</td>
+                        <td>プラットフォーム固有のフック処理</td>
+                    </tr>
+                    <tr>
+                        <td>🚀 アプリケーション起動出力</td>
+                        <td>アプリケーションの起動時の出力</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>API 変更履歴</h3>
+            <table class="instance-table">
+                <thead>
+                    <tr>
+                        <th>日付</th>
+                        <th>サービス</th>
+                        <th>変更内容</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>2026/03/04</td>
+                        <td><a href="https://awsapichanges.com/archive/changes/91f8bd-elasticbeanstalk.html" target="_blank" class="aws-link">elasticbeanstalk</a></td>
+                        <td>RequestEnvironmentInfo と RetrieveEnvironmentInfo に新しい InfoType <span class="highlight">analyze</span> が追加</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Setup -->
+        <div class="section">
+            <h2>🛠️ 設定方法</h2>
+
+            <h3>前提条件</h3>
+            <div class="icon-text">✓ AWS Elastic Beanstalk 環境が作成済みであること</div>
+            <div class="icon-text">✓ Linux ベースのプラットフォームブランチを使用していること</div>
+            <div class="icon-text">✓ Elastic Beanstalk コンソールへのアクセス権限があること</div>
+
+            <!-- Setup flow -->
+            <div class="flow-diagram">
+                <div class="flow-step">🌐 コンソールで<br><small>環境を開く</small></div>
+                <span class="flow-arrow">→</span>
+                <div class="flow-step">📋 Deployments<br><small>タブを選択</small></div>
+                <span class="flow-arrow">→</span>
+                <div class="flow-step">🔍 デプロイ選択<br><small>詳細を確認</small></div>
+                <span class="flow-arrow">→</span>
+                <div class="flow-step">📝 統合ログ<br><small>リアルタイム参照</small></div>
+            </div>
+
+            <h3>ステップ 1: Elastic Beanstalk コンソールで環境を開く</h3>
+            <p style="font-size: 14px;">AWS マネジメントコンソールにサインインし、Elastic Beanstalk コンソールから対象の環境を選択する。</p>
+
+            <h3>ステップ 2: Deployments タブを選択</h3>
+            <p style="font-size: 14px;">環境ダッシュボードの Deployments タブをクリックして、デプロイ履歴の一覧を表示する。</p>
+
+            <h3>ステップ 3: デプロイ詳細を確認</h3>
+            <p style="font-size: 14px;">確認したいデプロイを選択すると、デプロイイベントと統合ログが表示される。進行中のデプロイの場合、ログはリアルタイムで更新される。</p>
+        </div>
+
+        <!-- Benefits & Limitations -->
+        <div class="section">
+            <h2>⚖️ メリット・デメリット</h2>
+            <div class="merit-grid">
+                <div class="merit-section">
+                    <h3>✅ メリット</h3>
+
+                    <p style="font-size: 13px; color: var(--aws-orange); font-weight: 600; margin: 12px 0 4px;">ビジネス面</p>
+                    <div class="merit-item">
+                        <span class="merit-icon">✓</span>
+                        <span><strong>デプロイ問題の迅速な解決</strong>: デプロイ中の問題をリアルタイムで特定でき、ダウンタイムの短縮に寄与</span>
+                    </div>
+                    <div class="merit-item">
+                        <span class="merit-icon">✓</span>
+                        <span><strong>運用効率の向上</strong>: 複数のソースを横断してログを確認する手間が不要</span>
+                    </div>
+                    <div class="merit-item">
+                        <span class="merit-icon">✓</span>
+                        <span><strong>デプロイの可視性向上</strong>: チーム全体でデプロイ状況を共有しやすくなる</span>
+                    </div>
+
+                    <p style="font-size: 13px; color: var(--aws-orange); font-weight: 600; margin: 12px 0 4px;">技術面</p>
+                    <div class="merit-item">
+                        <span class="merit-icon">✓</span>
+                        <span><strong>リアルタイムデバッグ</strong>: デプロイ進行中にログを確認でき、問題の早期検出が可能</span>
+                    </div>
+                    <div class="merit-item">
+                        <span class="merit-icon">✓</span>
+                        <span><strong>統合ログビュー</strong>: すべてのステップを 1 つのログで追跡可能</span>
+                    </div>
+                    <div class="merit-item">
+                        <span class="merit-icon">✓</span>
+                        <span><strong>デプロイパイプラインの透明性</strong>: .ebextensions やプラットフォームフックの実行状況を詳細に把握</span>
+                    </div>
+                </div>
+                <div class="demerit-section">
+                    <h3>⚠️ 制限事項・注意点</h3>
+
+                    <p style="font-size: 13px; color: var(--aws-red); font-weight: 600; margin: 12px 0 4px;">制限事項</p>
+                    <div class="demerit-item">
+                        <span class="demerit-icon">!</span>
+                        <span>Linux ベースのプラットフォームブランチのみサポート。Windows ベースは対象外の可能性あり</span>
+                    </div>
+                    <div class="demerit-item">
+                        <span class="demerit-icon">!</span>
+                        <span>コンソールベースの機能であり、API や CLI からの同等のアクセス方法は明示されていない</span>
+                    </div>
+
+                    <p style="font-size: 13px; color: var(--aws-red); font-weight: 600; margin: 12px 0 4px;">考慮すべき点</p>
+                    <div class="demerit-item">
+                        <span class="demerit-icon">!</span>
+                        <span>既存の環境での過去のデプロイ履歴の表示範囲については確認が必要</span>
+                    </div>
+                    <div class="demerit-item">
+                        <span class="demerit-icon">!</span>
+                        <span>デプロイログの保持期間については公式ドキュメントで確認することを推奨</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Use Cases -->
+        <div class="section">
+            <h2>💡 ユースケース</h2>
+
+            <div class="usecase-card">
+                <div class="usecase-card-title">🔧 ユースケース 1: デプロイ失敗の迅速なトラブルシューティング</div>
+                <div class="usecase-scenario"><strong>シナリオ</strong>: アプリケーションのデプロイが失敗し、原因を特定する必要がある。</div>
+                <div class="usecase-effect">→ 統合ログで失敗したステップを即座に特定でき、デプロイ完了を待たずに問題箇所を把握。修正サイクルを短縮できる。</div>
+            </div>
+
+            <div class="usecase-card">
+                <div class="usecase-card-title">⚙️ ユースケース 2: 設定変更の影響確認</div>
+                <div class="usecase-scenario"><strong>シナリオ</strong>: 環境の設定変更 (インスタンスタイプ変更、環境変数の追加など) がデプロイプロセスに与える影響を確認したい。</div>
+                <div class="usecase-effect">→ Deployments タブでリアルタイムにデプロイの進行状況を監視し、各ステップの所要時間やログ出力を確認。問題があれば即座に対応可能。</div>
+            </div>
+
+            <div class="usecase-card">
+                <div class="usecase-card-title">📊 ユースケース 3: デプロイ履歴の比較と分析</div>
+                <div class="usecase-scenario"><strong>シナリオ</strong>: 過去のデプロイと現在のデプロイを比較して、パフォーマンスや動作の変化を分析したい。</div>
+                <div class="usecase-effect">→ デプロイ間の差異を体系的に分析でき、回帰問題やパフォーマンス劣化の原因特定に役立つ。</div>
+            </div>
+        </div>
+
+        <!-- Pricing -->
+        <div class="section">
+            <h2>💰 料金</h2>
+            <p>Deployments タブの利用に <span class="highlight">追加料金は発生しない</span>。AWS Elastic Beanstalk 自体に追加料金はなく、アプリケーションの保存と実行に必要な AWS リソース (EC2 インスタンス、S3 バケットなど) に対してのみ課金される。</p>
+        </div>
+
+        <!-- Region -->
+        <div class="section">
+            <h2>🌐 利用可能リージョン</h2>
+            <p>AWS Elastic Beanstalk が利用可能な <span class="highlight">すべてのリージョン</span> で利用可能。すべての Linux ベースのプラットフォームブランチが対象。</p>
+        </div>
+
+        <!-- Related Services -->
+        <div class="section">
+            <h2>🔗 関連サービス・機能</h2>
+            <div class="related-service">
+                <span class="related-service-icon">🤖</span>
+                <div>
+                    <div class="related-service-name">AWS Elastic Beanstalk AI 分析</div>
+                    <div class="related-service-desc">2026 年 3 月 5 日にリリースされた AI ベースの環境分析機能。API 変更 (InfoType analyze) と関連</div>
+                </div>
+            </div>
+            <div class="related-service">
+                <span class="related-service-icon">🔄</span>
+                <div>
+                    <div class="related-service-name">AWS CodePipeline</div>
+                    <div class="related-service-desc">CI/CD パイプラインと Elastic Beanstalk デプロイの連携</div>
+                </div>
+            </div>
+            <div class="related-service">
+                <span class="related-service-icon">📊</span>
+                <div>
+                    <div class="related-service-name">Amazon CloudWatch Logs</div>
+                    <div class="related-service-desc">Elastic Beanstalk 環境のログを CloudWatch Logs に転送する既存機能との補完的な利用</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reference Links -->
+        <div class="section">
+            <h2>📎 参考リンク</h2>
+            <ul class="links-list">
+                <li><a href="https://aws.amazon.com/about-aws/whats-new/2026/03/elastic-beanstalk-deployments-tab/" target="_blank" class="aws-link">公式発表 (What's New)</a></li>
+                <li><a href="https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/" target="_blank" class="aws-link">AWS Elastic Beanstalk ドキュメント</a></li>
+                <li><a href="https://aws.amazon.com/elasticbeanstalk/pricing/" target="_blank" class="aws-link">AWS Elastic Beanstalk 料金ページ</a></li>
+            </ul>
+        </div>
+
+        <!-- Summary -->
+        <div class="section" style="border: 1px solid rgba(255, 153, 0, 0.4); background: linear-gradient(135deg, var(--aws-dark-squid), rgba(255, 153, 0, 0.05));">
+            <h2>📝 まとめ</h2>
+            <p>AWS Elastic Beanstalk の Deployments タブは、デプロイの可視性とトラブルシューティング体験を大幅に改善するアップデートである。特にデプロイ進行中のリアルタイムログ確認は、問題の早期発見と迅速な対応を可能にする。</p>
+            <p>Elastic Beanstalk を利用している場合は、次回のデプロイ時にこの機能を活用してデプロイプロセスの透明性を確認することを推奨する。</p>
+        </div>
+
+        <!-- Footer -->
+        <footer>
+            <p>📎 出典: <a href="https://aws.amazon.com/about-aws/whats-new/2026/03/elastic-beanstalk-deployments-tab/" target="_blank" rel="noopener noreferrer">https://aws.amazon.com/about-aws/whats-new/2026/03/elastic-beanstalk-deployments-tab/</a></p>
+        </footer>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'base',
+            themeVariables: {
+                primaryColor: '#FF9900',
+                primaryTextColor: '#232F3E',
+                primaryBorderColor: '#FF9900',
+                lineColor: '#FF9900',
+                secondaryColor: '#F5F5F5',
+                tertiaryColor: '#FAFAFA',
+                background: '#FFFFFF',
+                mainBkg: '#FFF3E0',
+                nodeBorder: '#FF9900',
+                clusterBkg: '#FFF8E1',
+                clusterBorder: '#FF9900',
+                edgeLabelBackground: '#FFFFFF',
+                textColor: '#232F3E'
+            }
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/highlight.min.js"></script>
+    <script>hljs.highlightAll();</script>
+</body>
+</html>

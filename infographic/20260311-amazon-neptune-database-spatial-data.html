@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Amazon Neptune Database - ネイティブ空間データサポート</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Kaisei+Decol&family=Yomogi&family=Zen+Kurenaido&display=swap');
+
+    :root {
+      --fashion-1: #593C47;
+      --fashion-2: #F2E63D;
+      --fashion-3: #F2C53D;
+      --fashion-4: #F25C05;
+      --fashion-5: #F24405;
+      --text-primary: #334155;
+      --text-secondary: #475569;
+      --text-accent: #1e40af;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+      font-family: 'Yomogi', 'Zen Kurenaido', 'Kaisei Decol', sans-serif;
+      color: var(--text-primary);
+      line-height: 1.6;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .header-left { flex: 1; min-width: 280px; }
+
+    .title {
+      font-size: 30px;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--fashion-4), var(--fashion-5));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1.3;
+    }
+
+    .subtitle {
+      font-size: 15px;
+      color: var(--text-secondary);
+      margin-top: 6px;
+    }
+
+    .header-right {
+      text-align: right;
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .badge {
+      display: inline-block;
+      background: var(--fashion-4);
+      color: #fff;
+      padding: 3px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    /* Overview banner */
+    .overview-banner {
+      background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(10px);
+      border-radius: 14px;
+      padding: 22px 28px;
+      margin-bottom: 24px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+      border-left: 5px solid var(--fashion-4);
+      font-size: 14px;
+      line-height: 1.7;
+    }
+
+    .overview-banner p { margin-bottom: 8px; }
+    .overview-banner p:last-child { margin-bottom: 0; }
+
+    /* Before/After */
+    .before-after {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    @media (max-width: 768px) {
+      .before-after { grid-template-columns: 1fr; }
+    }
+
+    .ba-card {
+      background: rgba(255,255,255,0.9);
+      backdrop-filter: blur(10px);
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .ba-card.before { border-top: 4px solid #94a3b8; }
+    .ba-card.after { border-top: 4px solid #22c55e; }
+
+    .ba-label {
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .ba-card.before .ba-label { color: #64748b; }
+    .ba-card.after .ba-label { color: #16a34a; }
+
+    .ba-card ul {
+      list-style: none;
+      padding: 0;
+    }
+    .ba-card li {
+      padding: 5px 0;
+      font-size: 13px;
+      line-height: 1.5;
+      padding-left: 18px;
+      position: relative;
+    }
+    .ba-card.before li::before { content: "  "; position: absolute; left: 0; }
+    .ba-card.after li::before { content: "  "; position: absolute; left: 0; }
+
+    /* Mermaid */
+    .mermaid-section {
+      background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(10px);
+      border-radius: 14px;
+      padding: 24px;
+      margin-bottom: 24px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    }
+
+    .mermaid-container {
+      background: #FFFFFF;
+      border-radius: 12px;
+      padding: 24px;
+      margin: 12px 0 0 0;
+      border: 2px solid rgba(255, 153, 0, 0.3);
+      overflow-x: auto;
+    }
+    .mermaid { display: flex; justify-content: center; }
+
+    .mermaid-caption {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-top: 10px;
+      text-align: center;
+    }
+
+    /* Three column grid */
+    .three-column-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      margin-bottom: 24px;
+    }
+    @media (max-width: 768px) {
+      .three-column-grid { grid-template-columns: 1fr; }
+    }
+
+    .column {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .section {
+      background: rgba(255,255,255,0.9);
+      backdrop-filter: blur(10px);
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .section-title {
+      font-size: 17px;
+      color: var(--text-accent);
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 700;
+    }
+
+    .highlight {
+      background: linear-gradient(transparent 60%, var(--fashion-2) 60%);
+      padding: 2px 4px;
+      font-weight: 600;
+    }
+
+    .card {
+      background: white;
+      border-radius: 10px;
+      padding: 14px;
+      margin: 10px 0;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+      border-left: 4px solid var(--fashion-4);
+    }
+    .card h4 {
+      font-size: 14px;
+      color: var(--fashion-1);
+      margin-bottom: 6px;
+    }
+    .card p, .card li {
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    .card ul {
+      list-style: none;
+      padding: 0;
+    }
+    .card li { padding: 3px 0 3px 16px; position: relative; }
+    .card li::before { content: "  "; position: absolute; left: 0; }
+
+    .icon-text {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      margin: 8px 0;
+      font-size: 13px;
+    }
+
+    .arrow { color: var(--fashion-4); font-size: 18px; flex-shrink: 0; }
+
+    /* Table */
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12.5px;
+      margin: 10px 0;
+    }
+    .data-table th {
+      background: var(--fashion-4);
+      color: #fff;
+      padding: 8px 10px;
+      text-align: left;
+      font-weight: 600;
+    }
+    .data-table td {
+      padding: 7px 10px;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .data-table tr:nth-child(even) td { background: #fef9e7; }
+
+    /* Code block */
+    .code-block {
+      background: #1a1a2e;
+      border-radius: 8px;
+      overflow: hidden;
+      margin: 12px 0;
+    }
+    .code-header {
+      background: #16213e;
+      padding: 6px 14px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+    }
+    .code-lang { color: var(--fashion-4); font-weight: bold; }
+    .code-title { color: #94a3b8; }
+    .code-block pre { margin: 0; padding: 0; overflow-x: auto; }
+    .code-block code {
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      line-height: 1.5;
+      padding: 14px !important;
+    }
+
+    /* Use case */
+    .usecase {
+      background: linear-gradient(135deg, #fef9e7, #fff);
+      border-radius: 10px;
+      padding: 14px;
+      margin: 10px 0;
+      border: 1px dashed var(--fashion-3);
+    }
+    .usecase h4 {
+      font-size: 14px;
+      color: var(--fashion-4);
+      margin-bottom: 6px;
+    }
+    .usecase p {
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    /* Merit/demerit tags */
+    .merit-tag {
+      display: inline-block;
+      background: #dcfce7;
+      color: #166534;
+      padding: 2px 10px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+    .demerit-tag {
+      display: inline-block;
+      background: #fef2f2;
+      color: #991b1b;
+      padding: 2px 10px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    /* Pricing callout */
+    .callout {
+      background: linear-gradient(135deg, #dbeafe, #ede9fe);
+      border-radius: 10px;
+      padding: 14px 18px;
+      font-size: 13px;
+      line-height: 1.6;
+      border-left: 4px solid var(--text-accent);
+    }
+
+    /* Region badge */
+    .region-badge {
+      display: inline-block;
+      background: #e0f2fe;
+      color: #0369a1;
+      padding: 3px 10px;
+      border-radius: 8px;
+      font-size: 12px;
+      margin: 4px;
+    }
+
+    /* Footer */
+    footer {
+      margin-top: 24px;
+      padding-top: 16px;
+      border-top: 2px dashed #d4a050;
+      font-size: 12px;
+      color: #666;
+    }
+    footer a {
+      color: #1e40af;
+      text-decoration: underline;
+      word-break: break-all;
+    }
+    footer ul {
+      list-style: none;
+      padding: 0;
+      margin-top: 4px;
+    }
+    footer li { padding: 2px 0; }
+
+    /* Full-width section */
+    .full-width-section {
+      margin-bottom: 24px;
+    }
+  </style>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/styles/atom-one-dark.min.css">
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <div class="header-left">
+        <h1 class="title">📍 Amazon Neptune Database - ネイティブ空間データサポート</h1>
+        <div class="subtitle">グラフデータベースと空間データベースの統合を実現する新機能</div>
+      </div>
+      <div class="header-right">
+        <div><span class="badge">NEW</span></div>
+        <div style="margin-top: 6px;">2026 年 3 月 11 日</div>
+        <div>Amazon Neptune Database</div>
+      </div>
+    </div>
+
+    <!-- Overview Banner -->
+    <div class="overview-banner">
+      <p>Amazon Neptune Database に<span class="highlight">ネイティブな空間データ機能</span>が追加された。グラフデータベースアプリケーションにおける位置情報を活用した分析ニーズの高まりに対応するもので、<span class="highlight">ISO 13249-3 標準に準拠した 11 の組み込み空間関数</span>を提供する。GEOMETRY データ型をサポートし、Esri ArcGIS などの既存 GIS アプリケーションとシームレスに統合できる。</p>
+      <p>この機能により、グラフデータベースと空間データベースを別々に管理する必要がなくなり、近接分析、ネットワークインフラストラクチャにおける資産位置やルートの追跡、接続データの地理的パターン分析、ハルシネーションのない位置情報対応 AI アシスタントの構築が可能になる。openCypher クエリ言語との互換性も備えている。</p>
+    </div>
+
+    <!-- Before / After -->
+    <div class="before-after">
+      <div class="ba-card before">
+        <div class="ba-label">  BEFORE - アップデート前の課題</div>
+        <ul>
+          <li>グラフデータベースと空間データベースを別々に運用・管理する必要があった</li>
+          <li>グラフデータに対して位置情報ベースのクエリを実行するには外部システムとの連携が必要だった</li>
+          <li>地理的な関係性とグラフの関係性を統合的に分析する手段が限られていた</li>
+        </ul>
+      </div>
+      <div class="ba-card after">
+        <div class="ba-label">  AFTER - アップデート後の改善</div>
+        <ul>
+          <li>Neptune Database 単体で空間データの格納とクエリが可能になり、別途空間データベースを管理する必要がなくなった</li>
+          <li>ISO 13249-3 準拠の 11 の空間関数を openCypher クエリ内で直接使用できるようになった</li>
+          <li>Esri ArcGIS などの GIS アプリケーションとシームレスに統合でき、既存のワークフローに組み込みやすくなった</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Architecture Diagram -->
+    <div class="mermaid-section">
+      <h2 class="section-title">🏗️ アーキテクチャ図</h2>
+      <div class="mermaid-container">
+        <pre class="mermaid">
+flowchart TD
+    subgraph Client["👤 クライアントアプリケーション"]
+        direction LR
+        GIS["🗺️ GIS アプリケーション<br/>Esri ArcGIS"]
+        App["⚡ カスタムアプリケーション<br/>openCypher クエリ"]
+        GIS ~~~ App
+    end
+
+    subgraph Neptune["☁️ Amazon Neptune Database"]
+        direction LR
+        Graph["📊 グラフエンジン<br/>ノード・エッジ"]
+        Spatial["📍 空間エンジン<br/>GEOMETRY データ型"]
+        Graph ~~~ Spatial
+    end
+
+    subgraph Functions["🔧 空間関数 ISO 13249-3"]
+        direction LR
+        F1["📏 ST_DistanceSpheroid"]
+        F2["📐 ST_Within"]
+        F3["🔀 ST_Intersects"]
+        F4["⭕ ST_Buffer"]
+        F1 ~~~ F2 ~~~ F3 ~~~ F4
+    end
+
+    GIS --> Neptune
+    App --> Neptune
+    Neptune --> Functions
+
+    classDef cloud fill:none,stroke:#CCCCCC,stroke-width:2px,color:#666666
+    classDef compute fill:#FFE0B2,stroke:#FFCC80,stroke-width:2px,color:#5D4037
+    classDef storage fill:#DCEDC8,stroke:#C5E1A5,stroke-width:2px,color:#33691E
+    classDef process fill:#FFFFFF,stroke:#4A90E2,stroke-width:2px,color:#333333
+    classDef internal fill:#E8F1FF,stroke:#4A90E2,stroke-width:2px,color:#333333
+
+    class Client cloud
+    class Neptune cloud
+    class Functions cloud
+    class GIS,App compute
+    class Graph,Spatial storage
+    class F1,F2,F3,F4 internal
+        </pre>
+      </div>
+      <p class="mermaid-caption">GIS アプリケーションやカスタムアプリケーションから openCypher クエリを通じてグラフエンジンと空間エンジンの両方にアクセスし、ISO 13249-3 準拠の空間関数を利用できる。</p>
+    </div>
+
+    <!-- Three Column Grid -->
+    <div class="three-column-grid">
+
+      <!-- Left Column -->
+      <div class="column">
+
+        <!-- Key Features -->
+        <div class="section">
+          <h2 class="section-title">🔑 主要機能</h2>
+
+          <div class="card">
+            <h4>1. GEOMETRY データ型サポート</h4>
+            <ul>
+              <li>ポイント、ライン、ポリゴンの空間データ型をネイティブにサポート</li>
+              <li>グラフデータと空間データを同一データベースで管理可能</li>
+              <li>既存の GIS アプリケーションとの互換性を確保</li>
+            </ul>
+          </div>
+
+          <div class="card">
+            <h4>2. 11 の組み込み空間関数</h4>
+            <ul>
+              <li>ISO 13249-3 標準に準拠した空間関数を提供</li>
+              <li><strong>ST_DistanceSpheroid</strong>: 球面上の 2 点間の距離計算</li>
+              <li><strong>ST_Within</strong>: ジオメトリが別のジオメトリ内に含まれるかの判定</li>
+              <li><strong>ST_Intersects</strong>: 2 つのジオメトリが交差するかの判定</li>
+              <li><strong>ST_Buffer</strong>: ジオメトリの周囲にバッファゾーンを生成</li>
+            </ul>
+          </div>
+
+          <div class="card">
+            <h4>3. openCypher クエリ言語との統合</h4>
+            <ul>
+              <li>既存の openCypher クエリ内で空間関数を直接使用可能</li>
+              <li>グラフトラバーサルと空間クエリを組み合わせた複合分析が可能</li>
+              <li>新たなクエリ言語の学習が不要</li>
+            </ul>
+          </div>
+
+          <div class="card">
+            <h4>4. GIS アプリケーション統合</h4>
+            <ul>
+              <li>Esri ArcGIS とのシームレスな統合</li>
+              <li>標準的な GIS ワークフローに Neptune を組み込み可能</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Technical Specs -->
+        <div class="section">
+          <h2 class="section-title">📐 技術仕様</h2>
+
+          <p style="font-size:13px; font-weight:600; margin-bottom:8px;">空間関数一覧</p>
+          <table class="data-table">
+            <thead>
+              <tr><th>関数名</th><th>機能</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>ST_DistanceSpheroid</td><td>球面上の 2 点間距離を計算</td></tr>
+              <tr><td>ST_Within</td><td>ジオメトリの包含関係を判定</td></tr>
+              <tr><td>ST_Intersects</td><td>ジオメトリの交差を判定</td></tr>
+              <tr><td>ST_Buffer</td><td>バッファゾーンの生成</td></tr>
+            </tbody>
+          </table>
+
+          <p style="font-size:13px; font-weight:600; margin: 12px 0 8px 0;">サポートされるデータ型</p>
+          <table class="data-table">
+            <thead>
+              <tr><th>項目</th><th>詳細</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>データ型</td><td>GEOMETRY</td></tr>
+              <tr><td>サポート形状</td><td>ポイント、ライン、ポリゴン</td></tr>
+              <tr><td>準拠規格</td><td>ISO 13249-3</td></tr>
+              <tr><td>クエリ言語</td><td>openCypher</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+
+      <!-- Center Column -->
+      <div class="column">
+
+        <!-- Setup Steps -->
+        <div class="section">
+          <h2 class="section-title">🛠️ 設定方法</h2>
+
+          <p style="font-size:13px; margin-bottom: 10px;"><strong>前提条件:</strong> Neptune Database クラスターが作成済み / openCypher エンドポイントにアクセス可能 / 空間データセットが準備済み</p>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Cypher</span>
+              <span class="code-title">Step 1: 空間データを含むノードの作成</span>
+            </div>
+            <pre><code class="language-cypher">CREATE (location:Place {
+  name: 'Tokyo Tower',
+  geom: point({longitude: 139.7454,
+               latitude: 35.6586})
+})
+RETURN location</code></pre>
+          </div>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Cypher</span>
+              <span class="code-title">Step 2: 空間クエリの実行</span>
+            </div>
+            <pre><code class="language-cypher">MATCH (a:Place), (b:Place)
+WHERE a.name = 'Tokyo Tower'
+  AND b.name = 'Skytree'
+RETURN ST_DistanceSpheroid(
+  a.geom, b.geom
+) AS distance_meters</code></pre>
+          </div>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">Cypher</span>
+              <span class="code-title">Step 3: 範囲検索の実行</span>
+            </div>
+            <pre><code class="language-cypher">MATCH (p:Place)
+WHERE ST_Within(
+  p.geom,
+  ST_Buffer(
+    point({longitude: 139.7671,
+           latitude: 35.6812}),
+    5000)
+)
+RETURN p.name</code></pre>
+          </div>
+          <p style="font-size:12px; color: var(--text-secondary); margin-top: 6px;">ST_Buffer と ST_Within を組み合わせて、指定地点から 5,000 メートル以内にある全てのノードを検索する。</p>
+        </div>
+
+        <!-- Use Cases -->
+        <div class="section">
+          <h2 class="section-title">💡 ユースケース</h2>
+
+          <div class="usecase">
+            <h4>🚚 配送・物流ネットワークの最適化</h4>
+            <p>物流企業が配送拠点、配送先、ルート情報をグラフとして管理しつつ、地理的な近接性を考慮した配送ルートの最適化を行う。</p>
+            <div class="code-block">
+              <div class="code-header">
+                <span class="code-lang">Cypher</span>
+                <span class="code-title">50km 以内の配送先検索</span>
+              </div>
+              <pre><code class="language-cypher">MATCH (w:Warehouse)
+  -[:DELIVERS_TO]->(c:Customer)
+WHERE ST_DistanceSpheroid(
+  w.geom, c.geom) < 50000
+RETURN w.name, c.name,
+  ST_DistanceSpheroid(
+    w.geom, c.geom) AS distance
+ORDER BY distance</code></pre>
+            </div>
+            <p style="font-size:12px; color:#16a34a;">効果: グラフの配送関係と地理的距離を組み合わせた分析により、配送効率を最大化しコスト削減。</p>
+          </div>
+
+          <div class="usecase">
+            <h4>📡 通信ネットワークの障害影響分析</h4>
+            <p>通信事業者がネットワーク機器の接続関係をグラフで管理し、特定エリアの障害が影響する範囲を空間的に特定する。</p>
+            <div class="code-block">
+              <div class="code-header">
+                <span class="code-lang">Cypher</span>
+                <span class="code-title">10km 圏内の障害影響分析</span>
+              </div>
+              <pre><code class="language-cypher">MATCH (tower:CellTower)
+  -[:CONNECTS*1..3]-(a:CellTower)
+WHERE ST_Within(
+  tower.geom,
+  ST_Buffer(
+    point({longitude: 139.69,
+           latitude: 35.69}),
+    10000))
+RETURN a.name, a.geom</code></pre>
+            </div>
+            <p style="font-size:12px; color:#16a34a;">効果: ネットワークトポロジーと地理的範囲を統合的に分析し、障害の影響範囲を迅速に特定。</p>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Right Column -->
+      <div class="column">
+
+        <!-- Use Case 3 -->
+        <div class="section">
+          <h2 class="section-title">🏠 ユースケース 3</h2>
+          <div class="usecase">
+            <h4>📍 位置情報対応 AI アシスタント</h4>
+            <p>不動産企業が物件情報、周辺施設、交通アクセスをグラフで管理し、ユーザーの条件に基づいて位置情報を考慮した物件推薦を行う。</p>
+            <div class="code-block">
+              <div class="code-header">
+                <span class="code-lang">Cypher</span>
+                <span class="code-title">駅から 1km 以内の物件検索</span>
+              </div>
+              <pre><code class="language-cypher">MATCH (p:Property)-[:NEAR]->(s:Station)
+WHERE ST_DistanceSpheroid(
+  p.geom, s.geom) < 1000
+  AND p.price < 200000
+RETURN p.name, p.price,
+  s.name AS nearest_station,
+  ST_DistanceSpheroid(
+    p.geom, s.geom)
+    AS distance_to_station
+ORDER BY distance_to_station</code></pre>
+            </div>
+            <p style="font-size:12px; color:#16a34a;">効果: グラフの関係性データと空間データを活用し、ハルシネーションのない正確な位置情報に基づく推薦が可能。</p>
+          </div>
+        </div>
+
+        <!-- Merits -->
+        <div class="section">
+          <h2 class="section-title">✅ メリット</h2>
+          <div class="merit-tag">ビジネス面</div>
+          <div class="icon-text"><span class="arrow">→</span><span><strong>運用コスト削減</strong>: グラフ DB と空間 DB を別々に運用する必要がなくなり、管理コストが削減</span></div>
+          <div class="icon-text"><span class="arrow">→</span><span><strong>開発効率の向上</strong>: 単一のクエリ言語で空間分析とグラフ分析を実行でき、開発が簡素化</span></div>
+          <div class="icon-text"><span class="arrow">→</span><span><strong>追加料金なし</strong>: Neptune Database の利用料金に含まれ、追加コスト不要</span></div>
+
+          <div style="margin-top: 12px;"></div>
+          <div class="merit-tag">技術面</div>
+          <div class="icon-text"><span class="arrow">→</span><span><strong>標準準拠</strong>: ISO 13249-3 準拠により、既存の GIS 知識やツールをそのまま活用可能</span></div>
+          <div class="icon-text"><span class="arrow">→</span><span><strong>統合分析</strong>: グラフの関係性と地理的な近接性を組み合わせた複合クエリが実現</span></div>
+          <div class="icon-text"><span class="arrow">→</span><span><strong>GIS エコシステムとの互換性</strong>: Esri ArcGIS など業界標準ツールとシームレスに連携</span></div>
+        </div>
+
+        <!-- Demerits / Constraints -->
+        <div class="section">
+          <h2 class="section-title">⚠️ デメリット・制約事項</h2>
+          <div class="demerit-tag">制限事項</div>
+          <div class="icon-text"><span style="color:#dc2626;" class="arrow">!</span><span>openCypher クエリ言語でのみ空間関数が利用可能</span></div>
+          <div class="icon-text"><span style="color:#dc2626;" class="arrow">!</span><span>提供される空間関数は 11 種類に限定。高度な空間分析には外部ツールとの連携が必要な場合あり</span></div>
+          <div class="icon-text"><span style="color:#dc2626;" class="arrow">!</span><span>3D 空間データや時系列空間データのサポートについては公式ドキュメントで確認が必要</span></div>
+
+          <div style="margin-top: 10px;"></div>
+          <div class="demerit-tag">考慮すべき点</div>
+          <div class="icon-text"><span style="color:#f59e0b;" class="arrow">△</span><span>既存の Neptune クラスターで空間機能を使用する場合のエンジンバージョン要件を確認する必要あり</span></div>
+          <div class="icon-text"><span style="color:#f59e0b;" class="arrow">△</span><span>大量の空間データを扱う場合のパフォーマンス特性については、事前にテストを推奨</span></div>
+        </div>
+
+        <!-- Pricing -->
+        <div class="section">
+          <h2 class="section-title">💰 料金</h2>
+          <div class="callout">
+            空間データサポートは Amazon Neptune Database の既存料金に含まれており、<span class="highlight">追加料金は発生しない</span>。Neptune Database の標準的な料金体系 (インスタンス時間、ストレージ、I/O リクエスト) が適用される。
+          </div>
+        </div>
+
+        <!-- Region -->
+        <div class="section">
+          <h2 class="section-title">🌍 利用可能リージョン</h2>
+          <p style="font-size:13px;">
+            <span class="region-badge">🌐 全リージョン対応</span>
+            Amazon Neptune Database が提供されている全てのリージョンで利用可能。
+          </p>
+        </div>
+
+        <!-- Related Services -->
+        <div class="section">
+          <h2 class="section-title">🔗 関連サービス</h2>
+          <div class="icon-text"><span class="arrow">→</span><span><strong>Amazon Neptune Analytics</strong>: グラフ分析に特化したサーバーレスサービス。Neptune Database と補完的な関係にある</span></div>
+          <div class="icon-text"><span class="arrow">→</span><span><strong>Amazon Location Service</strong>: 位置情報サービス。Neptune の空間データと組み合わせて高度な位置情報アプリケーションを構築可能</span></div>
+          <div class="icon-text"><span class="arrow">→</span><span><strong>Esri ArcGIS</strong>: Neptune の空間データサポートとシームレスに統合可能な GIS プラットフォーム</span></div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Summary -->
+    <div class="overview-banner" style="border-left-color: var(--text-accent);">
+      <h2 class="section-title">📝 まとめ</h2>
+      <p>Amazon Neptune Database のネイティブ空間データサポートは、グラフデータベースと空間データベースの統合という長年の課題を解決する重要なアップデートである。ISO 13249-3 準拠の 11 の空間関数を追加料金なしで利用でき、物流、通信、不動産など位置情報を活用する多くの業界で即座に活用可能である。既に Neptune Database を利用している場合は、空間データ機能の活用を検討し、別途管理している空間データベースの統合を検討することを推奨する。</p>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+      <p>📎 出典:</p>
+      <ul>
+        <li><a href="https://aws.amazon.com/about-aws/whats-new/2026/03/amazon-neptune-database-spatial-data/" target="_blank" rel="noopener noreferrer">公式発表 (What's New)</a></li>
+        <li><a href="https://docs.aws.amazon.com/neptune/latest/userguide/intro.html" target="_blank" rel="noopener noreferrer">Neptune Database ドキュメント</a></li>
+        <li><a href="https://aws.amazon.com/neptune/pricing/" target="_blank" rel="noopener noreferrer">Amazon Neptune 料金ページ</a></li>
+      </ul>
+    </footer>
+
+  </div>
+
+  <!-- Mermaid.js -->
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'base',
+      themeVariables: {
+        primaryColor: '#FF9900',
+        primaryTextColor: '#232F3E',
+        primaryBorderColor: '#FF9900',
+        lineColor: '#FF9900',
+        secondaryColor: '#F5F5F5',
+        tertiaryColor: '#FAFAFA',
+        background: '#FFFFFF',
+        mainBkg: '#FFF3E0',
+        nodeBorder: '#FF9900',
+        clusterBkg: '#FFF8E1',
+        clusterBorder: '#FF9900',
+        edgeLabelBackground: '#FFFFFF',
+        textColor: '#232F3E'
+      }
+    });
+  </script>
+  <!-- highlight.js -->
+  <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/highlight.min.js"></script>
+  <script>hljs.highlightAll();</script>
+</body>
+</html>

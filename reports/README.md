@@ -5,11 +5,22 @@
 
 ## 2026 年
 
+- [2026-03-12 - Kiro - エンタープライズガバナンス: MCP サーバーレジストリとモデルガバナンス](2026/2026-03-12-kiro-enterprise-governance.md)
+- [2026-03-12 - AWS Glue zero-ETL - Amazon DynamoDB ソースの新しい設定オプション](2026/2026-03-12-aws-glue-zetl-dynamodb-configurations.md)
+- [2026-03-12 - AWS Backup - Amazon EKS 向け論理エアギャップ Vault サポート](2026/2026-03-12-aws-backup-logically-air-gapped-vault-amazon-eks.md)
+- [2026-03-12 - AWS Elastic Beanstalk - Deployments タブによるデプロイ履歴とリアルタイムログの提供](2026/2026-03-12-elastic-beanstalk-deployments-tab.md)
+- [2026-03-12 - Amazon EC2 - M8i および M8i-flex インスタンスがヨーロッパの追加リージョンで利用可能に](2026/2026-03-12-amazon-ec2-m8i-m8i-flex-additional-regions.md)
+- [2026-03-12 - Amazon WorkSpaces - Windows Server 2025 サポート](2026/2026-03-12-amazon-workspaces-windows-server-2025.md)
+- [2026-03-12 - AWS Private CA Connector for SCEP - AWS PrivateLink サポート](2026/2026-03-12-aws-private-ca-connector-scep-privatelink.md)
 - [2026-03-11 - Amazon Connect - 送信元メールアドレスの選択機能](2026/2026-03-11-amazon-connect-agents-select-from-email.md)
 - [2026-03-11 - Amazon EC2 - High Memory U7i インスタンスのリージョン拡大](2026/2026-03-11-amazon-ec2-high-memory-u7i-instances.md)
+- [2026-03-11 - Amazon Neptune Database - Asia Pacific (Hyderabad) リージョンで利用可能に](2026/2026-03-11-amazon-neptune-hyderabad.md)
 - [2026-03-11 - Amazon EC2 - R7gd インスタンスが南米 (サンパウロ) リージョンで利用可能に](2026/2026-03-11-amazon-ec2-r7gd-instances-available.md)
 - [2026-03-11 - Amazon EC2 - C8id インスタンスが欧州 (スペイン) リージョンで利用可能に](2026/2026-03-11-amazon-ec2-c8id-instances-europe-spain.md)
 - [2026-03-11 - Amazon EC2 - C8gd / M8gd インスタンスが追加リージョンで利用可能に](2026/2026-03-11-amazon-ec2-c8gd-m8gd-instances-available.md)
+- [2026-03-11 - Amazon Neptune Database - ネイティブ空間データサポート](2026/2026-03-11-amazon-neptune-database-spatial-data.md)
+- [2026-03-11 - Amazon Connect Cases - 分析データレイクでのケースデータ提供](2026/2026-03-11-amazon-connect-cases-data-lake.md)
+- [2026-03-11 - AWS Backup - Amazon RDS Multi-AZ クラスターのサポートを 17 リージョンに拡大](2026/2026-03-11-aws-backup-expands-amazon-rds-multi-az-clusters-17-regions.md)
 - [2026-03-11 - Amazon Connect - 統合エージェントコーチングワークフロー](2026/2026-03-11-amazon-connect-integrated-agent-coaching-workflows.md)
 - [2026-03-10 - Amazon Bedrock - First Token Latency およびクォータ消費のオブザーバビリティ](2026/2026-03-10-amazon-bedrock-observability-ttft-quota.md)
 - [2026-03-10 - AWS Builder ID - GitHub および Amazon ソーシャルログインのサポート](2026/2026-03-10-aws-builder-id-sign-in-github-amazon.md)

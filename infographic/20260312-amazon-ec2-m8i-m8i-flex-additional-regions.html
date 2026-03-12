@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Amazon EC2 M8i / M8i-flex - Europe Ireland & London で利用可能に</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap');
+
+    :root {
+      --aws-squid-ink: #232F3E;
+      --aws-dark-squid: #1A242F;
+      --aws-orange: #FF9900;
+      --aws-smile-orange: #FFAD33;
+      --aws-white: #FFFFFF;
+      --aws-light-gray: #D5DBDB;
+      --aws-teal: #00A1C9;
+      --aws-purple: #8C4FFF;
+      --aws-green: #1D8102;
+      --aws-red: #D13212;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      background-color: var(--aws-squid-ink);
+      font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+      color: var(--aws-light-gray);
+      font-size: 16px;
+      line-height: 1.6;
+      padding: 20px;
+      margin: 0;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 32px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .header-left { flex: 1; min-width: 280px; }
+    .service-badge {
+      display: inline-block;
+      background: var(--aws-orange);
+      color: var(--aws-squid-ink);
+      font-weight: 700;
+      font-size: 13px;
+      padding: 4px 14px;
+      border-radius: 20px;
+      margin-bottom: 12px;
+    }
+    h1 {
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--aws-white);
+      margin: 0 0 8px 0;
+      line-height: 1.3;
+    }
+    .subtitle {
+      font-size: 15px;
+      color: var(--aws-light-gray);
+    }
+    .header-right {
+      text-align: right;
+      font-size: 14px;
+      color: var(--aws-light-gray);
+      white-space: nowrap;
+    }
+
+    /* Section */
+    .section {
+      background: var(--aws-dark-squid);
+      border-radius: 8px;
+      padding: 24px;
+      margin-bottom: 24px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    h2 {
+      font-size: 22px;
+      font-weight: 600;
+      color: var(--aws-orange);
+      margin: 0 0 16px 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    h3 {
+      font-size: 17px;
+      font-weight: 600;
+      color: var(--aws-white);
+      margin: 20px 0 10px 0;
+    }
+    p { margin: 0 0 12px 0; }
+
+    .highlight {
+      background-color: rgba(255, 153, 0, 0.2);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 600;
+      color: var(--aws-orange);
+    }
+
+    /* Stats row */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+      margin: 20px 0;
+    }
+    .stat-card {
+      background: linear-gradient(135deg, rgba(255,153,0,0.15), rgba(255,153,0,0.05));
+      border: 1px solid rgba(255,153,0,0.3);
+      border-radius: 8px;
+      padding: 16px;
+      text-align: center;
+    }
+    .stat-value {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--aws-orange);
+      display: block;
+    }
+    .stat-label {
+      font-size: 13px;
+      color: var(--aws-light-gray);
+      margin-top: 4px;
+    }
+
+    /* Before/After */
+    .before-after { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 16px 0; }
+    .ba-column { border-radius: 8px; padding: 16px; }
+    .ba-before {
+      background: rgba(209,50,18,0.1);
+      border: 1px solid rgba(209,50,18,0.3);
+    }
+    .ba-after {
+      background: rgba(29,129,2,0.1);
+      border: 1px solid rgba(29,129,2,0.3);
+    }
+    .ba-label {
+      font-weight: 700;
+      font-size: 14px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .ba-before .ba-label { color: var(--aws-red); }
+    .ba-after .ba-label { color: var(--aws-green); }
+    .ba-column ul { margin: 0; padding-left: 18px; font-size: 14px; }
+    .ba-column li { margin-bottom: 6px; }
+
+    /* Cards */
+    .card {
+      background: var(--aws-dark-squid);
+      border-radius: 8px;
+      padding: 16px;
+      margin: 12px 0;
+      border-left: 4px solid var(--aws-orange);
+      border-top: 1px solid rgba(255,255,255,0.05);
+      border-right: 1px solid rgba(255,255,255,0.05);
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .card-title {
+      font-weight: 600;
+      color: var(--aws-white);
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .card p { font-size: 14px; margin: 0; }
+
+    /* Feature grid */
+    .feature-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 16px;
+    }
+    @media (max-width: 600px) {
+      .feature-grid { grid-template-columns: 1fr; }
+      .before-after { grid-template-columns: 1fr; }
+      .stats-row { grid-template-columns: 1fr 1fr; }
+    }
+
+    /* Table */
+    .table-wrapper { overflow-x: auto; margin: 16px 0; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+    th {
+      background: rgba(255,153,0,0.15);
+      color: var(--aws-orange);
+      font-weight: 600;
+      text-align: left;
+      padding: 10px 12px;
+      border-bottom: 2px solid rgba(255,153,0,0.3);
+    }
+    td {
+      padding: 10px 12px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      color: var(--aws-light-gray);
+    }
+    tr:hover td { background: rgba(255,153,0,0.05); }
+
+    /* Use case */
+    .usecase {
+      background: rgba(255,153,0,0.08);
+      border: 1px solid rgba(255,153,0,0.2);
+      border-radius: 8px;
+      padding: 16px;
+      margin: 12px 0;
+    }
+    .usecase-title {
+      font-weight: 600;
+      color: var(--aws-orange);
+      margin-bottom: 6px;
+    }
+    .usecase p, .usecase .effect { font-size: 14px; }
+    .effect {
+      margin-top: 8px;
+      padding: 8px 12px;
+      background: rgba(29,129,2,0.1);
+      border-left: 3px solid var(--aws-green);
+      border-radius: 0 6px 6px 0;
+      font-size: 14px;
+      color: var(--aws-light-gray);
+    }
+
+    /* Region tags */
+    .region-tags { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+    .region-tag {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+    .region-new {
+      background: rgba(29,129,2,0.15);
+      border: 1px solid rgba(29,129,2,0.4);
+      color: #4caf50;
+    }
+    .region-existing {
+      background: rgba(0,161,201,0.1);
+      border: 1px solid rgba(0,161,201,0.3);
+      color: var(--aws-teal);
+    }
+
+    /* Mermaid */
+    .mermaid-container {
+      background: #FFFFFF;
+      border-radius: 12px;
+      padding: 24px;
+      margin: 20px 0;
+      border: 2px solid rgba(255, 153, 0, 0.3);
+      overflow-x: auto;
+    }
+    .mermaid {
+      display: flex;
+      justify-content: center;
+    }
+
+    /* Code block */
+    .code-block {
+      background: #1a1a2e;
+      border-radius: 8px;
+      overflow: hidden;
+      margin: 16px 0;
+    }
+    .code-header {
+      background: #16213e;
+      padding: 8px 16px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+    }
+    .code-lang { color: var(--aws-orange); font-weight: bold; }
+    .code-title { color: var(--aws-light-gray); }
+    .code-block pre { margin: 0; padding: 0; overflow-x: auto; }
+    .code-block code { font-family: 'Courier New', monospace; font-size: 13px; line-height: 1.5; padding: 16px !important; }
+
+    /* Flow diagram */
+    .flow-diagram {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin: 24px 0;
+    }
+    .flow-step {
+      background: var(--aws-dark-squid);
+      border: 2px solid var(--aws-orange);
+      border-radius: 8px;
+      padding: 12px 20px;
+      text-align: center;
+      min-width: 100px;
+    }
+    .flow-arrow { color: var(--aws-orange); font-size: 24px; font-weight: bold; }
+
+    /* Checklist */
+    .check-item { display: flex; align-items: flex-start; gap: 8px; margin: 8px 0; font-size: 14px; }
+    .check-icon { color: var(--aws-green); font-size: 16px; flex-shrink: 0; }
+
+    /* Merit / Demerit */
+    .merit-card {
+      background: rgba(29,129,2,0.08);
+      border: 1px solid rgba(29,129,2,0.2);
+      border-radius: 8px;
+      padding: 16px;
+      margin: 12px 0;
+    }
+    .demerit-card {
+      background: rgba(209,50,18,0.08);
+      border: 1px solid rgba(209,50,18,0.2);
+      border-radius: 8px;
+      padding: 16px;
+      margin: 12px 0;
+    }
+    .merit-card .card-title { color: #4caf50; }
+    .demerit-card .card-title { color: #ef5350; }
+
+    /* AWS Link */
+    .aws-link { color: var(--aws-teal); text-decoration: none; }
+    .aws-link:hover { color: var(--aws-smile-orange); text-decoration: underline; }
+
+    /* Footer */
+    footer {
+      margin-top: 24px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(255,255,255,0.2);
+      font-size: 12px;
+      color: var(--aws-light-gray);
+    }
+    footer a { color: var(--aws-teal); word-break: break-all; }
+
+    /* Purchase options */
+    .purchase-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
+      margin-top: 12px;
+    }
+    .purchase-item {
+      background: rgba(255,153,0,0.06);
+      border: 1px solid rgba(255,153,0,0.15);
+      border-radius: 8px;
+      padding: 12px;
+      text-align: center;
+      font-size: 14px;
+    }
+    .purchase-item strong { color: var(--aws-white); display: block; margin-bottom: 4px; }
+  </style>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/styles/atom-one-dark.min.css">
+</head>
+<body>
+  <div class="container">
+
+    <!-- Header -->
+    <div class="header">
+      <div class="header-left">
+        <span class="service-badge">Amazon EC2</span>
+        <h1>M8i / M8i-flex インスタンス<br>Europe Ireland & London で利用可能に</h1>
+        <div class="subtitle">カスタム Intel Xeon 6 プロセッサ搭載 - ヨーロッパ 5 リージョンに拡大</div>
+      </div>
+      <div class="header-right">2026-03-12</div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <span class="stat-value">+20%</span>
+        <div class="stat-label">M7i 比パフォーマンス向上</div>
+      </div>
+      <div class="stat-card">
+        <span class="stat-value">2.5x</span>
+        <div class="stat-label">メモリ帯域幅 (前世代比)</div>
+      </div>
+      <div class="stat-card">
+        <span class="stat-value">60%</span>
+        <div class="stat-label">NGINX 高速化</div>
+      </div>
+      <div class="stat-card">
+        <span class="stat-value">5</span>
+        <div class="stat-label">ヨーロッパ対応リージョン</div>
+      </div>
+    </div>
+
+    <!-- Overview -->
+    <div class="section">
+      <h2>📋 概要</h2>
+      <p>Amazon EC2 M8i および M8i-flex インスタンスが、<span class="highlight">Europe (Ireland)</span> および <span class="highlight">Europe (London)</span> リージョンで利用可能になりました。AWS 専用のカスタム Intel Xeon 6 プロセッサを搭載し、クラウド上の同等の Intel プロセッサの中で最高のパフォーマンスと最速のメモリ帯域幅を提供します。</p>
+
+      <div class="before-after">
+        <div class="ba-column ba-before">
+          <div class="ba-label">❌ Before</div>
+          <ul>
+            <li>Europe Ireland / London で M8i/M8i-flex が利用不可</li>
+            <li>前世代インスタンスの使用を強いられ、最新世代のパフォーマンス向上を活用できず</li>
+            <li>他の対応リージョンへワークロードを配置する必要があり、データローカリティやレイテンシーに制約</li>
+          </ul>
+        </div>
+        <div class="ba-column ba-after">
+          <div class="ba-label">✅ After</div>
+          <ul>
+            <li>Europe Ireland / London で M8i/M8i-flex を直接起動可能に</li>
+            <li>GDPR 準拠を維持しながら最新世代 Intel インスタンスのパフォーマンスを享受</li>
+            <li>ヨーロッパ 5 リージョンでの柔軟なワークロード配置が可能に</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Architecture Diagram -->
+    <div class="section">
+      <h2>🏗 アーキテクチャ図</h2>
+      <p>ヨーロッパの 2 つの主要リージョンに追加され、既存の 3 リージョンと合わせてヨーロッパ 5 リージョンで利用可能になったことを示しています。</p>
+      <div class="mermaid-container">
+        <pre class="mermaid">
+flowchart TD
+    subgraph Europe["🌍 ヨーロッパリージョン"]
+        subgraph NewRegions["🆕 今回追加"]
+            direction LR
+            Ireland["💻 eu-west-1<br/>Europe Ireland"]
+            London["💻 eu-west-2<br/>Europe London"]
+            Ireland ~~~ London
+        end
+
+        subgraph ExistingEU["✅ 既存対応"]
+            direction LR
+            Frankfurt["💻 eu-central-1<br/>Europe Frankfurt"]
+            Paris["💻 eu-west-3<br/>Europe Paris"]
+            Spain["💻 eu-south-2<br/>Europe Spain"]
+            Frankfurt ~~~ Paris ~~~ Spain
+        end
+    end
+
+    subgraph Processor["⚙️ プロセッサ"]
+        Xeon6["🔧 カスタム Intel Xeon 6<br/>3.9 GHz 全コアターボ"]
+    end
+
+    subgraph Workloads["📊 汎用ワークロード"]
+        direction LR
+        Web["🌐 Web/App サーバ"]
+        DB["🗄️ PostgreSQL<br/>最大 30% 高速化"]
+        AI["🤖 AI/ML 推論<br/>最大 40% 高速化"]
+        Web ~~~ DB ~~~ AI
+    end
+
+    Xeon6 -.->|パワー| NewRegions
+    Xeon6 -.->|パワー| ExistingEU
+    NewRegions --> Workloads
+    ExistingEU --> Workloads
+
+    classDef newRegion fill:#E8F5E9,stroke:#66BB6A,stroke-width:2px,color:#1B5E20
+    classDef existingRegion fill:#E3F2FD,stroke:#BBDEFB,stroke-width:2px,color:#1565C0
+    classDef processor fill:#F3E5F5,stroke:#7B61FF,stroke-width:2px,color:#4A148C
+    classDef workload fill:#FFF3E0,stroke:#FF9800,stroke-width:2px,color:#E65100
+    classDef group fill:none,stroke:#CCCCCC,stroke-width:2px,color:#666666
+
+    class Ireland,London newRegion
+    class Frankfurt,Paris,Spain existingRegion
+    class Xeon6 processor
+    class Web,DB,AI workload
+    class Europe,NewRegions,ExistingEU,Processor,Workloads group
+        </pre>
+      </div>
+    </div>
+
+    <!-- Key Features -->
+    <div class="section">
+      <h2>🚀 主要機能</h2>
+
+      <div class="card">
+        <div class="card-title">📦 M8i-flex インスタンス</div>
+        <p>コンピューティングリソースを完全に活用しない汎用ワークロードに最適。Web/App サーバ、マイクロサービス、中小規模データストア、仮想デスクトップ、エンタープライズアプリに対応。large ~ 16xlarge の最も一般的なサイズを提供。</p>
+      </div>
+
+      <div class="card">
+        <div class="card-title">💪 M8i インスタンス</div>
+        <p>すべての汎用ワークロードに最適。最大のインスタンスサイズや継続的な高 CPU 使用率が必要なワークロードに適合。SAP 認定で、2 つのベアメタルサイズを含む 13 サイズを提供。最大 96xlarge まで対応。</p>
+      </div>
+
+      <div class="card">
+        <div class="card-title">⚡ パフォーマンス向上</div>
+        <p>前世代比で最大 <span class="highlight">15%</span> 優れた価格パフォーマンス、<span class="highlight">2.5 倍</span>のメモリ帯域幅を実現。M7i/M7i-flex と比較して最大 <span class="highlight">20%</span> 高いパフォーマンス。</p>
+      </div>
+    </div>
+
+    <!-- Performance Comparison -->
+    <div class="section">
+      <h2>📊 ワークロード別パフォーマンス向上</h2>
+      <div class="stats-row">
+        <div class="stat-card">
+          <span class="stat-value">30%</span>
+          <div class="stat-label">🗄 PostgreSQL 高速化</div>
+        </div>
+        <div class="stat-card">
+          <span class="stat-value">60%</span>
+          <div class="stat-label">🌐 NGINX 高速化</div>
+        </div>
+        <div class="stat-card">
+          <span class="stat-value">40%</span>
+          <div class="stat-label">🤖 AI/ML 推論 高速化</div>
+        </div>
+        <div class="stat-card">
+          <span class="stat-value">4.6x</span>
+          <div class="stat-label">L3 キャッシュ増加</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Technical Specs -->
+    <div class="section">
+      <h2>🔧 技術仕様</h2>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>項目</th>
+              <th>M8i-flex</th>
+              <th>M8i</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>プロセッサ</td>
+              <td>カスタム Intel Xeon 6 (AWS 専用)</td>
+              <td>カスタム Intel Xeon 6 (AWS 専用)</td>
+            </tr>
+            <tr>
+              <td>ターボ周波数</td>
+              <td>3.9 GHz (全コア)</td>
+              <td>3.9 GHz (全コア)</td>
+            </tr>
+            <tr>
+              <td>メモリタイプ</td>
+              <td>DDR5 7200MT/s</td>
+              <td>DDR5 7200MT/s</td>
+            </tr>
+            <tr>
+              <td>サイズ</td>
+              <td>large ~ 16xlarge</td>
+              <td>13 サイズ (2 ベアメタル + 96xlarge)</td>
+            </tr>
+            <tr>
+              <td>ネットワーク帯域幅</td>
+              <td>最大 30 Gbps</td>
+              <td>最大 100 Gbps</td>
+            </tr>
+            <tr>
+              <td>EBS 帯域幅</td>
+              <td>最大 20 Gbps</td>
+              <td>最大 80 Gbps</td>
+            </tr>
+            <tr>
+              <td>L3 キャッシュ</td>
+              <td>前世代比 4.6 倍</td>
+              <td>前世代比 4.6 倍</td>
+            </tr>
+            <tr>
+              <td>SAP 認定</td>
+              <td>-</td>
+              <td>あり</td>
+            </tr>
+            <tr>
+              <td>EFA サポート</td>
+              <td>-</td>
+              <td>48xlarge, 96xlarge, metal</td>
+            </tr>
+            <tr>
+              <td>最適なワークロード</td>
+              <td>リソースを完全に活用しないアプリ</td>
+              <td>大規模/継続的な高 CPU 使用率アプリ</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>パフォーマンス比較</h3>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>指標</th>
+              <th>vs M7i/M7i-flex</th>
+              <th>vs 前世代 Intel</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>全体パフォーマンス</td>
+              <td>最大 20% 向上</td>
+              <td>最大 15% 優れた価格パフォーマンス</td>
+            </tr>
+            <tr>
+              <td>メモリ帯域幅</td>
+              <td>-</td>
+              <td>2.5 倍</td>
+            </tr>
+            <tr>
+              <td>PostgreSQL</td>
+              <td>最大 30% 高速化</td>
+              <td>-</td>
+            </tr>
+            <tr>
+              <td>NGINX</td>
+              <td>最大 60% 高速化</td>
+              <td>-</td>
+            </tr>
+            <tr>
+              <td>AI/ML 推奨モデル</td>
+              <td>最大 40% 高速化</td>
+              <td>-</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Setup -->
+    <div class="section">
+      <h2>⚙ 設定方法</h2>
+
+      <h3>前提条件</h3>
+      <div class="check-item"><span class="check-icon">✓</span> AWS アカウントと適切な IAM 権限</div>
+      <div class="check-item"><span class="check-icon">✓</span> 対象リージョン (eu-west-1 または eu-west-2) へのアクセス</div>
+      <div class="check-item"><span class="check-icon">✓</span> 必要な VPC およびサブネット設定</div>
+
+      <h3>Step 1: 利用可能なインスタンスタイプを確認</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash</span>
+          <span class="code-title">M8i インスタンスタイプ確認</span>
+        </div>
+        <pre><code class="language-bash"># Europe (Ireland) で利用可能な M8i インスタンスタイプを確認
+aws ec2 describe-instance-types \
+  --filters "Name=instance-type,Values=m8i*" \
+  --region eu-west-1 \
+  --query "InstanceTypes[].{Type:InstanceType,vCPU:VCpuInfo.DefaultVCpus,Memory:MemoryInfo.SizeInMiB}" \
+  --output table</code></pre>
+      </div>
+
+      <h3>Step 2: M8i-flex インスタンスを起動</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash</span>
+          <span class="code-title">M8i-flex インスタンス起動</span>
+        </div>
+        <pre><code class="language-bash"># AWS CLI を使用して M8i-flex インスタンスを起動
+aws ec2 run-instances \
+  --image-id ami-xxxxxxxxxxxxxxxxx \
+  --instance-type m8i-flex.xlarge \
+  --region eu-west-1 \
+  --subnet-id subnet-xxxxxxxxxxxxxxxxx \
+  --security-group-ids sg-xxxxxxxxxxxxxxxxx \
+  --key-name my-key-pair</code></pre>
+      </div>
+
+      <h3>Step 3: 購入オプションを選択</h3>
+      <div class="purchase-grid">
+        <div class="purchase-item"><strong>オンデマンド</strong>使用した分だけ支払い</div>
+        <div class="purchase-item"><strong>Savings Plans</strong>1 年/3 年コミットメントで割引</div>
+        <div class="purchase-item"><strong>リザーブドインスタンス</strong>1 年/3 年コミットメントで割引</div>
+        <div class="purchase-item"><strong>スポットインスタンス</strong>未使用容量を大幅割引で利用</div>
+      </div>
+    </div>
+
+    <!-- Merits -->
+    <div class="section">
+      <h2>✅ メリット</h2>
+
+      <h3>ビジネス面</h3>
+      <div class="feature-grid">
+        <div class="merit-card">
+          <div class="card-title">💰 コスト効率の向上</div>
+          <p style="font-size:14px">前世代比最大 15% 優れた価格パフォーマンスで汎用ワークロードのコンピューティングコストを削減</p>
+        </div>
+        <div class="merit-card">
+          <div class="card-title">🇪🇺 ヨーロッパ展開強化</div>
+          <p style="font-size:14px">Ireland / London の追加で GDPR 準拠を維持しながら最新世代インスタンスを利用可能</p>
+        </div>
+        <div class="merit-card">
+          <div class="card-title">📐 柔軟なサイジング</div>
+          <p style="font-size:14px">M8i-flex は large ~ 16xlarge、M8i は最大 96xlarge まで、ワークロードに最適なサイズを選択可能</p>
+        </div>
+      </div>
+
+      <h3>技術面</h3>
+      <div class="feature-grid">
+        <div class="merit-card">
+          <div class="card-title">🔧 高性能プロセッサ</div>
+          <p style="font-size:14px">AWS 専用カスタム Intel Xeon 6 (3.9 GHz 全コアターボ) による最高のパフォーマンス</p>
+        </div>
+        <div class="merit-card">
+          <div class="card-title">⚡ メモリ帯域幅向上</div>
+          <p style="font-size:14px">DDR5 7200MT/s により前世代比 2.5 倍のメモリ帯域幅を実現</p>
+        </div>
+        <div class="merit-card">
+          <div class="card-title">🧠 4.6 倍の L3 キャッシュ</div>
+          <p style="font-size:14px">CPU ベース推論、科学計算、DB ワークロードのレイテンシーを大幅改善</p>
+        </div>
+        <div class="merit-card">
+          <div class="card-title">🤖 拡張アクセラレータ</div>
+          <p style="font-size:14px">Intel AMX (FP16 対応) により CPU ベースの推論ワークロードの範囲が拡大</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Demerits -->
+    <div class="section">
+      <h2>⚠ デメリット・制約事項</h2>
+      <div class="feature-grid">
+        <div class="demerit-card">
+          <div class="card-title">🌍 リージョン制限</div>
+          <p style="font-size:14px">すべての AWS リージョンで利用可能ではない (ヨーロッパでは 5 リージョンで提供)</p>
+        </div>
+        <div class="demerit-card">
+          <div class="card-title">📏 M8i-flex サイズ制限</div>
+          <p style="font-size:14px">large ~ 16xlarge に限定。それ以上のサイズが必要な場合は M8i を選択</p>
+        </div>
+        <div class="demerit-card">
+          <div class="card-title">🔄 移行テストが必要</div>
+          <p style="font-size:14px">既存ワークロードの移行にはアプリケーションの互換性テストが必要</p>
+        </div>
+        <div class="demerit-card">
+          <div class="card-title">💡 選択の考慮</div>
+          <p style="font-size:14px">継続的な高 CPU 使用率が必要な場合は M8i-flex ではなく M8i を選択すべき</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Use Cases -->
+    <div class="section">
+      <h2>💡 ユースケース</h2>
+
+      <div class="usecase">
+        <div class="usecase-title">🌐 ユースケース 1: ヨーロッパ向け Web アプリケーションサーバ</div>
+        <p>ヨーロッパのユーザーを対象とした SaaS プロバイダが、GDPR 準拠を維持しながらアプリケーションのパフォーマンスを最適化。Europe (Ireland) で M8i-flex.4xlarge を使用。</p>
+        <div class="effect">✅ NGINX ワークロードで最大 60% のパフォーマンス向上。M7i-flex と比較してインスタンス数を削減しコスト最適化。</div>
+      </div>
+
+      <div class="usecase">
+        <div class="usecase-title">🗄 ユースケース 2: PostgreSQL データベースサーバ</div>
+        <p>金融サービス企業がヨーロッパリージョンで運用する PostgreSQL データベースのクエリパフォーマンスを改善。Europe (London) で M8i.8xlarge を使用。</p>
+        <div class="effect">✅ PostgreSQL で最大 30% の高速化。DDR5 7200MT/s による 2.5 倍のメモリ帯域幅でスループットを大幅向上。</div>
+      </div>
+
+      <div class="usecase">
+        <div class="usecase-title">🏭 ユースケース 3: SAP ワークロード</div>
+        <p>製造業企業がヨーロッパリージョンで SAP S/4HANA を運用。SAP 認定の M8i.24xlarge インスタンスに移行して性能を向上。</p>
+        <div class="effect">✅ M7i 比最大 20% のパフォーマンス向上。4.6 倍の L3 キャッシュで DB ワークロードのレイテンシーを大幅改善。</div>
+      </div>
+    </div>
+
+    <!-- Pricing -->
+    <div class="section">
+      <h2>💰 料金</h2>
+      <p>M8i / M8i-flex インスタンスの料金は、インスタンスタイプ、リージョン、購入オプションによって異なります。前世代の Intel ベースインスタンスと比較して最大 <span class="highlight">15% 優れた価格パフォーマンス</span>を提供します。</p>
+      <p>Savings Plans やリザーブドインスタンスを活用することで、さらなるコスト削減が可能です。最新の料金については公式料金ページをご確認ください。</p>
+    </div>
+
+    <!-- Regions -->
+    <div class="section">
+      <h2>🌍 利用可能リージョン</h2>
+
+      <h3>🆕 今回追加 (2026 年 3 月 12 日)</h3>
+      <div class="region-tags">
+        <span class="region-tag region-new">eu-west-1 Europe Ireland</span>
+        <span class="region-tag region-new">eu-west-2 Europe London</span>
+      </div>
+
+      <h3>既存対応リージョン</h3>
+      <div class="region-tags">
+        <span class="region-tag region-existing">us-east-1 N. Virginia</span>
+        <span class="region-tag region-existing">us-east-2 Ohio</span>
+        <span class="region-tag region-existing">us-west-2 Oregon</span>
+        <span class="region-tag region-existing">us-west-1 N. California</span>
+        <span class="region-tag region-existing">eu-central-1 Frankfurt</span>
+        <span class="region-tag region-existing">eu-west-3 Paris</span>
+        <span class="region-tag region-existing">eu-south-2 Spain</span>
+        <span class="region-tag region-existing">ap-northeast-1 Tokyo</span>
+        <span class="region-tag region-existing">ap-northeast-2 Seoul</span>
+        <span class="region-tag region-existing">ap-southeast-1 Singapore</span>
+        <span class="region-tag region-existing">ap-southeast-5 Kuala Lumpur</span>
+        <span class="region-tag region-existing">ap-south-2 Hyderabad</span>
+        <span class="region-tag region-existing">af-south-1 Cape Town</span>
+        <span class="region-tag region-existing">ca-central-1 Canada Central</span>
+        <span class="region-tag region-existing">sa-east-1 Sao Paulo</span>
+      </div>
+    </div>
+
+    <!-- Related Services -->
+    <div class="section">
+      <h2>🔗 関連サービス</h2>
+      <div class="feature-grid">
+        <div class="card">
+          <div class="card-title">📈 EC2 Auto Scaling</div>
+          <p>M8i/M8i-flex の自動スケーリングで需要に応じたキャパシティ調整</p>
+        </div>
+        <div class="card">
+          <div class="card-title">⚖ Elastic Load Balancing</div>
+          <p>複数の M8i/M8i-flex インスタンス間での負荷分散</p>
+        </div>
+        <div class="card">
+          <div class="card-title">💰 AWS Savings Plans</div>
+          <p>1 年/3 年コミットメントで M8i インスタンスのコストを削減</p>
+        </div>
+        <div class="card">
+          <div class="card-title">📊 Amazon CloudWatch</div>
+          <p>M8i インスタンスのパフォーマンスメトリクスを監視</p>
+        </div>
+        <div class="card">
+          <div class="card-title">🔌 Elastic Fabric Adapter</div>
+          <p>M8i の大型インスタンスで EFA をサポートし HPC に対応</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Summary -->
+    <div class="section">
+      <h2>📝 まとめ</h2>
+      <p>Amazon EC2 M8i / M8i-flex インスタンスが Europe Ireland / London で利用可能になり、ヨーロッパにおける M8i/M8i-flex の展開が <span class="highlight">5 リージョン</span>に拡大しました。カスタム Intel Xeon 6 プロセッサによる最大 20% のパフォーマンス向上と 2.5 倍のメモリ帯域幅に加え、PostgreSQL で最大 30% 高速化、NGINX で最大 60% 高速化といったワークロード別の大幅な性能向上を、ヨーロッパの主要 2 リージョンで活用できるようになりました。</p>
+      <p><strong style="color: var(--aws-orange);">GDPR 準拠が必要なヨーロッパのワークロードで、M7i からの移行を検討してください。</strong></p>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+      <p>📎 出典:</p>
+      <ul style="margin: 4px 0 0 0; padding-left: 20px; list-style: none;">
+        <li style="margin-bottom: 4px;">- <a href="https://aws.amazon.com/about-aws/whats-new/2026/03/amazon-ec2-m8i-m8i-flex-additional-regions/" target="_blank" rel="noopener noreferrer" class="aws-link">公式発表 (What's New)</a></li>
+        <li style="margin-bottom: 4px;">- <a href="https://aws.amazon.com/ec2/instance-types/m8i/" target="_blank" rel="noopener noreferrer" class="aws-link">M8i インスタンス製品ページ</a></li>
+        <li style="margin-bottom: 4px;">- <a href="https://aws.amazon.com/ec2/pricing/" target="_blank" rel="noopener noreferrer" class="aws-link">Amazon EC2 料金ページ</a></li>
+        <li style="margin-bottom: 4px;">- <a href="https://docs.aws.amazon.com/ec2/" target="_blank" rel="noopener noreferrer" class="aws-link">Amazon EC2 ドキュメント</a></li>
+      </ul>
+      <p style="margin-top: 12px; color: rgba(213,219,219,0.5); font-size: 11px;">Generated on 2026-03-12</p>
+    </footer>
+
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'base',
+      themeVariables: {
+        primaryColor: '#FF9900',
+        primaryTextColor: '#232F3E',
+        primaryBorderColor: '#FF9900',
+        lineColor: '#FF9900',
+        secondaryColor: '#F5F5F5',
+        tertiaryColor: '#FAFAFA',
+        background: '#FFFFFF',
+        mainBkg: '#FFF3E0',
+        nodeBorder: '#FF9900',
+        clusterBkg: '#FFF8E1',
+        clusterBorder: '#FF9900',
+        edgeLabelBackground: '#FFFFFF',
+        textColor: '#232F3E'
+      }
+    });
+  </script>
+  <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/highlight.min.js"></script>
+  <script>hljs.highlightAll();</script>
+</body>
+</html>

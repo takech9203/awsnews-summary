@@ -1,0 +1,1002 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Amazon Neptune Database - Asia Pacific (Hyderabad) リージョンで利用可能に</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap');
+
+        :root {
+            --aws-squid-ink: #232F3E;
+            --aws-dark-squid: #1A242F;
+            --aws-orange: #FF9900;
+            --aws-smile-orange: #FFAD33;
+            --aws-white: #FFFFFF;
+            --aws-light-gray: #D5DBDB;
+            --aws-teal: #00A1C9;
+            --aws-purple: #8C4FFF;
+            --aws-green: #1D8102;
+            --aws-red: #D13212;
+        }
+
+        body {
+            background-color: var(--aws-squid-ink);
+            font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            color: var(--aws-light-gray);
+            font-size: 16px;
+            line-height: 1.6;
+            padding: 20px;
+            margin: 0;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 32px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .header-left {
+            flex: 1;
+            min-width: 280px;
+        }
+
+        .service-badge {
+            display: inline-block;
+            background: var(--aws-orange);
+            color: var(--aws-squid-ink);
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        h1 {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--aws-white);
+            margin: 0 0 8px 0;
+            line-height: 1.3;
+        }
+
+        .subtitle {
+            font-size: 16px;
+            color: var(--aws-light-gray);
+        }
+
+        .header-meta {
+            text-align: right;
+            font-size: 14px;
+            color: var(--aws-light-gray);
+            white-space: nowrap;
+        }
+
+        h2 {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--aws-orange);
+            margin: 0 0 16px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        h3 {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--aws-white);
+            margin: 16px 0 10px 0;
+        }
+
+        .section {
+            background: var(--aws-dark-squid);
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .highlight {
+            background-color: rgba(255, 153, 0, 0.2);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+            color: var(--aws-orange);
+        }
+
+        .card {
+            background: var(--aws-dark-squid);
+            border-radius: 8px;
+            padding: 16px;
+            margin: 12px 0;
+            border: 1px solid rgba(255, 153, 0, 0.3);
+        }
+
+        .icon-text {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            margin: 8px 0;
+            color: var(--aws-light-gray);
+        }
+
+        .aws-link {
+            color: var(--aws-teal);
+            text-decoration: none;
+        }
+
+        .aws-link:hover {
+            color: var(--aws-smile-orange);
+        }
+
+        /* Before/After */
+        .before-after {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin: 16px 0;
+        }
+
+        .before-card {
+            background: rgba(209, 50, 18, 0.1);
+            border: 1px solid rgba(209, 50, 18, 0.4);
+            border-radius: 8px;
+            padding: 16px;
+        }
+
+        .before-card .label {
+            color: var(--aws-red);
+            font-weight: 700;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .after-card {
+            background: rgba(29, 129, 2, 0.1);
+            border: 1px solid rgba(29, 129, 2, 0.4);
+            border-radius: 8px;
+            padding: 16px;
+        }
+
+        .after-card .label {
+            color: var(--aws-green);
+            font-weight: 700;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .before-card ul, .after-card ul {
+            margin: 0;
+            padding-left: 18px;
+            font-size: 14px;
+        }
+
+        .before-card li, .after-card li {
+            margin: 4px 0;
+        }
+
+        /* Feature cards */
+        .feature-cards {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+
+        .feature-card {
+            background: var(--aws-dark-squid);
+            border-left: 4px solid var(--aws-orange);
+            border-radius: 0 8px 8px 0;
+            padding: 16px 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .feature-card-title {
+            color: var(--aws-white);
+            font-weight: 600;
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+
+        .feature-card p, .feature-card ul {
+            margin: 4px 0;
+            font-size: 14px;
+        }
+
+        .feature-card ul {
+            padding-left: 18px;
+        }
+
+        .feature-card li {
+            margin: 3px 0;
+        }
+
+        /* Instance table */
+        .instance-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+            font-size: 14px;
+        }
+
+        .instance-table th {
+            background: rgba(255, 153, 0, 0.2);
+            color: var(--aws-orange);
+            padding: 10px 14px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid var(--aws-orange);
+        }
+
+        .instance-table td {
+            padding: 10px 14px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .instance-table tr:hover td {
+            background: rgba(255, 153, 0, 0.05);
+        }
+
+        /* Query language table */
+        .query-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+            font-size: 14px;
+        }
+
+        .query-table th {
+            background: rgba(140, 79, 255, 0.15);
+            color: var(--aws-purple);
+            padding: 10px 14px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid var(--aws-purple);
+        }
+
+        .query-table td {
+            padding: 10px 14px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        /* Use case cards */
+        .usecase-card {
+            background: rgba(255, 153, 0, 0.08);
+            border: 1px solid rgba(255, 153, 0, 0.25);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 12px 0;
+        }
+
+        .usecase-card-title {
+            color: var(--aws-orange);
+            font-weight: 600;
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+
+        .usecase-scenario {
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .usecase-effect {
+            font-size: 14px;
+            color: var(--aws-teal);
+        }
+
+        /* Stat cards */
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin: 16px 0;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, rgba(255, 153, 0, 0.15), rgba(255, 153, 0, 0.05));
+            border: 1px solid rgba(255, 153, 0, 0.3);
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 36px;
+            font-weight: 700;
+            color: var(--aws-orange);
+            line-height: 1.1;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: var(--aws-light-gray);
+            margin-top: 6px;
+        }
+
+        /* Merit / Demerit */
+        .merit-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin: 16px 0;
+        }
+
+        .merit-section h3 {
+            color: var(--aws-green);
+        }
+
+        .demerit-section h3 {
+            color: var(--aws-red);
+        }
+
+        .merit-item, .demerit-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            margin: 8px 0;
+            font-size: 14px;
+        }
+
+        .merit-icon {
+            color: var(--aws-green);
+            flex-shrink: 0;
+        }
+
+        .demerit-icon {
+            color: var(--aws-red);
+            flex-shrink: 0;
+        }
+
+        /* Pricing table */
+        .pricing-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+            font-size: 14px;
+        }
+
+        .pricing-table th {
+            background: rgba(0, 161, 201, 0.15);
+            color: var(--aws-teal);
+            padding: 10px 14px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid var(--aws-teal);
+        }
+
+        .pricing-table td {
+            padding: 10px 14px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        /* Flow diagram */
+        .flow-diagram {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin: 24px 0;
+        }
+
+        .flow-step {
+            background: var(--aws-dark-squid);
+            border: 2px solid var(--aws-orange);
+            border-radius: 8px;
+            padding: 12px 20px;
+            text-align: center;
+            min-width: 100px;
+        }
+
+        .flow-arrow {
+            color: var(--aws-orange);
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        /* Code block */
+        .code-block {
+            background: #1a1a2e;
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 16px 0;
+        }
+
+        .code-header {
+            background: #16213e;
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+        }
+
+        .code-lang {
+            color: var(--aws-orange);
+            font-weight: bold;
+        }
+
+        .code-title {
+            color: var(--aws-light-gray);
+        }
+
+        .code-block pre {
+            margin: 0;
+            padding: 0;
+            overflow-x: auto;
+        }
+
+        .code-block code {
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            padding: 16px !important;
+        }
+
+        /* Related services */
+        .related-service {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            margin: 10px 0;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+        }
+
+        .related-service-icon {
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .related-service-name {
+            color: var(--aws-white);
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .related-service-desc {
+            font-size: 13px;
+            color: var(--aws-light-gray);
+        }
+
+        /* Mermaid */
+        .mermaid-container {
+            background: #FFFFFF;
+            border-radius: 12px;
+            padding: 24px;
+            margin: 20px 0;
+            border: 2px solid rgba(255, 153, 0, 0.3);
+            overflow-x: auto;
+        }
+        .mermaid {
+            display: flex;
+            justify-content: center;
+        }
+
+        /* Links list */
+        .links-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .links-list li {
+            margin: 8px 0;
+            font-size: 14px;
+        }
+
+        .links-list li::before {
+            content: "🔗 ";
+        }
+
+        footer {
+            margin-top: 24px;
+            padding-top: 16px;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            font-size: 12px;
+            color: var(--aws-light-gray);
+        }
+
+        footer a {
+            color: var(--aws-teal);
+            text-decoration: none;
+            word-break: break-all;
+        }
+
+        @media (max-width: 700px) {
+            .header {
+                flex-direction: column;
+            }
+            .header-meta {
+                text-align: left;
+            }
+            .before-after, .merit-grid {
+                grid-template-columns: 1fr;
+            }
+            .stat-grid {
+                grid-template-columns: 1fr;
+            }
+            h1 {
+                font-size: 24px;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/styles/atom-one-dark.min.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-left">
+                <span class="service-badge">Amazon Neptune</span>
+                <h1>🌏 Neptune Database<br>Asia Pacific (Hyderabad) で利用可能に</h1>
+                <div class="subtitle">インド国内 2 番目のリージョンでグラフデータベースサービスを提供開始</div>
+            </div>
+            <div class="header-meta">
+                📅 2026 年 3 月 11 日<br>
+                🌐 ap-south-2
+            </div>
+        </div>
+
+        <!-- Overview -->
+        <div class="section">
+            <h2>📋 概要</h2>
+            <p>Amazon Neptune Database が <span class="highlight">Asia Pacific (Hyderabad) リージョン (ap-south-2)</span> で利用可能になった。これにより、インド南部に拠点を持つユーザーは、より低レイテンシーでフルマネージドのグラフデータベースサービスを利用できるようになる。</p>
+            <p>Neptune は高度に接続されたデータセットを扱うアプリケーションの構築と運用を容易にするサービスであり、Property Graph モデルでは Apache TinkerPop Gremlin または openCypher、RDF モデルでは SPARQL クエリ言語をサポートする。</p>
+        </div>
+
+        <!-- Stats -->
+        <div class="stat-grid">
+            <div class="stat-card">
+                <div class="stat-number">7</div>
+                <div class="stat-label">対応インスタンスタイプ</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">3</div>
+                <div class="stat-label">サポートクエリ言語</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">2</div>
+                <div class="stat-label">インド国内リージョン</div>
+            </div>
+        </div>
+
+        <!-- Before/After -->
+        <div class="section">
+            <h2>🔄 Before / After</h2>
+            <div class="before-after">
+                <div class="before-card">
+                    <div class="label">❌ BEFORE</div>
+                    <ul>
+                        <li>インド国内は Mumbai (ap-south-1) のみで Neptune が利用可能</li>
+                        <li>データレジデンシー要件に対する選択肢が不足</li>
+                        <li>インド南部からの最適なレイテンシーを実現する手段がなかった</li>
+                    </ul>
+                </div>
+                <div class="after-card">
+                    <div class="label">✅ AFTER</div>
+                    <ul>
+                        <li>Hyderabad リージョンで Neptune クラスターを直接作成可能</li>
+                        <li>データレジデンシー要件への新たなリージョンオプション追加</li>
+                        <li>インド南部ユーザーへの低レイテンシーアクセスが実現</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Architecture Diagram -->
+        <div class="section">
+            <h2>🏗️ アーキテクチャ概要</h2>
+            <div class="mermaid-container">
+                <pre class="mermaid">
+flowchart TD
+    subgraph India["🇮🇳 インド国内 Neptune 構成"]
+        subgraph Mumbai["☁️ Mumbai ap-south-1"]
+            direction LR
+            NM[("📊 Neptune<br/>クラスター")]
+            NMR[("📊 Neptune<br/>リードレプリカ")]
+            NM ~~~ NMR
+        end
+        subgraph Hyderabad["☁️ Hyderabad ap-south-2 NEW"]
+            direction LR
+            NH[("📊 Neptune<br/>クラスター")]
+            NHR[("📊 Neptune<br/>リードレプリカ")]
+            NH ~~~ NHR
+        end
+    end
+
+    User1(["👤 北部ユーザー"]) --> NM
+    User2(["👤 南部ユーザー"]) --> NH
+    Mumbai -.->|クロスリージョン<br/>災害対策| Hyderabad
+
+    classDef cloud fill:none,stroke:#CCCCCC,stroke-width:2px,color:#666666
+    classDef region fill:none,stroke:#FF9900,stroke-width:2px,color:#666666
+    classDef newregion fill:#FFF3E0,stroke:#FF9900,stroke-width:2px,color:#666666
+    classDef database fill:#E8EAF6,stroke:#C5CAE9,stroke-width:2px,color:#283593
+    classDef user fill:#E3F2FD,stroke:#BBDEFB,stroke-width:2px,color:#1565C0
+
+    class India cloud
+    class Mumbai region
+    class Hyderabad newregion
+    class NM,NMR,NH,NHR database
+    class User1,User2 user
+                </pre>
+            </div>
+        </div>
+
+        <!-- Key Features -->
+        <div class="section">
+            <h2>⚙️ 主要機能</h2>
+            <div class="feature-cards">
+                <div class="feature-card">
+                    <div class="feature-card-title">🚀 Neptune Database の Hyderabad リージョン対応</div>
+                    <ul>
+                        <li>ap-south-2 リージョンで Neptune クラスターの作成が可能</li>
+                        <li>AWS Management Console、AWS CLI、CloudFormation テンプレートから作成可能</li>
+                        <li>既存の Neptune 機能がすべて利用可能</li>
+                    </ul>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-card-title">💻 幅広いインスタンスタイプ</div>
+                    <ul>
+                        <li>R5 / R5d: メモリ最適化 (Intel)</li>
+                        <li>R6g: メモリ最適化 (Graviton2) - コスト効率に優れた選択肢</li>
+                        <li>R6i: メモリ最適化 (第 3 世代 Intel Xeon)</li>
+                        <li>X2iedn: 大容量メモリ (Intel)</li>
+                        <li>T4g / T3: バースト可能 (開発・テスト向け)</li>
+                    </ul>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-card-title">🔒 エンタープライズ機能</div>
+                    <ul>
+                        <li>高可用性構成のサポート</li>
+                        <li>自動バックアップ</li>
+                        <li>ネットワーク分離によるセキュリティ</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Instance Types Table -->
+        <div class="section">
+            <h2>📊 対応インスタンスタイプ</h2>
+            <table class="instance-table">
+                <thead>
+                    <tr>
+                        <th>インスタンスファミリー</th>
+                        <th>プロセッサ</th>
+                        <th>用途</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>R5 / R5d</td>
+                        <td>Intel Xeon Platinum</td>
+                        <td>メモリ最適化ワークロード</td>
+                    </tr>
+                    <tr>
+                        <td>R6g</td>
+                        <td>AWS Graviton2</td>
+                        <td>コスト効率の高いメモリ最適化ワークロード</td>
+                    </tr>
+                    <tr>
+                        <td>R6i</td>
+                        <td>第 3 世代 Intel Xeon</td>
+                        <td>メモリ最適化ワークロード</td>
+                    </tr>
+                    <tr>
+                        <td>X2iedn</td>
+                        <td>Intel Xeon</td>
+                        <td>大容量メモリワークロード</td>
+                    </tr>
+                    <tr>
+                        <td>T4g</td>
+                        <td>AWS Graviton2</td>
+                        <td>開発・テスト環境向けバースト可能</td>
+                    </tr>
+                    <tr>
+                        <td>T3</td>
+                        <td>Intel Xeon</td>
+                        <td>開発・テスト環境向けバースト可能</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Query Languages -->
+        <div class="section">
+            <h2>🔍 サポートされるクエリ言語</h2>
+            <table class="query-table">
+                <thead>
+                    <tr>
+                        <th>クエリ言語</th>
+                        <th>データモデル</th>
+                        <th>用途</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Apache TinkerPop Gremlin</td>
+                        <td>Property Graph</td>
+                        <td>グラフトラバーサルクエリ</td>
+                    </tr>
+                    <tr>
+                        <td>openCypher</td>
+                        <td>Property Graph</td>
+                        <td>宣言的グラフクエリ</td>
+                    </tr>
+                    <tr>
+                        <td>SPARQL</td>
+                        <td>W3C RDF</td>
+                        <td>セマンティックデータクエリ</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Setup -->
+        <div class="section">
+            <h2>🛠️ 設定方法</h2>
+
+            <h3>前提条件</h3>
+            <div class="icon-text">✓ AWS アカウントを持っていること</div>
+            <div class="icon-text">✓ ap-south-2 リージョンへのアクセス権限があること</div>
+            <div class="icon-text">✓ VPC とサブネットが ap-south-2 リージョンに作成済みであること</div>
+
+            <h3>ステップ 1: Neptune クラスターの作成</h3>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Bash</span>
+                    <span class="code-title">AWS CLI - クラスター作成</span>
+                </div>
+                <pre><code class="language-bash">aws neptune create-db-cluster \
+  --db-cluster-identifier my-neptune-cluster \
+  --engine neptune \
+  --region ap-south-2</code></pre>
+            </div>
+
+            <h3>ステップ 2: Neptune インスタンスの追加</h3>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Bash</span>
+                    <span class="code-title">AWS CLI - インスタンス追加</span>
+                </div>
+                <pre><code class="language-bash">aws neptune create-db-instance \
+  --db-instance-identifier my-neptune-instance \
+  --db-cluster-identifier my-neptune-cluster \
+  --db-instance-class db.r6g.large \
+  --engine neptune \
+  --region ap-south-2</code></pre>
+            </div>
+            <p style="font-size: 14px; color: var(--aws-light-gray);">Graviton2 ベースの R6g はコスト効率に優れた選択肢。</p>
+
+            <h3>ステップ 3: CloudFormation テンプレートによるクイックスタート</h3>
+            <p style="font-size: 14px;">AWS が提供する <a href="https://docs.aws.amazon.com/neptune/latest/userguide/get-started-create-cluster.html#get-started-cfn-create" target="_blank" class="aws-link">クイックスタート CloudFormation テンプレート</a> を使用して、VPC、サブネット、Neptune クラスターを一括でデプロイすることも可能。</p>
+
+            <!-- Setup flow -->
+            <div class="flow-diagram">
+                <div class="flow-step">🌐 リージョン選択<br><small>ap-south-2</small></div>
+                <span class="flow-arrow">→</span>
+                <div class="flow-step">🗄️ クラスター作成</div>
+                <span class="flow-arrow">→</span>
+                <div class="flow-step">💻 インスタンス追加<br><small>db.r6g.large</small></div>
+                <span class="flow-arrow">→</span>
+                <div class="flow-step">✅ 利用開始</div>
+            </div>
+        </div>
+
+        <!-- Benefits & Limitations -->
+        <div class="section">
+            <h2>⚖️ メリット・デメリット</h2>
+            <div class="merit-grid">
+                <div class="merit-section">
+                    <h3>✅ メリット</h3>
+
+                    <p style="font-size: 13px; color: var(--aws-orange); font-weight: 600; margin: 12px 0 4px;">ビジネス面</p>
+                    <div class="merit-item">
+                        <span class="merit-icon">✓</span>
+                        <span><strong>データレジデンシーの充実</strong>: インド国内での追加リージョンオプション</span>
+                    </div>
+                    <div class="merit-item">
+                        <span class="merit-icon">✓</span>
+                        <span><strong>レイテンシー改善</strong>: Hyderabad 近郊ユーザーへの高速レスポンス</span>
+                    </div>
+                    <div class="merit-item">
+                        <span class="merit-icon">✓</span>
+                        <span><strong>災害対策の強化</strong>: Mumbai とのクロスリージョン構成が可能</span>
+                    </div>
+
+                    <p style="font-size: 13px; color: var(--aws-orange); font-weight: 600; margin: 12px 0 4px;">技術面</p>
+                    <div class="merit-item">
+                        <span class="merit-icon">✓</span>
+                        <span><strong>幅広いインスタンス選択</strong>: R5、R6g、X2iedn など多様なタイプ</span>
+                    </div>
+                    <div class="merit-item">
+                        <span class="merit-icon">✓</span>
+                        <span><strong>Graviton2 対応</strong>: R6g / T4g でコスト効率の高い運用</span>
+                    </div>
+                    <div class="merit-item">
+                        <span class="merit-icon">✓</span>
+                        <span><strong>フルマネージド運用</strong>: 高可用性、自動バックアップ、ネットワーク分離</span>
+                    </div>
+                </div>
+                <div class="demerit-section">
+                    <h3>⚠️ 制限事項・注意点</h3>
+
+                    <p style="font-size: 13px; color: var(--aws-red); font-weight: 600; margin: 12px 0 4px;">制限事項</p>
+                    <div class="demerit-item">
+                        <span class="demerit-icon">!</span>
+                        <span>Hyderabad リージョンは一部 AWS サービスが未対応の場合がある</span>
+                    </div>
+                    <div class="demerit-item">
+                        <span class="demerit-icon">!</span>
+                        <span>R7g など最新世代インスタンスタイプは現時点で未対応</span>
+                    </div>
+                    <div class="demerit-item">
+                        <span class="demerit-icon">!</span>
+                        <span>Neptune Serverless の Hyderabad 対応状況は要確認</span>
+                    </div>
+
+                    <p style="font-size: 13px; color: var(--aws-red); font-weight: 600; margin: 12px 0 4px;">考慮すべき点</p>
+                    <div class="demerit-item">
+                        <span class="demerit-icon">!</span>
+                        <span>Mumbai からの移行にはスナップショットコピーとクラスター再作成が必要</span>
+                    </div>
+                    <div class="demerit-item">
+                        <span class="demerit-icon">!</span>
+                        <span>リージョン間のデータ転送には転送料金が発生</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Use Cases -->
+        <div class="section">
+            <h2>💡 ユースケース</h2>
+
+            <div class="usecase-card">
+                <div class="usecase-card-title">🏦 ユースケース 1: インド国内でのマルチリージョン災害対策</div>
+                <div class="usecase-scenario"><strong>シナリオ</strong>: インドの金融機関が、不正検知のためのグラフデータベースを Mumbai リージョンで運用しており、インド国内でのリージョン冗長性を確保したい。</div>
+                <div class="usecase-effect">→ Mumbai (ap-south-1) と Hyderabad (ap-south-2) の 2 リージョンを活用し、リージョンレベルの冗長性を実現。</div>
+            </div>
+
+            <div class="usecase-card">
+                <div class="usecase-card-title">🏢 ユースケース 2: Hyderabad 拠点企業のグラフアプリケーション</div>
+                <div class="usecase-scenario"><strong>シナリオ</strong>: Hyderabad に拠点を持つ IT 企業が、ソーシャルネットワーク分析やナレッジグラフを活用したアプリケーションを構築する。</div>
+                <div class="usecase-effect">→ ローカルリージョンを使用することで、ネットワークレイテンシーを最小化し、ユーザー体験を向上。</div>
+            </div>
+
+            <div class="usecase-card">
+                <div class="usecase-card-title">📋 ユースケース 3: データレジデンシー要件への対応</div>
+                <div class="usecase-scenario"><strong>シナリオ</strong>: インド国内の規制要件により、特定のデータをインド国内の特定地域に保持する必要がある組織が、Hyderabad リージョンを選択する。</div>
+                <div class="usecase-effect">→ 追加のリージョンオプションにより、より細かいデータ配置の制御が可能に。</div>
+            </div>
+        </div>
+
+        <!-- Pricing -->
+        <div class="section">
+            <h2>💰 料金</h2>
+            <p>Neptune Database の料金はインスタンスタイプ、ストレージ、I/O リクエスト、バックアップストレージに基づく。Hyderabad リージョンの具体的な料金は <a href="https://aws.amazon.com/neptune/pricing/" target="_blank" class="aws-link">Neptune 料金ページ</a> を参照。</p>
+            <table class="pricing-table">
+                <thead>
+                    <tr>
+                        <th>項目</th>
+                        <th>説明</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>インスタンス料金</td>
+                        <td>選択したインスタンスタイプに基づく時間課金</td>
+                    </tr>
+                    <tr>
+                        <td>ストレージ料金</td>
+                        <td>使用したストレージ容量に基づく GB 単位の課金</td>
+                    </tr>
+                    <tr>
+                        <td>I/O 料金</td>
+                        <td>I/O リクエスト数に基づく課金</td>
+                    </tr>
+                    <tr>
+                        <td>バックアップストレージ</td>
+                        <td>クラスターボリュームサイズを超えるバックアップに対する課金</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Region -->
+        <div class="section">
+            <h2>🌐 利用可能リージョン</h2>
+            <p>今回のアップデートにより、<span class="highlight">Asia Pacific (Hyderabad) (ap-south-2)</span> リージョンで Neptune Database が利用可能に。Neptune の全リージョン対応状況は <a href="https://aws.amazon.com/about-aws/global-infrastructure/regional-product-services/" target="_blank" class="aws-link">AWS リージョン表</a> を参照。</p>
+        </div>
+
+        <!-- Related Services -->
+        <div class="section">
+            <h2>🔗 関連サービス・機能</h2>
+            <div class="related-service">
+                <span class="related-service-icon">📈</span>
+                <div>
+                    <div class="related-service-name">Amazon Neptune Analytics</div>
+                    <div class="related-service-desc">グラフ分析とベクトル検索のための分析データベースエンジン</div>
+                </div>
+            </div>
+            <div class="related-service">
+                <span class="related-service-icon">⚡</span>
+                <div>
+                    <div class="related-service-name">Amazon Neptune Serverless</div>
+                    <div class="related-service-desc">需要に応じて自動的にスケーリングするサーバーレスオプション</div>
+                </div>
+            </div>
+            <div class="related-service">
+                <span class="related-service-icon">🔄</span>
+                <div>
+                    <div class="related-service-name">AWS Database Migration Service (DMS)</div>
+                    <div class="related-service-desc">既存のデータベースから Neptune へのデータ移行をサポート</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reference Links -->
+        <div class="section">
+            <h2>📎 参考リンク</h2>
+            <ul class="links-list">
+                <li><a href="https://aws.amazon.com/about-aws/whats-new/2026/03/amazon-neptune-hyderabad/" target="_blank" class="aws-link">公式発表 (What's New)</a></li>
+                <li><a href="https://docs.aws.amazon.com/neptune/latest/userguide/" target="_blank" class="aws-link">Amazon Neptune ドキュメント</a></li>
+                <li><a href="https://aws.amazon.com/neptune/pricing/" target="_blank" class="aws-link">料金ページ</a></li>
+                <li><a href="https://aws.amazon.com/about-aws/global-infrastructure/regional-product-services/" target="_blank" class="aws-link">AWS リージョン表</a></li>
+                <li><a href="https://docs.aws.amazon.com/neptune/latest/userguide/get-started-create-cluster.html" target="_blank" class="aws-link">Neptune クイックスタートガイド</a></li>
+            </ul>
+        </div>
+
+        <!-- Summary -->
+        <div class="section" style="border: 1px solid rgba(255, 153, 0, 0.4); background: linear-gradient(135deg, var(--aws-dark-squid), rgba(255, 153, 0, 0.05));">
+            <h2>📝 まとめ</h2>
+            <p>Amazon Neptune Database が Asia Pacific (Hyderabad) リージョンで利用可能になったことで、インド国内のユーザーにとってリージョン選択の幅が広がった。特に Hyderabad 近郊に拠点を持つ企業や、データレジデンシー要件への対応が必要な組織にとって有用なアップデートである。</p>
+            <p>Neptune を Hyderabad リージョンで使用するには、AWS Management Console、AWS CLI、または CloudFormation テンプレートからクラスターを作成することで開始できる。</p>
+        </div>
+
+        <!-- Footer -->
+        <footer>
+            <p>📎 出典: <a href="https://aws.amazon.com/about-aws/whats-new/2026/03/amazon-neptune-hyderabad/" target="_blank" rel="noopener noreferrer">https://aws.amazon.com/about-aws/whats-new/2026/03/amazon-neptune-hyderabad/</a></p>
+        </footer>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'base',
+            themeVariables: {
+                primaryColor: '#FF9900',
+                primaryTextColor: '#232F3E',
+                primaryBorderColor: '#FF9900',
+                lineColor: '#FF9900',
+                secondaryColor: '#F5F5F5',
+                tertiaryColor: '#FAFAFA',
+                background: '#FFFFFF',
+                mainBkg: '#FFF3E0',
+                nodeBorder: '#FF9900',
+                clusterBkg: '#FFF8E1',
+                clusterBorder: '#FF9900',
+                edgeLabelBackground: '#FFFFFF',
+                textColor: '#232F3E'
+            }
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/highlight.min.js"></script>
+    <script>hljs.highlightAll();</script>
+</body>
+</html>
