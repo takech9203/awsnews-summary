@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Amazon EC2 M8azn - US East (Ohio) リージョンで利用可能に</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap');
+
+        :root {
+            --aws-squid-ink: #232F3E;
+            --aws-dark-squid: #1A242F;
+            --aws-orange: #FF9900;
+            --aws-smile-orange: #FFAD33;
+            --aws-white: #FFFFFF;
+            --aws-light-gray: #D5DBDB;
+            --aws-teal: #00A1C9;
+            --aws-purple: #8C4FFF;
+            --aws-green: #1D8102;
+            --aws-red: #D13212;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background-color: var(--aws-squid-ink);
+            font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            color: var(--aws-light-gray);
+            font-size: 16px;
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        /* Header */
+        .header {
+            margin-bottom: 32px;
+            padding-bottom: 24px;
+            border-bottom: 3px solid var(--aws-orange);
+        }
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .service-badge {
+            display: inline-block;
+            background: var(--aws-orange);
+            color: var(--aws-squid-ink);
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+        h1 {
+            font-size: 34px;
+            font-weight: 700;
+            color: var(--aws-white);
+            line-height: 1.3;
+            margin-bottom: 8px;
+        }
+        .subtitle {
+            font-size: 16px;
+            color: var(--aws-light-gray);
+        }
+        .date-badge {
+            background: var(--aws-dark-squid);
+            border: 1px solid rgba(255,153,0,0.4);
+            border-radius: 8px;
+            padding: 8px 16px;
+            font-size: 14px;
+            color: var(--aws-orange);
+            white-space: nowrap;
+        }
+
+        /* Sections */
+        .section {
+            background: var(--aws-dark-squid);
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 24px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        h2 {
+            font-size: 22px;
+            font-weight: 600;
+            color: var(--aws-orange);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        h3 {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--aws-white);
+            margin: 16px 0 10px;
+        }
+
+        /* Highlight */
+        .highlight {
+            background-color: rgba(255,153,0,0.2);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+            color: var(--aws-orange);
+        }
+
+        /* Before/After */
+        .before-after {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin: 16px 0;
+        }
+        @media (max-width: 600px) {
+            .before-after { grid-template-columns: 1fr; }
+        }
+        .before-card, .after-card {
+            border-radius: 8px;
+            padding: 16px;
+        }
+        .before-card {
+            background: rgba(209,50,18,0.1);
+            border: 1px solid rgba(209,50,18,0.4);
+        }
+        .after-card {
+            background: rgba(29,129,2,0.1);
+            border: 1px solid rgba(29,129,2,0.4);
+        }
+        .before-card .label { color: var(--aws-red); font-weight: 700; margin-bottom: 10px; font-size: 15px; }
+        .after-card .label { color: var(--aws-green); font-weight: 700; margin-bottom: 10px; font-size: 15px; }
+        .ba-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            margin: 6px 0;
+            font-size: 14px;
+        }
+
+        /* Feature cards */
+        .feature-card {
+            background: var(--aws-squid-ink);
+            border-left: 4px solid var(--aws-orange);
+            border-radius: 0 8px 8px 0;
+            padding: 16px 20px;
+            margin: 12px 0;
+        }
+        .feature-card .feature-title {
+            color: var(--aws-white);
+            font-weight: 600;
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+        .feature-card ul {
+            list-style: none;
+            padding: 0;
+        }
+        .feature-card li {
+            padding: 3px 0;
+            font-size: 14px;
+        }
+        .feature-card li::before {
+            content: "-> ";
+            color: var(--aws-orange);
+            font-weight: bold;
+        }
+
+        /* Spec table */
+        .spec-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 12px 0;
+            font-size: 14px;
+        }
+        .spec-table th, .spec-table td {
+            padding: 10px 14px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .spec-table th {
+            background: rgba(255,153,0,0.15);
+            color: var(--aws-orange);
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        .spec-table td { color: var(--aws-light-gray); }
+
+        /* Use case cards */
+        .usecase-card {
+            background: rgba(255,153,0,0.08);
+            border: 1px solid rgba(255,153,0,0.25);
+            border-radius: 8px;
+            padding: 18px;
+            margin: 14px 0;
+        }
+        .usecase-title {
+            color: var(--aws-orange);
+            font-weight: 600;
+            font-size: 16px;
+            margin-bottom: 6px;
+        }
+        .usecase-scenario {
+            font-size: 14px;
+            margin-bottom: 10px;
+            color: var(--aws-light-gray);
+        }
+        .usecase-effect {
+            font-size: 14px;
+            color: var(--aws-green);
+            margin-top: 10px;
+        }
+
+        /* Stats grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 14px;
+            margin: 16px 0;
+        }
+        @media (max-width: 600px) {
+            .stats-grid { grid-template-columns: 1fr 1fr; }
+        }
+        .stat-card {
+            background: linear-gradient(135deg, rgba(255,153,0,0.15), rgba(140,79,255,0.1));
+            border: 1px solid rgba(255,153,0,0.3);
+            border-radius: 8px;
+            padding: 18px;
+            text-align: center;
+        }
+        .stat-number {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--aws-orange);
+        }
+        .stat-label {
+            font-size: 13px;
+            color: var(--aws-light-gray);
+            margin-top: 4px;
+        }
+
+        /* Merits / demerits */
+        .merit-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            margin: 8px 0;
+            font-size: 14px;
+        }
+        .merit-icon { font-size: 16px; flex-shrink: 0; margin-top: 2px; }
+
+        /* Region tags */
+        .region-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 12px 0;
+        }
+        .region-tag {
+            background: rgba(0,161,201,0.12);
+            border: 1px solid rgba(0,161,201,0.35);
+            color: var(--aws-teal);
+            padding: 4px 12px;
+            border-radius: 16px;
+            font-size: 13px;
+        }
+        .region-tag.new {
+            background: rgba(29,129,2,0.15);
+            border: 1px solid rgba(29,129,2,0.5);
+            color: var(--aws-green);
+            font-weight: 600;
+        }
+
+        /* Pricing note */
+        .pricing-note {
+            font-size: 13px;
+            color: var(--aws-light-gray);
+            opacity: 0.8;
+            margin-top: 8px;
+        }
+
+        /* Mermaid */
+        .mermaid-container {
+            background: #FFFFFF;
+            border-radius: 12px;
+            padding: 24px;
+            margin: 20px 0;
+            border: 2px solid rgba(255,153,0,0.3);
+            overflow-x: auto;
+        }
+        .mermaid {
+            display: flex;
+            justify-content: center;
+        }
+
+        /* Code blocks */
+        .code-block {
+            background: #1a1a2e;
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 16px 0;
+        }
+        .code-header {
+            background: #16213e;
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+        }
+        .code-lang {
+            color: var(--aws-orange);
+            font-weight: bold;
+        }
+        .code-title {
+            color: var(--aws-light-gray);
+        }
+        .code-block pre {
+            margin: 0;
+            padding: 0;
+            overflow-x: auto;
+        }
+        .code-block code {
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            padding: 16px !important;
+        }
+
+        /* Links */
+        .aws-link {
+            color: var(--aws-teal);
+            text-decoration: none;
+        }
+        .aws-link:hover { color: var(--aws-smile-orange); }
+
+        /* Related services */
+        .related-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 12px;
+            margin: 12px 0;
+        }
+        .related-card {
+            background: var(--aws-squid-ink);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px;
+            padding: 14px;
+            font-size: 14px;
+        }
+        .related-card strong { color: var(--aws-white); }
+
+        /* Footer */
+        footer {
+            margin-top: 24px;
+            padding-top: 16px;
+            border-top: 1px solid rgba(255,255,255,0.2);
+            font-size: 12px;
+            color: var(--aws-light-gray);
+        }
+        footer a { color: var(--aws-teal); text-decoration: underline; word-break: break-all; }
+    </style>
+</head>
+<body>
+    <div class="container">
+
+        <!-- Header -->
+        <div class="header">
+            <div class="header-top">
+                <div>
+                    <span class="service-badge">Amazon EC2</span>
+                    <h1>M8azn -- US East Ohio で利用可能に</h1>
+                    <p class="subtitle">AMD EPYC Turin 搭載、最大 5GHz の高周波数汎用インスタンスが Ohio リージョンに拡大</p>
+                </div>
+                <div class="date-badge">2026/03/13</div>
+            </div>
+        </div>
+
+        <!-- Overview -->
+        <div class="section">
+            <h2>概要</h2>
+            <p>Amazon EC2 M8azn インスタンスが <span class="highlight">US East (Ohio) リージョン (us-east-2)</span> で利用可能になりました。M8azn は第 5 世代 AMD EPYC プロセッサ (Turin) を搭載し、クラウドで<span class="highlight">最大 5GHz</span> の CPU 周波数を提供する高周波数汎用インスタンスです。</p>
+            <p style="margin-top:12px;">2026 年 2 月に一般提供が開始された M8azn は、前世代の M5zn と比較して最大 2 倍のコンピューティング性能、4.3 倍のメモリ帯域幅、10 倍の L3 キャッシュを提供します。今回のリージョン拡大により、Ohio リージョンのお客様もレイテンシに敏感なワークロードで M8azn の高周波数性能を活用できます。</p>
+
+            <!-- Before/After -->
+            <div class="before-after">
+                <div class="before-card">
+                    <div class="label">Before</div>
+                    <div class="ba-item"><span>-</span> Ohio リージョンで M8azn が利用できず、最新世代の高周波数インスタンスを活用できなかった</div>
+                    <div class="ba-item"><span>-</span> Ohio のレイテンシに敏感なアプリケーションは M5zn の性能に制限されていた</div>
+                    <div class="ba-item"><span>-</span> マルチリージョン構成で Ohio だけ異なるインスタンスタイプを使用する必要があった</div>
+                </div>
+                <div class="after-card">
+                    <div class="label">After</div>
+                    <div class="ba-item"><span>+</span> Ohio リージョンで M8azn を利用でき、5GHz の高周波数 CPU 性能を活用可能に</div>
+                    <div class="ba-item"><span>+</span> M5zn から M8azn への移行で最大 2 倍のコンピューティング性能向上を実現</div>
+                    <div class="ba-item"><span>+</span> US East の 2 リージョン (Virginia、Ohio) で M8azn を利用でき構成を統一</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="section">
+            <h2>数字で見るアップデート</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number">5GHz</div>
+                    <div class="stat-label">最大 CPU 周波数</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">2x</div>
+                    <div class="stat-label">コンピューティング性能<br/>vs M5zn</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">4.3x</div>
+                    <div class="stat-label">メモリ帯域幅<br/>vs M5zn</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">10x</div>
+                    <div class="stat-label">L3 キャッシュ<br/>vs M5zn</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">5</div>
+                    <div class="stat-label">利用可能リージョン</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Architecture Diagram -->
+        <div class="section">
+            <h2>アーキテクチャ図</h2>
+            <p style="margin-bottom:12px;">M8azn インスタンスが利用可能な全 5 リージョンを示しています。今回新たに US East (Ohio) が追加されました。</p>
+            <div class="mermaid-container">
+                <pre class="mermaid">
+flowchart TD
+    subgraph USEast["US East リージョン"]
+        direction LR
+        subgraph Virginia["us-east-1<br/>N. Virginia"]
+            M8azn1["M8azn"]
+        end
+        subgraph Ohio["us-east-2<br/>Ohio NEW"]
+            M8azn2["M8azn"]
+        end
+        Virginia ~~~ Ohio
+    end
+
+    subgraph USWest["US West リージョン"]
+        subgraph Oregon["us-west-2<br/>Oregon"]
+            M8azn3["M8azn"]
+        end
+    end
+
+    subgraph APAC["Asia Pacific"]
+        subgraph Tokyo["ap-northeast-1<br/>Tokyo"]
+            M8azn4["M8azn"]
+        end
+    end
+
+    subgraph EU["Europe"]
+        subgraph Frankfurt["eu-central-1<br/>Frankfurt"]
+            M8azn5["M8azn"]
+        end
+    end
+
+    subgraph Workloads["Target Workloads"]
+        direction LR
+        HFT["High Frequency Trading"]
+        SIM["Simulation"]
+        CICD["CI/CD"]
+        HFT ~~~ SIM ~~~ CICD
+    end
+
+    USEast --> Workloads
+    USWest --> Workloads
+    APAC --> Workloads
+    EU --> Workloads
+
+    classDef regionGroup fill:none,stroke:#CCCCCC,stroke-width:2px,color:#666666
+    classDef region fill:#E3F2FD,stroke:#BBDEFB,stroke-width:2px,color:#1565C0
+    classDef newRegion fill:#E8F5E9,stroke:#66BB6A,stroke-width:2px,color:#2E7D32
+    classDef instance fill:#FFE0B2,stroke:#FFCC80,stroke-width:2px,color:#5D4037
+    classDef workload fill:#F3E5F5,stroke:#CE93D8,stroke-width:2px,color:#6A1B9A
+
+    class USEast,USWest,APAC,EU regionGroup
+    class Virginia,Oregon,Tokyo,Frankfurt region
+    class Ohio newRegion
+    class M8azn1,M8azn2,M8azn3,M8azn4,M8azn5 instance
+    class Workloads workload
+                </pre>
+            </div>
+        </div>
+
+        <!-- Key Features -->
+        <div class="section">
+            <h2>主要機能</h2>
+
+            <div class="feature-card">
+                <div class="feature-title">5GHz 最大 CPU 周波数</div>
+                <ul>
+                    <li>クラウドで利用可能な最高の CPU 周波数</li>
+                    <li>第 5 世代 AMD EPYC (Turin) プロセッサを搭載</li>
+                    <li>M5zn と比較して最大 2 倍のコンピューティング性能</li>
+                </ul>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-title">大幅に強化されたメモリ性能</div>
+                <ul>
+                    <li>M5zn と比較して 4.3 倍のメモリ帯域幅</li>
+                    <li>10 倍の L3 キャッシュサイズ</li>
+                    <li>メモリ対 vCPU 比率は 4:1</li>
+                </ul>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-title">第 6 世代 Nitro Cards によるネットワーキング</div>
+                <ul>
+                    <li>M5zn と比較して 2 倍のネットワークスループット</li>
+                    <li>3 倍の EBS スループット</li>
+                    <li>AWS Nitro System による高効率な仮想化</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Technical Specifications -->
+        <div class="section">
+            <h2>技術仕様</h2>
+
+            <h3>インスタンスサイズ</h3>
+            <table class="spec-table">
+                <tr><th>サイズ</th><th>vCPU</th><th>メモリ (GiB)</th></tr>
+                <tr><td>m8azn.large</td><td>2</td><td>8</td></tr>
+                <tr><td>m8azn.xlarge</td><td>4</td><td>16</td></tr>
+                <tr><td>m8azn.2xlarge</td><td>8</td><td>32</td></tr>
+                <tr><td>m8azn.4xlarge</td><td>16</td><td>64</td></tr>
+                <tr><td>m8azn.8xlarge</td><td>32</td><td>128</td></tr>
+                <tr><td>m8azn.12xlarge</td><td>48</td><td>192</td></tr>
+                <tr><td>m8azn.24xlarge</td><td>96</td><td>384</td></tr>
+                <tr><td>m8azn.metal</td><td>96</td><td>384</td></tr>
+                <tr><td>m8azn.metal-24xl</td><td>96</td><td>384</td></tr>
+            </table>
+
+            <h3 style="margin-top:20px;">性能比較 -- M5zn 対比</h3>
+            <table class="spec-table">
+                <tr><th>指標</th><th>改善率</th></tr>
+                <tr><td>コンピューティング性能</td><td><span class="highlight">最大 2 倍</span></td></tr>
+                <tr><td>メモリ帯域幅</td><td><span class="highlight">4.3 倍</span></td></tr>
+                <tr><td>L3 キャッシュ</td><td><span class="highlight">10 倍</span></td></tr>
+                <tr><td>ネットワークスループット</td><td><span class="highlight">2 倍</span></td></tr>
+                <tr><td>EBS スループット</td><td><span class="highlight">3 倍</span></td></tr>
+            </table>
+        </div>
+
+        <!-- Setup Guide -->
+        <div class="section">
+            <h2>設定方法</h2>
+
+            <h3>前提条件</h3>
+            <div class="merit-item"><span class="merit-icon">1.</span> 適切な IAM 権限を持つ AWS アカウント</div>
+            <div class="merit-item"><span class="merit-icon">2.</span> US East (Ohio) リージョン (us-east-2) へのアクセス</div>
+            <div class="merit-item"><span class="merit-icon">3.</span> 必要に応じた EC2 サービスクォータの確認と引き上げ</div>
+
+            <h3 style="margin-top:20px;">ステップ 1: インスタンスを起動</h3>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Bash</span>
+                    <span class="code-title">Ohio リージョンで M8azn インスタンスを起動</span>
+                </div>
+                <pre><code class="language-bash">aws ec2 run-instances \
+  --instance-type m8azn.xlarge \
+  --image-id ami-xxxxxxxxxxxxxxxxx \
+  --region us-east-2 \
+  --key-name my-key-pair \
+  --security-group-ids sg-xxxxxxxxxxxxxxxxx \
+  --subnet-id subnet-xxxxxxxxxxxxxxxxx</code></pre>
+            </div>
+            <p style="font-size:14px;">US East (Ohio) リージョンで m8azn.xlarge インスタンスを起動します。</p>
+
+            <h3 style="margin-top:20px;">ステップ 2: 利用可能なインスタンスタイプを確認</h3>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Bash</span>
+                    <span class="code-title">M8azn インスタンスタイプの一覧を表示</span>
+                </div>
+                <pre><code class="language-bash">aws ec2 describe-instance-types \
+  --filters "Name=instance-type,Values=m8azn*" \
+  --region us-east-2 \
+  --query "InstanceTypes[].{Type:InstanceType,vCPU:VCpuInfo.DefaultVCpus,Memory:MemoryInfo.SizeInMiB}" \
+  --output table</code></pre>
+            </div>
+            <p style="font-size:14px;">US East (Ohio) リージョンで利用可能な M8azn インスタンスタイプの一覧を表示します。</p>
+        </div>
+
+        <!-- Benefits -->
+        <div class="section">
+            <h2>メリット</h2>
+
+            <h3>ビジネス面</h3>
+            <div class="merit-item"><span class="merit-icon">+</span> <div><strong style="color:var(--aws-white)">マルチリージョン展開の柔軟性</strong>: US East の 2 リージョンで M8azn を利用でき、高可用性アーキテクチャの構築が容易に</div></div>
+            <div class="merit-item"><span class="merit-icon">+</span> <div><strong style="color:var(--aws-white)">レイテンシの最適化</strong>: Ohio リージョンに近いエンドユーザーに対して、高周波数コンピューティングを低レイテンシで提供可能</div></div>
+            <div class="merit-item"><span class="merit-icon">+</span> <div><strong style="color:var(--aws-white)">コスト効率の向上</strong>: M5zn からの移行により、同じワークロードをより少ないリソースで処理可能</div></div>
+
+            <h3 style="margin-top:16px;">技術面</h3>
+            <div class="merit-item"><span class="merit-icon">+</span> <div><strong style="color:var(--aws-white)">5GHz CPU 周波数</strong>: シングルスレッド性能が重要なワークロードで最高のパフォーマンスを実現</div></div>
+            <div class="merit-item"><span class="merit-icon">+</span> <div><strong style="color:var(--aws-white)">大容量 L3 キャッシュ</strong>: 10 倍のキャッシュサイズにより、キャッシュミスを削減しレイテンシを低減</div></div>
+            <div class="merit-item"><span class="merit-icon">+</span> <div><strong style="color:var(--aws-white)">高帯域幅 I/O</strong>: ネットワークと EBS の両方で M5zn から大幅に向上した帯域幅を活用可能</div></div>
+        </div>
+
+        <!-- Limitations -->
+        <div class="section">
+            <h2>デメリット・制約事項</h2>
+
+            <h3>制限事項</h3>
+            <div class="merit-item"><span class="merit-icon">-</span> 全リージョンで利用可能ではなく、現時点では 5 リージョンに限定</div>
+            <div class="merit-item"><span class="merit-icon">-</span> 高周波数プロセッサのため、vCPU あたりの料金が他の汎用インスタンスよりも高い可能性</div>
+            <div class="merit-item"><span class="merit-icon">-</span> ベアメタルを含む 9 サイズのみの提供</div>
+
+            <h3 style="margin-top:16px;">考慮すべき点</h3>
+            <div class="merit-item"><span class="merit-icon">*</span> M5zn からの移行時はアプリケーションの互換性テストを推奨</div>
+            <div class="merit-item"><span class="merit-icon">*</span> 高周波数が必要ないワークロードでは、M8a や M8g などの他のインスタンスファミリーの方がコスト効率が高い場合がある</div>
+            <div class="merit-item"><span class="merit-icon">*</span> Ohio リージョンでの新規利用時はサービスクォータの確認が必要</div>
+        </div>
+
+        <!-- Use Cases -->
+        <div class="section">
+            <h2>ユースケース</h2>
+
+            <div class="usecase-card">
+                <div class="usecase-title">ユースケース 1: マルチリージョン高頻度取引</div>
+                <div class="usecase-scenario">金融機関が US East の 2 リージョンで冗長化された高頻度取引システムを運用するシナリオ。</div>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">Bash</span>
+                        <span class="code-title">Ohio リージョンに取引サーバーを配置</span>
+                    </div>
+                    <pre><code class="language-bash"># Ohio リージョンに取引サーバーを配置
+aws ec2 run-instances \
+  --instance-type m8azn.12xlarge \
+  --region us-east-2 \
+  --placement AvailabilityZone=us-east-2a \
+  --network-interfaces "DeviceIndex=0,SubnetId=subnet-xxx,Groups=sg-xxx"</code></pre>
+                </div>
+                <div class="usecase-effect">Virginia と Ohio の両リージョンで 5GHz の高周波数インスタンスを使用でき、フェイルオーバー時も同等のパフォーマンスを維持</div>
+            </div>
+
+            <div class="usecase-card">
+                <div class="usecase-title">ユースケース 2: CI/CD パイプラインの高速化</div>
+                <div class="usecase-scenario">Ohio リージョンに展開されたインフラストラクチャに対する CI/CD パイプラインのビルド・テスト時間を短縮するシナリオ。</div>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">Bash</span>
+                        <span class="code-title">Ohio リージョンで CI/CD ランナーを起動</span>
+                    </div>
+                    <pre><code class="language-bash"># Ohio リージョンで CI/CD ランナーを起動
+aws ec2 run-instances \
+  --instance-type m8azn.8xlarge \
+  --region us-east-2 \
+  --tag-specifications 'ResourceType=instance,Tags=[{Key=Role,Value=ci-runner}]'</code></pre>
+                </div>
+                <div class="usecase-effect">5GHz の高周波数 CPU により、コンパイルやテスト実行時間を大幅に短縮</div>
+            </div>
+
+            <div class="usecase-card">
+                <div class="usecase-title">ユースケース 3: リアルタイムシミュレーション</div>
+                <div class="usecase-scenario">自動車メーカーが Ohio リージョンで車両シミュレーションを実行するシナリオ。</div>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">Bash</span>
+                        <span class="code-title">ベアメタルインスタンスで大規模シミュレーションを実行</span>
+                    </div>
+                    <pre><code class="language-bash"># ベアメタルインスタンスで大規模シミュレーションを実行
+aws ec2 run-instances \
+  --instance-type m8azn.metal \
+  --region us-east-2 \
+  --block-device-mappings "DeviceName=/dev/sda1,Ebs={VolumeSize=500,VolumeType=gp3,Iops=16000}"</code></pre>
+                </div>
+                <div class="usecase-effect">96 vCPU、384 GiB メモリのベアメタルインスタンスで大規模シミュレーションを Ohio リージョンで実行可能</div>
+            </div>
+        </div>
+
+        <!-- Pricing -->
+        <div class="section">
+            <h2>料金</h2>
+            <p>M8azn インスタンスは On-Demand、Savings Plans、Spot インスタンスの 3 種類の購入オプションで利用可能です。</p>
+            <table class="spec-table" style="margin-top:14px;">
+                <tr><th>オプション</th><th>特徴</th></tr>
+                <tr><td>On-Demand</td><td>長期契約なしで時間単位の料金</td></tr>
+                <tr><td>Savings Plans</td><td>1 年または 3 年の契約で割引</td></tr>
+                <tr><td>Spot</td><td>未使用キャパシティを最大 90% 割引で利用</td></tr>
+            </table>
+            <p class="pricing-note">※ 具体的な料金は AWS EC2 料金ページを参照してください。</p>
+        </div>
+
+        <!-- Available Regions -->
+        <div class="section">
+            <h2>利用可能リージョン (5 リージョン)</h2>
+            <div class="region-tags">
+                <span class="region-tag">US East (N. Virginia) - us-east-1</span>
+                <span class="region-tag new">US East (Ohio) - us-east-2 -- NEW</span>
+                <span class="region-tag">US West (Oregon) - us-west-2</span>
+                <span class="region-tag">Asia Pacific (Tokyo) - ap-northeast-1</span>
+                <span class="region-tag">Europe (Frankfurt) - eu-central-1</span>
+            </div>
+        </div>
+
+        <!-- Related Services -->
+        <div class="section">
+            <h2>関連サービス・機能</h2>
+            <div class="related-grid">
+                <div class="related-card">
+                    <strong>Amazon EC2 Auto Scaling</strong><br/>
+                    M8azn インスタンスを使用したスケーリンググループの構築
+                </div>
+                <div class="related-card">
+                    <strong>AWS Nitro System</strong><br/>
+                    第 6 世代 Nitro Cards によるセキュリティと性能の基盤
+                </div>
+                <div class="related-card">
+                    <strong>Amazon EBS</strong><br/>
+                    高スループット EBS ボリュームとの組み合わせで 3 倍の I/O 性能を活用
+                </div>
+                <div class="related-card">
+                    <strong>Elastic Load Balancing</strong><br/>
+                    複数の M8azn インスタンス間でトラフィックを分散
+                </div>
+            </div>
+        </div>
+
+        <!-- Summary -->
+        <div class="section" style="border: 1px solid rgba(255,153,0,0.4);">
+            <h2>まとめ</h2>
+            <p>Amazon EC2 M8azn インスタンスが US East (Ohio) リージョンで利用可能になり、クラウドで最大 5GHz の CPU 周波数を提供する高周波数インスタンスの利用範囲が拡大しました。Ohio リージョンで高頻度取引、リアルタイム分析、シミュレーションモデリングなどのレイテンシに敏感なワークロードを運用しているお客様は、M5zn からの移行を検討し、最大 2 倍のコンピューティング性能向上を活用してください。</p>
+        </div>
+
+        <!-- Footer -->
+        <footer>
+            <p>出典:</p>
+            <ul style="list-style:none; padding:0; margin-top:6px;">
+                <li style="margin:4px 0;"><a href="https://aws.amazon.com/about-aws/whats-new/2026/03/amazon-ec2-m8azn-instances-ohio/" target="_blank" rel="noopener noreferrer">公式発表 (What's New)</a></li>
+                <li style="margin:4px 0;"><a href="https://aws.amazon.com/ec2/instance-types/m8a" target="_blank" rel="noopener noreferrer">Amazon EC2 M8azn インスタンスページ</a></li>
+                <li style="margin:4px 0;"><a href="https://aws.amazon.com/ec2/pricing/" target="_blank" rel="noopener noreferrer">Amazon EC2 料金ページ</a></li>
+                <li style="margin:4px 0;"><a href="https://aws.amazon.com/ec2/nitro/" target="_blank" rel="noopener noreferrer">AWS Nitro System</a></li>
+            </ul>
+            <p style="margin-top:12px; opacity:0.6;">Generated from reports/2026/2026-03-13-amazon-ec2-m8azn-instances-ohio.md</p>
+        </footer>
+
+    </div>
+
+    <!-- highlight.js -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/styles/atom-one-dark.min.css">
+    <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/highlight.min.js"></script>
+    <script>hljs.highlightAll();</script>
+
+    <!-- Mermaid.js -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'base',
+            themeVariables: {
+                primaryColor: '#FF9900',
+                primaryTextColor: '#232F3E',
+                primaryBorderColor: '#FF9900',
+                lineColor: '#FF9900',
+                secondaryColor: '#F5F5F5',
+                tertiaryColor: '#FAFAFA',
+                background: '#FFFFFF',
+                mainBkg: '#FFF3E0',
+                nodeBorder: '#FF9900',
+                clusterBkg: '#FFF8E1',
+                clusterBorder: '#FF9900',
+                edgeLabelBackground: '#FFFFFF',
+                textColor: '#232F3E'
+            }
+        });
+    </script>
+</body>
+</html>

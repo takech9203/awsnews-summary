@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Amazon OpenSearch Service - OpenSearch UI Cross Account Data Access</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap');
+
+        :root {
+            --aws-squid-ink: #232F3E;
+            --aws-dark-squid: #1A242F;
+            --aws-orange: #FF9900;
+            --aws-smile-orange: #FFAD33;
+            --aws-white: #FFFFFF;
+            --aws-light-gray: #D5DBDB;
+            --aws-teal: #00A1C9;
+            --aws-purple: #8C4FFF;
+            --aws-green: #1D8102;
+            --aws-red: #D13212;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background-color: var(--aws-squid-ink);
+            font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            color: var(--aws-light-gray);
+            font-size: 16px;
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 32px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .header-left { flex: 1; }
+
+        .service-badge {
+            display: inline-block;
+            background: var(--aws-orange);
+            color: var(--aws-squid-ink);
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        h1 {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--aws-white);
+            line-height: 1.3;
+        }
+
+        .subtitle {
+            font-size: 16px;
+            color: var(--aws-light-gray);
+            margin-top: 8px;
+        }
+
+        .date-badge {
+            background: var(--aws-dark-squid);
+            border: 1px solid rgba(255, 153, 0, 0.4);
+            border-radius: 8px;
+            padding: 8px 16px;
+            font-size: 14px;
+            color: var(--aws-orange);
+            white-space: nowrap;
+        }
+
+        /* Sections */
+        .section {
+            background: var(--aws-dark-squid);
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        h2 {
+            font-size: 22px;
+            font-weight: 600;
+            color: var(--aws-orange);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .highlight {
+            background-color: rgba(255, 153, 0, 0.2);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+            color: var(--aws-orange);
+        }
+
+        /* Before/After */
+        .before-after {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-top: 16px;
+        }
+
+        @media (max-width: 600px) {
+            .before-after { grid-template-columns: 1fr; }
+        }
+
+        .before-card, .after-card {
+            border-radius: 8px;
+            padding: 16px;
+        }
+
+        .before-card {
+            background: rgba(209, 50, 18, 0.1);
+            border: 1px solid rgba(209, 50, 18, 0.4);
+        }
+
+        .after-card {
+            background: rgba(29, 129, 2, 0.1);
+            border: 1px solid rgba(29, 129, 2, 0.4);
+        }
+
+        .before-card h3 {
+            color: var(--aws-red);
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+
+        .after-card h3 {
+            color: var(--aws-green);
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+
+        .before-card ul, .after-card ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .before-card li, .after-card li {
+            padding: 4px 0;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .before-card li::before {
+            content: "\2717 ";
+            color: var(--aws-red);
+            font-weight: bold;
+            margin-right: 6px;
+        }
+
+        .after-card li::before {
+            content: "\2713 ";
+            color: var(--aws-green);
+            font-weight: bold;
+            margin-right: 6px;
+        }
+
+        /* Feature Cards */
+        .feature-cards {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+            margin-top: 12px;
+        }
+
+        .feature-card {
+            background: rgba(255, 153, 0, 0.05);
+            border-left: 4px solid var(--aws-orange);
+            border-radius: 0 8px 8px 0;
+            padding: 16px 16px 16px 20px;
+        }
+
+        .feature-card h3 {
+            color: var(--aws-white);
+            font-size: 16px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .feature-card ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .feature-card li {
+            padding: 3px 0;
+            font-size: 14px;
+        }
+
+        .feature-card li::before {
+            content: "\2192 ";
+            color: var(--aws-orange);
+            margin-right: 6px;
+        }
+
+        /* Spec Table */
+        .spec-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 12px;
+            font-size: 14px;
+        }
+
+        .spec-table th {
+            background: rgba(255, 153, 0, 0.2);
+            color: var(--aws-orange);
+            text-align: left;
+            padding: 10px 14px;
+            border-bottom: 2px solid var(--aws-orange);
+            font-weight: 600;
+        }
+
+        .spec-table td {
+            padding: 10px 14px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            color: var(--aws-light-gray);
+        }
+
+        .spec-table tr:hover td {
+            background: rgba(255, 153, 0, 0.05);
+        }
+
+        /* Use Case Cards */
+        .usecase-cards {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 16px;
+            margin-top: 12px;
+        }
+
+        .usecase-card {
+            background: rgba(255, 153, 0, 0.08);
+            border: 1px solid rgba(255, 153, 0, 0.25);
+            border-radius: 8px;
+            padding: 20px;
+        }
+
+        .usecase-card h3 {
+            color: var(--aws-white);
+            font-size: 16px;
+            margin-bottom: 6px;
+        }
+
+        .usecase-card .scenario {
+            color: var(--aws-light-gray);
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .usecase-card .effect {
+            background: rgba(29, 129, 2, 0.1);
+            border-left: 3px solid var(--aws-green);
+            padding: 8px 12px;
+            border-radius: 0 6px 6px 0;
+            font-size: 14px;
+            color: var(--aws-light-gray);
+        }
+
+        .usecase-card .effect strong {
+            color: var(--aws-green);
+        }
+
+        /* Stat Cards */
+        .stat-cards {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-top: 12px;
+        }
+
+        @media (max-width: 600px) {
+            .stat-cards { grid-template-columns: 1fr; }
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, rgba(255, 153, 0, 0.15), rgba(255, 153, 0, 0.05));
+            border: 1px solid rgba(255, 153, 0, 0.3);
+            border-radius: 8px;
+            padding: 16px;
+            text-align: center;
+        }
+
+        .stat-card .stat-icon {
+            font-size: 28px;
+            margin-bottom: 4px;
+        }
+
+        .stat-card .stat-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--aws-orange);
+        }
+
+        .stat-card .stat-label {
+            font-size: 13px;
+            color: var(--aws-light-gray);
+            margin-top: 4px;
+        }
+
+        /* Merit / Demerit */
+        .merit-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-top: 12px;
+        }
+
+        @media (max-width: 600px) {
+            .merit-grid { grid-template-columns: 1fr; }
+        }
+
+        .merit-col h3 {
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+
+        .merit-col ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .merit-col li {
+            padding: 5px 0;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        /* Pricing */
+        .pricing-note {
+            background: rgba(0, 161, 201, 0.1);
+            border: 1px solid rgba(0, 161, 201, 0.3);
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 12px;
+            font-size: 14px;
+        }
+
+        .pricing-note strong {
+            color: var(--aws-teal);
+        }
+
+        /* Code Block */
+        .code-block {
+            background: #1a1a2e;
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 16px 0;
+        }
+
+        .code-header {
+            background: #16213e;
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+        }
+
+        .code-lang {
+            color: var(--aws-orange);
+            font-weight: bold;
+        }
+
+        .code-title {
+            color: var(--aws-light-gray);
+        }
+
+        .code-block pre {
+            margin: 0;
+            padding: 0;
+            overflow-x: auto;
+        }
+
+        .code-block code {
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            padding: 16px !important;
+        }
+
+        /* Mermaid */
+        .mermaid-container {
+            background: #FFFFFF;
+            border-radius: 12px;
+            padding: 24px;
+            margin: 20px 0;
+            border: 2px solid rgba(255, 153, 0, 0.3);
+            overflow-x: auto;
+        }
+
+        .mermaid {
+            display: flex;
+            justify-content: center;
+        }
+
+        /* Links */
+        .aws-link {
+            color: var(--aws-teal);
+            text-decoration: none;
+        }
+
+        .aws-link:hover {
+            color: var(--aws-smile-orange);
+            text-decoration: underline;
+        }
+
+        /* Related Services */
+        .related-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .related-list li {
+            padding: 6px 0;
+            font-size: 14px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .related-list li:last-child {
+            border-bottom: none;
+        }
+
+        .related-list li strong {
+            color: var(--aws-white);
+        }
+
+        /* Flow Diagram */
+        .flow-diagram {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin: 24px 0;
+        }
+
+        .flow-step {
+            background: var(--aws-dark-squid);
+            border: 2px solid var(--aws-orange);
+            border-radius: 8px;
+            padding: 12px 20px;
+            text-align: center;
+            min-width: 100px;
+        }
+
+        .flow-arrow {
+            color: var(--aws-orange);
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        /* Footer */
+        footer {
+            margin-top: 32px;
+            padding-top: 16px;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            font-size: 12px;
+            color: var(--aws-light-gray);
+        }
+
+        footer a {
+            color: var(--aws-teal);
+            text-decoration: none;
+            word-break: break-all;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* Auth badges */
+        .auth-badges {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 12px;
+        }
+
+        .auth-badge {
+            background: rgba(140, 79, 255, 0.12);
+            border: 1px solid rgba(140, 79, 255, 0.4);
+            border-radius: 6px;
+            padding: 8px 14px;
+            font-size: 14px;
+            color: var(--aws-light-gray);
+        }
+
+        .auth-badge span {
+            margin-right: 6px;
+        }
+
+        /* Caution */
+        .caution-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .caution-list li {
+            padding: 5px 0;
+            font-size: 14px;
+        }
+
+        .caution-list li::before {
+            content: "\26A0\FE0F ";
+            margin-right: 4px;
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/styles/atom-one-dark.min.css">
+</head>
+<body>
+    <div class="container">
+
+        <!-- Header -->
+        <div class="header">
+            <div class="header-left">
+                <div class="service-badge">Amazon OpenSearch Service</div>
+                <h1>OpenSearch UI<br>Cross Account Data Access</h1>
+                <div class="subtitle">単一の OpenSearch UI から複数アカウントの OpenSearch ドメインに横断アクセス</div>
+            </div>
+            <div class="date-badge">2026-03-12</div>
+        </div>
+
+        <!-- Overview -->
+        <div class="section">
+            <h2>📋 概要</h2>
+            <p>Amazon OpenSearch Service の <span class="highlight">OpenSearch UI</span> が<span class="highlight">クロスアカウントデータアクセス</span>をサポート。異なる AWS アカウントにホストされた OpenSearch ドメインに単一の UI からアクセスし、クエリの実行やダッシュボードの構築が可能になった。データの集約やパイプラインの維持が不要になり、各アカウントのアクセス制御を維持したまま統合分析を実現する。</p>
+
+            <div class="before-after">
+                <div class="before-card">
+                    <h3>&#10060; Before</h3>
+                    <ul>
+                        <li>複数アカウントのデータ分析にはデータの単一アカウント集約が必要</li>
+                        <li>コストのかかるデータパイプラインの構築・維持が必須</li>
+                        <li>エンドポイント切り替えが必要で運用が煩雑</li>
+                    </ul>
+                </div>
+                <div class="after-card">
+                    <h3>&#9989; After</h3>
+                    <ul>
+                        <li>単一の UI から複数アカウントのドメインにアクセス可能</li>
+                        <li>データレプリケーションや集約パイプラインが不要</li>
+                        <li>各アカウントのアクセス制御を維持したまま統合分析</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="section">
+            <h2>📊 数字で見るアップデート</h2>
+            <div class="stat-cards">
+                <div class="stat-card">
+                    <div class="stat-icon">🔗</div>
+                    <div class="stat-value">6 API</div>
+                    <div class="stat-label">更新されたメソッド数</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">🔐</div>
+                    <div class="stat-value">3 種類</div>
+                    <div class="stat-label">対応認証方式</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">💰</div>
+                    <div class="stat-value">$0</div>
+                    <div class="stat-label">機能の追加料金</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Architecture Diagram -->
+        <div class="section">
+            <h2>🏗️ アーキテクチャ図</h2>
+            <p style="font-size:14px; margin-bottom:12px;">アカウント A の OpenSearch UI から、アカウント B / C の OpenSearch ドメインにクロスアカウントでアクセスするフローを示す。各アカウントのデータソースアクセスポリシーによりアクセス制御が行われる。</p>
+            <div class="mermaid-container">
+                <pre class="mermaid">
+flowchart TD
+    subgraph AccountA["&#9729;&#65039; &#12450;&#12459;&#12454;&#12531;&#12488; A - &#20998;&#26512;&#32773;"]
+        UI["&#128421;&#65039; OpenSearch UI&lt;br/&gt;&#12450;&#12503;&#12522;&#12465;&#12540;&#12471;&#12519;&#12531;"]
+        DS_A["&#128202; &#12525;&#12540;&#12459;&#12523;&lt;br/&gt;OpenSearch &#12489;&#12513;&#12452;&#12531;"]
+    end
+
+    subgraph AccountB["&#9729;&#65039; &#12450;&#12459;&#12454;&#12531;&#12488; B - &#12487;&#12540;&#12479;&#12477;&#12540;&#12473;"]
+        DS_B["&#128202; OpenSearch &#12489;&#12513;&#12452;&#12531;&lt;br/&gt;&#12497;&#12502;&#12522;&#12483;&#12463; / VPC"]
+        Policy_B["&#128272; &#12487;&#12540;&#12479;&#12477;&#12540;&#12473;&lt;br/&gt;&#12450;&#12463;&#12475;&#12473;&#12509;&#12522;&#12471;&#12540;"]
+    end
+
+    subgraph AccountC["&#9729;&#65039; &#12450;&#12459;&#12454;&#12531;&#12488; C - &#12487;&#12540;&#12479;&#12477;&#12540;&#12473;"]
+        DS_C["&#128202; OpenSearch &#12489;&#12513;&#12452;&#12531;&lt;br/&gt;&#12497;&#12502;&#12522;&#12483;&#12463; / VPC"]
+        Policy_C["&#128272; &#12487;&#12540;&#12479;&#12477;&#12540;&#12473;&lt;br/&gt;&#12450;&#12463;&#12475;&#12473;&#12509;&#12522;&#12471;&#12540;"]
+    end
+
+    subgraph Auth["&#128273; &#35469;&#35388;"]
+        direction LR
+        IAM["&#128737;&#65039; IAM&lt;br/&gt;SAML &#12501;&#12455;&#12487;&#12524;&#12540;&#12471;&#12519;&#12531;"]
+        IdC["&#128737;&#65039; IAM Identity Center"]
+        IAM ~~~ IdC
+    end
+
+    UI -->|"&#12463;&#12456;&#12522; / &#12480;&#12483;&#12471;&#12517;&#12508;&#12540;&#12489;"| DS_A
+    UI -->|"&#12463;&#12525;&#12473;&#12450;&#12459;&#12454;&#12531;&#12488;&lt;br/&gt;&#12487;&#12540;&#12479;&#12450;&#12463;&#12475;&#12473;"| DS_B
+    UI -->|"&#12463;&#12525;&#12473;&#12450;&#12459;&#12454;&#12531;&#12488;&lt;br/&gt;&#12487;&#12540;&#12479;&#12450;&#12463;&#12475;&#12473;"| DS_C
+    Policy_B -.->|"&#12450;&#12463;&#12475;&#12473;&#35377;&#21487;"| UI
+    Policy_C -.->|"&#12450;&#12463;&#12475;&#12473;&#35377;&#21487;"| UI
+    Auth -->|"&#35469;&#35388;"| UI
+
+    classDef cloud fill:none,stroke:#CCCCCC,stroke-width:2px,color:#666666
+    classDef compute fill:#FFE0B2,stroke:#FFCC80,stroke-width:2px,color:#5D4037
+    classDef storage fill:#DCEDC8,stroke:#C5E1A5,stroke-width:2px,color:#33691E
+    classDef security fill:#E8EAF6,stroke:#C5CAE9,stroke-width:2px,color:#283593
+    classDef process fill:#FFFFFF,stroke:#4A90E2,stroke-width:2px,color:#333333
+    classDef auth fill:#E3F2FD,stroke:#BBDEFB,stroke-width:2px,color:#1565C0
+
+    class AccountA,AccountB,AccountC cloud
+    class Auth auth
+    class UI compute
+    class DS_A,DS_B,DS_C storage
+    class Policy_B,Policy_C security
+    class IAM,IdC process
+                </pre>
+            </div>
+        </div>
+
+        <!-- Key Features -->
+        <div class="section">
+            <h2>⚙️ 主要機能</h2>
+            <div class="feature-cards">
+                <div class="feature-card">
+                    <h3>🔗 クロスアカウントデータアクセス</h3>
+                    <ul>
+                        <li>単一の OpenSearch UI から異なる AWS アカウントの OpenSearch ドメインにアクセス</li>
+                        <li>同一リージョン内のドメインが対象</li>
+                        <li>エンドポイントの切り替えやデータレプリケーションが不要</li>
+                    </ul>
+                </div>
+                <div class="feature-card">
+                    <h3>🌐 パブリック / VPC 両構成のサポート</h3>
+                    <ul>
+                        <li>パブリックアクセス構成の OpenSearch ドメインに対応</li>
+                        <li>VPC 構成の OpenSearch ドメインにも対応</li>
+                        <li>既存のネットワーク構成を変更せずにクロスアカウントアクセスが可能</li>
+                    </ul>
+                </div>
+                <div class="feature-card">
+                    <h3>🔐 柔軟な認証方式</h3>
+                    <ul>
+                        <li>IAM 認証 (SAML via IAM フェデレーションを含む) に対応</li>
+                        <li>IAM Identity Center (IdC) によるエンドユーザー認証に対応</li>
+                        <li>データソースアクセスポリシーによる細粒度のアクセス制御</li>
+                    </ul>
+                </div>
+            </div>
+            <div style="margin-top: 16px;">
+                <h3 style="color: var(--aws-white); font-size: 15px; margin-bottom: 8px;">🛡️ 対応認証方式</h3>
+                <div class="auth-badges">
+                    <div class="auth-badge"><span>🛡️</span> IAM</div>
+                    <div class="auth-badge"><span>🔑</span> SAML via IAM Federation</div>
+                    <div class="auth-badge"><span>👥</span> IAM Identity Center</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Technical Spec -->
+        <div class="section">
+            <h2>🔧 技術仕様</h2>
+            <h3 style="color: var(--aws-white); font-size: 16px; margin-bottom: 10px;">DataSourceAccessPolicy</h3>
+            <table class="spec-table">
+                <tr><th>項目</th><th>詳細</th></tr>
+                <tr><td>アクセス範囲</td><td>同一リージョン内のクロスアカウント</td></tr>
+                <tr><td>ドメインタイプ</td><td>パブリック、VPC</td></tr>
+                <tr><td>認証方式</td><td>IAM、SAML via IAM フェデレーション、IAM Identity Center</td></tr>
+                <tr><td>ポリシータイプ</td><td>DataSourceAccessPolicy</td></tr>
+            </table>
+
+            <h3 style="color: var(--aws-white); font-size: 16px; margin: 20px 0 10px;">更新された API メソッド</h3>
+            <table class="spec-table">
+                <tr><th>メソッド</th><th>変更内容</th></tr>
+                <tr><td>AddDirectQueryDataSource</td><td><code>DataSourceAccessPolicy</code> パラメータの追加</td></tr>
+                <tr><td>UpdateDirectQueryDataSource</td><td><code>DataSourceAccessPolicy</code> パラメータの追加</td></tr>
+                <tr><td>GetDirectQueryDataSource</td><td>レスポンスに <code>DataSourceAccessPolicy</code> を含む</td></tr>
+                <tr><td>CreateApplication</td><td><code>iamRoleForDataSourceArn</code> パラメータの追加</td></tr>
+                <tr><td>UpdateApplication</td><td><code>iamRoleForDataSourceArn</code> パラメータの追加</td></tr>
+                <tr><td>GetApplication</td><td>レスポンスに <code>iamRoleForDataSourceArn</code> を含む</td></tr>
+            </table>
+
+            <h3 style="color: var(--aws-white); font-size: 16px; margin: 20px 0 10px;">データソースアクセスポリシー例</h3>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">JSON</span>
+                    <span class="code-title">DataSourceAccessPolicy</span>
+                </div>
+                <pre><code class="language-json">{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Principal": {
+                "AWS": "arn:aws:iam::&lt;source-account-id&gt;:root"
+            },
+            "Action": "es:OpenSearchDirectQueryAccess",
+            "Resource": "arn:aws:es:&lt;region&gt;:&lt;target-account-id&gt;:datasource/&lt;datasource-name&gt;"
+        }
+    ]
+}</code></pre>
+            </div>
+        </div>
+
+        <!-- Setup Steps -->
+        <div class="section">
+            <h2>📝 設定方法</h2>
+            <p style="font-size: 14px; margin-bottom: 16px;">3 ステップでクロスアカウントデータアクセスを設定できる。</p>
+
+            <div class="flow-diagram">
+                <div class="flow-step">1️⃣ ポリシー設定<br><span style="font-size:12px;">ターゲットアカウント</span></div>
+                <span class="flow-arrow">&rarr;</span>
+                <div class="flow-step">2️⃣ データソース追加<br><span style="font-size:12px;">ソースアカウント</span></div>
+                <span class="flow-arrow">&rarr;</span>
+                <div class="flow-step">3️⃣ クエリ実行<br><span style="font-size:12px;">OpenSearch UI</span></div>
+            </div>
+
+            <h3 style="color: var(--aws-white); font-size: 15px; margin: 16px 0 8px;">Step 1: データソースアクセスポリシーの設定</h3>
+            <p style="font-size: 14px; margin-bottom: 8px;">ターゲットアカウント側でデータソースにアクセスポリシーを設定し、ソースアカウントからのアクセスを許可する。</p>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Bash</span>
+                    <span class="code-title">ターゲットアカウントでの設定</span>
+                </div>
+                <pre><code class="language-bash">aws opensearch add-direct-query-data-source \
+    --data-source-name my-cross-account-ds \
+    --data-source-type '{"CloudWatchLog": {"RoleArn": "arn:aws:iam::&lt;target-account-id&gt;:role/OpenSearchDataSourceRole"}}' \
+    --open-search-arns '["arn:aws:es:&lt;region&gt;:&lt;target-account-id&gt;:domain/&lt;domain-name&gt;"]' \
+    --data-source-access-policy '{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Principal":{"AWS":"arn:aws:iam::&lt;source-account-id&gt;:root"},"Action":"es:OpenSearchDirectQueryAccess","Resource":"*"}]}'</code></pre>
+            </div>
+
+            <h3 style="color: var(--aws-white); font-size: 15px; margin: 16px 0 8px;">Step 2: OpenSearch UI アプリケーションにデータソースを追加</h3>
+            <p style="font-size: 14px; margin-bottom: 8px;">ソースアカウント側で OpenSearch UI アプリケーションにクロスアカウントのデータソースを追加する。</p>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Bash</span>
+                    <span class="code-title">ソースアカウントでの設定</span>
+                </div>
+                <pre><code class="language-bash">aws opensearch update-application \
+    --id &lt;application-id&gt; \
+    --data-sources '[{
+        "dataSourceArn": "arn:aws:es:&lt;region&gt;:&lt;target-account-id&gt;:datasource/&lt;datasource-name&gt;",
+        "dataSourceDescription": "Cross-account data source",
+        "iamRoleForDataSourceArn": "arn:aws:iam::&lt;source-account-id&gt;:role/OpenSearchCrossAccountRole"
+    }]'</code></pre>
+            </div>
+
+            <h3 style="color: var(--aws-white); font-size: 15px; margin: 16px 0 8px;">Step 3: OpenSearch UI からクエリを実行</h3>
+            <p style="font-size: 14px;">OpenSearch UI にログインし、追加したクロスアカウントデータソースを選択してクエリやダッシュボードの構築を行う。</p>
+        </div>
+
+        <!-- Merits / Demerits -->
+        <div class="section">
+            <h2>💡 メリット / デメリット</h2>
+            <div class="merit-grid">
+                <div class="merit-col">
+                    <h3 style="color: var(--aws-green);">&#9989; メリット</h3>
+                    <ul style="list-style: none; padding: 0;">
+                        <li style="padding: 5px 0; font-size: 14px;"><strong style="color: var(--aws-white);">運用コスト削減</strong>: データレプリケーションパイプラインの構築・維持が不要になり、インフラコストと運用工数を削減</li>
+                        <li style="padding: 5px 0; font-size: 14px;"><strong style="color: var(--aws-white);">組織横断的な分析</strong>: マルチアカウント環境で分散しているデータを統合的に分析し、意思決定の迅速化に寄与</li>
+                        <li style="padding: 5px 0; font-size: 14px;"><strong style="color: var(--aws-white);">セキュリティ体制の維持</strong>: データを移動させずに分析でき、各アカウントのデータガバナンスとアクセス制御を維持</li>
+                        <li style="padding: 5px 0; font-size: 14px;"><strong style="color: var(--aws-white);">アーキテクチャの簡素化</strong>: データ集約レイヤーやクロスアカウントパイプラインが不要になり、システム構成がシンプルに</li>
+                        <li style="padding: 5px 0; font-size: 14px;"><strong style="color: var(--aws-white);">リアルタイム分析</strong>: データのレプリケーション遅延なく、最新データに対してクエリを実行可能</li>
+                        <li style="padding: 5px 0; font-size: 14px;"><strong style="color: var(--aws-white);">柔軟な認証連携</strong>: IAM と IAM Identity Center の両方をサポートし、既存の認証基盤と容易に統合</li>
+                    </ul>
+                </div>
+                <div class="merit-col">
+                    <h3 style="color: var(--aws-red);">&#9888;&#65039; 制限事項・考慮点</h3>
+                    <ul class="caution-list">
+                        <li>クロスアカウントアクセスは同一リージョン内に限定</li>
+                        <li>ターゲットアカウント側でデータソースアクセスポリシーの設定が必要</li>
+                        <li>クロスアカウントクエリのレイテンシは同一アカウント内と比較して若干増加の可能性</li>
+                        <li>マルチアカウント環境でのアクセスポリシー管理が複雑になる可能性</li>
+                        <li>VPC 構成のドメインではネットワーク接続の追加設定が必要な場合あり</li>
+                        <li>データソースアクセスポリシーは最小権限の原則に基づいて設計が必要</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Use Cases -->
+        <div class="section">
+            <h2>🎯 ユースケース</h2>
+            <div class="usecase-cards">
+                <div class="usecase-card">
+                    <h3>🔍 集中型オブザーバビリティプラットフォーム</h3>
+                    <p class="scenario">大規模なマルチアカウント環境で各アカウントの OpenSearch ドメインにログデータが分散しており、SRE チームが統合的にモニタリングしたいシナリオ。</p>
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span class="code-lang">Bash</span>
+                            <span class="code-title">集中分析アカウントへの登録</span>
+                        </div>
+                        <pre><code class="language-bash">aws opensearch update-application \
+    --id &lt;app-id&gt; \
+    --data-sources '[
+        {"dataSourceArn": "arn:aws:es:ap-northeast-1:&lt;prod-account&gt;:datasource/prod-logs", "dataSourceDescription": "Production logs"},
+        {"dataSourceArn": "arn:aws:es:ap-northeast-1:&lt;staging-account&gt;:datasource/staging-logs", "dataSourceDescription": "Staging logs"}
+    ]'</code></pre>
+                    </div>
+                    <div class="effect"><strong>効果:</strong> 単一のダッシュボードから本番・ステージング環境のログを横断的に分析でき、障害の早期検知と根本原因の特定が迅速化。</div>
+                </div>
+                <div class="usecase-card">
+                    <h3>🛡️ セキュリティ分析の一元化</h3>
+                    <p class="scenario">セキュリティチームが複数のアカウントにまたがるセキュリティログを統合的に分析し、脅威検出を行いたいシナリオ。</p>
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span class="code-lang">Bash</span>
+                            <span class="code-title">Security Lake データソースのクロスアカウント設定</span>
+                        </div>
+                        <pre><code class="language-bash">aws opensearch add-direct-query-data-source \
+    --data-source-name security-analytics \
+    --data-source-type '{"SecurityLake": {"RoleArn": "arn:aws:iam::&lt;security-account&gt;:role/SecurityLakeRole"}}' \
+    --open-search-arns '["arn:aws:es:ap-northeast-1:&lt;security-account&gt;:domain/security-domain"]' \
+    --data-source-access-policy '{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Principal":{"AWS":"arn:aws:iam::&lt;soc-account&gt;:root"},"Action":"es:OpenSearchDirectQueryAccess","Resource":"*"}]}'</code></pre>
+                    </div>
+                    <div class="effect"><strong>効果:</strong> SOC チームが各アカウントのセキュリティデータをリアルタイムで分析でき、組織全体のセキュリティ可視性が向上。</div>
+                </div>
+                <div class="usecase-card">
+                    <h3>📊 部門横断的な業務データ検索</h3>
+                    <p class="scenario">各事業部門が個別の AWS アカウントで OpenSearch を運用しており、経営層が部門横断的なデータ分析を行いたいシナリオ。</p>
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span class="code-lang">Bash</span>
+                            <span class="code-title">IAM Identity Center を活用したエンタープライズ分析</span>
+                        </div>
+                        <pre><code class="language-bash">aws opensearch create-application \
+    --name "enterprise-analytics" \
+    --data-sources '[
+        {"dataSourceArn": "arn:aws:es:ap-northeast-1:&lt;sales-account&gt;:datasource/sales-data", "dataSourceDescription": "Sales data"},
+        {"dataSourceArn": "arn:aws:es:ap-northeast-1:&lt;support-account&gt;:datasource/support-data", "dataSourceDescription": "Support data"}
+    ]' \
+    --iam-identity-center-options '{"enabled": true, "iamIdentityCenterInstanceArn": "arn:aws:sso:::instance/ssoins-xxxxxxxxxx"}'</code></pre>
+                    </div>
+                    <div class="effect"><strong>効果:</strong> IAM Identity Center を活用した SSO 認証により、部門横断的なデータ分析をセキュアかつシームレスに実現。</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pricing -->
+        <div class="section">
+            <h2>💰 料金</h2>
+            <div class="pricing-note">
+                <strong>クロスアカウントデータアクセス機能自体に追加料金は発生しない。</strong>
+            </div>
+            <table class="spec-table" style="margin-top: 16px;">
+                <tr><th>項目</th><th>料金</th></tr>
+                <tr><td>クロスアカウントデータアクセス機能</td><td><span style="color: var(--aws-green); font-weight: 600;">追加料金なし</span></td></tr>
+                <tr><td>OpenSearch ドメイン</td><td>インスタンスタイプ・サイズに基づく従量課金</td></tr>
+                <tr><td>データ転送</td><td>クロスアカウントのデータ転送料金が適用される場合がある</td></tr>
+            </table>
+        </div>
+
+        <!-- Region -->
+        <div class="section">
+            <h2>🌍 利用可能リージョン</h2>
+            <p>OpenSearch UI が利用可能な<span class="highlight">すべての AWS リージョン</span>で利用可能。</p>
+        </div>
+
+        <!-- Related Services -->
+        <div class="section">
+            <h2>🔗 関連サービス</h2>
+            <ul class="related-list">
+                <li><strong>Amazon OpenSearch Service</strong>: フルマネージドの検索・分析サービス。今回のアップデートで UI のクロスアカウントアクセスが追加</li>
+                <li><strong>OpenSearch UI</strong>: OpenSearch Service のビジュアル分析インターフェース。クロスアカウントデータソースの統合管理が可能</li>
+                <li><strong>IAM Identity Center</strong>: エンドユーザー認証に使用。SSO によるシームレスなクロスアカウントアクセスを実現</li>
+                <li><strong>Amazon Security Lake</strong>: セキュリティデータレイクサービス。OpenSearch の Direct Query データソースとして連携可能</li>
+                <li><strong>Amazon CloudWatch Logs</strong>: ログ管理サービス。OpenSearch の Direct Query データソースとして連携可能</li>
+            </ul>
+        </div>
+
+        <!-- Summary -->
+        <div class="section" style="border: 1px solid rgba(255, 153, 0, 0.4);">
+            <h2>📌 まとめ</h2>
+            <p>Amazon OpenSearch Service の OpenSearch UI がクロスアカウントデータアクセスをサポートしたことで、マルチアカウント環境での統合的なデータ分析が大幅に簡素化された。データレプリケーションやパイプラインの構築が不要になり、各アカウントのアクセス制御を維持したまま横断的な分析が可能である。マルチアカウント環境でオブザーバビリティやセキュリティ分析を運用しているチームは、この機能の導入を検討することを推奨する。</p>
+        </div>
+
+        <!-- Footer -->
+        <footer>
+            <p>📎 出典:</p>
+            <ul style="list-style: none; padding: 0; margin-top: 4px;">
+                <li><a href="https://aws.amazon.com/about-aws/whats-new/2026/03/opensearch-ui-cross-account-data-access-domains/" target="_blank" rel="noopener noreferrer">https://aws.amazon.com/about-aws/whats-new/2026/03/opensearch-ui-cross-account-data-access-domains/</a></li>
+                <li style="margin-top: 4px;"><a href="https://docs.aws.amazon.com/opensearch-service/latest/developerguide/what-is.html" target="_blank" rel="noopener noreferrer">https://docs.aws.amazon.com/opensearch-service/latest/developerguide/what-is.html</a></li>
+                <li style="margin-top: 4px;"><a href="https://aws.amazon.com/opensearch-service/pricing/" target="_blank" rel="noopener noreferrer">https://aws.amazon.com/opensearch-service/pricing/</a></li>
+            </ul>
+        </footer>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'base',
+            themeVariables: {
+                primaryColor: '#FF9900',
+                primaryTextColor: '#232F3E',
+                primaryBorderColor: '#FF9900',
+                lineColor: '#FF9900',
+                secondaryColor: '#F5F5F5',
+                tertiaryColor: '#FAFAFA',
+                background: '#FFFFFF',
+                mainBkg: '#FFF3E0',
+                nodeBorder: '#FF9900',
+                clusterBkg: '#FFF8E1',
+                clusterBorder: '#FF9900',
+                edgeLabelBackground: '#FFFFFF',
+                textColor: '#232F3E'
+            }
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/highlight.min.js"></script>
+    <script>hljs.highlightAll();</script>
+</body>
+</html>

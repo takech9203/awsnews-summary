@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Amazon Bedrock AgentCore Memory - 長期メモリのストリーミング通知</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap');
+
+        :root {
+            --aws-squid-ink: #232F3E;
+            --aws-dark-squid: #1A242F;
+            --aws-orange: #FF9900;
+            --aws-smile-orange: #FFAD33;
+            --aws-white: #FFFFFF;
+            --aws-light-gray: #D5DBDB;
+            --aws-teal: #00A1C9;
+            --aws-purple: #8C4FFF;
+            --aws-green: #1D8102;
+            --aws-red: #D13212;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background-color: var(--aws-squid-ink);
+            font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            color: var(--aws-light-gray);
+            font-size: 16px;
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        /* Header */
+        .header {
+            margin-bottom: 32px;
+            padding-bottom: 24px;
+            border-bottom: 3px solid var(--aws-orange);
+        }
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .service-badge {
+            display: inline-block;
+            background: var(--aws-orange);
+            color: var(--aws-squid-ink);
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+        h1 {
+            font-size: 34px;
+            font-weight: 700;
+            color: var(--aws-white);
+            line-height: 1.3;
+            margin-bottom: 8px;
+        }
+        .subtitle {
+            font-size: 16px;
+            color: var(--aws-light-gray);
+        }
+        .date-badge {
+            background: var(--aws-dark-squid);
+            border: 1px solid rgba(255,153,0,0.4);
+            border-radius: 8px;
+            padding: 8px 16px;
+            font-size: 14px;
+            color: var(--aws-orange);
+            white-space: nowrap;
+        }
+
+        /* Sections */
+        .section {
+            background: var(--aws-dark-squid);
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 24px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        h2 {
+            font-size: 22px;
+            font-weight: 600;
+            color: var(--aws-orange);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        h3 {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--aws-white);
+            margin: 16px 0 10px;
+        }
+
+        /* Highlight */
+        .highlight {
+            background-color: rgba(255,153,0,0.2);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+            color: var(--aws-orange);
+        }
+
+        /* Before/After */
+        .before-after {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin: 16px 0;
+        }
+        @media (max-width: 600px) {
+            .before-after { grid-template-columns: 1fr; }
+        }
+        .before-card, .after-card {
+            border-radius: 8px;
+            padding: 16px;
+        }
+        .before-card {
+            background: rgba(209,50,18,0.1);
+            border: 1px solid rgba(209,50,18,0.4);
+        }
+        .after-card {
+            background: rgba(29,129,2,0.1);
+            border: 1px solid rgba(29,129,2,0.4);
+        }
+        .before-card .label { color: var(--aws-red); font-weight: 700; margin-bottom: 10px; font-size: 15px; }
+        .after-card .label { color: var(--aws-green); font-weight: 700; margin-bottom: 10px; font-size: 15px; }
+        .ba-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            margin: 6px 0;
+            font-size: 14px;
+        }
+
+        /* Feature cards */
+        .feature-card {
+            background: var(--aws-squid-ink);
+            border-left: 4px solid var(--aws-orange);
+            border-radius: 0 8px 8px 0;
+            padding: 16px 20px;
+            margin: 12px 0;
+        }
+        .feature-card .feature-title {
+            color: var(--aws-white);
+            font-weight: 600;
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+        .feature-card ul {
+            list-style: none;
+            padding: 0;
+        }
+        .feature-card li {
+            padding: 3px 0;
+            font-size: 14px;
+        }
+        .feature-card li::before {
+            content: "-> ";
+            color: var(--aws-orange);
+            font-weight: bold;
+        }
+
+        /* Spec table */
+        .spec-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 12px 0;
+            font-size: 14px;
+        }
+        .spec-table th, .spec-table td {
+            padding: 10px 14px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .spec-table th {
+            background: rgba(255,153,0,0.15);
+            color: var(--aws-orange);
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        .spec-table td { color: var(--aws-light-gray); }
+
+        /* Use case cards */
+        .usecase-card {
+            background: rgba(255,153,0,0.08);
+            border: 1px solid rgba(255,153,0,0.25);
+            border-radius: 8px;
+            padding: 18px;
+            margin: 14px 0;
+        }
+        .usecase-title {
+            color: var(--aws-orange);
+            font-weight: 600;
+            font-size: 16px;
+            margin-bottom: 6px;
+        }
+        .usecase-scenario {
+            font-size: 14px;
+            margin-bottom: 10px;
+            color: var(--aws-light-gray);
+        }
+        .usecase-effect {
+            font-size: 14px;
+            color: var(--aws-green);
+            margin-top: 10px;
+        }
+
+        /* Stats grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 14px;
+            margin: 16px 0;
+        }
+        @media (max-width: 600px) {
+            .stats-grid { grid-template-columns: 1fr; }
+        }
+        .stat-card {
+            background: linear-gradient(135deg, rgba(255,153,0,0.15), rgba(140,79,255,0.1));
+            border: 1px solid rgba(255,153,0,0.3);
+            border-radius: 8px;
+            padding: 18px;
+            text-align: center;
+        }
+        .stat-number {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--aws-orange);
+        }
+        .stat-label {
+            font-size: 13px;
+            color: var(--aws-light-gray);
+            margin-top: 4px;
+        }
+
+        /* Merits / demerits */
+        .merit-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            margin: 8px 0;
+            font-size: 14px;
+        }
+        .merit-icon { font-size: 16px; flex-shrink: 0; margin-top: 2px; }
+
+        /* Region tags */
+        .region-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 12px 0;
+        }
+        .region-tag {
+            background: rgba(0,161,201,0.12);
+            border: 1px solid rgba(0,161,201,0.35);
+            color: var(--aws-teal);
+            padding: 4px 12px;
+            border-radius: 16px;
+            font-size: 13px;
+        }
+
+        /* Pricing table */
+        .pricing-note {
+            font-size: 13px;
+            color: var(--aws-light-gray);
+            opacity: 0.8;
+            margin-top: 8px;
+        }
+
+        /* Mermaid */
+        .mermaid-container {
+            background: #FFFFFF;
+            border-radius: 12px;
+            padding: 24px;
+            margin: 20px 0;
+            border: 2px solid rgba(255,153,0,0.3);
+            overflow-x: auto;
+        }
+        .mermaid {
+            display: flex;
+            justify-content: center;
+        }
+
+        /* Code blocks */
+        .code-block {
+            background: #1a1a2e;
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 16px 0;
+        }
+        .code-header {
+            background: #16213e;
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+        }
+        .code-lang {
+            color: var(--aws-orange);
+            font-weight: bold;
+        }
+        .code-title {
+            color: var(--aws-light-gray);
+        }
+        .code-block pre {
+            margin: 0;
+            padding: 0;
+            overflow-x: auto;
+        }
+        .code-block code {
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            padding: 16px !important;
+        }
+
+        /* Links */
+        .aws-link {
+            color: var(--aws-teal);
+            text-decoration: none;
+        }
+        .aws-link:hover { color: var(--aws-smile-orange); }
+
+        /* Related services */
+        .related-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 12px;
+            margin: 12px 0;
+        }
+        .related-card {
+            background: var(--aws-squid-ink);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px;
+            padding: 14px;
+            font-size: 14px;
+        }
+        .related-card strong { color: var(--aws-white); }
+
+        /* Footer */
+        footer {
+            margin-top: 24px;
+            padding-top: 16px;
+            border-top: 1px solid rgba(255,255,255,0.2);
+            font-size: 12px;
+            color: var(--aws-light-gray);
+        }
+        footer a { color: var(--aws-teal); text-decoration: underline; word-break: break-all; }
+
+        /* Flow diagram */
+        .flow-diagram {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin: 24px 0;
+        }
+        .flow-step {
+            background: var(--aws-dark-squid);
+            border: 2px solid var(--aws-orange);
+            border-radius: 8px;
+            padding: 12px 20px;
+            text-align: center;
+            min-width: 100px;
+        }
+        .flow-arrow {
+            color: var(--aws-orange);
+            font-size: 24px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+
+        <!-- Header -->
+        <div class="header">
+            <div class="header-top">
+                <div>
+                    <span class="service-badge">Amazon Bedrock AgentCore Memory</span>
+                    <h1>🧠 長期メモリのストリーミング通知</h1>
+                    <p class="subtitle">ポーリング不要 -- メモリ更新をリアルタイムで Amazon Kinesis に配信</p>
+                </div>
+                <div class="date-badge">📅 2026/03/12</div>
+            </div>
+        </div>
+
+        <!-- Overview -->
+        <div class="section">
+            <h2>📋 概要</h2>
+            <p>Amazon Bedrock AgentCore Memory が、<span class="highlight">長期メモリのストリーミング通知</span>をサポートしました。メモリレコードの作成や変更を<span class="highlight">リアルタイムでプッシュ通知</span>として受信でき、ポーリングによる変更検出が不要になります。</p>
+            <p style="margin-top:12px;">長期メモリは、エージェントとのインタラクションからインサイトを抽出し、将来のインタラクションでパーソナライズされた体験を提供するための機能です。今回のアップデートにより、メモリレコードが作成または変更されるたびに Amazon Kinesis に直接ストリーミングされ、ダウンストリームワークフローのトリガー、アプリケーション状態の更新、メモリ更新の監査を自動的に実行できるようになりました。</p>
+
+            <!-- Before/After -->
+            <div class="before-after">
+                <div class="before-card">
+                    <div class="label">❌ Before</div>
+                    <div class="ba-item"><span>-</span> メモリレコードの変更検出に定期的なポーリングロジックが必要</div>
+                    <div class="ba-item"><span>-</span> ポーリング間隔やリフレッシュインターバルを手動で管理</div>
+                    <div class="ba-item"><span>-</span> ダウンストリームワークフローのトリガーにリアルタイム性が欠如</div>
+                </div>
+                <div class="after-card">
+                    <div class="label">✅ After</div>
+                    <div class="ba-item"><span>+</span> メモリレコードの作成・変更時にプッシュ通知をリアルタイム受信</div>
+                    <div class="ba-item"><span>+</span> ポーリングロジックやリフレッシュインターバル管理のコードが不要</div>
+                    <div class="ba-item"><span>+</span> Amazon Kinesis を介したイベント駆動型アーキテクチャで自動化</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="section">
+            <h2>📊 数字で見るアップデート</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number">15</div>
+                    <div class="stat-label">利用可能リージョン</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">$0</div>
+                    <div class="stat-label">ストリーミング通知の追加料金</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">~$13</div>
+                    <div class="stat-label">Kinesis 1 シャード月額</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Architecture Diagram -->
+        <div class="section">
+            <h2>🏗️ アーキテクチャ図</h2>
+            <p style="margin-bottom:12px;">AgentCore Memory の長期メモリが更新されると、ストリーミング通知が Amazon Kinesis に送信され、ダウンストリームの各種ワークフローが自動的にトリガーされます。</p>
+            <div class="mermaid-container">
+                <pre class="mermaid">
+flowchart TD
+    User(["👤 ユーザー"]) --> Agent["🤖 AI エージェント"]
+    Agent --> Memory["🧠 AgentCore Memory<br/>長期メモリ"]
+
+    Memory --> |"メモリレコード<br/>作成/変更"| Stream["📡 ストリーミング通知"]
+    Stream --> Kinesis["🔄 Amazon Kinesis<br/>Data Streams"]
+
+    Kinesis --> Lambda["⚡ AWS Lambda<br/>ワークフロートリガー"]
+    Kinesis --> App["📱 アプリケーション<br/>状態更新"]
+    Kinesis --> Audit["📋 監査ログ<br/>記録"]
+
+    classDef user fill:#E3F2FD,stroke:#BBDEFB,stroke-width:2px,color:#1565C0
+    classDef agent fill:#FFE0B2,stroke:#FFCC80,stroke-width:2px,color:#5D4037
+    classDef memory fill:#F3E5F5,stroke:#CE93D8,stroke-width:2px,color:#6A1B9A
+    classDef stream fill:#E8F1FF,stroke:#4A90E2,stroke-width:2px,color:#333333
+    classDef kinesis fill:#DCEDC8,stroke:#C5E1A5,stroke-width:2px,color:#33691E
+    classDef downstream fill:#FFFFFF,stroke:#4A90E2,stroke-width:2px,color:#333333
+
+    class User user
+    class Agent agent
+    class Memory memory
+    class Stream stream
+    class Kinesis kinesis
+    class Lambda,App,Audit downstream
+                </pre>
+            </div>
+        </div>
+
+        <!-- Key Features -->
+        <div class="section">
+            <h2>⚡ 主要機能</h2>
+
+            <div class="feature-card">
+                <div class="feature-title">📡 リアルタイムプッシュ通知</div>
+                <ul>
+                    <li>メモリレコードの作成時および変更時に、自動的に通知が送信される</li>
+                    <li>ポーリングベースの監視から、イベント駆動型の監視に移行可能</li>
+                    <li>通知の遅延を最小限に抑えたリアルタイム配信</li>
+                </ul>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-title">🔄 Amazon Kinesis との統合</div>
+                <ul>
+                    <li>メモリ更新イベントが Amazon Kinesis Data Streams に直接ストリーミング</li>
+                    <li>Kinesis の既存のコンシューマーアプリケーションやダウンストリーム処理と統合可能</li>
+                    <li>Kinesis のスケーラビリティと信頼性を活用したイベント配信</li>
+                </ul>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-title">🔧 自動化ワークフローのサポート</div>
+                <ul>
+                    <li>ダウンストリームワークフローの自動トリガーが可能</li>
+                    <li>アプリケーション状態のリアルタイム更新に対応</li>
+                    <li>メモリ更新の監査を自動化し、コンプライアンス要件に対応</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Technical Specifications -->
+        <div class="section">
+            <h2>🔧 技術仕様</h2>
+
+            <h3>ストリーミング通知の概要</h3>
+            <table class="spec-table">
+                <tr><th>項目</th><th>詳細</th></tr>
+                <tr><td>配信先</td><td>Amazon Kinesis Data Streams</td></tr>
+                <tr><td>トリガーイベント</td><td>メモリレコードの作成、メモリレコードの変更</td></tr>
+                <tr><td>配信方式</td><td>プッシュ型 (リアルタイム)</td></tr>
+                <tr><td>対象メモリタイプ</td><td>長期メモリ (Long-Term Memory)</td></tr>
+            </table>
+
+            <h3 style="margin-top:20px;">API 変更履歴</h3>
+            <table class="spec-table">
+                <tr><th>日付</th><th>サービス</th><th>変更内容</th></tr>
+                <tr>
+                    <td>2026/03/10</td>
+                    <td><a href="https://awsapichanges.com/archive/changes/9ed5c2-bedrock-agentcore-control.html" class="aws-link" target="_blank">Amazon Bedrock AgentCore Control</a></td>
+                    <td>3 updated api methods - AG-UI プロトコルのサポート追加</td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- Setup Guide -->
+        <div class="section">
+            <h2>🚀 設定方法</h2>
+
+            <h3>前提条件</h3>
+            <div class="merit-item"><span class="merit-icon">1️⃣</span> Amazon Bedrock AgentCore Memory が有効化されていること</div>
+            <div class="merit-item"><span class="merit-icon">2️⃣</span> Amazon Kinesis Data Streams のストリームが作成済みであること</div>
+            <div class="merit-item"><span class="merit-icon">3️⃣</span> AgentCore Memory から Kinesis にイベントを送信するための IAM 権限が設定されていること</div>
+
+            <h3 style="margin-top:20px;">ステップ 1: Kinesis Data Stream の作成</h3>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Bash</span>
+                    <span class="code-title">Kinesis Data Stream の作成</span>
+                </div>
+                <pre><code class="language-bash">aws kinesis create-stream \
+  --stream-name agentcore-memory-notifications \
+  --shard-count 1 \
+  --region us-east-1</code></pre>
+            </div>
+            <p style="font-size:14px;">メモリ更新イベントを受信するための Kinesis Data Stream を作成します。シャード数はイベントの想定スループットに応じて調整してください。</p>
+
+            <h3 style="margin-top:20px;">ステップ 2: ストリーミング通知の設定</h3>
+            <p style="font-size:14px;">AgentCore Memory の設定で、ストリーミング通知の送信先として作成した Kinesis Data Stream を指定します。詳細な設定手順は公式ドキュメントを参照してください。</p>
+
+            <h3 style="margin-top:20px;">ステップ 3: コンシューマーアプリケーションの実装</h3>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Python</span>
+                    <span class="code-title">Kinesis コンシューマーの基本実装</span>
+                </div>
+                <pre><code class="language-python">import boto3
+import json
+
+kinesis = boto3.client('kinesis', region_name='us-east-1')
+
+response = kinesis.get_shard_iterator(
+    StreamName='agentcore-memory-notifications',
+    ShardId='shardId-000000000000',
+    ShardIteratorType='LATEST'
+)
+
+shard_iterator = response['ShardIterator']
+
+while True:
+    response = kinesis.get_records(
+        ShardIterator=shard_iterator,
+        Limit=100
+    )
+    for record in response['Records']:
+        data = json.loads(record['Data'])
+        print(f"Memory event: {data}")
+    shard_iterator = response['NextShardIterator']</code></pre>
+            </div>
+            <p style="font-size:14px;">本番環境では AWS Lambda や Amazon Kinesis Data Analytics などのマネージドサービスを活用することを推奨します。</p>
+        </div>
+
+        <!-- Benefits -->
+        <div class="section">
+            <h2>✅ メリット</h2>
+
+            <h3>ビジネス面</h3>
+            <div class="merit-item"><span class="merit-icon">🎯</span> <div><strong style="color:var(--aws-white)">応答性の向上</strong>: メモリ更新をリアルタイムで検出し、パーソナライズされた体験をより迅速に提供</div></div>
+            <div class="merit-item"><span class="merit-icon">💰</span> <div><strong style="color:var(--aws-white)">運用コストの削減</strong>: ポーリングロジックの実装・維持が不要になり、開発者の作業負荷を軽減</div></div>
+            <div class="merit-item"><span class="merit-icon">🔒</span> <div><strong style="color:var(--aws-white)">コンプライアンス対応</strong>: メモリ更新の監査ログをリアルタイムで自動記録し、規制要件への対応を効率化</div></div>
+
+            <h3 style="margin-top:16px;">技術面</h3>
+            <div class="merit-item"><span class="merit-icon">⚙️</span> <div><strong style="color:var(--aws-white)">イベント駆動型アーキテクチャ</strong>: ポーリングベースからプッシュ型への移行により、アーキテクチャの効率性が向上</div></div>
+            <div class="merit-item"><span class="merit-icon">📈</span> <div><strong style="color:var(--aws-white)">スケーラビリティ</strong>: Amazon Kinesis の活用により、大量のメモリ更新イベントにもスケーラブルに対応</div></div>
+            <div class="merit-item"><span class="merit-icon">🔗</span> <div><strong style="color:var(--aws-white)">統合の容易さ</strong>: Kinesis エコシステム (Lambda、Firehose、Data Analytics) との既存の統合パターンを活用可能</div></div>
+        </div>
+
+        <!-- Limitations -->
+        <div class="section">
+            <h2>⚠️ デメリット・制約事項</h2>
+
+            <h3>制限事項</h3>
+            <div class="merit-item"><span class="merit-icon">❌</span> ストリーミング通知の配信先は Amazon Kinesis Data Streams に限定される</div>
+            <div class="merit-item"><span class="merit-icon">❌</span> Kinesis Data Stream の追加コストが発生する</div>
+            <div class="merit-item"><span class="merit-icon">❌</span> 長期メモリのみが対象であり、短期メモリやセッションメモリには適用されない</div>
+
+            <h3 style="margin-top:16px;">考慮すべき点</h3>
+            <div class="merit-item"><span class="merit-icon">💡</span> Kinesis Data Stream のシャード数やリテンション期間を適切に設計する必要がある</div>
+            <div class="merit-item"><span class="merit-icon">💡</span> 大量のメモリ更新が発生する環境では、コンシューマーアプリケーションのスループットを考慮する必要がある</div>
+        </div>
+
+        <!-- Use Cases -->
+        <div class="section">
+            <h2>💡 ユースケース</h2>
+
+            <div class="usecase-card">
+                <div class="usecase-title">📱 ユースケース 1: パーソナライゼーションのリアルタイム更新</div>
+                <div class="usecase-scenario">カスタマーサポートのチャットボットが顧客の過去のインタラクションから学習し、次回の問い合わせ時にパーソナライズされた対応を提供したい。</div>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">Python</span>
+                        <span class="code-title">Lambda でメモリ更新イベントを処理</span>
+                    </div>
+                    <pre><code class="language-python"># Lambda 関数でメモリ更新イベントを処理
+def lambda_handler(event, context):
+    for record in event['Records']:
+        payload = json.loads(
+            base64.b64decode(record['kinesis']['data'])
+        )
+        # ユーザープロファイルキャッシュを更新
+        update_user_profile_cache(
+            user_id=payload['userId'],
+            memory_data=payload['memoryRecord']
+        )</code></pre>
+                </div>
+                <div class="usecase-effect">✅ メモリ更新が即座にアプリケーションキャッシュに反映され、顧客が次回問い合わせた際に最新のコンテキストに基づいた応答が可能に</div>
+            </div>
+
+            <div class="usecase-card">
+                <div class="usecase-title">🔒 ユースケース 2: メモリ更新の監査とコンプライアンス</div>
+                <div class="usecase-scenario">規制産業において、AI エージェントが保存するメモリの内容をリアルタイムで監査し、コンプライアンス違反を検出したい。</div>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">Python</span>
+                        <span class="code-title">S3 に永続化 + コンプライアンスチェック</span>
+                    </div>
+                    <pre><code class="language-python"># メモリ更新イベントを S3 に永続化し、コンプライアンスチェックを実行
+def lambda_handler(event, context):
+    for record in event['Records']:
+        payload = json.loads(
+            base64.b64decode(record['kinesis']['data'])
+        )
+        # S3 に監査ログを保存
+        s3.put_object(
+            Bucket='memory-audit-logs',
+            Key=f"{payload['timestamp']}/{payload['memoryId']}.json",
+            Body=json.dumps(payload)
+        )
+        # コンプライアンスルールを適用
+        check_compliance(payload)</code></pre>
+                </div>
+                <div class="usecase-effect">✅ メモリの全変更がリアルタイムで監査され、問題のあるコンテンツが保存された場合に即座にアラートを発行可能</div>
+            </div>
+
+            <div class="usecase-card">
+                <div class="usecase-title">🤝 ユースケース 3: マルチエージェントのメモリ同期</div>
+                <div class="usecase-scenario">複数の AI エージェントが同じ顧客情報を共有し、一方のエージェントが学習した内容を他のエージェントにもリアルタイムで反映したい。</div>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">Python</span>
+                        <span class="code-title">メモリ更新を他のエージェントに同期</span>
+                    </div>
+                    <pre><code class="language-python"># メモリ更新を他のエージェントのコンテキストに同期
+def lambda_handler(event, context):
+    for record in event['Records']:
+        payload = json.loads(
+            base64.b64decode(record['kinesis']['data'])
+        )
+        # 関連する全エージェントにメモリコンテキストを配信
+        for agent_id in get_related_agents(payload['userId']):
+            sync_memory_to_agent(agent_id, payload['memoryRecord'])</code></pre>
+                </div>
+                <div class="usecase-effect">✅ 1 つのエージェントが取得した顧客インサイトが、全関連エージェントにリアルタイムで共有され、一貫したパーソナライゼーションが実現</div>
+            </div>
+        </div>
+
+        <!-- Pricing -->
+        <div class="section">
+            <h2>💰 料金</h2>
+            <p>AgentCore Memory のストリーミング通知機能自体に<span class="highlight">追加料金は発生しません</span>。ただし、以下の関連サービスの料金が適用されます。</p>
+            <table class="spec-table" style="margin-top:14px;">
+                <tr><th>使用量</th><th>月額料金 (概算)</th></tr>
+                <tr><td>Kinesis Data Stream (1 シャード、24 時間リテンション)</td><td>約 $13.00</td></tr>
+                <tr><td>Kinesis PUT ペイロードユニット (100 万イベント/月)</td><td>約 $0.014</td></tr>
+            </table>
+            <p class="pricing-note">※ AgentCore Memory 自体の料金については、Amazon Bedrock の料金ページを参照してください。</p>
+        </div>
+
+        <!-- Available Regions -->
+        <div class="section">
+            <h2>🌍 利用可能リージョン (15 リージョン)</h2>
+            <div class="region-tags">
+                <span class="region-tag">US East (N. Virginia)</span>
+                <span class="region-tag">US East (Ohio)</span>
+                <span class="region-tag">US West (Oregon)</span>
+                <span class="region-tag">Europe (Frankfurt)</span>
+                <span class="region-tag">Europe (Ireland)</span>
+                <span class="region-tag">Europe (London)</span>
+                <span class="region-tag">Europe (Paris)</span>
+                <span class="region-tag">Europe (Stockholm)</span>
+                <span class="region-tag">Asia Pacific (Mumbai)</span>
+                <span class="region-tag">Asia Pacific (Singapore)</span>
+                <span class="region-tag">Asia Pacific (Sydney)</span>
+                <span class="region-tag">Asia Pacific (Tokyo)</span>
+                <span class="region-tag">Asia Pacific (Seoul)</span>
+                <span class="region-tag">Canada (Central)</span>
+                <span class="region-tag">South America (Sao Paulo)</span>
+            </div>
+        </div>
+
+        <!-- Related Services -->
+        <div class="section">
+            <h2>🔗 関連サービス・機能</h2>
+            <div class="related-grid">
+                <div class="related-card">
+                    <strong>🔄 Amazon Kinesis Data Streams</strong><br/>
+                    メモリ更新イベントのストリーミング配信先として使用
+                </div>
+                <div class="related-card">
+                    <strong>🤖 Amazon Bedrock AgentCore</strong><br/>
+                    AI エージェントのランタイム環境を提供する親サービス
+                </div>
+                <div class="related-card">
+                    <strong>⚡ AWS Lambda</strong><br/>
+                    Kinesis からのイベントをトリガーとしたサーバーレスワークフローの実行に活用
+                </div>
+            </div>
+        </div>
+
+        <!-- Summary -->
+        <div class="section" style="border: 1px solid rgba(255,153,0,0.4);">
+            <h2>📝 まとめ</h2>
+            <p>Amazon Bedrock AgentCore Memory のストリーミング通知機能により、長期メモリの変更をリアルタイムで検出し、イベント駆動型のワークフローを構築できるようになりました。ポーリングロジックの実装が不要になり、開発者はアプリケーションロジックに集中できます。パーソナライゼーションの即時反映、コンプライアンス監査の自動化、マルチエージェント間のメモリ同期など、幅広いユースケースでの活用が期待されます。</p>
+        </div>
+
+        <!-- Footer -->
+        <footer>
+            <p>📎 出典:</p>
+            <ul style="list-style:none; padding:0; margin-top:6px;">
+                <li style="margin:4px 0;"><a href="https://aws.amazon.com/about-aws/whats-new/2026/03/agentcore-memory-streaming-ltm/" target="_blank" rel="noopener noreferrer">公式発表 (What's New)</a></li>
+                <li style="margin:4px 0;"><a href="https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/memory.html" target="_blank" rel="noopener noreferrer">ドキュメント - AgentCore Memory</a></li>
+                <li style="margin:4px 0;"><a href="https://aws.amazon.com/bedrock/pricing/" target="_blank" rel="noopener noreferrer">料金ページ - Amazon Bedrock</a></li>
+            </ul>
+            <p style="margin-top:12px; opacity:0.6;">Generated from reports/2026/2026-03-12-agentcore-memory-streaming-ltm.md</p>
+        </footer>
+
+    </div>
+
+    <!-- highlight.js -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/styles/atom-one-dark.min.css">
+    <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/highlight.min.js"></script>
+    <script>hljs.highlightAll();</script>
+
+    <!-- Mermaid.js -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'base',
+            themeVariables: {
+                primaryColor: '#FF9900',
+                primaryTextColor: '#232F3E',
+                primaryBorderColor: '#FF9900',
+                lineColor: '#FF9900',
+                secondaryColor: '#F5F5F5',
+                tertiaryColor: '#FAFAFA',
+                background: '#FFFFFF',
+                mainBkg: '#FFF3E0',
+                nodeBorder: '#FF9900',
+                clusterBkg: '#FFF8E1',
+                clusterBorder: '#FF9900',
+                edgeLabelBackground: '#FFFFFF',
+                textColor: '#232F3E'
+            }
+        });
+    </script>
+</body>
+</html>

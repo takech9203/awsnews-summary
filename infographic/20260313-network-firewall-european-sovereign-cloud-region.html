@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AWS Network Firewall - European Sovereign Cloud</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap');
+
+    :root {
+      --aws-squid-ink: #232F3E;
+      --aws-dark-squid: #1A242F;
+      --aws-orange: #FF9900;
+      --aws-smile-orange: #FFAD33;
+      --aws-white: #FFFFFF;
+      --aws-light-gray: #D5DBDB;
+      --aws-teal: #00A1C9;
+      --aws-purple: #8C4FFF;
+      --aws-green: #1D8102;
+      --aws-red: #D13212;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background-color: var(--aws-squid-ink);
+      font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+      color: var(--aws-light-gray);
+      font-size: 16px;
+      line-height: 1.6;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 32px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .header-left { flex: 1; }
+    .service-badge {
+      display: inline-block;
+      background: var(--aws-orange);
+      color: var(--aws-squid-ink);
+      font-size: 13px;
+      font-weight: 700;
+      padding: 4px 12px;
+      border-radius: 4px;
+      margin-bottom: 12px;
+    }
+    h1 {
+      font-size: 36px;
+      font-weight: 700;
+      color: var(--aws-white);
+      line-height: 1.3;
+    }
+    .header-meta {
+      font-size: 14px;
+      color: var(--aws-light-gray);
+      margin-top: 8px;
+    }
+
+    /* Section */
+    .section {
+      background: var(--aws-dark-squid);
+      border-radius: 8px;
+      padding: 24px;
+      margin-bottom: 24px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    h2 {
+      font-size: 24px;
+      font-weight: 600;
+      color: var(--aws-orange);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    h3 {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--aws-white);
+      margin: 16px 0 10px 0;
+    }
+
+    p { margin-bottom: 12px; }
+
+    .highlight {
+      background-color: rgba(255, 153, 0, 0.2);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 600;
+      color: var(--aws-orange);
+    }
+
+    /* Before / After */
+    .before-after {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin: 16px 0;
+    }
+    @media (max-width: 640px) {
+      .before-after { grid-template-columns: 1fr; }
+    }
+    .before-card, .after-card {
+      border-radius: 8px;
+      padding: 16px;
+    }
+    .before-card {
+      background: rgba(209, 50, 18, 0.1);
+      border: 1px solid rgba(209, 50, 18, 0.4);
+    }
+    .after-card {
+      background: rgba(29, 129, 2, 0.1);
+      border: 1px solid rgba(29, 129, 2, 0.4);
+    }
+    .before-card .label { color: var(--aws-red); font-weight: 700; margin-bottom: 8px; }
+    .after-card .label { color: var(--aws-green); font-weight: 700; margin-bottom: 8px; }
+    .ba-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      margin: 6px 0;
+      font-size: 14px;
+    }
+
+    /* Feature Cards */
+    .feature-cards {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+    .feature-card {
+      background: var(--aws-dark-squid);
+      border-radius: 8px;
+      padding: 16px 16px 16px 20px;
+      border-left: 4px solid var(--aws-orange);
+      border-top: 1px solid rgba(255,255,255,0.08);
+      border-right: 1px solid rgba(255,255,255,0.08);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    .feature-card .feature-title {
+      color: var(--aws-white);
+      font-weight: 600;
+      font-size: 16px;
+      margin-bottom: 6px;
+    }
+    .feature-card p {
+      font-size: 14px;
+      margin: 0;
+    }
+    .feature-card ul {
+      margin: 6px 0 0 20px;
+      font-size: 14px;
+    }
+    .feature-card li { margin-bottom: 4px; }
+
+    /* Mermaid */
+    .mermaid-container {
+      background: #FFFFFF;
+      border-radius: 12px;
+      padding: 24px;
+      margin: 20px 0;
+      border: 2px solid rgba(255, 153, 0, 0.3);
+      overflow-x: auto;
+    }
+    .mermaid {
+      display: flex;
+      justify-content: center;
+    }
+
+    /* Tables */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0;
+      font-size: 14px;
+    }
+    th {
+      background: rgba(255, 153, 0, 0.15);
+      color: var(--aws-orange);
+      text-align: left;
+      padding: 10px 12px;
+      font-weight: 600;
+      border-bottom: 2px solid rgba(255, 153, 0, 0.3);
+    }
+    td {
+      padding: 10px 12px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+
+    /* Use Case Cards */
+    .usecase-card {
+      background: rgba(255, 153, 0, 0.08);
+      border: 1px solid rgba(255, 153, 0, 0.25);
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+    .usecase-card .uc-title {
+      color: var(--aws-orange);
+      font-weight: 600;
+      font-size: 16px;
+      margin-bottom: 6px;
+    }
+    .usecase-card .uc-scenario {
+      font-size: 14px;
+      margin-bottom: 8px;
+    }
+    .usecase-card .uc-effect {
+      font-size: 14px;
+      color: var(--aws-green);
+    }
+
+    /* Code Block */
+    .code-block {
+      background: #1a1a2e;
+      border-radius: 8px;
+      overflow: hidden;
+      margin: 12px 0;
+    }
+    .code-header {
+      background: #16213e;
+      padding: 8px 16px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+    }
+    .code-lang {
+      color: var(--aws-orange);
+      font-weight: bold;
+    }
+    .code-title {
+      color: var(--aws-light-gray);
+    }
+    .code-block pre {
+      margin: 0;
+      padding: 0;
+      overflow-x: auto;
+    }
+    .code-block code {
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      line-height: 1.5;
+      padding: 16px !important;
+    }
+
+    /* Merits / Demerits */
+    .merit-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin: 16px 0;
+    }
+    @media (max-width: 640px) {
+      .merit-grid { grid-template-columns: 1fr; }
+    }
+    .merit-box {
+      border-radius: 8px;
+      padding: 16px;
+    }
+    .merit-box.business {
+      background: rgba(255, 153, 0, 0.08);
+      border: 1px solid rgba(255, 153, 0, 0.25);
+    }
+    .merit-box.tech {
+      background: rgba(0, 161, 201, 0.08);
+      border: 1px solid rgba(0, 161, 201, 0.25);
+    }
+    .merit-box h3 { font-size: 16px; margin-bottom: 8px; }
+    .merit-box ul {
+      margin-left: 16px;
+      font-size: 14px;
+    }
+    .merit-box li { margin-bottom: 6px; }
+
+    /* Caution */
+    .caution-list {
+      margin: 12px 0;
+    }
+    .caution-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      margin: 8px 0;
+      font-size: 14px;
+    }
+
+    /* Region */
+    .region-badge {
+      display: inline-block;
+      background: rgba(0, 161, 201, 0.15);
+      color: var(--aws-teal);
+      font-size: 14px;
+      padding: 6px 14px;
+      border-radius: 20px;
+      border: 1px solid rgba(0, 161, 201, 0.3);
+    }
+
+    /* Links */
+    .aws-link {
+      color: var(--aws-teal);
+      text-decoration: none;
+    }
+    .aws-link:hover {
+      color: var(--aws-smile-orange);
+    }
+    .link-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+    .link-list li {
+      margin: 8px 0;
+      font-size: 14px;
+    }
+
+    /* Footer */
+    footer {
+      margin-top: 24px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(255, 255, 255, 0.2);
+      font-size: 12px;
+      color: var(--aws-light-gray);
+    }
+    footer a {
+      color: var(--aws-teal);
+      text-decoration: underline;
+      word-break: break-all;
+    }
+  </style>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/styles/atom-one-dark.min.css">
+</head>
+<body>
+  <div class="container">
+
+    <!-- Header -->
+    <div class="header">
+      <div class="header-left">
+        <span class="service-badge">AWS Network Firewall</span>
+        <h1>AWS Network Firewall - AWS European Sovereign Cloud での提供開始</h1>
+        <div class="header-meta">2026 年 3 月 13 日 | AWS Network Firewall | リージョン拡大</div>
+      </div>
+    </div>
+
+    <!-- Overview -->
+    <div class="section">
+      <h2>概要</h2>
+      <p>
+        <span class="highlight">AWS Network Firewall</span> が <span class="highlight">AWS European Sovereign Cloud</span> で利用可能になった。
+        特に規制の厳しい業界、政府機関、厳格なデータ主権要件を持つ欧州の顧客が、EU のデータ保護規制に完全に準拠しながら、
+        最も機密性の高いワークロードを保護するために AWS Network Firewall をデプロイできるようになる。
+      </p>
+      <p>
+        AWS Network Firewall は、Amazon VPC に不可欠なネットワーク保護を提供するマネージドファイアウォールサービスであり、
+        ネットワークトラフィック量に応じて自動的にスケールし、基盤となるインフラストラクチャのセットアップやメンテナンスを必要とせずに
+        <span class="highlight">高可用性の保護</span>を実現する。すべてのデータと運用が EU 域内に完全に留まり、EU ベースの管理下に置かれることが保証される。
+      </p>
+    </div>
+
+    <!-- Before / After -->
+    <div class="section">
+      <h2>Before / After</h2>
+      <div class="before-after">
+        <div class="before-card">
+          <div class="label">Before</div>
+          <div class="ba-item"><span>-</span><span>AWS European Sovereign Cloud を使用する顧客は、VPC レベルのマネージドファイアウォール保護を利用できなかった</span></div>
+          <div class="ba-item"><span>-</span><span>データ主権要件を満たしながらネットワークセキュリティを確保するために、サードパーティのソリューションやカスタム構成が必要だった</span></div>
+          <div class="ba-item"><span>-</span><span>EU 域内にデータを保持しつつ、高度なネットワーク脅威検出と防御を実装することが困難だった</span></div>
+        </div>
+        <div class="after-card">
+          <div class="label">After</div>
+          <div class="ba-item"><span>+</span><span>AWS European Sovereign Cloud 内で AWS Network Firewall をネイティブにデプロイし、VPC のネットワーク保護が可能に</span></div>
+          <div class="ba-item"><span>+</span><span>すべてのデータと運用を EU 域内に保持しながら、他の AWS リージョンと同等のファイアウォール機能を利用可能に</span></div>
+          <div class="ba-item"><span>+</span><span>マネージドサービスとして自動スケーリングと高可用性が提供され、インフラストラクチャ管理の負担が軽減</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Architecture Diagram -->
+    <div class="section">
+      <h2>アーキテクチャ図</h2>
+      <p>AWS European Sovereign Cloud 内の VPC において、AWS Network Firewall がトラフィックを検査し、ステートフルおよびステートレスなルールに基づいてフィルタリングを行う構成を示している。すべてのデータと運用は EU 域内に保持される。</p>
+      <div class="mermaid-container">
+        <pre class="mermaid">
+flowchart TD
+    subgraph ESC["AWS European Sovereign Cloud"]
+        subgraph VPC["Amazon VPC"]
+            subgraph FWSub["Firewall Subnet"]
+                NFW["AWS Network Firewall<br/>Endpoint"]
+            end
+            subgraph PubSub["Public Subnet"]
+                IGW["Internet Gateway"]
+                NAT["NAT Gateway"]
+            end
+            subgraph PrivSub["Private Subnet"]
+                EC2["EC2 Instances"]
+                App["Application Workloads"]
+            end
+        end
+    end
+
+    Internet(["Internet"]) --> IGW
+    IGW --> NFW
+    NFW --> NAT
+    NAT --> EC2
+    EC2 --> App
+
+    classDef cloud fill:none,stroke:#CCCCCC,stroke-width:2px,color:#666666
+    classDef layer fill:none,stroke:#E1BEE7,stroke-width:2px,color:#666666
+    classDef compute fill:#FFE0B2,stroke:#FFCC80,stroke-width:2px,color:#5D4037
+    classDef user fill:#E3F2FD,stroke:#BBDEFB,stroke-width:2px,color:#1565C0
+    classDef firewall fill:#FFEBEE,stroke:#F44336,stroke-width:2px,color:#B71C1C
+    classDef network fill:#E8F1FF,stroke:#4A90E2,stroke-width:2px,color:#333333
+
+    class ESC cloud
+    class VPC,FWSub,PubSub,PrivSub layer
+    class NFW firewall
+    class IGW,NAT network
+    class EC2,App compute
+    class Internet user
+        </pre>
+      </div>
+    </div>
+
+    <!-- Key Features -->
+    <div class="section">
+      <h2>主要機能</h2>
+      <div class="feature-cards">
+        <div class="feature-card">
+          <div class="feature-title">ステートフルおよびステートレスなトラフィック検査</div>
+          <ul>
+            <li>VPC を通過するすべてのトラフィックに対するパケットレベルの検査</li>
+            <li>Suricata 互換の IPS ルールによる高度な脅威検出</li>
+            <li>ドメイン名、IP アドレス、プロトコルに基づくフィルタリング</li>
+          </ul>
+        </div>
+        <div class="feature-card">
+          <div class="feature-title">自動スケーリングと高可用性</div>
+          <ul>
+            <li>ネットワークトラフィック量に応じた自動スケーリング</li>
+            <li>基盤インフラストラクチャの管理が不要</li>
+            <li>複数の Availability Zone にまたがるデプロイメントによる高可用性</li>
+          </ul>
+        </div>
+        <div class="feature-card">
+          <div class="feature-title">AWS サービスとの統合</div>
+          <ul>
+            <li>AWS Firewall Manager による一元管理</li>
+            <li>Amazon CloudWatch によるメトリクスとログの監視</li>
+            <li>AWS CloudFormation によるインフラストラクチャのコード化</li>
+            <li>VPC フローログとの連携</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Technical Specs -->
+    <div class="section">
+      <h2>技術仕様</h2>
+      <h3>AWS Network Firewall の主要機能</h3>
+      <table>
+        <thead>
+          <tr><th>項目</th><th>詳細</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>ステートレスルール</td><td>5-tuple ベースのフィルタリング</td></tr>
+          <tr><td>ステートフルルール</td><td>Suricata 互換 IPS ルール、ドメインリストフィルタリング</td></tr>
+          <tr><td>TLS インスペクション</td><td>暗号化トラフィックの検査</td></tr>
+          <tr><td>Web カテゴリフィルタリング</td><td>URL カテゴリベースのアクセス制御</td></tr>
+          <tr><td>ログ記録</td><td>アラートログ、フローログ、TLS ログ</td></tr>
+          <tr><td>デプロイメント</td><td>分散型、集中型、複合型モデルに対応</td></tr>
+        </tbody>
+      </table>
+
+      <h3>IAM ポリシー例</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">JSON</span>
+          <span class="code-title">European Sovereign Cloud 向け IAM ポリシー</span>
+        </div>
+        <pre><code class="language-json">{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "network-firewall:CreateFirewall",
+                "network-firewall:CreateFirewallPolicy",
+                "network-firewall:CreateRuleGroup",
+                "network-firewall:DescribeFirewall",
+                "network-firewall:UpdateFirewallPolicy"
+            ],
+            "Resource": "*",
+            "Condition": {
+                "StringEquals": {
+                    "aws:RequestedRegion": "eu-sovereign-1"
+                }
+            }
+        }
+    ]
+}</code></pre>
+      </div>
+    </div>
+
+    <!-- Setup -->
+    <div class="section">
+      <h2>設定方法</h2>
+
+      <h3>前提条件</h3>
+      <div class="caution-list">
+        <div class="caution-item"><span>1.</span><span>AWS European Sovereign Cloud へのアクセス権限</span></div>
+        <div class="caution-item"><span>2.</span><span>保護対象の Amazon VPC が European Sovereign Cloud リージョン内に存在すること</span></div>
+        <div class="caution-item"><span>3.</span><span>AWS Network Firewall の操作に必要な IAM 権限</span></div>
+      </div>
+
+      <h3>Step 1: ファイアウォールポリシーの作成</h3>
+      <p style="font-size:14px;">ファイアウォールポリシーを作成し、ステートレスおよびステートフルなデフォルトアクションを設定する。STRICT_ORDER を使用することで、ルールの評価順序を明示的に制御できる。</p>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash</span>
+          <span class="code-title">ファイアウォールポリシーの作成</span>
+        </div>
+        <pre><code class="language-bash">aws network-firewall create-firewall-policy \
+    --firewall-policy-name "eu-sovereign-policy" \
+    --firewall-policy '{
+        "StatelessDefaultActions": ["aws:forward_to_sfe"],
+        "StatelessFragmentDefaultActions": ["aws:forward_to_sfe"],
+        "StatefulDefaultActions": ["aws:alert_strict"],
+        "StatefulEngineOptions": {
+            "RuleOrder": "STRICT_ORDER"
+        }
+    }'</code></pre>
+      </div>
+
+      <h3>Step 2: ファイアウォールの作成</h3>
+      <p style="font-size:14px;">指定した VPC とサブネットにファイアウォールエンドポイントを作成する。複数の Availability Zone に配置する場合は、subnet-mappings に複数のサブネットを指定する。</p>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash</span>
+          <span class="code-title">ファイアウォールの作成</span>
+        </div>
+        <pre><code class="language-bash">aws network-firewall create-firewall \
+    --firewall-name "eu-sovereign-firewall" \
+    --firewall-policy-arn "arn:aws:network-firewall:eu-sovereign-1:ACCOUNT_ID:firewall-policy/eu-sovereign-policy" \
+    --vpc-id "vpc-xxxxxxxxx" \
+    --subnet-mappings '[{"SubnetId": "subnet-xxxxxxxxx"}]'</code></pre>
+      </div>
+
+      <h3>Step 3: ルートテーブルの更新</h3>
+      <p style="font-size:14px;">VPC のルートテーブルを更新し、トラフィックがファイアウォールエンドポイントを経由するように設定する。これにより、すべてのインターネット向けトラフィックが AWS Network Firewall で検査される。</p>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash</span>
+          <span class="code-title">ルートテーブルの更新</span>
+        </div>
+        <pre><code class="language-bash">aws ec2 create-route \
+    --route-table-id "rtb-xxxxxxxxx" \
+    --destination-cidr-block "0.0.0.0/0" \
+    --vpc-endpoint-id "vpce-xxxxxxxxx"</code></pre>
+      </div>
+    </div>
+
+    <!-- Benefits -->
+    <div class="section">
+      <h2>メリット</h2>
+      <div class="merit-grid">
+        <div class="merit-box business">
+          <h3>ビジネス面</h3>
+          <ul>
+            <li><strong>データ主権の確保</strong>: すべてのデータと運用が EU 域内に保持され、EU のデータ保護規制に準拠</li>
+            <li><strong>コンプライアンス対応の簡素化</strong>: 規制の厳しい業界や政府機関向けの要件を満たすネットワークセキュリティを容易に実装</li>
+            <li><strong>運用コストの削減</strong>: マネージドサービスにより、ファイアウォールインフラストラクチャの管理負担を軽減</li>
+          </ul>
+        </div>
+        <div class="merit-box tech">
+          <h3>技術面</h3>
+          <ul>
+            <li><strong>自動スケーリング</strong>: トラフィック量に応じた自動スケーリングにより、パフォーマンスを維持</li>
+            <li><strong>高可用性</strong>: 複数の Availability Zone にまたがるデプロイメントで耐障害性を確保</li>
+            <li><strong>他の AWS リージョンとの機能同等性</strong>: European Sovereign Cloud でも同等のファイアウォール機能を利用可能</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Limitations -->
+    <div class="section">
+      <h2>制約事項・考慮点</h2>
+      <div class="caution-list">
+        <div class="caution-item"><span style="color:var(--aws-orange)">!</span><span>AWS European Sovereign Cloud のリージョン内でのみ利用可能</span></div>
+        <div class="caution-item"><span style="color:var(--aws-orange)">!</span><span>European Sovereign Cloud へのアクセスには、適格な顧客としての要件を満たす必要がある</span></div>
+        <div class="caution-item"><span style="color:var(--aws-orange)">!</span><span>AWS European Sovereign Cloud で利用可能なサービスは、他の商用リージョンと比較して限定的な場合がある</span></div>
+        <div class="caution-item"><span style="color:var(--aws-orange)">!</span><span>European Sovereign Cloud のリージョン展開状況に応じて、利用可能な Availability Zone が限定される可能性がある</span></div>
+        <div class="caution-item"><span style="color:var(--aws-orange)">!</span><span>既存の商用リージョンから European Sovereign Cloud への移行には、ネットワークアーキテクチャの再設計が必要になる場合がある</span></div>
+      </div>
+    </div>
+
+    <!-- Use Cases -->
+    <div class="section">
+      <h2>ユースケース</h2>
+
+      <div class="usecase-card">
+        <div class="uc-title">UC1: 欧州金融機関のネットワーク保護</div>
+        <div class="uc-scenario">EU の金融規制 DORA などに準拠しながら、クラウド上のワークロードをネットワーク脅威から保護する必要がある欧州の銀行</div>
+        <div class="code-block">
+          <div class="code-header">
+            <span class="code-lang">Bash</span>
+            <span class="code-title">金融サービス向けルールグループの作成</span>
+          </div>
+          <pre><code class="language-bash">aws network-firewall create-rule-group \
+    --rule-group-name "financial-services-rules" \
+    --type STATEFUL \
+    --capacity 100 \
+    --rule-group '{
+        "RulesSource": {
+            "RulesSourceList": {
+                "Targets": [".approved-payment-gateway.eu", ".eu-banking-api.com"],
+                "TargetTypes": ["TLS_SNI", "HTTP_HOST"],
+                "GeneratedRulesType": "ALLOWLIST"
+            }
+        }
+    }'</code></pre>
+        </div>
+        <div class="uc-effect">EU 域内にデータを保持しつつ、承認された金融サービスへのアクセスのみを許可し、規制要件を満たすネットワーク保護を実現</div>
+      </div>
+
+      <div class="usecase-card">
+        <div class="uc-title">UC2: 欧州政府機関のセキュアなクラウド環境</div>
+        <div class="uc-scenario">データ主権要件を厳格に遵守しながら、政府系ワークロードを AWS 上で運用する必要がある EU 加盟国の政府機関</div>
+        <div class="code-block">
+          <div class="code-header">
+            <span class="code-lang">Bash</span>
+            <span class="code-title">IPS ルールによる脅威検出の設定</span>
+          </div>
+          <pre><code class="language-bash">aws network-firewall create-rule-group \
+    --rule-group-name "gov-threat-detection" \
+    --type STATEFUL \
+    --capacity 200 \
+    --rule-group '{
+        "RulesSource": {
+            "StatefulRules": [
+                {
+                    "Action": "DROP",
+                    "Header": {
+                        "Protocol": "TCP",
+                        "Source": "ANY",
+                        "SourcePort": "ANY",
+                        "Destination": "ANY",
+                        "DestinationPort": "ANY",
+                        "Direction": "ANY"
+                    },
+                    "RuleOptions": [
+                        {"Keyword": "sid", "Settings": ["1"]},
+                        {"Keyword": "msg", "Settings": ["\"Block known malicious traffic\""]}
+                    ]
+                }
+            ]
+        }
+    }'</code></pre>
+        </div>
+        <div class="uc-effect">すべてのネットワークトラフィックを EU 域内で検査・フィルタリングし、高度な脅威からの保護を実現しながらデータ主権を維持</div>
+      </div>
+
+      <div class="usecase-card">
+        <div class="uc-title">UC3: ヘルスケア業界の GDPR 準拠環境</div>
+        <div class="uc-scenario">患者データの保護と GDPR への準拠を確保しながら、ヘルスケアアプリケーションを European Sovereign Cloud で運用する病院チェーン</div>
+        <div class="code-block">
+          <div class="code-header">
+            <span class="code-lang">Bash</span>
+            <span class="code-title">ヘルスケア向けドメインフィルタリング</span>
+          </div>
+          <pre><code class="language-bash">aws network-firewall create-rule-group \
+    --rule-group-name "healthcare-domain-rules" \
+    --type STATEFUL \
+    --capacity 100 \
+    --rule-group '{
+        "RulesSource": {
+            "RulesSourceList": {
+                "Targets": [".ehr-system.eu", ".medical-imaging.eu", ".eu-health-api.com"],
+                "TargetTypes": ["TLS_SNI"],
+                "GeneratedRulesType": "ALLOWLIST"
+            }
+        }
+    }'</code></pre>
+        </div>
+        <div class="uc-effect">患者データが EU 域外に流出するリスクを最小化し、承認された医療系システムとの通信のみを許可することで GDPR 準拠を支援</div>
+      </div>
+    </div>
+
+    <!-- Pricing -->
+    <div class="section">
+      <h2>料金</h2>
+      <table>
+        <thead>
+          <tr><th>項目</th><th>料金</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>ファイアウォールエンドポイント</td><td>リージョンおよび Availability Zone ごとに時間単位で課金</td></tr>
+          <tr><td>データ処理</td><td>ファイアウォールエンドポイントで処理されたデータ量 (GB 単位)</td></tr>
+          <tr><td>TLS インスペクション</td><td>追加の時間単位料金 (TLS インスペクション使用時)</td></tr>
+          <tr><td>Active Threat Defense</td><td>処理されたトラフィック量に対する追加料金</td></tr>
+        </tbody>
+      </table>
+      <p style="font-size:14px; margin-top:12px;">
+        参考として、US East (N. Virginia) リージョンでは、ファイアウォールエンドポイントが <span class="highlight">$0.395/時間</span>、データ処理が <span class="highlight">$0.065/GB</span> である。
+        AWS European Sovereign Cloud の料金はリージョンテーブルで確認が必要。NAT Gateway と同一ネットワークパスに配置した場合、NAT Gateway の時間料金とデータ処理料金が免除されるディスカウントがある。
+      </p>
+    </div>
+
+    <!-- Region -->
+    <div class="section">
+      <h2>利用可能リージョン</h2>
+      <p>
+        <span class="region-badge">AWS European Sovereign Cloud リージョン</span>
+      </p>
+      <p style="font-size:14px; margin-top:12px;">
+        詳細な利用可能リージョンについては、<a href="https://aws.amazon.com/about-aws/global-infrastructure/regional-product-services/" target="_blank" rel="noopener noreferrer" class="aws-link">AWS リージョンテーブル</a>を参照。
+      </p>
+    </div>
+
+    <!-- Related -->
+    <div class="section">
+      <h2>関連サービス・参考リンク</h2>
+      <h3>関連サービス</h3>
+      <ul class="link-list">
+        <li><a href="https://aws.amazon.com/firewall-manager/" target="_blank" rel="noopener noreferrer" class="aws-link">AWS Firewall Manager</a> - 複数のアカウントおよびリソースにわたるファイアウォールルールの一元管理</li>
+        <li><a href="https://aws.amazon.com/vpc/" target="_blank" rel="noopener noreferrer" class="aws-link">Amazon VPC</a> - AWS Network Firewall が保護するネットワーク環境</li>
+        <li><a href="https://aws.amazon.com/shield/" target="_blank" rel="noopener noreferrer" class="aws-link">AWS Shield</a> - DDoS 攻撃からの保護を提供する補完的なセキュリティサービス</li>
+        <li><a href="https://aws.amazon.com/waf/" target="_blank" rel="noopener noreferrer" class="aws-link">AWS WAF</a> - Web アプリケーション層での保護を提供するファイアウォールサービス</li>
+        <li><a href="https://aws.amazon.com/sovereign-cloud/" target="_blank" rel="noopener noreferrer" class="aws-link">AWS European Sovereign Cloud</a> - EU のデータ主権要件に対応した独立したクラウドインフラストラクチャ</li>
+      </ul>
+      <h3>参考リンク</h3>
+      <ul class="link-list">
+        <li><a href="https://aws.amazon.com/about-aws/whats-new/2026/03/network-firewall-european-sovereign-cloud-region/" target="_blank" rel="noopener noreferrer" class="aws-link">公式発表 (What's New)</a></li>
+        <li><a href="https://aws.amazon.com/network-firewall/" target="_blank" rel="noopener noreferrer" class="aws-link">AWS Network Firewall 製品ページ</a></li>
+        <li><a href="https://docs.aws.amazon.com/network-firewall/latest/developerguide/" target="_blank" rel="noopener noreferrer" class="aws-link">AWS Network Firewall ドキュメント</a></li>
+        <li><a href="https://aws.amazon.com/network-firewall/pricing/" target="_blank" rel="noopener noreferrer" class="aws-link">AWS Network Firewall 料金ページ</a></li>
+        <li><a href="https://aws.amazon.com/about-aws/global-infrastructure/regional-product-services/" target="_blank" rel="noopener noreferrer" class="aws-link">AWS リージョンテーブル</a></li>
+      </ul>
+    </div>
+
+    <!-- Summary -->
+    <div class="section">
+      <h2>まとめ</h2>
+      <p>
+        AWS Network Firewall の AWS European Sovereign Cloud での提供開始により、EU のデータ主権要件を持つ顧客が、
+        マネージドなネットワークファイアウォールサービスを Sovereign Cloud 環境内でネイティブに利用できるようになった。
+        規制の厳しい業界や政府機関にとって、EU 域内でのデータ保持を保証しながら高度なネットワーク保護を実現できるため、
+        European Sovereign Cloud の採用をさらに加速させるアップデートである。
+        European Sovereign Cloud を利用中、または利用を検討している顧客は、ネットワークセキュリティ戦略に AWS Network Firewall の導入を検討することを推奨する。
+      </p>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+      <p>出典: <a href="https://aws.amazon.com/about-aws/whats-new/2026/03/network-firewall-european-sovereign-cloud-region/" target="_blank" rel="noopener noreferrer">https://aws.amazon.com/about-aws/whats-new/2026/03/network-firewall-european-sovereign-cloud-region/</a></p>
+      <p style="margin-top: 4px;">AWS Network Firewall ドキュメント: <a href="https://docs.aws.amazon.com/network-firewall/latest/developerguide/" target="_blank" rel="noopener noreferrer">https://docs.aws.amazon.com/network-firewall/latest/developerguide/</a></p>
+    </footer>
+
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'base',
+      themeVariables: {
+        primaryColor: '#FF9900',
+        primaryTextColor: '#232F3E',
+        primaryBorderColor: '#FF9900',
+        lineColor: '#FF9900',
+        secondaryColor: '#F5F5F5',
+        tertiaryColor: '#FAFAFA',
+        background: '#FFFFFF',
+        mainBkg: '#FFF3E0',
+        nodeBorder: '#FF9900',
+        clusterBkg: '#FFF8E1',
+        clusterBorder: '#FF9900',
+        edgeLabelBackground: '#FFFFFF',
+        textColor: '#232F3E'
+      }
+    });
+  </script>
+  <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/highlight.min.js"></script>
+  <script>hljs.highlightAll();</script>
+</body>
+</html>

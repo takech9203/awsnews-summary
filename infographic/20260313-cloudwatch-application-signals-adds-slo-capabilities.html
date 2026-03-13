@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Amazon CloudWatch Application Signals - 新しい SLO 機能の追加</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Kaisei+Decol&family=Yomogi&family=Zen+Kurenaido&display=swap');
+
+    :root {
+      --fashion-1: #593C47;
+      --fashion-2: #F2E63D;
+      --fashion-3: #F2C53D;
+      --fashion-4: #F25C05;
+      --fashion-5: #F24405;
+      --text-primary: #334155;
+      --text-secondary: #475569;
+      --text-accent: #1e40af;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+      font-family: 'Yomogi', 'Zen Kurenaido', 'Kaisei Decol', sans-serif;
+      color: var(--text-primary);
+      line-height: 1.6;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 32px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .title {
+      font-size: 32px;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--fashion-4), var(--fashion-5));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .subtitle {
+      font-size: 16px;
+      color: var(--text-secondary);
+    }
+
+    .header-right {
+      text-align: right;
+    }
+
+    .badge {
+      display: inline-block;
+      background: var(--fashion-4);
+      color: white;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: bold;
+      margin-bottom: 4px;
+    }
+
+    .three-column-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      margin-bottom: 24px;
+    }
+
+    @media (max-width: 768px) {
+      .three-column-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .column {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .section {
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(10px);
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .section-title {
+      font-size: 18px;
+      color: var(--text-accent);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .highlight {
+      background: linear-gradient(transparent 60%, var(--fashion-2) 60%);
+      padding: 2px 4px;
+      font-weight: 600;
+    }
+
+    .highlight-orange {
+      background: linear-gradient(transparent 60%, #ffd6b0 60%);
+      padding: 2px 4px;
+      font-weight: 600;
+    }
+
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 16px;
+      margin: 12px 0;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      border-left: 4px solid var(--fashion-4);
+    }
+
+    .card-green {
+      border-left-color: #22c55e;
+    }
+
+    .card-blue {
+      border-left-color: #3b82f6;
+    }
+
+    .card-red {
+      border-left-color: var(--fashion-5);
+    }
+
+    .card-purple {
+      border-left-color: #8b5cf6;
+    }
+
+    .icon-text {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      margin: 8px 0;
+      font-size: 14px;
+    }
+
+    .arrow {
+      color: var(--fashion-4);
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+
+    .before-after {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .before-box {
+      background: #fee2e2;
+      border: 2px dashed #f87171;
+      border-radius: 10px;
+      padding: 12px;
+      font-size: 13px;
+    }
+
+    .after-box {
+      background: #dcfce7;
+      border: 2px dashed #4ade80;
+      border-radius: 10px;
+      padding: 12px;
+      font-size: 13px;
+    }
+
+    .ba-arrow {
+      font-size: 28px;
+      color: var(--fashion-4);
+    }
+
+    .ba-label {
+      font-size: 12px;
+      font-weight: bold;
+      text-align: center;
+      margin-bottom: 4px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      margin: 8px 0;
+    }
+
+    th {
+      background: var(--fashion-4);
+      color: white;
+      padding: 8px 10px;
+      text-align: left;
+      font-weight: 600;
+      font-size: 12px;
+    }
+
+    td {
+      padding: 8px 10px;
+      border-bottom: 1px solid #e2e8f0;
+      font-size: 13px;
+    }
+
+    tr:nth-child(even) td {
+      background: #f8fafc;
+    }
+
+    .feature-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      background: var(--fashion-4);
+      color: white;
+      border-radius: 50%;
+      font-size: 12px;
+      font-weight: bold;
+      flex-shrink: 0;
+    }
+
+    .flow-diagram {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin: 16px 0;
+    }
+
+    .flow-step {
+      background: white;
+      border: 2px solid var(--fashion-4);
+      border-radius: 10px;
+      padding: 10px 14px;
+      text-align: center;
+      font-size: 12px;
+      min-width: 80px;
+    }
+
+    .flow-arrow {
+      color: var(--fashion-4);
+      font-size: 22px;
+      font-weight: bold;
+    }
+
+    .usecase-box {
+      background: #f0f9ff;
+      border: 2px solid #93c5fd;
+      border-radius: 10px;
+      padding: 14px;
+      margin: 10px 0;
+    }
+
+    .usecase-title {
+      font-size: 14px;
+      font-weight: bold;
+      color: var(--text-accent);
+      margin-bottom: 6px;
+    }
+
+    .usecase-desc {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .merit-item {
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+      margin: 8px 0;
+      font-size: 13px;
+    }
+
+    .merit-icon {
+      flex-shrink: 0;
+      font-size: 16px;
+    }
+
+    .demerit-item {
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+      margin: 8px 0;
+      font-size: 13px;
+      color: #92400e;
+    }
+
+    .mermaid-container {
+      background: #FFFFFF;
+      border-radius: 12px;
+      padding: 24px;
+      margin: 12px 0;
+      border: 2px solid rgba(255, 153, 0, 0.3);
+      overflow-x: auto;
+    }
+
+    .mermaid {
+      display: flex;
+      justify-content: center;
+    }
+
+    .tag {
+      display: inline-block;
+      background: #ede9fe;
+      color: #6d28d9;
+      padding: 2px 10px;
+      border-radius: 12px;
+      font-size: 11px;
+      margin: 2px;
+    }
+
+    .tag-orange {
+      background: #fff7ed;
+      color: #c2410c;
+    }
+
+    .full-width-section {
+      grid-column: 1 / -1;
+    }
+
+    .related-links a {
+      display: block;
+      color: var(--text-accent);
+      text-decoration: none;
+      font-size: 13px;
+      padding: 4px 0;
+      word-break: break-all;
+    }
+
+    .related-links a:hover {
+      text-decoration: underline;
+    }
+
+    footer {
+      margin-top: 24px;
+      padding-top: 16px;
+      border-top: 2px dashed #d4a853;
+      font-size: 12px;
+      color: #666;
+    }
+
+    footer a {
+      color: #1e40af;
+      text-decoration: underline;
+      word-break: break-all;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <div>
+        <h1 class="title">📊 CloudWatch Application Signals - 新しい SLO 機能</h1>
+        <div class="subtitle">SLO Recommendations / Service-Level SLOs / SLO Performance Report の 3 機能追加</div>
+      </div>
+      <div class="header-right">
+        <span class="badge">NEW</span>
+        <div class="subtitle">2026 年 3 月 13 日</div>
+        <div style="font-size:12px; color:#94a3b8;">Amazon CloudWatch</div>
+      </div>
+    </div>
+
+    <!-- 3 Column Grid -->
+    <div class="three-column-grid">
+
+      <!-- Left Column -->
+      <div class="column">
+
+        <!-- Overview -->
+        <div class="section">
+          <h2 class="section-title">📝 概要</h2>
+          <p style="font-size:14px;">Amazon CloudWatch Application Signals に、<span class="highlight">SLO に関する 3 つの新機能</span>が追加されました。データ駆動型の信頼性目標の設定、サービス全体のヘルス監視、信頼性トレンドの分析が<span class="highlight-orange">コンソールベースで簡単に</span>実現できます。</p>
+          <div style="margin-top:12px;">
+            <span class="tag">SLO Recommendations</span>
+            <span class="tag tag-orange">Service-Level SLOs</span>
+            <span class="tag">Performance Report</span>
+            <span class="tag tag-orange">データ駆動型</span>
+          </div>
+        </div>
+
+        <!-- Before / After -->
+        <div class="section">
+          <h2 class="section-title">🔄 Before / After</h2>
+          <div class="before-after">
+            <div>
+              <div class="ba-label" style="color:#dc2626;">Before</div>
+              <div class="before-box">
+                <div class="icon-text"><span>😣</span><span>SLO しきい値が手動設定でアラート疲労の原因に</span></div>
+                <div class="icon-text"><span>😣</span><span>サービス全体の信頼性を一元的に把握する手段なし</span></div>
+                <div class="icon-text"><span>😣</span><span>カレンダー期間に沿ったパフォーマンスレポート生成不可</span></div>
+              </div>
+            </div>
+            <div class="ba-arrow">→</div>
+            <div>
+              <div class="ba-label" style="color:#16a34a;">After</div>
+              <div class="after-box">
+                <div class="icon-text"><span>🎉</span><span>30 日間のデータに基づく適切なターゲット自動提案</span></div>
+                <div class="icon-text"><span>🎉</span><span>全オペレーション横断のサービス信頼性を包括的に把握</span></div>
+                <div class="icon-text"><span>🎉</span><span>日次/週次/月次のカレンダー期間で履歴分析可能</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Architecture Diagram -->
+        <div class="section">
+          <h2 class="section-title">🏗️ アーキテクチャ図</h2>
+          <div class="mermaid-container">
+            <pre class="mermaid">
+flowchart TD
+    subgraph Apps["⚙️ アプリケーション"]
+        direction LR
+        EC2["🖥️ Amazon EC2"]
+        ECS["📦 Amazon ECS"]
+        LAMBDA["⚡ AWS Lambda"]
+        EC2 ~~~ ECS ~~~ LAMBDA
+    end
+
+    subgraph CW["📈 CloudWatch Application Signals"]
+        COLLECT["📊 メトリクス自動収集<br/>P99 Latency / Error Rate"]
+    end
+
+    subgraph SLO["🎯 新しい SLO 機能"]
+        REC["💡 SLO Recommendations<br/>30 日間のデータ分析"]
+        SVC["🔍 Service-Level SLOs<br/>サービス全体の信頼性"]
+        RPT["📋 SLO Performance Report<br/>カレンダー期間分析"]
+    end
+
+    subgraph Output["📤 出力"]
+        TARGET["🎯 信頼性ターゲット提案"]
+        HEALTH["❤️ サービスヘルス可視化"]
+        TREND["📈 トレンド分析レポート"]
+    end
+
+    Apps -->|テレメトリ| CW
+    CW --> REC
+    CW --> SVC
+    CW --> RPT
+    REC --> TARGET
+    SVC --> HEALTH
+    RPT --> TREND
+
+    classDef cloud fill:none,stroke:#CCCCCC,stroke-width:2px,color:#666666
+    classDef compute fill:#FFE0B2,stroke:#FFCC80,stroke-width:2px,color:#5D4037
+    classDef process fill:#FFFFFF,stroke:#4A90E2,stroke-width:2px,color:#333333
+    classDef decision fill:#F3E5F5,stroke:#7B61FF,stroke-width:2px,color:#333333
+    classDef input fill:#E9F7EC,stroke:#66BB6A,stroke-width:2px,color:#333333
+
+    class Apps cloud
+    class EC2,ECS,LAMBDA compute
+    class COLLECT process
+    class CW,SLO cloud
+    class REC,SVC,RPT decision
+    class Output cloud
+    class TARGET,HEALTH,TREND input
+            </pre>
+          </div>
+          <p style="font-size:12px; color:#94a3b8; margin-top:8px;">アプリケーションから収集されたメトリクスデータを基に、3 つの新しい SLO 機能がそれぞれ異なる観点で信頼性管理を支援</p>
+        </div>
+
+      </div>
+
+      <!-- Center Column -->
+      <div class="column">
+
+        <!-- Key Features -->
+        <div class="section">
+          <h2 class="section-title">⭐ 主要機能</h2>
+
+          <div class="card">
+            <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+              <span class="feature-num">1</span>
+              <strong style="color:var(--fashion-4);">SLO Recommendations</strong>
+            </div>
+            <div class="icon-text"><span class="arrow">→</span><span>30 日間のサービスメトリクスを自動分析</span></div>
+            <div class="icon-text"><span class="arrow">→</span><span>P99 レイテンシ / エラーレートの適切なターゲットを提案</span></div>
+            <div class="icon-text"><span class="arrow">→</span><span>実装前に提案値を検証可能</span></div>
+            <div class="icon-text"><span class="arrow">→</span><span>認知的・運用的負荷を大幅に軽減</span></div>
+          </div>
+
+          <div class="card card-green">
+            <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+              <span class="feature-num" style="background:#22c55e;">2</span>
+              <strong style="color:#16a34a;">Service-Level SLOs</strong>
+            </div>
+            <div class="icon-text"><span class="arrow" style="color:#22c55e;">→</span><span>全オペレーション横断のサービス信頼性ビュー</span></div>
+            <div class="icon-text"><span class="arrow" style="color:#22c55e;">→</span><span>技術的な監視とビジネス目標の整合を簡素化</span></div>
+            <div class="icon-text"><span class="arrow" style="color:#22c55e;">→</span><span>サービス全体の健全性を一元的に把握</span></div>
+          </div>
+
+          <div class="card card-blue">
+            <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+              <span class="feature-num" style="background:#3b82f6;">3</span>
+              <strong style="color:#2563eb;">SLO Performance Report</strong>
+            </div>
+            <div class="icon-text"><span class="arrow" style="color:#3b82f6;">→</span><span>カレンダー期間に合わせた履歴分析</span></div>
+            <div class="icon-text"><span class="arrow" style="color:#3b82f6;">→</span><span>日次・週次・月次のインターバルをサポート</span></div>
+            <div class="icon-text"><span class="arrow" style="color:#3b82f6;">→</span><span>信頼性トレンドをインシデント発生前に特定</span></div>
+            <div class="icon-text"><span class="arrow" style="color:#3b82f6;">→</span><span>ビジネスレポーティングに適した形式</span></div>
+          </div>
+        </div>
+
+        <!-- Technical Specs -->
+        <div class="section">
+          <h2 class="section-title">📋 技術仕様</h2>
+          <table>
+            <tr><th>機能</th><th>分析対象</th><th>期間</th><th>主な用途</th></tr>
+            <tr><td>SLO Recommendations</td><td>P99 レイテンシ、エラーレート</td><td>過去 30 日間</td><td>ターゲット自動提案</td></tr>
+            <tr><td>Service-Level SLOs</td><td>全オペレーションの SLO</td><td>リアルタイム</td><td>ヘルス監視</td></tr>
+            <tr><td>SLO Performance Report</td><td>SLO パフォーマンス履歴</td><td>日次/週次/月次</td><td>トレンド分析</td></tr>
+          </table>
+
+          <p style="font-size:13px; font-weight:bold; margin-top:16px; margin-bottom:8px;">対応メトリクス</p>
+          <table>
+            <tr><th>メトリクス</th><th>説明</th></tr>
+            <tr><td>P99 Latency</td><td>リクエストの 99 パーセンタイルレイテンシ</td></tr>
+            <tr><td>Error Rate</td><td>エラーレート</td></tr>
+          </table>
+        </div>
+
+        <!-- Setup Steps -->
+        <div class="section">
+          <h2 class="section-title">🛠️ 設定手順</h2>
+
+          <p style="font-size:13px; margin-bottom:12px;"><strong>前提条件:</strong> Application Signals 有効化済み / EC2, ECS, Lambda 上で稼働 / 30 日間のメトリクスデータ</p>
+
+          <div class="flow-diagram">
+            <div class="flow-step">💡 Recommendations<br/>確認</div>
+            <span class="flow-arrow">→</span>
+            <div class="flow-step">🔍 Service-Level<br/>SLOs 設定</div>
+            <span class="flow-arrow">→</span>
+            <div class="flow-step">📋 Performance<br/>Report 活用</div>
+          </div>
+
+          <div class="card" style="font-size:13px;">
+            <strong>Step 1:</strong> CloudWatch コンソールの Application Signals セクションから SLO Recommendations にアクセスし、30 日間のデータに基づく推奨しきい値を確認
+          </div>
+          <div class="card card-green" style="font-size:13px;">
+            <strong>Step 2:</strong> Service-Level SLOs を使用して、サービス全体の信頼性ビューを構成。個別オペレーション + サービスレベルの一元監視を実現
+          </div>
+          <div class="card card-blue" style="font-size:13px;">
+            <strong>Step 3:</strong> SLO Performance Report で日次/週次/月次の期間を選択し、信頼性トレンドを分析。ビジネスレビューやステークホルダーへの報告に活用
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Right Column -->
+      <div class="column">
+
+        <!-- Benefits -->
+        <div class="section">
+          <h2 class="section-title">✅ メリット</h2>
+
+          <div style="margin-bottom:12px;">
+            <strong style="color:var(--fashion-4); font-size:14px;">💼 ビジネス面</strong>
+            <div class="merit-item"><span class="merit-icon">📊</span><span><strong>データ駆動型の意思決定</strong>: 実際のメトリクスデータに基づく SLO 設定で恣意的なターゲット設定を排除</span></div>
+            <div class="merit-item"><span class="merit-icon">📋</span><span><strong>ステークホルダーレポーティング</strong>: カレンダー期間に合わせたレポートでビジネスレビューが容易</span></div>
+            <div class="merit-item"><span class="merit-icon">🛡️</span><span><strong>プロアクティブな信頼性管理</strong>: トレンド分析によりインシデント発生前に対処可能</span></div>
+          </div>
+
+          <div>
+            <strong style="color:#2563eb; font-size:14px;">🔬 技術面</strong>
+            <div class="merit-item"><span class="merit-icon">🔕</span><span><strong>アラート疲労の軽減</strong>: データに基づく適切なしきい値設定で不要なアラートを削減</span></div>
+            <div class="merit-item"><span class="merit-icon">⚙️</span><span><strong>運用負荷の軽減</strong>: 手動でのしきい値設定やレポート作成が不要</span></div>
+            <div class="merit-item"><span class="merit-icon">👁️</span><span><strong>包括的な可視性</strong>: サービス全体の信頼性を単一ビューで把握可能</span></div>
+          </div>
+        </div>
+
+        <!-- Limitations -->
+        <div class="section">
+          <h2 class="section-title">⚠️ デメリット / 制約事項</h2>
+          <div class="demerit-item"><span>🔸</span><span>SLO Recommendations には最低 30 日間のメトリクスデータが必要</span></div>
+          <div class="demerit-item"><span>🔸</span><span>コンソールベースの機能であり、API による自動化は要確認</span></div>
+          <div class="demerit-item"><span>🔸</span><span>Application Signals 未有効化のサービスでは利用不可</span></div>
+          <div class="demerit-item"><span>🔸</span><span>推奨値はあくまで提案。ビジネス要件に応じたカスタマイズが必要</span></div>
+          <div class="demerit-item"><span>🔸</span><span>既存の個別 SLO との整合性確認が重要</span></div>
+        </div>
+
+        <!-- Use Cases -->
+        <div class="section">
+          <h2 class="section-title">💡 ユースケース</h2>
+
+          <div class="usecase-box">
+            <div class="usecase-title">🆕 新規サービスの SLO 設定</div>
+            <div class="usecase-desc">デプロイ後 30 日間のメトリクスを収集し、SLO Recommendations の提案値を検証した上で SLO として設定。データに基づいた監視体制を構築</div>
+          </div>
+
+          <div class="usecase-box" style="background:#f0fdf4; border-color:#86efac;">
+            <div class="usecase-title" style="color:#16a34a;">📅 月次サービスレビュー</div>
+            <div class="usecase-desc">SLO Performance Report で月次インターバルを選択し、Service-Level SLOs と組み合わせて一貫性のあるビジネスレポーティングを実現</div>
+          </div>
+
+          <div class="usecase-box" style="background:#fdf4ff; border-color:#d8b4fe;">
+            <div class="usecase-title" style="color:#7c3aed;">🔮 信頼性の予防的管理</div>
+            <div class="usecase-desc">大規模マイクロサービスで Service-Level SLOs による継続監視と週次トレンド分析を組み合わせ、インシデント発生前に信頼性低下を検知</div>
+          </div>
+        </div>
+
+        <!-- Pricing -->
+        <div class="section">
+          <h2 class="section-title">💰 料金</h2>
+          <p style="font-size:13px;">Application Signals の料金はインバウンド/アウトバウンドリクエスト数に基づきます。各 SLO は Service Level Indicator のメトリクス期間ごとに <span class="highlight">2 つの Application Signals</span> を生成します。</p>
+          <p style="font-size:12px; color:#94a3b8; margin-top:8px;">詳細は CloudWatch の料金ページを参照</p>
+        </div>
+
+        <!-- Region & Related -->
+        <div class="section">
+          <h2 class="section-title">🌍 利用可能リージョン</h2>
+          <p style="font-size:13px;">CloudWatch Application Signals が利用可能な<span class="highlight">全ての AWS リージョン</span>で利用できます。</p>
+        </div>
+
+        <div class="section">
+          <h2 class="section-title">🔗 関連サービス</h2>
+          <div class="icon-text"><span>📈</span><span><strong>Amazon CloudWatch</strong>: メトリクス、ログ、アラーム統合監視</span></div>
+          <div class="icon-text"><span>🔍</span><span><strong>AWS X-Ray</strong>: 分散トレーシング</span></div>
+          <div class="icon-text"><span>🌐</span><span><strong>CloudWatch Synthetics</strong>: 外形監視</span></div>
+          <div class="icon-text"><span>🗺️</span><span><strong>CloudWatch ServiceLens</strong>: サービスマップ統合ビュー</span></div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- Summary -->
+    <div class="section" style="margin-bottom:24px; border-left:4px solid var(--fashion-4);">
+      <h2 class="section-title">📌 まとめ</h2>
+      <p style="font-size:14px;">CloudWatch Application Signals に追加された 3 つの SLO 機能により、<span class="highlight">信頼性目標の設定・監視・レポーティングがデータ駆動型で実現可能</span>になりました。SLO Recommendations は手動しきい値設定に伴うアラート疲労を解消し、Service-Level SLOs と SLO Performance Report を組み合わせることで、<span class="highlight-orange">プロアクティブな信頼性管理とビジネスレポーティングの効率化</span>が期待できます。マイクロサービスアーキテクチャを運用している組織に特に有効です。</p>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+      <p>📎 出典:</p>
+      <ul style="list-style:none; padding-left:16px; margin-top:4px;">
+        <li><a href="https://aws.amazon.com/about-aws/whats-new/2026/03/cloudwatch-application-signals-adds-slo-capabilities/" target="_blank" rel="noopener noreferrer">公式発表 (What's New)</a></li>
+        <li><a href="https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-Application-Monitoring-Sections.html" target="_blank" rel="noopener noreferrer">ドキュメント - CloudWatch Application Signals</a></li>
+        <li><a href="https://aws.amazon.com/cloudwatch/pricing/" target="_blank" rel="noopener noreferrer">料金ページ - Amazon CloudWatch</a></li>
+      </ul>
+    </footer>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'base',
+      themeVariables: {
+        primaryColor: '#FF9900',
+        primaryTextColor: '#232F3E',
+        primaryBorderColor: '#FF9900',
+        lineColor: '#FF9900',
+        secondaryColor: '#F5F5F5',
+        tertiaryColor: '#FAFAFA',
+        background: '#FFFFFF',
+        mainBkg: '#FFF3E0',
+        nodeBorder: '#FF9900',
+        clusterBkg: '#FFF8E1',
+        clusterBorder: '#FF9900',
+        edgeLabelBackground: '#FFFFFF',
+        textColor: '#232F3E'
+      }
+    });
+  </script>
+</body>
+</html>

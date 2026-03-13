@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LZA MCP Server - AI 支援による設定管理</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap');
+
+    :root {
+      --aws-squid-ink: #232F3E;
+      --aws-dark-squid: #1A242F;
+      --aws-orange: #FF9900;
+      --aws-smile-orange: #FFAD33;
+      --aws-white: #FFFFFF;
+      --aws-light-gray: #D5DBDB;
+      --aws-teal: #00A1C9;
+      --aws-purple: #8C4FFF;
+      --aws-green: #1D8102;
+      --aws-red: #D13212;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--aws-squid-ink);
+      font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+      color: var(--aws-light-gray);
+      font-size: 16px;
+      line-height: 1.6;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 32px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .header-left { flex: 1; min-width: 280px; }
+    .service-badge {
+      display: inline-block;
+      background: var(--aws-orange);
+      color: var(--aws-squid-ink);
+      font-weight: 700;
+      font-size: 13px;
+      padding: 4px 12px;
+      border-radius: 4px;
+      margin-bottom: 12px;
+    }
+    h1 {
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--aws-white);
+      line-height: 1.3;
+      margin-bottom: 8px;
+    }
+    .subtitle {
+      font-size: 16px;
+      color: var(--aws-light-gray);
+    }
+    .header-date {
+      font-size: 14px;
+      color: var(--aws-light-gray);
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    /* Sections */
+    .section {
+      background: var(--aws-dark-squid);
+      border-radius: 8px;
+      padding: 24px;
+      margin-bottom: 24px;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    h2 {
+      font-size: 22px;
+      font-weight: 600;
+      color: var(--aws-orange);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    h3 {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--aws-white);
+      margin: 16px 0 10px;
+    }
+    p { margin-bottom: 12px; }
+
+    .highlight {
+      background-color: rgba(255,153,0,0.2);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 600;
+      color: var(--aws-orange);
+    }
+
+    /* Before/After */
+    .before-after { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 16px 0; }
+    .before-card, .after-card {
+      border-radius: 8px;
+      padding: 16px;
+    }
+    .before-card {
+      background: rgba(209,50,18,0.1);
+      border: 1px solid rgba(209,50,18,0.4);
+    }
+    .after-card {
+      background: rgba(29,129,2,0.1);
+      border: 1px solid rgba(29,129,2,0.4);
+    }
+    .before-card .card-label { color: var(--aws-red); font-weight: 700; font-size: 14px; margin-bottom: 10px; }
+    .after-card .card-label { color: var(--aws-green); font-weight: 700; font-size: 14px; margin-bottom: 10px; }
+    .before-card li, .after-card li { margin-bottom: 6px; font-size: 14px; line-height: 1.5; }
+    .before-card ul, .after-card ul { padding-left: 0; list-style: none; }
+    .before-card li::before { content: "✗ "; color: var(--aws-red); font-weight: bold; }
+    .after-card li::before { content: "✓ "; color: var(--aws-green); font-weight: bold; }
+
+    /* Mermaid */
+    .mermaid-container {
+      background: #FFFFFF;
+      border-radius: 12px;
+      padding: 24px;
+      margin: 20px 0;
+      border: 2px solid rgba(255,153,0,0.3);
+      overflow-x: auto;
+    }
+    .mermaid { display: flex; justify-content: center; }
+
+    /* Feature cards */
+    .feature-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px; }
+    .feature-card {
+      background: var(--aws-squid-ink);
+      border-left: 4px solid var(--aws-orange);
+      border-radius: 0 8px 8px 0;
+      padding: 16px;
+    }
+    .feature-card .feature-title {
+      font-weight: 600;
+      color: var(--aws-white);
+      font-size: 15px;
+      margin-bottom: 8px;
+    }
+    .feature-card p { font-size: 14px; margin-bottom: 4px; color: var(--aws-light-gray); }
+
+    /* Stats */
+    .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin: 16px 0; }
+    .stat-card {
+      background: linear-gradient(135deg, rgba(255,153,0,0.15), rgba(255,153,0,0.05));
+      border: 1px solid rgba(255,153,0,0.3);
+      border-radius: 8px;
+      padding: 16px;
+      text-align: center;
+    }
+    .stat-value { font-size: 28px; font-weight: 700; color: var(--aws-orange); }
+    .stat-label { font-size: 13px; color: var(--aws-light-gray); margin-top: 4px; }
+
+    /* Table */
+    .table-container { overflow-x: auto; margin: 16px 0; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th {
+      background: rgba(255,153,0,0.15);
+      color: var(--aws-orange);
+      font-weight: 600;
+      text-align: left;
+      padding: 10px 12px;
+      border-bottom: 2px solid rgba(255,153,0,0.3);
+    }
+    td {
+      padding: 8px 12px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      color: var(--aws-light-gray);
+    }
+    tr:hover td { background: rgba(255,153,0,0.05); }
+
+    /* Use case */
+    .usecase-card {
+      background: rgba(255,153,0,0.08);
+      border: 1px solid rgba(255,153,0,0.2);
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+    .usecase-title { font-weight: 600; color: var(--aws-white); font-size: 16px; margin-bottom: 8px; }
+    .usecase-scenario { font-size: 14px; color: var(--aws-light-gray); margin-bottom: 8px; }
+    .usecase-effect {
+      font-size: 13px;
+      color: var(--aws-green);
+      background: rgba(29,129,2,0.1);
+      border-radius: 4px;
+      padding: 8px 12px;
+    }
+
+    /* Merit/Demerit */
+    .merit-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 12px; }
+    .merit-card {
+      background: var(--aws-squid-ink);
+      border-radius: 8px;
+      padding: 14px;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    .merit-card h4 { font-size: 14px; color: var(--aws-orange); margin-bottom: 6px; }
+    .merit-card p { font-size: 13px; margin-bottom: 0; }
+
+    /* Flow diagram */
+    .flow-diagram {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin: 20px 0;
+    }
+    .flow-step {
+      background: var(--aws-dark-squid);
+      border: 2px solid var(--aws-orange);
+      border-radius: 8px;
+      padding: 12px 20px;
+      text-align: center;
+      min-width: 100px;
+      font-size: 14px;
+    }
+    .flow-arrow { color: var(--aws-orange); font-size: 24px; font-weight: bold; }
+
+    /* Code block */
+    .code-block {
+      background: #1a1a2e;
+      border-radius: 8px;
+      overflow: hidden;
+      margin: 16px 0;
+    }
+    .code-header {
+      background: #16213e;
+      padding: 8px 16px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+    }
+    .code-lang { color: var(--aws-orange); font-weight: bold; }
+    .code-title { color: var(--aws-light-gray); }
+    .code-block pre { margin: 0; padding: 0; overflow-x: auto; }
+    .code-block code {
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      line-height: 1.5;
+      padding: 16px !important;
+    }
+
+    /* Caution */
+    .caution-card {
+      background: rgba(209,50,18,0.08);
+      border: 1px solid rgba(209,50,18,0.3);
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 12px;
+    }
+    .caution-card li { font-size: 14px; margin-bottom: 6px; }
+    .caution-card ul { padding-left: 20px; }
+
+    /* Links */
+    .aws-link { color: var(--aws-teal); text-decoration: none; }
+    .aws-link:hover { color: var(--aws-smile-orange); }
+
+    /* Footer */
+    footer {
+      margin-top: 24px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(255,255,255,0.2);
+      font-size: 12px;
+      color: var(--aws-light-gray);
+    }
+    footer a { color: var(--aws-teal); text-decoration: underline; word-break: break-all; }
+
+    /* Responsive */
+    @media (max-width: 700px) {
+      .before-after, .feature-grid, .stats-row, .merit-grid { grid-template-columns: 1fr; }
+      h1 { font-size: 24px; }
+      .header { flex-direction: column; }
+      .header-date { text-align: left; }
+    }
+  </style>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/styles/atom-one-dark.min.css">
+</head>
+<body>
+  <div class="container">
+
+    <!-- Header -->
+    <div class="header">
+      <div class="header-left">
+        <span class="service-badge">Landing Zone Accelerator on AWS</span>
+        <h1>LZA MCP Server<br>AI 支援による設定管理</h1>
+        <div class="subtitle">自然言語対話で AWS ランディングゾーンを効率的に管理</div>
+      </div>
+      <div class="header-date">2026 年 3 月 12 日</div>
+    </div>
+
+    <!-- Overview -->
+    <div class="section">
+      <h2>📋 概要</h2>
+      <p>Landing Zone Accelerator on AWS (LZA) の <span class="highlight">Model Context Protocol (MCP) Server</span> がオープンソースとして公開された。AI アシスタントとの自然言語対話を通じて、LZA デプロイメントの設定管理、パイプライン監視、トラブルシューティングを効率化する。</p>
+
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-value">20</div>
+          <div class="stat-label">専用ツール数</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">OSS</div>
+          <div class="stat-label">Apache License 2.0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">v1.12.0+</div>
+          <div class="stat-label">対応 LZA バージョン</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Before/After -->
+    <div class="section">
+      <h2>🔄 Before / After</h2>
+      <div class="before-after">
+        <div class="before-card">
+          <div class="card-label">Before - 従来の課題</div>
+          <ul>
+            <li>手動で YAML/JSON ファイルを編集し、時間と労力が必要</li>
+            <li>LZA スキーマの理解にドキュメントの横断的な調査が必要</li>
+            <li>パイプライン失敗時の原因特定プロセスが煩雑</li>
+            <li>複数の LZA バージョン間のスキーマ差異把握が困難</li>
+          </ul>
+        </div>
+        <div class="after-card">
+          <div class="card-label">After - MCP Server 導入後</div>
+          <ul>
+            <li>自然言語対話で LZA 設定タスクを効率化</li>
+            <li>20 の専用ツールで検索・管理・監視を統合</li>
+            <li>デプロイ失敗時に自動診断とガイダンスを提供</li>
+            <li>Universal Configuration でコンプライアンス準拠の迅速デプロイ</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Architecture Diagram -->
+    <div class="section">
+      <h2>🏗️ アーキテクチャ図</h2>
+      <p>IDE から stdio トランスポートを介して LZA MCP Server コンテナと通信し、AWS リソースの操作は一時認証情報を使用して行われる。</p>
+      <div class="mermaid-container">
+        <pre class="mermaid">
+flowchart TD
+    subgraph IDE["🖥️ IDE 環境"]
+        direction LR
+        Kiro["☁️ Kiro"]
+        QDev["☁️ Amazon Q Developer"]
+        CC["☁️ Claude Code"]
+        Kiro ~~~ QDev ~~~ CC
+    end
+
+    subgraph Container["📦 LZA MCP Server コンテナ"]
+        direction LR
+        Schema["🔍 スキーマ検索"]
+        Config["⚙️ 設定管理"]
+        Pipeline["🔄 パイプライン管理"]
+        Schema ~~~ Config ~~~ Pipeline
+    end
+
+    subgraph AWS["☁️ AWS"]
+        S3[("🪣 S3&lt;br/&gt;設定ファイル")]
+        CP["⚡ CodePipeline&lt;br/&gt;LZA パイプライン"]
+        SSM["📋 SSM Parameter Store"]
+        CFn["📋 CloudFormation"]
+    end
+
+    IDE -->|stdio 通信| Container
+    Container -->|一時認証情報| AWS
+    Config --> S3
+    Pipeline --> CP
+    Container --> SSM
+    Pipeline --> CFn
+
+    classDef cloud fill:none,stroke:#CCCCCC,stroke-width:2px,color:#666666
+    classDef compute fill:#FFE0B2,stroke:#FFCC80,stroke-width:2px,color:#5D4037
+    classDef storage fill:#DCEDC8,stroke:#C5E1A5,stroke-width:2px,color:#33691E
+    classDef process fill:#FFFFFF,stroke:#4A90E2,stroke-width:2px,color:#333333
+    classDef internal fill:#E8F1FF,stroke:#4A90E2,stroke-width:2px,color:#333333
+
+    class IDE cloud
+    class Container internal
+    class Kiro,QDev,CC compute
+    class Schema,Config,Pipeline process
+    class AWS cloud
+    class S3,SSM storage
+    class CP,CFn compute
+        </pre>
+      </div>
+    </div>
+
+    <!-- Key Features -->
+    <div class="section">
+      <h2>⚙️ 主要機能</h2>
+      <div class="feature-grid">
+        <div class="feature-card">
+          <div class="feature-title">🔍 スキーマ検索・ディスカバリ</div>
+          <p>複数の LZA バージョンのスキーマを検索可能。プロパティ名、パターン、複雑性による検索をサポートし、ビルド時プリプロセスによりサブ秒での検索を実現。</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-title">⚙️ 設定管理</div>
+          <p>S3 からの LZA 設定ファイルの取得とアップロード。最小構成テンプレートの生成、Universal Configuration テンプレートとの統合マージに対応。</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-title">🔄 パイプライン管理</div>
+          <p>パイプライン実行の開始とステータス監視。失敗時の詳細なエラーログ取得と診断、CodeBuild ログの分析とトラブルシューティングガイダンスを提供。</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-title">📋 Universal Configuration 統合</div>
+          <p>エンタープライズ向けコンプライアンステンプレートの統合。Hub-and-Spoke、Shared VPC などのネットワークパターンをサポート。</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tool List -->
+    <div class="section">
+      <h2>🔧 提供ツール一覧</h2>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr><th>カテゴリ</th><th>ツール名</th><th>機能</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>AWS サービス</td><td><code>checkAwsConnectivity</code></td><td>AWS 認証情報の検証と接続確認</td></tr>
+            <tr><td>AWS サービス</td><td><code>getDeployedLzaVersion</code></td><td>SSM Parameter Store からデプロイ済み LZA バージョン取得</td></tr>
+            <tr><td>設定管理</td><td><code>getMinimumConfiguration</code></td><td>最小 LZA 設定テンプレートの生成</td></tr>
+            <tr><td>設定管理</td><td><code>uploadConfigurationToS3</code></td><td>設定ファイルの S3 アップロード</td></tr>
+            <tr><td>設定管理</td><td><code>getConfigurationFromS3</code></td><td>S3 から現在の設定を取得</td></tr>
+            <tr><td>パイプライン</td><td><code>releasePipeline</code></td><td>LZA パイプライン実行の開始</td></tr>
+            <tr><td>パイプライン</td><td><code>getPipelineStatus</code></td><td>パイプライン実行状況の監視</td></tr>
+            <tr><td>パイプライン</td><td><code>diagnosePipelineErrors</code></td><td>失敗したパイプラインの詳細エラーログ取得と診断</td></tr>
+            <tr><td>スキーマ</td><td><code>listLzaSupportedVersions</code></td><td>組み込みスキーマの LZA バージョン一覧</td></tr>
+            <tr><td>スキーマ</td><td><code>searchJsonSchema</code></td><td>LZA 設定スキーマの検索</td></tr>
+            <tr><td>スキーマ</td><td><code>getFullSchema</code></td><td>完全なスキーマ定義の取得</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Prerequisites -->
+    <div class="section">
+      <h2>📝 前提条件</h2>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr><th>項目</th><th>詳細</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>コンテナランタイム</td><td>Docker または Finch</td></tr>
+            <tr><td>対応 IDE</td><td>Kiro、Amazon Q Developer、Claude Code</td></tr>
+            <tr><td>LZA デプロイメント</td><td>S3 ベースの設定ストレージを使用するデプロイメント</td></tr>
+            <tr><td>認証</td><td>一時認証情報 (AWS IAM Identity Center 推奨)</td></tr>
+            <tr><td>対応 LZA バージョン</td><td>v1.12.0 以降</td></tr>
+            <tr><td>ライセンス</td><td>Apache License 2.0</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Setup Steps -->
+    <div class="section">
+      <h2>🚀 設定手順</h2>
+      <div class="flow-diagram">
+        <div class="flow-step">📦 コンテナ<br>イメージビルド</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-step">🔐 AWS<br>認証情報設定</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-step">🖥️ MCP<br>クライアント設定</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-step">✅ 接続<br>検証</div>
+      </div>
+
+      <h3>Step 1: コンテナイメージのビルド</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash</span>
+          <span class="code-title">ビルドコマンド (約 30-60 秒)</span>
+        </div>
+        <pre><code class="language-bash">cd src/lza-mcp-server
+make build</code></pre>
+      </div>
+
+      <h3>Step 2: AWS 認証情報の設定</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash</span>
+          <span class="code-title">IAM Identity Center でのログイン</span>
+        </div>
+        <pre><code class="language-bash"># IAM Identity Center を使用する場合
+aws sso login --profile your-sso-profile</code></pre>
+      </div>
+
+      <h3>Step 3: MCP クライアントの設定</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">JSON</span>
+          <span class="code-title">IDE の MCP 設定ファイル</span>
+        </div>
+        <pre><code class="language-json">{
+  "mcpServers": {
+    "awslabs.lza-mcp-server": {
+      "command": "&lt;REPO_PATH&gt;/scripts/extract-aws-credentials.sh",
+      "args": [
+        "docker", "run",
+        "--security-opt=no-new-privileges:true",
+        "--cap-drop=ALL", "--read-only",
+        "--tmpfs", "/tmp:rw,noexec,nosuid,size=200m",
+        "--rm", "-i",
+        "-v", "&lt;CONFIG_PATH&gt;:/app/lza-config:rw",
+        "-e", "AWS_ACCESS_KEY_ID",
+        "-e", "AWS_SECRET_ACCESS_KEY",
+        "-e", "AWS_SESSION_TOKEN",
+        "-e", "AWS_REGION",
+        "lza-mcp-server:local"
+      ],
+      "env": {
+        "AWS_PROFILE": "&lt;YOUR_AWS_PROFILE&gt;",
+        "AWS_REGION": "&lt;YOUR_AWS_REGION&gt;"
+      }
+    }
+  }
+}</code></pre>
+      </div>
+
+      <h3>Step 4: 接続の検証</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Prompt</span>
+          <span class="code-title">IDE を再起動後、以下を実行</span>
+        </div>
+        <pre><code class="language-plaintext">Use your tools, check my AWS connectivity</code></pre>
+      </div>
+    </div>
+
+    <!-- IAM Policy -->
+    <div class="section">
+      <h2>🔒 IAM ポリシー</h2>
+      <p>LZA MCP Server は<span class="highlight">最小権限の原則</span>に従った IAM ポリシーを使用する。</p>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">JSON</span>
+          <span class="code-title">必要な IAM ポリシー</span>
+        </div>
+        <pre><code class="language-json">{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "STSAccess",
+      "Effect": "Allow",
+      "Action": "sts:GetCallerIdentity",
+      "Resource": "*"
+    },
+    {
+      "Sid": "SSMAccess",
+      "Effect": "Allow",
+      "Action": "ssm:GetParameter",
+      "Resource": "arn:${PARTITION}:ssm:${HOME-REGION}:${MANAGEMENT_ACCOUNT}:parameter/accelerator/*"
+    },
+    {
+      "Sid": "S3WriteAccess",
+      "Effect": "Allow",
+      "Action": ["s3:GetObject", "s3:PutObject"],
+      "Resource": ["arn:${PARTITION}:s3:::${ACCELERATOR_PREFIX}-config-*/zipped/*"]
+    }
+  ]
+}</code></pre>
+      </div>
+    </div>
+
+    <!-- Benefits -->
+    <div class="section">
+      <h2>✅ メリット</h2>
+      <h3>ビジネス面</h3>
+      <div class="merit-grid">
+        <div class="merit-card">
+          <h4>🚀 運用効率の向上</h4>
+          <p>AI アシスタントを通じた自然言語での設定管理により、手動作業にかかる時間を大幅に短縮</p>
+        </div>
+        <div class="merit-card">
+          <h4>📋 コンプライアンス対応の迅速化</h4>
+          <p>Universal Configuration テンプレートにより、準拠のベースライン環境を迅速にデプロイ可能</p>
+        </div>
+        <div class="merit-card">
+          <h4>⚡ 障害対応の高速化</h4>
+          <p>パイプライン失敗時の自動診断により、問題解決までの時間を短縮</p>
+        </div>
+      </div>
+      <h3>技術面</h3>
+      <div class="merit-grid">
+        <div class="merit-card">
+          <h4>🔒 セキュリティバイデザイン</h4>
+          <p>コンテナの読み取り専用マウント、権限の最小化、一時認証情報の使用などベストプラクティスに準拠</p>
+        </div>
+        <div class="merit-card">
+          <h4>🔄 マルチバージョン対応</h4>
+          <p>複数の LZA バージョンのスキーマを同時にサポートし、バージョン間の比較が可能</p>
+        </div>
+        <div class="merit-card">
+          <h4>🔧 拡張性</h4>
+          <p>オープンソースのため、組織固有の要件に合わせたカスタマイズが可能</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Limitations -->
+    <div class="section">
+      <h2>⚠️ 制限事項・考慮すべき点</h2>
+      <h3>制限事項</h3>
+      <div class="caution-card">
+        <ul>
+          <li>CodeCommit ベースの設定リポジトリは現在サポートされていない (S3 ベースのみ対応)</li>
+          <li>LZA v1.12.0 以降のバージョンのみサポート</li>
+          <li>コンテナランタイム (Docker または Finch) が必須</li>
+        </ul>
+      </div>
+      <h3>考慮すべき点</h3>
+      <div class="caution-card">
+        <ul>
+          <li>AWS API レスポンスが AI モデルプロバイダーに共有されるため、組織のセキュリティ・プライバシーポリシーとの整合性を確認する必要あり</li>
+          <li>IAM Identity Center のセッションは通常 8-12 時間で期限切れ。定期的な再認証が必要</li>
+          <li>ビルド時に含める LZA バージョン数が増えると、イメージサイズとビルド時間が比例して増加</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Use Cases -->
+    <div class="section">
+      <h2>💡 ユースケース</h2>
+      <div class="usecase-card">
+        <div class="usecase-title">🏗️ UC1: 新規ランディングゾーンの初期設定</div>
+        <div class="usecase-scenario">新しい AWS マルチアカウント環境を LZA で構築する際に、AI アシスタントを使って最小構成テンプレートを生成し、要件に合わせてカスタマイズする。</div>
+        <div class="code-block" style="margin-bottom: 8px;">
+          <pre><code class="language-plaintext">LZA の最小構成テンプレートを生成して、
+VPC を 3 つの AZ で構成してください</code></pre>
+        </div>
+        <div class="usecase-effect">→ 手動でスキーマを調査してテンプレートを作成する時間を大幅に削減し、設定ミスのリスクを低減</div>
+      </div>
+
+      <div class="usecase-card">
+        <div class="usecase-title">🔍 UC2: パイプライン障害の迅速な診断</div>
+        <div class="usecase-scenario">LZA パイプラインが失敗した際に、AI アシスタントを使ってエラーログを分析し、根本原因と対処方法を特定する。</div>
+        <div class="code-block" style="margin-bottom: 8px;">
+          <pre><code class="language-plaintext">LZA パイプラインが失敗しました。
+エラーを診断して原因と対処方法を教えてください</code></pre>
+        </div>
+        <div class="usecase-effect">→ CodeBuild ログの分析を自動化し、トラブルシューティングガイダンスにより障害復旧時間を短縮</div>
+      </div>
+
+      <div class="usecase-card">
+        <div class="usecase-title">📋 UC3: コンプライアンステンプレートの統合</div>
+        <div class="usecase-scenario">既存の LZA デプロイメントに Universal Configuration のコンプライアンステンプレートを統合し、規制要件に準拠したベースライン環境を構築する。</div>
+        <div class="code-block" style="margin-bottom: 8px;">
+          <pre><code class="language-plaintext">Universal Configuration の Hub-and-Spoke ネットワークモデルを
+既存の LZA 設定にマージしてください</code></pre>
+        </div>
+        <div class="usecase-effect">→ テスト済みテンプレートの統合により、構築時間を短縮し品質を確保</div>
+      </div>
+    </div>
+
+    <!-- Pricing -->
+    <div class="section">
+      <h2>💰 料金</h2>
+      <p>LZA MCP Server 自体は<span class="highlight">オープンソースであり無料</span>で利用可能。以下の AWS リソースの使用に応じた料金が発生する。</p>
+      <div class="feature-grid">
+        <div class="feature-card">
+          <div class="feature-title">🪣 S3</div>
+          <p>ストレージおよびリクエスト料金 (設定ファイルの保存・取得)</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-title">⚡ CodePipeline</div>
+          <p>パイプライン実行料金</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-title">🔨 CodeBuild</div>
+          <p>ビルド時間料金</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-title">📋 SSM Parameter Store</div>
+          <p>API リクエスト料金</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Region -->
+    <div class="section">
+      <h2>🌍 利用可能リージョン</h2>
+      <p>Landing Zone Accelerator がサポートされている<span class="highlight">すべての商用 AWS リージョン</span>および <span class="highlight">AWS GovCloud (US)</span> リージョンで利用可能。</p>
+    </div>
+
+    <!-- Related Services -->
+    <div class="section">
+      <h2>🔗 関連サービス</h2>
+      <div class="feature-grid">
+        <div class="feature-card">
+          <div class="feature-title">☁️ Landing Zone Accelerator on AWS</div>
+          <p>LZA MCP Server が管理対象とする AWS ソリューション</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-title">🏢 AWS Control Tower</div>
+          <p>LZA が基盤として使用するマルチアカウントガバナンスサービス</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-title">⚡ AWS CodePipeline</div>
+          <p>LZA の設定変更をデプロイするために使用される CI/CD サービス</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-title">🤖 Model Context Protocol</div>
+          <p>AI アシスタントとツールを接続するオープンプロトコル</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+      <p>📎 出典:</p>
+      <ul style="list-style: none; padding: 0; margin-top: 4px;">
+        <li>- <a href="https://aws.amazon.com/about-aws/whats-new/2026/03/new-lza-mcp-server-ai-assisted/" target="_blank" rel="noopener noreferrer">AWS What's New - New LZA MCP Server for AI-Assisted Configuration Management</a></li>
+        <li>- <a href="https://github.com/awslabs/lza-mcp-server" target="_blank" rel="noopener noreferrer">https://github.com/awslabs/lza-mcp-server</a></li>
+        <li>- <a href="https://aws.amazon.com/solutions/implementations/landing-zone-accelerator-on-aws/" target="_blank" rel="noopener noreferrer">Landing Zone Accelerator on AWS</a></li>
+      </ul>
+      <p style="margin-top: 8px; color: rgba(213,219,219,0.6);">Generated on 2026-03-13</p>
+    </footer>
+
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'base',
+      themeVariables: {
+        primaryColor: '#FF9900',
+        primaryTextColor: '#232F3E',
+        primaryBorderColor: '#FF9900',
+        lineColor: '#FF9900',
+        secondaryColor: '#F5F5F5',
+        tertiaryColor: '#FAFAFA',
+        background: '#FFFFFF',
+        mainBkg: '#FFF3E0',
+        nodeBorder: '#FF9900',
+        clusterBkg: '#FFF8E1',
+        clusterBorder: '#FF9900',
+        edgeLabelBackground: '#FFFFFF',
+        textColor: '#232F3E'
+      }
+    });
+  </script>
+  <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/highlight.min.js"></script>
+  <script>hljs.highlightAll();</script>
+</body>
+</html>

@@ -1,0 +1,982 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Amazon EC2 R8a Instances - Tokyo Region</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap');
+
+        :root {
+            --aws-squid-ink: #232F3E;
+            --aws-dark-squid: #1A242F;
+            --aws-orange: #FF9900;
+            --aws-smile-orange: #FFAD33;
+            --aws-white: #FFFFFF;
+            --aws-light-gray: #D5DBDB;
+            --aws-teal: #00A1C9;
+            --aws-purple: #8C4FFF;
+            --aws-green: #1D8102;
+            --aws-red: #D13212;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background-color: var(--aws-squid-ink);
+            font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            color: var(--aws-light-gray);
+            font-size: 16px;
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        /* Header */
+        .header {
+            margin-bottom: 32px;
+            padding-bottom: 24px;
+            border-bottom: 2px solid var(--aws-orange);
+        }
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        .service-badge {
+            background: var(--aws-orange);
+            color: var(--aws-squid-ink);
+            padding: 4px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 700;
+        }
+        .date-badge {
+            font-size: 14px;
+            color: var(--aws-light-gray);
+        }
+        h1 {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--aws-white);
+            margin-bottom: 8px;
+            line-height: 1.3;
+        }
+        .subtitle {
+            font-size: 16px;
+            color: var(--aws-light-gray);
+        }
+
+        /* Sections */
+        .section {
+            background: var(--aws-dark-squid);
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        h2 {
+            font-size: 22px;
+            font-weight: 600;
+            color: var(--aws-orange);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        h3 {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--aws-white);
+            margin: 16px 0 10px;
+        }
+        p { margin-bottom: 12px; }
+
+        .highlight {
+            background-color: rgba(255, 153, 0, 0.2);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+            color: var(--aws-orange);
+        }
+
+        /* Before/After */
+        .before-after {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin: 16px 0;
+        }
+        @media (max-width: 600px) {
+            .before-after { grid-template-columns: 1fr; }
+        }
+        .before-card, .after-card {
+            border-radius: 8px;
+            padding: 16px;
+        }
+        .before-card {
+            background: rgba(209, 50, 18, 0.1);
+            border: 1px solid rgba(209, 50, 18, 0.4);
+        }
+        .after-card {
+            background: rgba(29, 129, 2, 0.1);
+            border: 1px solid rgba(29, 129, 2, 0.4);
+        }
+        .before-card .card-label {
+            color: var(--aws-red);
+            font-weight: 700;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+        .after-card .card-label {
+            color: var(--aws-green);
+            font-weight: 700;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+        .before-card li, .after-card li {
+            margin-bottom: 6px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        .before-card ul, .after-card ul {
+            list-style: none;
+            padding: 0;
+        }
+        .before-card li::before { content: "  "; }
+        .after-card li::before { content: "  "; }
+
+        /* Feature cards */
+        .feature-card {
+            background: var(--aws-dark-squid);
+            border-left: 4px solid var(--aws-orange);
+            border-radius: 0 8px 8px 0;
+            padding: 16px 16px 16px 20px;
+            margin: 12px 0;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .feature-card .feature-title {
+            font-weight: 600;
+            color: var(--aws-white);
+            margin-bottom: 6px;
+            font-size: 16px;
+        }
+        .feature-card p {
+            margin-bottom: 4px;
+            font-size: 14px;
+        }
+        .feature-card ul {
+            padding-left: 20px;
+            font-size: 14px;
+        }
+        .feature-card li { margin-bottom: 4px; }
+
+        /* Stats grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin: 16px 0;
+        }
+        @media (max-width: 600px) {
+            .stats-grid { grid-template-columns: 1fr; }
+        }
+        .stat-card {
+            background: linear-gradient(135deg, rgba(255, 153, 0, 0.15), rgba(255, 153, 0, 0.05));
+            border: 1px solid rgba(255, 153, 0, 0.3);
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+        }
+        .stat-number {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--aws-orange);
+            line-height: 1.2;
+        }
+        .stat-label {
+            font-size: 14px;
+            color: var(--aws-light-gray);
+            margin-top: 4px;
+        }
+
+        /* Table */
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+            font-size: 14px;
+        }
+        .comparison-table th {
+            background: rgba(255, 153, 0, 0.2);
+            color: var(--aws-orange);
+            padding: 10px 12px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid var(--aws-orange);
+        }
+        .comparison-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .comparison-table tr:hover {
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        /* Usecase */
+        .usecase-card {
+            background: linear-gradient(135deg, rgba(255, 153, 0, 0.08), rgba(255, 153, 0, 0.02));
+            border: 1px solid rgba(255, 153, 0, 0.2);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 12px 0;
+        }
+        .usecase-card .usecase-title {
+            font-weight: 600;
+            color: var(--aws-white);
+            font-size: 16px;
+            margin-bottom: 6px;
+        }
+        .usecase-card .usecase-scenario {
+            font-size: 14px;
+            color: var(--aws-light-gray);
+            margin-bottom: 8px;
+        }
+        .usecase-card .usecase-effect {
+            font-size: 14px;
+            color: var(--aws-green);
+            font-weight: 500;
+        }
+
+        /* Mermaid */
+        .mermaid-container {
+            background: #FFFFFF;
+            border-radius: 12px;
+            padding: 24px;
+            margin: 20px 0;
+            border: 2px solid rgba(255, 153, 0, 0.3);
+            overflow-x: auto;
+        }
+        .mermaid {
+            display: flex;
+            justify-content: center;
+        }
+
+        /* Code blocks */
+        .code-block {
+            background: #1a1a2e;
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 16px 0;
+        }
+        .code-header {
+            background: #16213e;
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+        }
+        .code-lang {
+            color: var(--aws-orange);
+            font-weight: bold;
+        }
+        .code-title {
+            color: var(--aws-light-gray);
+        }
+        .code-block pre {
+            margin: 0;
+            padding: 0;
+            overflow-x: auto;
+        }
+        .code-block code {
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            padding: 16px !important;
+        }
+
+        /* Pros/Cons */
+        .pros-cons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin: 16px 0;
+        }
+        @media (max-width: 600px) {
+            .pros-cons { grid-template-columns: 1fr; }
+        }
+        .pros-card, .cons-card {
+            border-radius: 8px;
+            padding: 16px;
+        }
+        .pros-card {
+            background: rgba(29, 129, 2, 0.08);
+            border: 1px solid rgba(29, 129, 2, 0.3);
+        }
+        .cons-card {
+            background: rgba(255, 153, 0, 0.08);
+            border: 1px solid rgba(255, 153, 0, 0.3);
+        }
+        .pros-card h3 { color: var(--aws-green); }
+        .cons-card h3 { color: var(--aws-orange); }
+        .pros-card li, .cons-card li {
+            font-size: 14px;
+            margin-bottom: 6px;
+            line-height: 1.5;
+        }
+        .pros-card ul, .cons-card ul {
+            padding-left: 20px;
+        }
+
+        /* Pricing */
+        .pricing-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+            font-size: 14px;
+        }
+        .pricing-table th {
+            background: rgba(255, 153, 0, 0.15);
+            color: var(--aws-orange);
+            padding: 10px 12px;
+            text-align: left;
+            font-weight: 600;
+        }
+        .pricing-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Related */
+        .related-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+            margin: 16px 0;
+        }
+        .related-item {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 14px;
+        }
+        .related-item .related-name {
+            color: var(--aws-white);
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        .related-item .related-desc {
+            font-size: 13px;
+            color: var(--aws-light-gray);
+        }
+
+        /* Links */
+        .aws-link {
+            color: var(--aws-teal);
+            text-decoration: none;
+        }
+        .aws-link:hover {
+            color: var(--aws-smile-orange);
+            text-decoration: underline;
+        }
+
+        /* Footer */
+        footer {
+            margin-top: 24px;
+            padding-top: 16px;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            font-size: 12px;
+            color: var(--aws-light-gray);
+        }
+        footer a {
+            color: var(--aws-teal);
+            text-decoration: none;
+            word-break: break-all;
+        }
+        footer a:hover { text-decoration: underline; }
+    </style>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/styles/atom-one-dark.min.css">
+</head>
+<body>
+    <div class="container">
+
+        <!-- Header -->
+        <div class="header">
+            <div class="header-top">
+                <span class="service-badge">Amazon EC2</span>
+                <span class="date-badge">2026 年 03 月 13 日</span>
+            </div>
+            <h1>R8a インスタンスが Asia Pacific (Tokyo) リージョンで利用可能に</h1>
+            <p class="subtitle">第 5 世代 AMD EPYC プロセッサ Turin 搭載のメモリ最適化インスタンスが東京リージョンに展開</p>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number">+30%</div>
+                <div class="stat-label">R7a 比パフォーマンス向上</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">4.5 GHz</div>
+                <div class="stat-label">最大周波数</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">12</div>
+                <div class="stat-label">インスタンスサイズ</div>
+            </div>
+        </div>
+
+        <!-- Overview -->
+        <div class="section">
+            <h2>概要</h2>
+            <p>Amazon EC2 R8a インスタンスが AWS Asia Pacific (Tokyo) リージョンで利用可能になりました。R8a インスタンスは<span class="highlight">第 5 世代 AMD EPYC プロセッサ Turin</span> を搭載し、最大周波数 4.5 GHz を実現するメモリ最適化インスタンスです。</p>
+            <p>R7a インスタンスと比較して最大 <span class="highlight">30% 高いパフォーマンス</span>と最大 <span class="highlight">19% 優れたプライスパフォーマンス</span>を提供します。メモリ帯域幅は R7a 比で 45% 向上しており、レイテンシに敏感なワークロードに最適です。</p>
+            <p>R8a インスタンスは <span class="highlight">SAP 認定</span>を取得しており、ベアメタル 2 サイズを含む 12 サイズで提供されます。第 6 世代 AWS Nitro Cards 上に構築され、SQL/NoSQL データベース、分散キャッシュ、インメモリデータベース、リアルタイムビッグデータ分析、電子設計自動化 (EDA) などのワークロードに適しています。</p>
+        </div>
+
+        <!-- Before/After -->
+        <div class="section">
+            <h2>Before / After</h2>
+            <div class="before-after">
+                <div class="before-card">
+                    <div class="card-label">Before</div>
+                    <ul>
+                        <li>Asia Pacific (Tokyo) リージョンでは R8a インスタンスが利用できなかった</li>
+                        <li>東京リージョンのお客様は R7a や他のメモリ最適化インスタンスタイプを使用する必要があった</li>
+                        <li>日本のお客様が AMD EPYC Turin プロセッサの性能をメモリ最適化ワークロードで活用できなかった</li>
+                    </ul>
+                </div>
+                <div class="after-card">
+                    <div class="card-label">After</div>
+                    <ul>
+                        <li>Asia Pacific (Tokyo) で R8a インスタンスが利用可能に</li>
+                        <li>R7a からの移行で最大 30% のパフォーマンス向上と 19% のプライスパフォーマンス改善を実現</li>
+                        <li>SAP 認定インスタンスが東京リージョンで利用可能になり、メモリ集約型ワークロードに対応</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Architecture Diagram -->
+        <div class="section">
+            <h2>アーキテクチャ図</h2>
+            <p>R8a インスタンスの主要コンポーネントと対応ワークロードの関係を示しています。</p>
+            <div class="mermaid-container">
+                <pre class="mermaid">
+flowchart TD
+    subgraph Tokyo["🗼 Asia Pacific Tokyo ap-northeast-1"]
+        subgraph R8a["⚙️ R8a インスタンス"]
+            direction LR
+            CPU["🔧 AMD EPYC Turin<br/>最大 4.5 GHz"]
+            MEM["💾 メモリ最適化<br/>最大 1536 GiB"]
+            NET["🌐 ネットワーク<br/>最大 75 Gbps"]
+            CPU ~~~ MEM ~~~ NET
+        end
+
+        subgraph Nitro["🛡️ 第 6 世代 AWS Nitro Cards"]
+            direction LR
+            EBS["📦 EBS<br/>最大 60 Gbps"]
+            SEC["🔒 AMD SME<br/>AES-256 暗号化"]
+            IBC["⚡ IBC 機能<br/>25% ブースト"]
+            EBS ~~~ SEC ~~~ IBC
+        end
+
+        R8a --> Nitro
+    end
+
+    subgraph Workloads["📊 対応ワークロード"]
+        direction LR
+        DB["🗄️ SQL/NoSQL<br/>データベース"]
+        Cache["💨 分散キャッシュ<br/>インメモリ DB"]
+        SAP["🏭 SAP<br/>ワークロード"]
+        EDA["🔬 EDA<br/>ビッグデータ分析"]
+        DB ~~~ Cache ~~~ SAP ~~~ EDA
+    end
+
+    Tokyo --> Workloads
+
+    classDef tokyo fill:none,stroke:#CCCCCC,stroke-width:2px,color:#666666
+    classDef instance fill:#FFE0B2,stroke:#FFCC80,stroke-width:2px,color:#5D4037
+    classDef nitro fill:#E8EAF6,stroke:#C5CAE9,stroke-width:2px,color:#283593
+    classDef component fill:#E8F1FF,stroke:#4A90E2,stroke-width:2px,color:#333333
+    classDef workload fill:#E9F7EC,stroke:#66BB6A,stroke-width:2px,color:#333333
+
+    class Tokyo tokyo
+    class R8a instance
+    class Nitro nitro
+    class CPU,MEM,NET component
+    class EBS,SEC,IBC component
+    class Workloads tokyo
+    class DB,Cache,SAP,EDA workload
+                </pre>
+            </div>
+        </div>
+
+        <!-- Key Features -->
+        <div class="section">
+            <h2>主要機能</h2>
+
+            <div class="feature-card">
+                <div class="feature-title">第 5 世代 AMD EPYC プロセッサ Turin</div>
+                <ul>
+                    <li>最大周波数 4.5 GHz</li>
+                    <li>各 vCPU は物理 CPU コア (SMT なし)</li>
+                    <li>AMD Secure Memory Encryption (SME) による AES-256 暗号化で常時メモリ暗号化</li>
+                </ul>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-title">パフォーマンス改善</div>
+                <ul>
+                    <li>R7a 比で最大 30% 高いパフォーマンス</li>
+                    <li>R7a 比で 45% 高いメモリ帯域幅</li>
+                    <li>GroovyJVM: 最大 60% 高速</li>
+                    <li>最大 19% 優れたプライスパフォーマンス</li>
+                </ul>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-title">高性能インターフェース</div>
+                <ul>
+                    <li>ネットワーク帯域幅: 最大 75 Gbps (R7a 比 50% 向上)</li>
+                    <li>EBS 帯域幅: 最大 60 Gbps</li>
+                    <li>インスタンスあたり最大 128 EBS ボリュームをサポート</li>
+                    <li>Instance Bandwidth Configuration (IBC) 機能でネットワークまたは EBS 帯域幅を 25% ブースト可能</li>
+                </ul>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-title">SAP 認定</div>
+                <ul>
+                    <li>R7a 比で 38% 多い SAPS を提供</li>
+                    <li>ミッションクリティカルな SAP ワークロードに対応</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Performance Comparison -->
+        <div class="section">
+            <h2>パフォーマンス比較 R7a 対比</h2>
+
+            <div class="stats-grid" style="grid-template-columns: repeat(2, 1fr);">
+                <div class="stat-card">
+                    <div class="stat-number">+30%</div>
+                    <div class="stat-label">全般パフォーマンス</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">+19%</div>
+                    <div class="stat-label">プライスパフォーマンス</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">+45%</div>
+                    <div class="stat-label">メモリ帯域幅</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">+60%</div>
+                    <div class="stat-label">GroovyJVM ベンチマーク</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">+38%</div>
+                    <div class="stat-label">SAPS (SAP)</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">+50%</div>
+                    <div class="stat-label">ネットワークスループット</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Technical Specs -->
+        <div class="section">
+            <h2>技術仕様</h2>
+
+            <h3>インスタンスサイズ</h3>
+            <div style="overflow-x: auto;">
+                <table class="comparison-table">
+                    <thead>
+                        <tr>
+                            <th>インスタンスサイズ</th>
+                            <th>vCPU</th>
+                            <th>メモリ GiB</th>
+                            <th>ネットワーク Gbps</th>
+                            <th>EBS Gbps</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>r8a.medium</td>
+                            <td>1</td>
+                            <td>8</td>
+                            <td>最大 12.5</td>
+                            <td>最大 10</td>
+                        </tr>
+                        <tr>
+                            <td>r8a.large</td>
+                            <td>2</td>
+                            <td>16</td>
+                            <td>最大 12.5</td>
+                            <td>最大 10</td>
+                        </tr>
+                        <tr>
+                            <td>r8a.xlarge</td>
+                            <td>4</td>
+                            <td>32</td>
+                            <td>最大 12.5</td>
+                            <td>最大 10</td>
+                        </tr>
+                        <tr>
+                            <td>r8a.2xlarge</td>
+                            <td>8</td>
+                            <td>64</td>
+                            <td>最大 15</td>
+                            <td>最大 10</td>
+                        </tr>
+                        <tr>
+                            <td>r8a.4xlarge</td>
+                            <td>16</td>
+                            <td>128</td>
+                            <td>最大 15</td>
+                            <td>最大 10</td>
+                        </tr>
+                        <tr>
+                            <td>r8a.8xlarge</td>
+                            <td>32</td>
+                            <td>256</td>
+                            <td>15</td>
+                            <td>10</td>
+                        </tr>
+                        <tr>
+                            <td>r8a.12xlarge</td>
+                            <td>48</td>
+                            <td>384</td>
+                            <td>22.5</td>
+                            <td>15</td>
+                        </tr>
+                        <tr>
+                            <td>r8a.16xlarge</td>
+                            <td>64</td>
+                            <td>512</td>
+                            <td>30</td>
+                            <td>20</td>
+                        </tr>
+                        <tr>
+                            <td>r8a.24xlarge</td>
+                            <td>96</td>
+                            <td>768</td>
+                            <td>40</td>
+                            <td>30</td>
+                        </tr>
+                        <tr>
+                            <td>r8a.48xlarge</td>
+                            <td>192</td>
+                            <td>1536</td>
+                            <td>75</td>
+                            <td>60</td>
+                        </tr>
+                        <tr>
+                            <td>r8a.metal-24xl</td>
+                            <td>96</td>
+                            <td>768</td>
+                            <td>40</td>
+                            <td>30</td>
+                        </tr>
+                        <tr>
+                            <td>r8a.metal-48xl</td>
+                            <td>192</td>
+                            <td>1536</td>
+                            <td>75</td>
+                            <td>60</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3>対応命令セット</h3>
+            <p>R8a インスタンスは <span class="highlight">AVX-512</span>、<span class="highlight">VNNI</span>、<span class="highlight">bfloat16</span> 命令セットをサポートしており、畳み込みニューラルネットワークベースのアルゴリズム、金融分析、動画エンコーディングの効率的な実行が可能です。</p>
+        </div>
+
+        <!-- Setup -->
+        <div class="section">
+            <h2>設定方法</h2>
+
+            <h3>前提条件</h3>
+            <ul style="padding-left: 20px; margin-bottom: 16px; font-size: 14px;">
+                <li>Asia Pacific (Tokyo) リージョンの AWS アカウントを保有していること</li>
+                <li>EC2 インスタンスの起動権限を持つ IAM ユーザーまたはロールがあること</li>
+                <li>対象リージョンでの EC2 サービスクォータが確認済みであること</li>
+            </ul>
+
+            <h3>ステップ 1: AWS CLI でインスタンスを起動</h3>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Bash</span>
+                    <span class="code-title">R8a インスタンスの起動</span>
+                </div>
+                <pre><code class="language-bash">aws ec2 run-instances \
+  --instance-type r8a.xlarge \
+  --image-id ami-xxxxxxxxxxxxxxxxx \
+  --key-name my-key-pair \
+  --security-group-ids sg-xxxxxxxxxxxxxxxxx \
+  --subnet-id subnet-xxxxxxxxxxxxxxxxx \
+  --region ap-northeast-1</code></pre>
+            </div>
+
+            <h3>ステップ 2: 利用可能なインスタンスサイズを確認</h3>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Bash</span>
+                    <span class="code-title">R8a インスタンスタイプの一覧表示</span>
+                </div>
+                <pre><code class="language-bash">aws ec2 describe-instance-types \
+  --filters "Name=instance-type,Values=r8a.*" \
+  --region ap-northeast-1 \
+  --query "InstanceTypes[].{Type:InstanceType,vCPU:VCpuInfo.DefaultVCpus,Memory:MemoryInfo.SizeInMiB}" \
+  --output table</code></pre>
+            </div>
+
+            <h3>ステップ 3: 購入オプションを選択</h3>
+            <p>R8a インスタンスは以下の購入オプションで利用可能です。</p>
+            <ul style="padding-left: 20px; font-size: 14px;">
+                <li><strong>On-Demand</strong>: 長期契約なしで時間単位の料金</li>
+                <li><strong>Savings Plans</strong>: 1 年または 3 年のコミットメントで割引</li>
+                <li><strong>Spot インスタンス</strong>: 未使用キャパシティを大幅な割引で利用</li>
+            </ul>
+        </div>
+
+        <!-- Merits / Demerits -->
+        <div class="section">
+            <h2>メリット・デメリット</h2>
+            <div class="pros-cons">
+                <div class="pros-card">
+                    <h3>メリット</h3>
+                    <p style="font-size: 13px; color: var(--aws-green); font-weight: 600; margin-bottom: 6px;">ビジネス面</p>
+                    <ul>
+                        <li>R7a 比で最大 19% 優れたプライスパフォーマンスにより運用コストを削減</li>
+                        <li>日本国内のデータレジデンシー要件に対応しながら最新インスタンスを利用可能</li>
+                        <li>SAP 認定で R7a 比 38% 多い SAPS を提供し、ミッションクリティカルな SAP ワークロードを東京で実行可能</li>
+                        <li>12 サイズ (1 vCPU から 192 vCPU) で多様なワークロードに対応</li>
+                    </ul>
+                    <p style="font-size: 13px; color: var(--aws-green); font-weight: 600; margin: 10px 0 6px;">技術面</p>
+                    <ul>
+                        <li>AMD EPYC Turin プロセッサで 4.5 GHz の最大周波数を実現</li>
+                        <li>R7a 比 45% のメモリ帯域幅向上でデータ集約型ワークロードが高速化</li>
+                        <li>IBC 機能でネットワークまたは EBS 帯域幅を 25% ブースト可能</li>
+                        <li>AMD SME による AES-256 メモリ暗号化でセキュリティを強化</li>
+                    </ul>
+                </div>
+                <div class="cons-card">
+                    <h3>制約・注意点</h3>
+                    <p style="font-size: 13px; color: var(--aws-orange); font-weight: 600; margin-bottom: 6px;">制限事項</p>
+                    <ul>
+                        <li>R8a インスタンスはインスタンスストレージを持たない (EBS のみ)</li>
+                        <li>ローカル NVMe ストレージが必要な場合は他のインスタンスファミリーを検討する必要がある</li>
+                    </ul>
+                    <p style="font-size: 13px; color: var(--aws-orange); font-weight: 600; margin: 10px 0 6px;">考慮すべき点</p>
+                    <ul>
+                        <li>R7a からの移行時はアプリケーションの互換性テストを実施することを推奨</li>
+                        <li>既存の予約インスタンスや Savings Plans の適用状況を確認し、コスト最適化を図る</li>
+                        <li>Intel ベースのメモリ最適化インスタンスが必要な場合は R8i インスタンスも検討すべき</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Use Cases -->
+        <div class="section">
+            <h2>ユースケース</h2>
+
+            <div class="usecase-card">
+                <div class="usecase-title">ユースケース 1: SQL/NoSQL データベース</div>
+                <div class="usecase-scenario">日本国内の企業が、大規模なデータベースワークロードを東京リージョンで稼働させたいシナリオ。</div>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">Bash</span>
+                        <span class="code-title">大規模データベース向けインスタンス起動</span>
+                    </div>
+                    <pre><code class="language-bash">aws ec2 run-instances \
+  --instance-type r8a.24xlarge \
+  --image-id ami-xxxxxxxxxxxxxxxxx \
+  --region ap-northeast-1 \
+  --placement AvailabilityZone=ap-northeast-1a \
+  --network-interfaces "DeviceIndex=0,SubnetId=subnet-xxx,Groups=sg-xxx"</code></pre>
+                </div>
+                <div class="usecase-effect">R7a 比で最大 30% のパフォーマンス向上と 45% のメモリ帯域幅向上により、データベースのクエリ応答時間が大幅に改善</div>
+            </div>
+
+            <div class="usecase-card">
+                <div class="usecase-title">ユースケース 2: インメモリキャッシュとデータベース</div>
+                <div class="usecase-scenario">分散キャッシングフリートやインメモリデータベースを東京リージョンで運用するシナリオ。</div>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">Bash</span>
+                        <span class="code-title">Spot インスタンスでコスト最適化</span>
+                    </div>
+                    <pre><code class="language-bash">aws ec2 run-instances \
+  --instance-type r8a.8xlarge \
+  --image-id ami-xxxxxxxxxxxxxxxxx \
+  --region ap-northeast-1 \
+  --instance-market-options MarketType=spot</code></pre>
+                </div>
+                <div class="usecase-effect">45% 向上したメモリ帯域幅により、インメモリ処理のパフォーマンスが大幅に改善。Spot インスタンスを活用することでコストを最適化</div>
+            </div>
+
+            <div class="usecase-card">
+                <div class="usecase-title">ユースケース 3: SAP ワークロード</div>
+                <div class="usecase-scenario">日本の製造業企業が SAP ワークロードを R8a インスタンス上で稼働するシナリオ。</div>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">Bash</span>
+                        <span class="code-title">SAP HANA 向け大規模インスタンス起動</span>
+                    </div>
+                    <pre><code class="language-bash">aws ec2 run-instances \
+  --instance-type r8a.48xlarge \
+  --image-id ami-sap-hana-xxxxxxxxx \
+  --region ap-northeast-1 \
+  --block-device-mappings "DeviceName=/dev/sda1,Ebs={VolumeSize=1000,VolumeType=gp3,Iops=16000}"</code></pre>
+                </div>
+                <div class="usecase-effect">SAP 認定の 192 vCPU、1536 GiB メモリの大規模インスタンスで、R7a 比 38% 多い SAPS を提供。メモリ集約型 SAP アプリケーションの処理速度が向上</div>
+            </div>
+        </div>
+
+        <!-- Pricing -->
+        <div class="section">
+            <h2>料金</h2>
+            <p>R8a インスタンスの料金はリージョンとインスタンスサイズにより異なります。On-Demand、Savings Plans、Spot インスタンスで購入可能です。最大 <span class="highlight">19% のプライスパフォーマンス改善</span>により、同等の処理をより低コストで実行できます。</p>
+            <table class="pricing-table">
+                <thead>
+                    <tr>
+                        <th>購入オプション</th>
+                        <th>特徴</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>On-Demand</td>
+                        <td>長期契約なし、時間単位の料金</td>
+                    </tr>
+                    <tr>
+                        <td>Savings Plans</td>
+                        <td>1 年または 3 年のコミットメントで割引</td>
+                    </tr>
+                    <tr>
+                        <td>Spot インスタンス</td>
+                        <td>未使用キャパシティを大幅な割引で利用</td>
+                    </tr>
+                </tbody>
+            </table>
+            <p style="font-size: 14px;">詳細な料金については、<a href="https://aws.amazon.com/ec2/pricing/" target="_blank" rel="noopener noreferrer" class="aws-link">Amazon EC2 料金ページ</a>を参照してください。</p>
+        </div>
+
+        <!-- Region -->
+        <div class="section">
+            <h2>利用可能リージョン</h2>
+            <p>R8a インスタンスは以下の AWS リージョンで利用可能です。<span class="highlight">Asia Pacific (Tokyo)</span> が今回追加されました。</p>
+            <div class="related-grid" style="grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));">
+                <div class="related-item">
+                    <div class="related-name">US East (N. Virginia)</div>
+                    <div class="related-desc">us-east-1</div>
+                </div>
+                <div class="related-item">
+                    <div class="related-name">US East (Ohio)</div>
+                    <div class="related-desc">us-east-2</div>
+                </div>
+                <div class="related-item">
+                    <div class="related-name">US West (Oregon)</div>
+                    <div class="related-desc">us-west-2</div>
+                </div>
+                <div class="related-item">
+                    <div class="related-name">Europe (Spain)</div>
+                    <div class="related-desc">eu-south-2</div>
+                </div>
+                <div class="related-item">
+                    <div class="related-name">Europe (Frankfurt)</div>
+                    <div class="related-desc">eu-central-1</div>
+                </div>
+                <div class="related-item">
+                    <div class="related-name">Europe (Ireland)</div>
+                    <div class="related-desc">eu-west-1</div>
+                </div>
+                <div class="related-item" style="border-color: var(--aws-orange); background: rgba(255, 153, 0, 0.08);">
+                    <div class="related-name" style="color: var(--aws-orange);">Asia Pacific (Tokyo) NEW</div>
+                    <div class="related-desc">ap-northeast-1</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Related Services -->
+        <div class="section">
+            <h2>関連サービス・機能</h2>
+            <div class="related-grid">
+                <div class="related-item">
+                    <div class="related-name">Amazon EC2 R7a</div>
+                    <div class="related-desc">R8a の前世代の AMD ベースメモリ最適化インスタンス</div>
+                </div>
+                <div class="related-item">
+                    <div class="related-name">Amazon EC2 R8i</div>
+                    <div class="related-desc">同世代の Intel ベースメモリ最適化インスタンス</div>
+                </div>
+                <div class="related-item">
+                    <div class="related-name">Amazon EC2 R8g</div>
+                    <div class="related-desc">同世代の Graviton ベースメモリ最適化インスタンス</div>
+                </div>
+                <div class="related-item">
+                    <div class="related-name">AWS Compute Optimizer</div>
+                    <div class="related-desc">最適なインスタンスタイプの推奨</div>
+                </div>
+                <div class="related-item">
+                    <div class="related-name">AWS Nitro System</div>
+                    <div class="related-desc">EC2 インスタンスの基盤となるセキュリティとパフォーマンスを提供するシステム</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer>
+            <p>出典:</p>
+            <ul style="list-style: none; padding: 0; margin-top: 4px;">
+                <li>- <a href="https://aws.amazon.com/about-aws/whats-new/2026/03/amazon-ec2-r8a-instances-tokyo/" target="_blank" rel="noopener noreferrer">公式発表 (What's New)</a></li>
+                <li>- <a href="https://aws.amazon.com/ec2/instance-types/r8a/" target="_blank" rel="noopener noreferrer">R8a インスタンスページ</a></li>
+                <li>- <a href="https://aws.amazon.com/ec2/pricing/" target="_blank" rel="noopener noreferrer">Amazon EC2 料金ページ</a></li>
+            </ul>
+            <p style="margin-top: 12px; color: rgba(213, 219, 219, 0.6);">Generated by AWS News Infographic Generator</p>
+        </footer>
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'base',
+            themeVariables: {
+                primaryColor: '#FF9900',
+                primaryTextColor: '#232F3E',
+                primaryBorderColor: '#FF9900',
+                lineColor: '#FF9900',
+                secondaryColor: '#F5F5F5',
+                tertiaryColor: '#FAFAFA',
+                background: '#FFFFFF',
+                mainBkg: '#FFF3E0',
+                nodeBorder: '#FF9900',
+                clusterBkg: '#FFF8E1',
+                clusterBorder: '#FF9900',
+                edgeLabelBackground: '#FFFFFF',
+                textColor: '#232F3E'
+            }
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/highlight.min.js"></script>
+    <script>hljs.highlightAll();</script>
+</body>
+</html>

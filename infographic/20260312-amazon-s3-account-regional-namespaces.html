@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Amazon S3 - Account Regional Namespaces</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap');
+
+        :root {
+            --aws-squid-ink: #232F3E;
+            --aws-dark-squid: #1A242F;
+            --aws-orange: #FF9900;
+            --aws-smile-orange: #FFAD33;
+            --aws-white: #FFFFFF;
+            --aws-light-gray: #D5DBDB;
+            --aws-teal: #00A1C9;
+            --aws-purple: #8C4FFF;
+            --aws-green: #1D8102;
+            --aws-red: #D13212;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background-color: var(--aws-squid-ink);
+            font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            color: var(--aws-light-gray);
+            font-size: 16px;
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        /* Header */
+        .header {
+            margin-bottom: 32px;
+            padding-bottom: 24px;
+            border-bottom: 2px solid var(--aws-orange);
+        }
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        .service-badge {
+            background: var(--aws-orange);
+            color: var(--aws-squid-ink);
+            padding: 4px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 700;
+        }
+        .date-badge {
+            font-size: 14px;
+            color: var(--aws-light-gray);
+        }
+        h1 {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--aws-white);
+            margin-bottom: 8px;
+            line-height: 1.3;
+        }
+        .subtitle {
+            font-size: 16px;
+            color: var(--aws-light-gray);
+        }
+
+        /* Sections */
+        .section {
+            background: var(--aws-dark-squid);
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        h2 {
+            font-size: 22px;
+            font-weight: 600;
+            color: var(--aws-orange);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        h3 {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--aws-white);
+            margin: 16px 0 10px;
+        }
+        p { margin-bottom: 12px; }
+
+        .highlight {
+            background-color: rgba(255, 153, 0, 0.2);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+            color: var(--aws-orange);
+        }
+
+        /* Before/After */
+        .before-after {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin: 16px 0;
+        }
+        @media (max-width: 600px) {
+            .before-after { grid-template-columns: 1fr; }
+        }
+        .before-card, .after-card {
+            border-radius: 8px;
+            padding: 16px;
+        }
+        .before-card {
+            background: rgba(209, 50, 18, 0.1);
+            border: 1px solid rgba(209, 50, 18, 0.4);
+        }
+        .after-card {
+            background: rgba(29, 129, 2, 0.1);
+            border: 1px solid rgba(29, 129, 2, 0.4);
+        }
+        .before-card .card-label {
+            color: var(--aws-red);
+            font-weight: 700;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+        .after-card .card-label {
+            color: var(--aws-green);
+            font-weight: 700;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+        .before-card li, .after-card li {
+            margin-bottom: 6px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        .before-card ul, .after-card ul {
+            list-style: none;
+            padding: 0;
+        }
+        .before-card li::before { content: "  "; }
+        .after-card li::before { content: "  "; }
+
+        /* Feature cards */
+        .feature-card {
+            background: var(--aws-dark-squid);
+            border-left: 4px solid var(--aws-orange);
+            border-radius: 0 8px 8px 0;
+            padding: 16px 16px 16px 20px;
+            margin: 12px 0;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .feature-card .feature-title {
+            font-weight: 600;
+            color: var(--aws-white);
+            margin-bottom: 6px;
+            font-size: 16px;
+        }
+        .feature-card p {
+            margin-bottom: 4px;
+            font-size: 14px;
+        }
+        .feature-card ul {
+            padding-left: 20px;
+            font-size: 14px;
+        }
+        .feature-card li { margin-bottom: 4px; }
+
+        /* Stats grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin: 16px 0;
+        }
+        @media (max-width: 600px) {
+            .stats-grid { grid-template-columns: 1fr; }
+        }
+        .stat-card {
+            background: linear-gradient(135deg, rgba(255, 153, 0, 0.15), rgba(255, 153, 0, 0.05));
+            border: 1px solid rgba(255, 153, 0, 0.3);
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+        }
+        .stat-number {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--aws-orange);
+            line-height: 1.2;
+        }
+        .stat-label {
+            font-size: 14px;
+            color: var(--aws-light-gray);
+            margin-top: 4px;
+        }
+
+        /* Table */
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+            font-size: 14px;
+        }
+        .comparison-table th {
+            background: rgba(255, 153, 0, 0.2);
+            color: var(--aws-orange);
+            padding: 10px 12px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid var(--aws-orange);
+        }
+        .comparison-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .comparison-table tr:hover {
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        /* Usecase */
+        .usecase-card {
+            background: linear-gradient(135deg, rgba(255, 153, 0, 0.08), rgba(255, 153, 0, 0.02));
+            border: 1px solid rgba(255, 153, 0, 0.2);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 12px 0;
+        }
+        .usecase-card .usecase-title {
+            font-weight: 600;
+            color: var(--aws-white);
+            font-size: 16px;
+            margin-bottom: 6px;
+        }
+        .usecase-card .usecase-scenario {
+            font-size: 14px;
+            color: var(--aws-light-gray);
+            margin-bottom: 8px;
+        }
+        .usecase-card .usecase-effect {
+            font-size: 14px;
+            color: var(--aws-green);
+            font-weight: 500;
+        }
+
+        /* Mermaid */
+        .mermaid-container {
+            background: #FFFFFF;
+            border-radius: 12px;
+            padding: 24px;
+            margin: 20px 0;
+            border: 2px solid rgba(255, 153, 0, 0.3);
+            overflow-x: auto;
+        }
+        .mermaid {
+            display: flex;
+            justify-content: center;
+        }
+
+        /* Code blocks */
+        .code-block {
+            background: #1a1a2e;
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 16px 0;
+        }
+        .code-header {
+            background: #16213e;
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+        }
+        .code-lang {
+            color: var(--aws-orange);
+            font-weight: bold;
+        }
+        .code-title {
+            color: var(--aws-light-gray);
+        }
+        .code-block pre {
+            margin: 0;
+            padding: 0;
+            overflow-x: auto;
+        }
+        .code-block code {
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            padding: 16px !important;
+        }
+
+        /* Pros/Cons */
+        .pros-cons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin: 16px 0;
+        }
+        @media (max-width: 600px) {
+            .pros-cons { grid-template-columns: 1fr; }
+        }
+        .pros-card, .cons-card {
+            border-radius: 8px;
+            padding: 16px;
+        }
+        .pros-card {
+            background: rgba(29, 129, 2, 0.08);
+            border: 1px solid rgba(29, 129, 2, 0.3);
+        }
+        .cons-card {
+            background: rgba(255, 153, 0, 0.08);
+            border: 1px solid rgba(255, 153, 0, 0.3);
+        }
+        .pros-card h3 { color: var(--aws-green); }
+        .cons-card h3 { color: var(--aws-orange); }
+        .pros-card li, .cons-card li {
+            font-size: 14px;
+            margin-bottom: 6px;
+            line-height: 1.5;
+        }
+        .pros-card ul, .cons-card ul {
+            padding-left: 20px;
+        }
+
+        /* Pricing */
+        .pricing-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+            font-size: 14px;
+        }
+        .pricing-table th {
+            background: rgba(255, 153, 0, 0.15);
+            color: var(--aws-orange);
+            padding: 10px 12px;
+            text-align: left;
+            font-weight: 600;
+        }
+        .pricing-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Related */
+        .related-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+            margin: 16px 0;
+        }
+        .related-item {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 14px;
+        }
+        .related-item .related-name {
+            color: var(--aws-white);
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        .related-item .related-desc {
+            font-size: 13px;
+            color: var(--aws-light-gray);
+        }
+
+        /* Links */
+        .aws-link {
+            color: var(--aws-teal);
+            text-decoration: none;
+        }
+        .aws-link:hover {
+            color: var(--aws-smile-orange);
+            text-decoration: underline;
+        }
+
+        /* Footer */
+        footer {
+            margin-top: 24px;
+            padding-top: 16px;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            font-size: 12px;
+            color: var(--aws-light-gray);
+        }
+        footer a {
+            color: var(--aws-teal);
+            text-decoration: none;
+            word-break: break-all;
+        }
+        footer a:hover { text-decoration: underline; }
+    </style>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/styles/atom-one-dark.min.css">
+</head>
+<body>
+    <div class="container">
+
+        <!-- Header -->
+        <div class="header">
+            <div class="header-top">
+                <span class="service-badge">Amazon S3</span>
+                <span class="date-badge">2026 年 03 月 12 日</span>
+            </div>
+            <h1>🪣 Amazon S3 - Account Regional Namespaces</h1>
+            <p class="subtitle">バケット名をアカウントとリージョンにスコープし、グローバル一意性の制約から解放</p>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number">37</div>
+                <div class="stat-label">対応 AWS リージョン</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">$0</div>
+                <div class="stat-label">追加料金</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">-an</div>
+                <div class="stat-label">名前空間サフィックス</div>
+            </div>
+        </div>
+
+        <!-- Overview -->
+        <div class="section">
+            <h2>📋 概要</h2>
+            <p>Amazon S3 が汎用バケット向けに<span class="highlight">アカウントリージョナル名前空間</span>を導入しました。この機能により、バケット名を AWS アカウントとリージョンにスコープして作成できるようになり、グローバルに一意なバケット名を探す必要がなくなります。</p>
+            <p>複数の AWS リージョンにわたって予測可能なバケット名を作成でき、必要な名前がいつでも利用可能であることが保証されます。顧客ごと、チームごと、データセットごとにバケットを使用するワークロードの構築が容易になります。</p>
+            <p>SCP と IAM ポリシーを使用して、ユーザーがアカウントリージョナル名前空間内でのみバケットを作成するように強制でき、企業全体で一貫したバケット命名規則を適用できます。AWS マネジメントコンソール、S3 REST API、AWS CLI、AWS SDK、AWS CloudFormation から利用可能です。</p>
+        </div>
+
+        <!-- Before/After -->
+        <div class="section">
+            <h2>🔄 Before / After</h2>
+            <div class="before-after">
+                <div class="before-card">
+                    <div class="card-label">❌ Before: グローバル名前空間</div>
+                    <ul>
+                        <li>バケット名はパーティション内で<strong>グローバルに一意</strong>である必要があった</li>
+                        <li>希望するバケット名が他のアカウントで使用中の場合、別の名前を選択する必要があった</li>
+                        <li>複数リージョンで一貫した命名規則の適用が困難</li>
+                        <li>バケット削除後に同じ名前を他アカウントが取得できるリスク</li>
+                        <li>マルチテナントでの一意な名前生成が複雑</li>
+                    </ul>
+                </div>
+                <div class="after-card">
+                    <div class="card-label">✅ After: アカウントリージョナル名前空間</div>
+                    <ul>
+                        <li>バケット名を<strong>アカウント + リージョン</strong>にスコープして作成可能</li>
+                        <li>複数リージョンで同じバケット名を使用でき、予測可能な命名が可能</li>
+                        <li>SCP / IAM で名前空間の使用を強制可能</li>
+                        <li>名前の所有権がアカウントに紐づき、競合リスクが排除</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Architecture Diagram -->
+        <div class="section">
+            <h2>🏗️ アーキテクチャ図</h2>
+            <p>従来のグローバル名前空間とアカウントリージョナル名前空間の違いを示しています。アカウントリージョナル名前空間では、異なるアカウントが同じバケット名を同じリージョンで使用できます。</p>
+            <div class="mermaid-container">
+                <pre class="mermaid">
+flowchart TD
+    subgraph Global["🌐 従来: グローバル名前空間"]
+        direction LR
+        G1["🪣 my-app-bucket<br/>アカウント A"]
+        G2["❌ my-app-bucket<br/>アカウント B - 使用不可"]
+        G1 ~~~ G2
+    end
+
+    subgraph Regional["🏢 新機能: アカウントリージョナル名前空間"]
+        subgraph AccA["👤 アカウント A"]
+            direction LR
+            A1["🪣 my-app-bucket-an<br/>us-east-1"]
+            A2["🪣 my-app-bucket-an<br/>ap-northeast-1"]
+            A1 ~~~ A2
+        end
+        subgraph AccB["👤 アカウント B"]
+            direction LR
+            B1["🪣 my-app-bucket-an<br/>us-east-1"]
+            B2["🪣 my-app-bucket-an<br/>ap-northeast-1"]
+            B1 ~~~ B2
+        end
+    end
+
+    subgraph Enforce["🔒 ガバナンス"]
+        direction LR
+        SCP["📋 SCP"]
+        IAM["🔑 IAM ポリシー"]
+        SCP ~~~ IAM
+    end
+
+    Enforce -->|名前空間の強制| Regional
+
+    classDef global fill:none,stroke:#CCCCCC,stroke-width:2px,color:#666666
+    classDef regional fill:none,stroke:#E1BEE7,stroke-width:2px,color:#666666
+    classDef account fill:#E8F1FF,stroke:#4A90E2,stroke-width:2px,color:#333333
+    classDef bucket fill:#DCEDC8,stroke:#C5E1A5,stroke-width:2px,color:#33691E
+    classDef blocked fill:#FFEBEE,stroke:#F44336,stroke-width:2px,color:#333333
+    classDef enforce fill:#FFF3E0,stroke:#FF9800,stroke-width:2px,color:#333333
+
+    class Global global
+    class Regional regional
+    class AccA,AccB account
+    class G1,A1,A2,B1,B2 bucket
+    class G2 blocked
+    class Enforce,SCP,IAM enforce
+                </pre>
+            </div>
+        </div>
+
+        <!-- Key Features -->
+        <div class="section">
+            <h2>⚡ 主要機能</h2>
+
+            <div class="feature-card">
+                <div class="feature-title">🪣 アカウントリージョナル名前空間でのバケット作成</div>
+                <ul>
+                    <li>バケット名を AWS アカウントとリージョンにスコープして作成可能</li>
+                    <li>バケット名の末尾に <code>-an</code> サフィックスを付与</li>
+                    <li>同じバケット名を複数のアカウントおよびリージョンで使用可能</li>
+                    <li>CreateBucket API で新しいバケット名前空間リクエストヘッダーを指定して作成</li>
+                </ul>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-title">🎯 予測可能なバケット命名</div>
+                <ul>
+                    <li>複数リージョンにわたって一貫したバケット名を使用可能</li>
+                    <li>顧客ごと、チームごと、データセットごとに体系的なバケット名を設計可能</li>
+                    <li>希望する名前が常に利用可能であることが保証される</li>
+                </ul>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-title">🔒 ガバナンスと命名規則の強制</div>
+                <ul>
+                    <li>SCP を使用して、組織全体でアカウントリージョナル名前空間の使用を強制可能</li>
+                    <li>IAM ポリシーで個々のユーザーやロールに対して名前空間の使用を制御可能</li>
+                    <li>企業全体で一貫したバケット命名規則を適用可能</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Technical Specs -->
+        <div class="section">
+            <h2>🔧 技術仕様</h2>
+
+            <h3>名前空間の比較</h3>
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>項目</th>
+                        <th>グローバル名前空間</th>
+                        <th>アカウントリージョナル名前空間</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>一意性のスコープ</td>
+                        <td>パーティション全体</td>
+                        <td>アカウント + リージョン</td>
+                    </tr>
+                    <tr>
+                        <td>バケット名の重複</td>
+                        <td>不可</td>
+                        <td>異なるアカウント/リージョンで可能</td>
+                    </tr>
+                    <tr>
+                        <td>名前のサフィックス</td>
+                        <td>なし</td>
+                        <td><code>-an</code></td>
+                    </tr>
+                    <tr>
+                        <td>他アカウントによる名前取得リスク</td>
+                        <td>あり (削除後)</td>
+                        <td>なし</td>
+                    </tr>
+                    <tr>
+                        <td>複数リージョンで同じ名前</td>
+                        <td>不可</td>
+                        <td>可能</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>バケット命名規則</h3>
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>項目</th>
+                        <th>詳細</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>バケット名の長さ</td>
+                        <td>3 文字から 63 文字</td>
+                    </tr>
+                    <tr>
+                        <td>使用可能文字</td>
+                        <td>小文字、数字、ピリオド (.)、ハイフン (-)</td>
+                    </tr>
+                    <tr>
+                        <td>サフィックス</td>
+                        <td>アカウントリージョナル名前空間のバケットは <code>-an</code> で終了</td>
+                    </tr>
+                    <tr>
+                        <td>先頭・末尾</td>
+                        <td>英字または数字で開始・終了</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Setup -->
+        <div class="section">
+            <h2>🛠️ 設定方法</h2>
+
+            <h3>前提条件</h3>
+            <ul style="padding-left: 20px; margin-bottom: 16px; font-size: 14px;">
+                <li>AWS CLI が最新バージョンにアップデートされていること</li>
+                <li>必要な IAM 権限 (<code>s3:CreateBucket</code>) が付与されていること</li>
+                <li>バケットを作成する AWS リージョンが決定していること</li>
+            </ul>
+
+            <h3>ステップ 1: AWS CLI でのバケット作成</h3>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Bash</span>
+                    <span class="code-title">アカウントリージョナル名前空間でのバケット作成</span>
+                </div>
+                <pre><code class="language-bash">aws s3api create-bucket \
+    --bucket my-app-data-an \
+    --region ap-northeast-1 \
+    --create-bucket-configuration LocationConstraint=ap-northeast-1 \
+    --x-amz-bucket-namespace account-regional</code></pre>
+            </div>
+            <p style="font-size: 14px;"><code>--x-amz-bucket-namespace account-regional</code> ヘッダーにより、アカウントリージョナル名前空間での作成を指定しています。</p>
+
+            <h3>ステップ 2: CloudFormation テンプレート</h3>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">YAML</span>
+                    <span class="code-title">CloudFormation でのバケット作成</span>
+                </div>
+                <pre><code class="language-yaml">AWSTemplateFormatVersion: '2010-09-09'
+Resources:
+  MyBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: my-app-data-an
+      BucketNamespace: account-regional</code></pre>
+            </div>
+
+            <h3>ステップ 3: SCP による名前空間の強制</h3>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">JSON</span>
+                    <span class="code-title">SCP ポリシー例</span>
+                </div>
+                <pre><code class="language-json">{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "RequireAccountRegionalNamespace",
+            "Effect": "Deny",
+            "Action": "s3:CreateBucket",
+            "Resource": "*",
+            "Condition": {
+                "StringNotEquals": {
+                    "s3:x-amz-bucket-namespace": "account-regional"
+                }
+            }
+        }
+    ]
+}</code></pre>
+            </div>
+            <p style="font-size: 14px;">この SCP を組織のルートまたは OU に適用することで、すべてのメンバーアカウントがアカウントリージョナル名前空間でのみバケットを作成するように強制できます。</p>
+        </div>
+
+        <!-- Merits / Demerits -->
+        <div class="section">
+            <h2>⚖️ メリット・デメリット</h2>
+            <div class="pros-cons">
+                <div class="pros-card">
+                    <h3>✅ メリット</h3>
+                    <p style="font-size: 13px; color: var(--aws-green); font-weight: 600; margin-bottom: 6px;">ビジネス面</p>
+                    <ul>
+                        <li>グローバルに一意なバケット名を探す必要がなくなり、運用が簡素化</li>
+                        <li>顧客ごとやチームごとに予測可能な命名パターンを使用可能</li>
+                        <li>SCP / IAM で企業全体の命名規則を強制でき、コンプライアンス向上</li>
+                    </ul>
+                    <p style="font-size: 13px; color: var(--aws-green); font-weight: 600; margin: 10px 0 6px;">技術面</p>
+                    <ul>
+                        <li>複数リージョンで同じバケット名を使用でき、IaC テンプレートの再利用性が向上</li>
+                        <li>バケット名がアカウントにスコープされ、削除後の名前取得リスクが排除</li>
+                        <li>希望する名前が常に利用可能で、デプロイの失敗リスクが低減</li>
+                    </ul>
+                </div>
+                <div class="cons-card">
+                    <h3>⚠️ 制約・注意点</h3>
+                    <p style="font-size: 13px; color: var(--aws-orange); font-weight: 600; margin-bottom: 6px;">制限事項</p>
+                    <ul>
+                        <li>バケット名は <code>-an</code> サフィックスで終わる必要がある</li>
+                        <li>既存のグローバル名前空間バケットからの移行は不可 (新規作成が必要)</li>
+                        <li>アクセス時にアカウントとリージョン情報が必要</li>
+                    </ul>
+                    <p style="font-size: 13px; color: var(--aws-orange); font-weight: 600; margin: 10px 0 6px;">考慮すべき点</p>
+                    <ul>
+                        <li>既存ツールやスクリプトの更新が必要になる可能性</li>
+                        <li>グローバル / アカウントリージョナル名前空間の混在に対するポリシー策定を推奨</li>
+                        <li>S3 Transfer Acceleration 使用時はバケット名にピリオド不可 (従来と同様)</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Use Cases -->
+        <div class="section">
+            <h2>💡 ユースケース</h2>
+
+            <div class="usecase-card">
+                <div class="usecase-title">🏢 ユースケース 1: マルチテナント SaaS アプリケーション</div>
+                <div class="usecase-scenario">SaaS プロバイダーが顧客ごとに専用の S3 バケットを作成してデータを分離する必要がある場合。グローバル名前空間では顧客 ID をバケット名に含める際に名前の競合が発生する可能性があった。</div>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">Bash</span>
+                        <span class="code-title">顧客ごとのバケット作成</span>
+                    </div>
+                    <pre><code class="language-bash"># 顧客ごとにバケットを作成
+aws s3api create-bucket \
+    --bucket customer-12345-data-an \
+    --region ap-northeast-1 \
+    --create-bucket-configuration LocationConstraint=ap-northeast-1 \
+    --x-amz-bucket-namespace account-regional</code></pre>
+                </div>
+                <div class="usecase-effect">→ 顧客 ID をそのままバケット名に使用でき、命名の一貫性が保たれ、バケット管理が大幅に簡素化される</div>
+            </div>
+
+            <div class="usecase-card">
+                <div class="usecase-title">🌐 ユースケース 2: マルチリージョンデプロイメント</div>
+                <div class="usecase-scenario">グローバルに展開するアプリケーションで、各リージョンに同じ構成のバケットをデプロイする必要がある場合。従来はリージョンサフィックスを付けるなどの工夫が必要だった。</div>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">YAML</span>
+                        <span class="code-title">複数リージョンにデプロイ可能な CloudFormation テンプレート</span>
+                    </div>
+                    <pre><code class="language-yaml"># CloudFormation テンプレートを複数リージョンにデプロイ
+AWSTemplateFormatVersion: '2010-09-09'
+Resources:
+  AppDataBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: my-global-app-data-an
+      BucketNamespace: account-regional</code></pre>
+                </div>
+                <div class="usecase-effect">→ 同じ CloudFormation テンプレートを変更なしで複数リージョンにデプロイでき、IaC の再利用性と保守性が向上</div>
+            </div>
+
+            <div class="usecase-card">
+                <div class="usecase-title">🔒 ユースケース 3: エンタープライズガバナンスの統一</div>
+                <div class="usecase-scenario">大企業の IT 部門が、すべての部門とプロジェクトに対してバケット命名規則を統一し、セキュリティリスクを低減したい場合。</div>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">JSON</span>
+                        <span class="code-title">命名規則を強制する SCP</span>
+                    </div>
+                    <pre><code class="language-json">{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "EnforceNamingConvention",
+            "Effect": "Deny",
+            "Action": "s3:CreateBucket",
+            "Resource": "*",
+            "Condition": {
+                "StringNotEquals": {
+                    "s3:x-amz-bucket-namespace": "account-regional"
+                }
+            }
+        }
+    ]
+}</code></pre>
+                </div>
+                <div class="usecase-effect">→ SCP により組織全体でアカウントリージョナル名前空間の使用を強制し、バケット名の競合リスクを排除すると同時に一貫した命名規則を適用</div>
+            </div>
+        </div>
+
+        <!-- Pricing -->
+        <div class="section">
+            <h2>💰 料金</h2>
+            <p>アカウントリージョナル名前空間は<span class="highlight">追加料金なし</span>で利用できます。通常の S3 料金が適用されます。</p>
+            <table class="pricing-table">
+                <thead>
+                    <tr>
+                        <th>使用量</th>
+                        <th>月額料金 (概算)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>バケット作成</td>
+                        <td>無料</td>
+                    </tr>
+                    <tr>
+                        <td>ストレージ (S3 Standard、100 GB)</td>
+                        <td>約 $2.30 (東京リージョン)</td>
+                    </tr>
+                    <tr>
+                        <td>リクエスト (100,000 PUT/GET)</td>
+                        <td>通常の S3 リクエスト料金</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Region -->
+        <div class="section">
+            <h2>🌍 利用可能リージョン</h2>
+            <p>AWS China および AWS GovCloud (US) リージョンを含む <span class="highlight">37</span> の AWS リージョンで利用可能です。東京リージョン (ap-northeast-1) を含むすべての商用リージョンで使用できます。</p>
+        </div>
+
+        <!-- Related Services -->
+        <div class="section">
+            <h2>🔗 関連サービス・機能</h2>
+            <div class="related-grid">
+                <div class="related-item">
+                    <div class="related-name">📋 AWS Organizations (SCP)</div>
+                    <div class="related-desc">名前空間使用を組織全体で強制するサービスコントロールポリシー</div>
+                </div>
+                <div class="related-item">
+                    <div class="related-name">🔑 AWS IAM</div>
+                    <div class="related-desc">バケット作成時の名前空間指定を制御するポリシー</div>
+                </div>
+                <div class="related-item">
+                    <div class="related-name">🏗️ AWS CloudFormation</div>
+                    <div class="related-desc">IaC テンプレートでアカウントリージョナル名前空間のバケットをプロビジョニング</div>
+                </div>
+                <div class="related-item">
+                    <div class="related-name">🔌 S3 Access Points</div>
+                    <div class="related-desc">バケットへのアクセスを管理するための補完的な機能</div>
+                </div>
+                <div class="related-item">
+                    <div class="related-name">🚀 S3 Transfer Acceleration</div>
+                    <div class="related-desc">バケット名にピリオドを含まない場合に使用可能な高速転送機能</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer>
+            <p>📎 出典:</p>
+            <ul style="list-style: none; padding: 0; margin-top: 4px;">
+                <li>- <a href="https://aws.amazon.com/about-aws/whats-new/2026/03/amazon-s3-account-regional-namespaces/" target="_blank" rel="noopener noreferrer">公式発表 (What's New)</a></li>
+                <li>- <a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/bucketnamingrules.html" target="_blank" rel="noopener noreferrer">S3 バケット命名規則ドキュメント</a></li>
+                <li>- <a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/bucket-namespaces.html" target="_blank" rel="noopener noreferrer">S3 バケット名前空間ドキュメント</a></li>
+                <li>- <a href="https://aws.amazon.com/s3/pricing/" target="_blank" rel="noopener noreferrer">Amazon S3 料金ページ</a></li>
+            </ul>
+            <p style="margin-top: 12px; color: rgba(213, 219, 219, 0.6);">Generated by AWS News Infographic Generator</p>
+        </footer>
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'base',
+            themeVariables: {
+                primaryColor: '#FF9900',
+                primaryTextColor: '#232F3E',
+                primaryBorderColor: '#FF9900',
+                lineColor: '#FF9900',
+                secondaryColor: '#F5F5F5',
+                tertiaryColor: '#FAFAFA',
+                background: '#FFFFFF',
+                mainBkg: '#FFF3E0',
+                nodeBorder: '#FF9900',
+                clusterBkg: '#FFF8E1',
+                clusterBorder: '#FF9900',
+                edgeLabelBackground: '#FFFFFF',
+                textColor: '#232F3E'
+            }
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/highlight.min.js"></script>
+    <script>hljs.highlightAll();</script>
+</body>
+</html>
