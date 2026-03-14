@@ -12,6 +12,7 @@
 - [2026-03-13 - Amazon EC2 - R8a インスタンスが Asia Pacific (Tokyo) リージョンで利用可能に](2026/2026-03-13-amazon-ec2-r8a-instances-tokyo.md)
 - [2026-03-13 - Amazon MSK - Standard ブローカーで Graviton3 インスタンス (M7g) がアフリカ (ケープタウン) リージョンで利用可能に](2026/2026-03-13-amazon-msk-standardm7g-cpt-region.md)
 - [2026-03-13 - AWS Network Firewall - AWS European Sovereign Cloud での提供開始](2026/2026-03-13-network-firewall-european-sovereign-cloud-region.md)
+- [2026-03-13 - Amazon EC2 - Hpc8a インスタンスが Asia Pacific (Tokyo) および AWS GovCloud (US-West) で利用可能に](2026/2026-03-13-amazon-ec2-hpc8a-additional-regions.md)
 - [2026-03-12 - Kiro - エンタープライズガバナンス: MCP サーバーレジストリとモデルガバナンス](2026/2026-03-12-kiro-enterprise-governance.md)
 - [2026-03-12 - Amazon OpenSearch Service - OpenSearch UI クロスアカウントデータアクセス](2026/2026-03-12-opensearch-ui-cross-account-data-access-domains.md)
 - [2026-03-12 - AWS Glue zero-ETL - Amazon DynamoDB ソースの新しい設定オプション](2026/2026-03-12-aws-glue-zetl-dynamodb-configurations.md)
